@@ -4,12 +4,20 @@
 \alias{site2branch}
 \title{Push a rendered site folder to a Git branch}
 \usage{
-site2branch(root = here::here(), progress = TRUE, trigger = TRUE)
+site2branch(
+  root = here::here(),
+  branch = "site-deploy",
+  progress = TRUE,
+  trigger = TRUE
+)
 }
 \arguments{
 \item{root}{`[character(1)]`\cr
 Path to the root of the local Git repository.
 Defaults to [here::here()].}
+
+\item{branch}{`[character(1)]`\cr
+name of the branch targeted}
 
 \item{progress}{`[logical(1)]`\cr
 If `TRUE` (default), git output is forwarded to the console.}
@@ -18,6 +26,9 @@ If `TRUE` (default), git output is forwarded to the console.}
 If `TRUE` (default), calls [trigger_ftp_deploy()] after a successful push
 to dispatch the FTP deploy workflow.  Failures are caught and reported as
 warnings so the overall push is not rolled back.}
+
+\item{source}{`[character(1)]`\cr
+path to the folder to deploy}
 }
 \value{
 Invisibly returns `NULL`. Called for its side effects.

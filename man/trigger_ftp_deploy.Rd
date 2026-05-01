@@ -7,7 +7,7 @@
 trigger_ftp_deploy(
   root = here::here(),
   workflow = "ftp_deploy.yml",
-  branch = "main"
+  branch = "site-deploy"
 )
 }
 \arguments{
@@ -20,7 +20,7 @@ Defaults to [here::here()].}
 File name of the workflow to dispatch (e.g. `"ftp_deploy.yml"`).}
 
 \item{branch}{`[character(1)]`\cr
-Branch on which the workflow will be run. Defaults to `"main"`.}
+Branch on which the workflow will be run. Defaults to `"site-deploy"`.}
 }
 \value{
 Invisibly returns `NULL`. Called for its side effects.

@@ -5,7 +5,7 @@
 \title{Push a rendered site folder to a Git branch}
 \usage{
 site2branch(
-  root = here::here(),
+  root = ".",
   branch = "site-deploy",
   source = "_site",
   progress = TRUE,

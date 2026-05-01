@@ -183,7 +183,7 @@ site2branch <- function(
 #' trigger_ftp_deploy()
 #' trigger_ftp_deploy(workflow = "deploy.yml", branch = "main")
 #' }
-trigger_ftp_deploy <- function(root     = here::here(),
+trigger_ftp_deploy <- function(root     = ".",
                                workflow = "ftp_deploy.yml",
                                branch   = "site-deploy") {
   # Resolve owner/repo from git remote

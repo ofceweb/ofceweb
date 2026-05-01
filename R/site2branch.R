@@ -40,7 +40,7 @@
 #' site2branch(trigger = FALSE)
 #' }
 site2branch <- function(
-    root = here::here(),
+    root = ".",
     branch = "site-deploy",
     source = "_site",
     progress = TRUE,
@@ -65,15 +65,18 @@ site2branch <- function(
   # Carry forward the FTP differential state from the current site-deploy branch
   # so the next FTP deploy remains incremental. Silently ignored on first run.
   tryCatch({
-    gert::git_fetch(remote = "origin", repo = root, verbose = FALSE)
+    gert::git_fetch(
+      remote      = "origin",
+      repo        = root,
+      verbose     = FALSE)
     system2(
       "git",
       c("-C", shQuote(root), "show",
-        "origin/site-deploy:.ftp-deploy-sync-state.json"),
+        "origin/{branch}:.ftp-deploy-sync-state.json" |> glue::glue()),
       stdout = as.character(state_file)
     )
   }, error = function(e) NULL)
-  maintenant <- ofce::date_jour_heure(lubridate::now())
+  maintenant <- ofce::date_jour_heure(lubridate::now(), short=TRUE)
   # Copy _site/ contents + state (if present) into a fresh temp directory
   tmp <- fs::path(tempdir(), glue::glue("{branch}-{maintenant}"))
   fs::dir_copy(site_dir, tmp)
@@ -85,10 +88,8 @@ site2branch <- function(
   # Init a fresh repo, make a single orphan-style commit, force-push
   gert::git_init(path = tmp)
   gert::git_add(".", repo = tmp)
-  now <- lubridate::stamp("28/12/2026 12:32:54", quiet = TRUE)(
-    lubridate::now(tzone = "Europe/Paris"))
   gert::git_commit(
-    message = glue::glue("render {now}"),
+    message = glue::glue("render {maintenant}"),
     repo    = tmp,
     author  = gert::git_signature_default(repo = root)
   )

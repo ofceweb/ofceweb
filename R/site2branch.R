@@ -2,9 +2,9 @@
 #'
 #' Commits the contents of `_site/` (or another folder produced by a static
 #' site generator) into an orphan-style commit and force-pushes it to the
-#' `site-deploy` branch of the `origin` remote.  Optionally triggers a
+#' `site-deploy` branch (or what is spefiied in `branch`) of the `origin` remote.  Optionally triggers a
 #' downstream GitHub Actions workflow (e.g. an FTP deploy) via the
-#' `workflow_dispatch` API.
+#' `workflow_dispatch` API (check your default branch is `main`).
 #'
 #' Credentials are resolved in the following order:
 #' 1. The `DEPLOY_PAT` environment variable (recommended on CI).
@@ -125,7 +125,7 @@ site2branch <- function(
   }
   # Use system git for the push:
   #   - gert::git_push() tries to set a local tracking branch afterwards,
-  #     which fails on a fresh repo with no origin/master.
+  #     which fails on a fresh repo with no origin/main
   #   - credential.helper= (empty) prevents git from calling the macOS Keychain
   #     to store the embedded token, which fails non-interactively.
   ret <- system2(

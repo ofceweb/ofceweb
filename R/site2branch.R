@@ -18,9 +18,9 @@
 #'   Path to the root of the local Git repository.
 #'   Defaults to [here::here()].
 #' @param branch `[character(1)]`\cr
-#'   name of the branch targeted
+#'   name of the branch targeted ("site-deploy")
 #' @param source `[character(1)]`\cr
-#'   path to the folder to deploy
+#'   path to the folder to deploy ("_site")
 #' @param progress `[logical(1)]`\cr
 #'   If `TRUE` (default), git output is forwarded to the console.
 #' @param trigger `[logical(1)]`\cr
@@ -42,8 +42,10 @@
 site2branch <- function(
     root = here::here(),
     branch = "site-deploy",
+    source = "_site",
     progress = TRUE,
     trigger = TRUE) {
+
   site_dir   <- fs::path(root, source)
   state_file <- fs::path(root, ".ftp-deploy-sync-state.json")
 

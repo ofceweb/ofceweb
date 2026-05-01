@@ -73,7 +73,7 @@ site2branch <- function(
       stdout = as.character(state_file)
     )
   }, error = function(e) NULL)
-  maintenant <- ofce::data_jour_heure(lubridate::now())
+  maintenant <- ofce::date_jour_heure(lubridate::now())
   # Copy _site/ contents + state (if present) into a fresh temp directory
   tmp <- fs::path(tempdir(), glue::glue("{branch}-{maintenant}"))
   fs::dir_copy(site_dir, tmp)

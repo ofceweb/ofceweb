@@ -24,8 +24,7 @@ Imports:
     glue,
     here,
     httr2,
-    lubridate,
-    ofce
+    lubridate
 remotes:
   github::ofce/ofce
 

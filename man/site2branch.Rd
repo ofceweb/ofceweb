@@ -9,7 +9,7 @@ site2branch(
   branch = "site-deploy",
   source = "_site",
   progress = TRUE,
-  trigger = TRUE
+  trigger = FALSE
 )
 }
 \arguments{
@@ -27,9 +27,9 @@ path to the folder to deploy ("_site")}
 If `TRUE` (default), git output is forwarded to the console.}
 
 \item{trigger}{`[logical(1)]`\cr
-If `TRUE` (default), calls [trigger_ftp_deploy()] after a successful push
+If `TRUE` (default to `FALSE`), calls [trigger_ftp_deploy()] after a successful push
 to dispatch the FTP deploy workflow.  Failures are caught and reported as
-warnings so the overall push is not rolled back.}
+warnings so the overall push is not rolled back. Usually, a push on site-deploy is going to trigger the deploy.}
 }
 \value{
 Invisibly returns `NULL`. Called for its side effects.

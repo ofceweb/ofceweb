@@ -15,6 +15,7 @@
 #' - `push_site_deploy`: if `TRUE`, calls [site2branch()] to push `_site` to the
 #'   deployment branch; otherwise prints instructions for doing so manually.
 #'
+#' @param path Character path to the blog folder, default to ".".
 #' @param force_freeze Logical. If `TRUE` (default), posts are re-rendered even
 #'   when a cached version exists. Set to `FALSE` to reuse the cache wherever
 #'   possible.
@@ -47,14 +48,16 @@
 #' render_blog()
 #' }
 
-render_blog <- function( force_freeze = TRUE,
-                         workers = 8L,
-                         check_repo = TRUE,
-                         progress = TRUE,
-                         render_site = TRUE,
-                         check_freeze = FALSE,
-                         site2branch = FALSE,
-                         trigger = FALSE, freeze = TRUE) {
+render_blog <- function(
+    path = ".",
+    force_freeze = TRUE,
+    workers = 8L,
+    check_repo = TRUE,
+    progress = TRUE,
+    render_site = TRUE,
+    check_freeze = FALSE,
+    site2branch = FALSE,
+    trigger = site2branch, freeze = TRUE) {
 
   root <- getwd()
   typst <- TRUE
@@ -124,6 +127,13 @@ render_blog <- function( force_freeze = TRUE,
     force_freeze = force_freeze,
     progress = progress)
 
+  render_lang("en", posts, root)
+  cache_posts(
+    cached_en,
+    "en",
+    root,
+    progress = progress)
+
   if (check_freeze) {
     uncached <- dplyr::bind_rows(cached_fr, cached_en) |>
       dplyr::filter(!from_cache)
@@ -134,12 +144,6 @@ render_blog <- function( force_freeze = TRUE,
         i = "Relancer avec FORCE_FREEZE=false ou mettre \u00e0 jour _posts_cache/."))
     }
   }
-  render_lang("en", posts, root)
-  cache_posts(
-    cached_en,
-    "en",
-    root,
-    progress = progress)
 
   fs::dir_ls("_site", recurse=TRUE, regexp = "DS_Store$",  type = "file", all = TRUE) |>
     fs::file_delete()

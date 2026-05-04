@@ -5,6 +5,7 @@
 \title{Render the bilingual blog}
 \usage{
 render_blog(
+  path = ".",
   force_freeze = TRUE,
   workers = 8L,
   check_repo = TRUE,
@@ -12,7 +13,7 @@ render_blog(
   render_site = TRUE,
   check_freeze = FALSE,
   site2branch = FALSE,
-  trigger = FALSE,
+  trigger = site2branch,
   freeze = TRUE
 )
 }

@@ -55,17 +55,19 @@ render_blog <- function( force_freeze = TRUE,
                          check_freeze = FALSE,
                          site2branch = FALSE,
                          trigger = FALSE, freeze = TRUE) {
-  root <- rprojroot::find_root(rprojroot::is_rstudio_project)
+
+  root <- getwd()
+  typst <- TRUE
 
   if(!dir.exists(fs::path_join(c(root, "posts")))) {
     cli::cli_abort("Le projet ne contient pas de dossier posts")
   }
 
-  project <- fs::path_file(root)
+  project <- fs::path_file(root) |> as.character()
   cli::cli_h1("repo {project}")
-  if(fs::path_dir(root) != "webblog") {
+  if(project != "webblog") {
     cli::cli_alert_danger(
-      "Ce n'est pas le repo {.emph webblog}, mais {.emph project}")
+      "Ce n'est pas le repo {.emph webblog}, mais {.emph {project}}")
     answer <- readline("Etes vous sûr.e de vouloir continuer ? [o/N] ")
     if (!tolower(answer) %in% c("o", "oui"))
       cli::cli_abort("ABORT")
@@ -171,12 +173,13 @@ render_blog <- function( force_freeze = TRUE,
   if (nrow(ds_store) > 0)
     gert::git_rm(ds_store$file)
 
-  if (push_site_deploy)
+  if(nrow(status) > 0)
+    cli::cli_h2(
+      "Commit '_posts_cache' (Full render \u00e0 {now}), {.emph push} possible")
+
+  if (site2branch)
     ofceweb::site2branch(root, progress = progress, trigger = trigger)
   else {
-    if(nrow(status) > 0)
-      cli::cli_h2(
-        "Commit '_posts_cache' (Full render \u00e0 {now})")
     cli::cli_text(
       "Pour publier _site, lancer {.run ofceweb::site2branch()}"
     )
@@ -186,7 +189,7 @@ render_blog <- function( force_freeze = TRUE,
     cli::cli_h2("Render du site")
     servr::httw("_site", daemon = TRUE)
   }
-  return(status)
+  return(invisible(status))
 }
 
 # Helpers -----------------------------------

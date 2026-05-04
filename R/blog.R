@@ -59,7 +59,7 @@ render_blog <- function(
     site2branch = FALSE,
     trigger = site2branch, freeze = TRUE) {
 
-  root <- getwd()
+  root <- path |> fs::path_expand()
   typst <- TRUE
 
   if(!dir.exists(fs::path_join(c(root, "posts")))) {
@@ -75,6 +75,11 @@ render_blog <- function(
     if (!tolower(answer) %in% c("o", "oui"))
       cli::cli_abort("ABORT")
   }
+  oldwd <- getwd()
+  on.exit({
+    setwd(oldwd)
+    }
+    )
   setwd(root)
 
   if (check_repo) check_repo_status()

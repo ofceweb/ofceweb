@@ -13,7 +13,10 @@ render_home <- function(
     site2branch = FALSE,
     trigger = site2branch) {
 
-  root <- path |> fs::path_expand()
+  root <- path |>
+    fs::path_expand() |>
+    fs::path_abs() |>
+    fs::path_norm()
   project <- fs::path_file(root)
   cli::cli_h1("repo {project}")
 

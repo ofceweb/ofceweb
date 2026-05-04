@@ -59,7 +59,11 @@ render_blog <- function(
     site2branch = FALSE,
     trigger = site2branch, freeze = TRUE) {
 
-  root <- path |> fs::path_expand()
+  root <- path |>
+    fs::path_expand() |>
+    fs::path_abs() |>
+    fs::path_norm()
+
   typst <- TRUE
 
   if(!dir.exists(fs::path_join(c(root, "posts")))) {

@@ -14,7 +14,7 @@ render_home <- function(
     trigger = site2branch) {
 
   root <- path |> fs::path_expand()
-  prpject <- fs::path_file(root)
+  project <- fs::path_file(root)
   cli::cli_h1("repo {project}")
 
   if(!dir.exists(fs::path_join(c(root, "ofce")))) {

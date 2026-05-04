@@ -18,6 +18,8 @@ render_blog(
 )
 }
 \arguments{
+\item{path}{Character path to the blog folder, default to ".".}
+
 \item{force_freeze}{Logical. If `TRUE` (default), posts are re-rendered even
 when a cached version exists. Set to `FALSE` to reuse the cache wherever
 possible.}

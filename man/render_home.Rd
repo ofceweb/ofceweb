@@ -4,7 +4,14 @@
 \alias{render_home}
 \title{Génère la homepage}
 \usage{
-render_home()
+render_home(
+  path = ".",
+  check_repo = TRUE,
+  progress = TRUE,
+  render_site = TRUE,
+  site2branch = FALSE,
+  trigger = site2branch
+)
 }
 \description{
 Génère la homepage

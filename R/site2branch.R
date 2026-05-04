@@ -39,6 +39,7 @@
 #' # Push only, without triggering the downstream workflow
 #' site2branch(trigger = FALSE)
 #' }
+#'
 site2branch <- function(
     root = ".",
     branch = "site-deploy",
@@ -147,7 +148,7 @@ site2branch <- function(
     tryCatch(
       trigger_action(root = root),
       error = function(e)
-        cli::cli_warn("FTP dispatch \u00e9chou\u00e9 : {e$message} — relancer manuellement avec trigger_ftp_deploy().")
+        cli::cli_warn("FTP dispatch \u00e9chou\u00e9 : {e$message} — relancer manuellement avec trigger_action().")
     )
   }
   invisible(NULL)

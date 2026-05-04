@@ -18,13 +18,32 @@ RoxygenNote: 7.3.3
 Imports:
     cli,
     credentials,
+    curl,
+    digest,
+    dplyr,
     fs,
-    gitcreds,
+    future,
+    future.mirai,
+    futurize,
     gert,
+    gh,
+    gitcreds,
     glue,
     here,
     httr2,
-    lubridate
+    jsonlite, 
+    lightparser,
+    lubridate,
+    magick, 
+    purrr,
+    qs2,
+    quarto,
+    rprojroot,
+    servr, 
+    stringr, 
+    tibble, 
+    tictoc,
+    yaml
 remotes:
   github::ofce/ofce
 

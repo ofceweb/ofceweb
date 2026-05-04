@@ -64,14 +64,15 @@ render_blog <- function(
     fs::path_abs() |>
     fs::path_norm()
 
+  project <- fs::path_file(root) |> as.character()
+  cli::cli_h1("repo {project}")
+
   typst <- TRUE
 
   if(!dir.exists(fs::path_join(c(root, "posts")))) {
     cli::cli_abort("Le projet ne contient pas de dossier posts")
   }
 
-  project <- fs::path_file(root) |> as.character()
-  cli::cli_h1("repo {project}")
   if(project != "webblog") {
     cli::cli_alert_danger(
       "Ce n'est pas le repo {.emph webblog}, mais {.emph {project}}")

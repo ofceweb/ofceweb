@@ -17,6 +17,7 @@ render_home <- function(
     fs::path_expand() |>
     fs::path_abs() |>
     fs::path_norm()
+
   project <- fs::path_file(root)
   cli::cli_h1("repo {project}")
 
@@ -24,8 +25,6 @@ render_home <- function(
     cli::cli_abort("Le projet ne contient pas de dossier ofce")
   }
 
-  project <- fs::path_file(root) |> as.character()
-  cli::cli_h1("repo {project}")
   if(project != "webhome") {
     cli::cli_alert_danger(
       "Ce n'est pas le repo {.emph webhome}, mais {.emph {project}}")

@@ -44,6 +44,15 @@ render_home <- function(
 
   cli::cli_h2("Génération de la homepage")
 
+  source("scripts/update_submodules.R")
+  source("Rscript scripts/generate_blog_latest.R")
+  source("scripts/generate_revue_pages.R")
+  source("Rscript scripts/rendezvous.R")
+  source("Rscript scripts/update_submodules.R")
+  source("Rscript scripts/generate_blog_latest.R")
+  source("Rscript scripts/generate_revue_pages.R")
+  source("Rscript scripts/rendezvous.R")
+
   tictoc::tic()
   quarto::quarto_render(as_job = FALSE, quiet = !progress)
   tictoc::toc()

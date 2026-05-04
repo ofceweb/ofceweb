@@ -2,5 +2,7 @@
 
 export(download_gh_dir)
 export(download_gh_file)
+export(render_blog)
+export(render_home)
 export(site2branch)
 export(trigger_action)

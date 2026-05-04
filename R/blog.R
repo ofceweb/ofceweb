@@ -40,7 +40,13 @@
 #'   returned invisibly.
 #'
 #' @seealso [site2branch()]
+#' @export
 #'
+#' @examples
+#' \dontrun{
+#' render_blog()
+#' }
+
 render_blog <- function( force_freeze = TRUE,
                          workers = 8L,
                          check_repo = TRUE,

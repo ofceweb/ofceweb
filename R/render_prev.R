@@ -1,11 +1,10 @@
-#' Génère la homepage du site OFCE
+#' Génère le site de la prévision
 #'
-#' Orchestre le rendu complet de la homepage : sauvegarde de `_quarto.yml`,
-#' exécution des scripts pre/post-render définis dans ce fichier, appel à
-#' [quarto::quarto_render()], puis optionnellement déploiement du répertoire
-#' `_site` vers une branche git et/ou prévisualisation locale via un serveur HTTP.
+#' Orchestre le rendu complet de la prévision
+#' appel à [quarto::quarto_render()] avec le profil `publish`, puis optionnellement déploiement du répertoire
+#' `_site_publish` vers une branche git et/ou prévisualisation locale via un serveur HTTP.
 #'
-#' @param path Chemin vers la racine du projet (dossier `webhome`). Par défaut
+#' @param path Chemin vers la racine du projet (dossier `prevxx[3|9]`). Par défaut
 #'   `"."` (répertoire de travail courant).
 #' @param check_repo Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
 #'   avant le rendu via [check_repo_status()].
@@ -42,7 +41,7 @@ render_prev_publish <- function(
     cli::cli_abort("Le projet ne contient pas les dossiers france/inter/fiches")
   }
 
-  if(!stringr::str_detect(project,"^prev2[0-9]0[39]")) {
+  if(!stringr::str_detect(project,"^prev[0-9]{2}0[39]")) {
     cli::cli_alert_danger(
       "Ce n'est pas un dépôt de prévision {.emph prev2x0x}, mais {.emph {project}}")
     answer <- readline("Etes vous sûr.e de vouloir continuer ? [o/N] ")

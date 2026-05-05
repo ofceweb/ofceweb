@@ -9,7 +9,8 @@ site2branch(
   branch = "site-deploy",
   source = "_site",
   progress = TRUE,
-  trigger = FALSE
+  trigger = FALSE,
+  workflow = "ftp_deploy.yml"
 )
 }
 \arguments{

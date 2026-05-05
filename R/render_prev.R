@@ -24,7 +24,7 @@ render_prev_publish <- function(
     check_repo = TRUE,
     progress = TRUE,
     render_site = TRUE,
-    site2branch = FALSE,
+    site2branch = TRUE,
     trigger = site2branch) {
 
   root <- path |>
@@ -66,7 +66,7 @@ render_prev_publish <- function(
 
   tictoc::tic()
 
-  cli::cli_h2("Génération du site publish de {project}")
+  cli::cli_h2("Génération du site {.emph publish} de {project}")
 
   quarto::quarto_render(
     profile="publish",
@@ -78,20 +78,17 @@ render_prev_publish <- function(
   tictoc::toc()
 
   if (site2branch)
-    site2branch(
-      branch = "site-publish",
-      source = "_site_publish",
+    site2publish(
       progress = TRUE,
-      trigger = trigger,
-      workflow = "ftp_deploy_publish.yml")
+      trigger = trigger)
   else {
     cli::cli_text(
-      "Pour publier _site, lancer {.run ofceweb::site2branch()}"
+      "Pour publier _site_publish, lancer {.run ofceweb::site2publish(trigger = TRUE)}"
     )
   }
 
   if(render_site) {
-    cli::cli_h2("Render du site")
+    cli::cli_h2("Render du site {.emph publish}")
     servr::httw("_site_publish", daemon = TRUE)
   }
 

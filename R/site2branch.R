@@ -27,6 +27,8 @@
 #'   If `TRUE` (default to `FALSE`), calls [trigger_ftp_deploy()] after a successful push
 #'   to dispatch the FTP deploy workflow.  Failures are caught and reported as
 #'   warnings so the overall push is not rolled back. Usually, a push on site-deploy is going to trigger the deploy.
+#' @param workflow `[character(1)]`\cr
+#'   name of the workflow to trigger
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
 #' @export
@@ -52,7 +54,7 @@ site2branch <- function(
   state_file <- fs::path(root, ".ftp-deploy-sync-state.json")
 
   if (!fs::dir_exists(site_dir)) {
-    cli::cli_warn("{source} introuvable \u2014 push vers site-deploy ignor\u00e9.")
+    cli::cli_warn("{source} introuvable \u2014 push vers {branch} ignor\u00e9.")
     return(invisible(NULL))
   }
   remotes    <- gert::git_remote_list(repo = root)
@@ -153,4 +155,54 @@ site2branch <- function(
     )
   }
   invisible(NULL)
+}
+
+#' Push a rendered site folder to a Git branch, set for publish
+#'
+#' Commits the contents of `_site_publish/` into an orphan-style commit and force-pushes it to the
+#' `site-publish` branch of the `origin` remote.  Triggers a
+#' downstream GitHub Actions workflow (e.g. an FTP deploy) via the
+#' `workflow_dispatch` API (check your default branch is `main`).
+#'
+#' Credentials are resolved in the following order:
+#' 1. The `DEPLOY_PAT` environment variable (recommended on CI).
+#' 2. The OS credential store (macOS Keychain, Windows GCM, Linux libsecret)
+#'    via the \pkg{credentials} package — suitable for interactive local use.
+#'
+#' SSH remote URLs are automatically converted to HTTPS before pushing because
+#' libgit2 cannot use the system SSH agent.
+#'
+#' @param path `[character(1)]`\cr
+#'   Path to the root of the local Git repository.
+#'   Defaults to [here::here()].
+#' @param progress `[logical(1)]`\cr
+#'   If `TRUE` (default), git output is forwarded to the console.
+#' @param trigger `[logical(1)]`\cr
+#'   If `TRUE` (default to `FALSE`), calls [trigger_ftp_deploy()] after a successful push
+#'   to dispatch the FTP deploy workflow.  Failures are caught and reported as
+#'   warnings so the overall push is not rolled back. Usually, a push on site-deploy is going to trigger the deploy.
+#'
+#' @return Invisibly returns `NULL`. Called for its side effects.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Push _site/ and trigger the FTP workflow
+#' site2branch()
+#'
+#' # Push only, without triggering the downstream workflow
+#' site2branch(trigger = FALSE)
+#' }
+#'
+site2publish <- function(
+    path = ".",
+    progress = TRUE,
+    trigger = TRUE) {
+site2branch(
+  path=path,
+  branch="site-publish",
+  source="_site_publish",
+  progress = progress,
+  trigger=trigger,
+  workflow="ftp_deploy_publish.yml")
 }

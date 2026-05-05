@@ -9,7 +9,7 @@ render_prev_publish(
   check_repo = TRUE,
   progress = TRUE,
   render_site = TRUE,
-  site2branch = FALSE,
+  site2branch = TRUE,
   trigger = site2branch
 )
 }

@@ -14,7 +14,7 @@
 #' SSH remote URLs are automatically converted to HTTPS before pushing because
 #' libgit2 cannot use the system SSH agent.
 #'
-#' @param root `[character(1)]`\cr
+#' @param path `[character(1)]`\cr
 #'   Path to the root of the local Git repository.
 #'   Defaults to [here::here()].
 #' @param branch `[character(1)]`\cr
@@ -41,12 +41,12 @@
 #' }
 #'
 site2branch <- function(
-    root = ".",
+    path = ".",
     branch = "site-deploy",
     source = "_site",
     progress = TRUE,
     trigger = FALSE) {
-
+  root <- path
   site_dir   <- fs::path(root, source)
   state_file <- fs::path(root, ".ftp-deploy-sync-state.json")
 

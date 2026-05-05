@@ -1,10 +1,25 @@
-#' Génère la homepage
+#' Génère la homepage du site OFCE
 #'
-#' @returns
+#' Orchestre le rendu complet de la homepage : sauvegarde de `_quarto.yml`,
+#' exécution des scripts pre/post-render définis dans ce fichier, appel à
+#' [quarto::quarto_render()], puis optionnellement déploiement du répertoire
+#' `_site` vers une branche git et/ou prévisualisation locale via un serveur HTTP.
+#'
+#' @param path Chemin vers la racine du projet (dossier `webhome`). Par défaut
+#'   `"."` (répertoire de travail courant).
+#' @param check_repo Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
+#'   avant le rendu via [check_repo_status()].
+#' @param progress Logique. Si `TRUE` (défaut), affiche la progression lors du
+#'   rendu Quarto et du déploiement.
+#' @param render_site Logique. Si `TRUE` (défaut), lance un serveur HTTP local
+#'   ([servr::httw()]) sur `_site` après le rendu pour prévisualiser le résultat.
+#' @param site2branch Logique. Si `TRUE`, appelle [site2branch()] pour pousser
+#'   `_site` vers la branche git `site-deploy`. Par défaut `FALSE`.
+#' @param trigger Valeur passée à l'argument `trigger` de [site2branch()].
+#'   Par défaut égale à `site2branch`.
+#'
+#' @returns Appelée pour ses effets de bord. Retourne invisiblement `NULL`.
 #' @export
-#'
-#' @examples
-#'
 render_home <- function(
     path = ".",
     check_repo = TRUE,
@@ -70,7 +85,7 @@ render_home <- function(
 
   if(site2branch) {
     site2branch(
-      root = ".",
+      path = ".",
       branch = "site-deploy",
       source = "_site",
       progress = progress,

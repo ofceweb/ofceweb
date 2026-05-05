@@ -5,7 +5,7 @@
 \title{Push a rendered site folder to a Git branch}
 \usage{
 site2branch(
-  root = ".",
+  path = ".",
   branch = "site-deploy",
   source = "_site",
   progress = TRUE,
@@ -13,7 +13,7 @@ site2branch(
 )
 }
 \arguments{
-\item{root}{`[character(1)]`\cr
+\item{path}{`[character(1)]`\cr
 Path to the root of the local Git repository.
 Defaults to [here::here()].}
 

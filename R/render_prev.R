@@ -89,4 +89,10 @@ render_prev_publish <- function(
       "Pour publier _site, lancer {.run ofceweb::site2branch()}"
     )
   }
+
+  if(render_site) {
+    cli::cli_h2("Render du site")
+    servr::httw("_site_publish", daemon = TRUE)
+  }
+
 }

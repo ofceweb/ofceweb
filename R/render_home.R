@@ -89,7 +89,7 @@ render_home <- function(
       branch = "site-deploy",
       source = "_site",
       progress = progress,
-      trigger=trigger)
+      trigger = trigger)
   } else {
     cli::cli_text(
       "Pour publier _site, lancer {.run ofceweb::site2branch()} dans le même répertoire"

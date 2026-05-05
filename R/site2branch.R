@@ -45,7 +45,8 @@ site2branch <- function(
     branch = "site-deploy",
     source = "_site",
     progress = TRUE,
-    trigger = FALSE) {
+    trigger = FALSE,
+    workflow = "ftp_deploy.yml") {
   root <- path
   site_dir   <- fs::path(root, source)
   state_file <- fs::path(root, ".ftp-deploy-sync-state.json")
@@ -146,7 +147,7 @@ site2branch <- function(
 
   if (trigger) {
     tryCatch(
-      trigger_action(root = root),
+      trigger_action(root = root, workflow = workflow),
       error = function(e)
         cli::cli_warn("FTP dispatch \u00e9chou\u00e9 : {e$message} — relancer manuellement avec trigger_action().")
     )

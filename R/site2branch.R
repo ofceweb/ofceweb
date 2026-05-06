@@ -24,7 +24,7 @@
 #' @param progress `[logical(1)]`\cr
 #'   If `TRUE` (default), git output is forwarded to the console.
 #' @param trigger `[logical(1)]`\cr
-#'   If `TRUE` (default to `FALSE`), calls [trigger_ftp_deploy()] after a successful push
+#'   If `TRUE` (default to `TRUE`), calls [trigger_ftp_deploy()] after a successful push
 #'   to dispatch the FTP deploy workflow.  Failures are caught and reported as
 #'   warnings so the overall push is not rolled back. Usually, a push on site-deploy is going to trigger the deploy.
 #' @param workflow `[character(1)]`\cr
@@ -47,7 +47,7 @@ site2branch <- function(
     branch = "site-deploy",
     source = "_site",
     progress = TRUE,
-    trigger = FALSE,
+    trigger = TRUE,
     workflow = "ftp_deploy.yml") {
   root <- path
   site_dir   <- fs::path(root, source)

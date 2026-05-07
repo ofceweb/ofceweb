@@ -9,8 +9,9 @@ site2branch(
   branch = "site-deploy",
   source = "_site",
   progress = TRUE,
-  trigger = FALSE,
-  workflow = "ftp_deploy.yml"
+  trigger = TRUE,
+  workflow = "ftp_deploy.yml",
+  full_deploy = FALSE
 )
 }
 \arguments{
@@ -28,12 +29,18 @@ path to the folder to deploy ("_site")}
 If `TRUE` (default), git output is forwarded to the console.}
 
 \item{trigger}{`[logical(1)]`\cr
-If `TRUE` (default to `FALSE`), calls [trigger_ftp_deploy()] after a successful push
+If `TRUE` (default to `TRUE`), calls [trigger_ftp_deploy()] after a successful push
 to dispatch the FTP deploy workflow.  Failures are caught and reported as
 warnings so the overall push is not rolled back. Usually, a push on site-deploy is going to trigger the deploy.}
 
 \item{workflow}{`[character(1)]`\cr
 name of the workflow to trigger}
+
+\item{full_deploy}{`[logical(1)]`\cr
+If `FALSE` (default), the `.ftp-deploy-sync-state.json` file is carried
+forward from the remote branch so the FTP upload remains incremental.
+Set to `TRUE` to omit the state file and force a complete re-upload of
+every file on the next FTP deploy.}
 }
 \value{
 Invisibly returns `NULL`. Called for its side effects.
@@ -61,6 +68,9 @@ site2branch()
 
 # Push only, without triggering the downstream workflow
 site2branch(trigger = FALSE)
+
+# Force a full re-upload (ignore incremental state)
+site2branch(full_deploy = TRUE)
 }
 
 }

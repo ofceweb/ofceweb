@@ -4,7 +4,7 @@
 \alias{site2publish}
 \title{Push a rendered site folder to a Git branch, set for publish}
 \usage{
-site2publish(path = ".", progress = TRUE, trigger = TRUE)
+site2publish(path = ".", progress = TRUE, trigger = TRUE, full_deploy = FALSE)
 }
 \arguments{
 \item{path}{`[character(1)]`\cr
@@ -18,6 +18,9 @@ If `TRUE` (default), git output is forwarded to the console.}
 If `TRUE` (default to `FALSE`), calls [trigger_ftp_deploy()] after a successful push
 to dispatch the FTP deploy workflow.  Failures are caught and reported as
 warnings so the overall push is not rolled back. Usually, a push on site-deploy is going to trigger the deploy.}
+
+\item{full_deploy}{`[logical(1)]`\cr
+Passed to [site2branch()]. Set to `TRUE` to force a complete re-upload.}
 }
 \value{
 Invisibly returns `NULL`. Called for its side effects.

@@ -32,8 +32,9 @@
 #' @param full_deploy `[logical(1)]`\cr
 #'   If `FALSE` (default), the `.ftp-deploy-sync-state.json` file is carried
 #'   forward from the remote branch so the FTP upload remains incremental.
-#'   Set to `TRUE` to omit the state file and force a complete re-upload of
-#'   every file on the next FTP deploy.
+#'   Set to `TRUE` to zero out every hash in the state file before pushing,
+#'   which causes ftp-deploy to re-upload every file without deleting anything
+#'   unrelated on the FTP server.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
 #' @export
@@ -75,31 +76,38 @@ site2branch <- function(
 
   cli::cli_h1("Push de {source} vers la branche {.emph {branch}}")
 
-  # Carry forward the FTP differential state from the current site-deploy branch
-  # so the next FTP deploy remains incremental. Silently ignored on first run.
-  # Skipped when full_deploy = TRUE to force a complete re-upload.
-  if (!full_deploy) {
-    tryCatch({
-      gert::git_fetch(
-        remote      = "origin",
-        repo        = root,
-        verbose     = FALSE)
-      system2(
-        "git",
-        c("-C", shQuote(root), "show",
-          "origin/{branch}:.ftp-deploy-sync-state.json" |> glue::glue()),
-        stdout = as.character(state_file)
-      )
-    }, error = function(e) NULL)
-  }
+  # Always fetch the FTP state from the remote branch so we have the latest copy
+  # (the workflow commits it back after each deploy). Silently ignored on first run.
+  tryCatch({
+    gert::git_fetch(remote = "origin", repo = root, verbose = FALSE)
+    system2(
+      "git",
+      c("-C", shQuote(root), "show",
+        "origin/{branch}:.ftp-deploy-sync-state.json" |> glue::glue()),
+      stdout = as.character(state_file)
+    )
+  }, error = function(e) NULL)
+
   maintenant <- ofce::date_jour_heure(lubridate::now(), short=TRUE)
-  # Copy _site/ contents + state (if present) into a fresh temp directory
+  # Copy _site/ contents + state into a fresh temp directory.
+  # full_deploy = FALSE: carry forward state as-is for an incremental upload.
+  # full_deploy = TRUE:  zero every hash so ftp-deploy sees all files as changed
+  #                      and re-uploads everything without wiping the FTP server.
   tmp <- fs::path(tempdir(), glue::glue("{branch}-{maintenant}"))
   fs::dir_copy(site_dir, tmp)
-  if(dir.exists(fs::path(tmp, ".git")))
+  if (dir.exists(fs::path(tmp, ".git")))
     fs::dir_delete(fs::path(tmp, ".git"))
-  if (!full_deploy && fs::file_exists(state_file))
-    fs::file_copy(state_file, fs::path(tmp, ".ftp-deploy-sync-state.json"), overwrite = TRUE)
+
+  dest_state <- fs::path(tmp, ".ftp-deploy-sync-state.json")
+  if (fs::file_exists(state_file)) {
+    if (!full_deploy) {
+      fs::file_copy(state_file, dest_state, overwrite = TRUE)
+    } else {
+      state <- jsonlite::read_json(state_file)
+      state$data <- lapply(state$data, function(e) { e$hash <- ""; e })
+      jsonlite::write_json(state, dest_state, auto_unbox = TRUE, pretty = TRUE)
+    }
+  }
 
   # Init a fresh repo, make a single orphan-style commit, force-push
   gert::git_init(path = tmp)
@@ -148,6 +156,7 @@ site2branch <- function(
     "git",
     c("-C", shQuote(tmp),
       "-c", "credential.helper=",
+      "-c", "push.useForceWithLease=false",
       "push", "--force", push_url,
       glue::glue("HEAD:refs/heads/{branch}")),
     stdout = if (progress) "" else FALSE,

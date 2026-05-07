@@ -29,6 +29,11 @@
 #'   warnings so the overall push is not rolled back. Usually, a push on site-deploy is going to trigger the deploy.
 #' @param workflow `[character(1)]`\cr
 #'   name of the workflow to trigger
+#' @param full_deploy `[logical(1)]`\cr
+#'   If `FALSE` (default), the `.ftp-deploy-sync-state.json` file is carried
+#'   forward from the remote branch so the FTP upload remains incremental.
+#'   Set to `TRUE` to omit the state file and force a complete re-upload of
+#'   every file on the next FTP deploy.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
 #' @export
@@ -40,6 +45,9 @@
 #'
 #' # Push only, without triggering the downstream workflow
 #' site2branch(trigger = FALSE)
+#'
+#' # Force a full re-upload (ignore incremental state)
+#' site2branch(full_deploy = TRUE)
 #' }
 #'
 site2branch <- function(
@@ -48,7 +56,8 @@ site2branch <- function(
     source = "_site",
     progress = TRUE,
     trigger = TRUE,
-    workflow = "ftp_deploy.yml") {
+    workflow = "ftp_deploy.yml",
+    full_deploy = FALSE) {
   root <- path
   site_dir   <- fs::path(root, source)
   state_file <- fs::path(root, ".ftp-deploy-sync-state.json")
@@ -68,25 +77,28 @@ site2branch <- function(
 
   # Carry forward the FTP differential state from the current site-deploy branch
   # so the next FTP deploy remains incremental. Silently ignored on first run.
-  tryCatch({
-    gert::git_fetch(
-      remote      = "origin",
-      repo        = root,
-      verbose     = FALSE)
-    system2(
-      "git",
-      c("-C", shQuote(root), "show",
-        "origin/{branch}:.ftp-deploy-sync-state.json" |> glue::glue()),
-      stdout = as.character(state_file)
-    )
-  }, error = function(e) NULL)
+  # Skipped when full_deploy = TRUE to force a complete re-upload.
+  if (!full_deploy) {
+    tryCatch({
+      gert::git_fetch(
+        remote      = "origin",
+        repo        = root,
+        verbose     = FALSE)
+      system2(
+        "git",
+        c("-C", shQuote(root), "show",
+          "origin/{branch}:.ftp-deploy-sync-state.json" |> glue::glue()),
+        stdout = as.character(state_file)
+      )
+    }, error = function(e) NULL)
+  }
   maintenant <- ofce::date_jour_heure(lubridate::now(), short=TRUE)
   # Copy _site/ contents + state (if present) into a fresh temp directory
   tmp <- fs::path(tempdir(), glue::glue("{branch}-{maintenant}"))
   fs::dir_copy(site_dir, tmp)
   if(dir.exists(fs::path(tmp, ".git")))
     fs::dir_delete(fs::path(tmp, ".git"))
-  if (fs::file_exists(state_file))
+  if (!full_deploy && fs::file_exists(state_file))
     fs::file_copy(state_file, fs::path(tmp, ".ftp-deploy-sync-state.json"), overwrite = TRUE)
 
   # Init a fresh repo, make a single orphan-style commit, force-push
@@ -181,6 +193,8 @@ site2branch <- function(
 #'   If `TRUE` (default to `FALSE`), calls [trigger_ftp_deploy()] after a successful push
 #'   to dispatch the FTP deploy workflow.  Failures are caught and reported as
 #'   warnings so the overall push is not rolled back. Usually, a push on site-deploy is going to trigger the deploy.
+#' @param full_deploy `[logical(1)]`\cr
+#'   Passed to [site2branch()]. Set to `TRUE` to force a complete re-upload.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
 #' @export
@@ -197,12 +211,14 @@ site2branch <- function(
 site2publish <- function(
     path = ".",
     progress = TRUE,
-    trigger = TRUE) {
+    trigger = TRUE,
+    full_deploy = FALSE) {
 site2branch(
   path=path,
   branch="site-publish",
   source="_site_publish",
   progress = progress,
   trigger=trigger,
-  workflow="ftp_deploy_publish.yml")
+  workflow="ftp_deploy_publish.yml",
+  full_deploy = full_deploy)
 }

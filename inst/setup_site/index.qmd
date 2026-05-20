@@ -1,0 +1,20 @@
+---
+listing:
+  contents:
+    - posts
+  fields: [image, date, title, description, categories, author, reading-time, gow, nb]
+  sort: "date desc"
+  template: _extensions/ofce-blog/listing-gow.ejs
+  type: default
+  filter-ui: [date, author, categories]
+  sort-ui: [date, author]
+  categories: cloud
+  image-lazy-loading: true
+page-layout: full
+title-block-banner: true
+---
+
+```{r, include=FALSE}
+ofce::init_qmd() # nécessaire pour inclure les deps dans site_libs
+girafe(ggplot())
+```

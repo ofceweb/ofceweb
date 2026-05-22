@@ -4,84 +4,33 @@ project:
 
 execute:
   freeze: auto
-    
+
 profile:
   default: fr
-  group: 
+  group:
     - [fr, en]
 
 toc: false
 
 website:
+  title: "INDEX"
   site-url: "https://www.ofce.fr/"
-  site-path: "blog2024/"
+  site-path: "staging/"
   repo-url: https://github.com/ofceweb/webblog
-  favicon: _extensions/ofce-blog/img/favicon.ico
+  favicon: www/favicon.ico
   draft-mode: gone
   reader-mode: false
   bread-crumbs: false
   navbar:
-    logo: _extensions/ofce-blog/img/logo.png
+    logo: www/logo.png
     logo-alt: "logo de l'OFCE"
     logo-href: https://www.ofce.fr/
     background: white
     left:
       - text: Accueil
         href: https://www.ofce.fr/index.html
-      - text: Blog
+      - text: Staging
         href: index.qmd
-      - text: L'OFCE
-        menu:
-          - text: À propos
-            href: "https://www.ofce.fr/ofce/ofce.html"
-          - text: L'équipe
-            href: "#"
-          - text: Réseaux scientifiques
-            href: "https://www.ofce.fr/ofce/reseaux.html"
-          - text: Rapport d'activité
-            href: "https://www.ofce.fr/ofce/rapports.html"
-          - text: Plaquette de présentation
-            href: "https://www.ofce.fr/ofce/plaquette.pdf"
-          - text: Abonnements
-            href: "https://www.ofce.fr/publications/abonnement.html"
-          - text: Nous rejoindre
-            href: "https://www.ofce.fr/ofce/recrute.html"
-          - text: Contact
-            href: "https://www.ofce.fr/ofce/contact.html"
-          - text: Médias
-            href: "#"
-          - text: Mentions légales
-            href: "https://www.ofce.fr/legal/mentions_legales.html"
-          - text: Conditions générales
-            href: "https://www.ofce.fr/legal/conditions_generales.html"
-          - text: Politique des cookies
-            href: "https://www.ofce.fr/legal/cookies.html"
-      - text: Événements
-        href: "#"
-      - text: Prévisions
-        menu:
-          - text: Prévision France & Monde
-            href: "https://www.ofce.fr/prev/prev2509/"
-          - text: Anciennes prévisions
-            href: "https://www.ofce.fr/indic_prev/prevision.html"
-      - text: Publications
-        menu:
-          - text: Policy Briefs
-            href: "https://www.ofce.fr/publications/policy.html"
-          - text: Working Papers
-            href: "https://www.ofce.fr/publications/working_papers.html"
-          - text: Etudes & Rapports
-            href: "https://www.ofce.fr/publications/rapports.html"
-          - text: Revue
-            href: "https://www.ofce.fr/publications/revue.html"
-      - text: Recherche
-        href: "#"
-      - text: Outils & Ressources
-        menu:
-          - text: DEBTWATCH
-            href: "https://ofce.shinyapps.io/debtwatchr/"
-          - text: Modèle ThreeME
-            href: "https://www.ofce.fr/recherche/threeme.html"
     tools:
       - icon: envelope
         href: "#"
@@ -91,30 +40,23 @@ website:
         href: "https://www.linkedin.com/company/ofce/posts/"
       - icon: facebook
         href: "https://www.facebook.com/ofcesciencespo/"
+  other-links:
+   - text: Annexes
+     icon: newspaper
+     href: annexes.html
+  comments:
+    hypothesis: true
 
-  search: 
+
+
+  search:
     show-item-context: true
     type: overlay
-    algolia:
-      index-name: blog_posts
-      application-id: PMD49D1SEK
-      search-only-api-key: 9f13a4839f7fd136e2e1851668be7d51
-      show-logo: true
-      analytics-events: true
-      index-fields:
-        href: href
-        title: title
-        section: section
-        text: text
-      params: 
-        facets: ['cat', 'authors']
-        maxValuesPerFacet: 10
 
 filters:
   - quarto
   - social-share
 
 format:
-  ofce-blog-html: default
+  ofce-website-html: default
 
-editor: visual

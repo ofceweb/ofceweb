@@ -2,6 +2,7 @@
 
 export(download_gh_dir)
 export(download_gh_file)
+export(publish_blog)
 export(render_blog)
 export(render_home)
 export(render_prev_publish)

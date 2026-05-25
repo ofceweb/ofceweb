@@ -39,8 +39,9 @@ name of the workflow to trigger}
 \item{full_deploy}{`[logical(1)]`\cr
 If `FALSE` (default), the `.ftp-deploy-sync-state.json` file is carried
 forward from the remote branch so the FTP upload remains incremental.
-Set to `TRUE` to omit the state file and force a complete re-upload of
-every file on the next FTP deploy.}
+Set to `TRUE` to zero out every hash in the state file before pushing,
+which causes ftp-deploy to re-upload every file without deleting anything
+unrelated on the FTP server.}
 }
 \value{
 Invisibly returns `NULL`. Called for its side effects.

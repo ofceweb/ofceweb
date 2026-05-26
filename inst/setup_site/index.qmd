@@ -1,0 +1,7 @@
+---
+title: Page d'accueil 
+---
+
+
+Remplacer le contenu de cette page par ce que vous voulez voir apparaître à la page d'accueil.
+

@@ -1,0 +1,63 @@
+project:
+  type: ofce-website
+  execute-dir: file
+
+execute:
+  freeze: auto
+
+profile:
+  default: fr
+  group:
+    - [fr, en]
+
+toc: false
+
+website:
+  title: "INDEX"
+  site-url: "https://www.ofce.fr/"
+  site-path: "staging/"
+  repo-url: https://github.com/ofceweb/webblog
+  favicon: www/favicon.ico
+  draft-mode: gone
+  reader-mode: false
+  bread-crumbs: false
+  navbar:
+    logo: www/logo.png
+    logo-alt: "logo de l'OFCE"
+    logo-href: https://www.ofce.fr/
+    background: white
+    left:
+      - text: Accueil
+        href: https://www.ofce.fr/index.html
+      - text: Staging
+        href: index.qmd
+    tools:
+      - icon: envelope
+        href: "#"
+      - icon: bluesky
+        href: "https://bsky.app/profile/ofce.bsky.social"
+      - icon: linkedin
+        href: "https://www.linkedin.com/company/ofce/posts/"
+      - icon: facebook
+        href: "https://www.facebook.com/ofcesciencespo/"
+  other-links:
+   - text: Annexes
+     icon: newspaper
+     href: annexes.html
+  comments:
+    hypothesis: true
+
+
+
+  search:
+    show-item-context: true
+    type: overlay
+
+filters:
+  - quarto
+  - social-share
+
+format:
+  ofce-website-html: default
+
+encrypt_site: false

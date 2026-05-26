@@ -206,6 +206,44 @@ render_blog <- function(
   return(invisible(status))
 }
 
+#' Publish the bilingual blog
+#'
+#' A convenience wrapper around [render_blog()] that sets `site2branch = TRUE`
+#' to deploy `_site` to the deployment branch after rendering.
+#'
+#' @inheritParams render_blog
+#' @return A data frame of staged git changes, returned invisibly.
+#' @seealso [render_blog()], [site2branch()]
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' publish_blog()
+#' }
+publish_blog <- function(
+    path = ".",
+    force_freeze = TRUE,
+    workers = 8L,
+    check_repo = TRUE,
+    progress = TRUE,
+    render_site = TRUE,
+    check_freeze = FALSE,
+    trigger = FALSE,
+    freeze = TRUE) {
+  render_blog(
+    path = path,
+    force_freeze = force_freeze,
+    workers = workers,
+    check_repo = check_repo,
+    progress = progress,
+    render_site = render_site,
+    check_freeze = check_freeze,
+    site2branch = TRUE,
+    trigger = trigger,
+    freeze = freeze
+  )
+}
+
 # Helpers -----------------------------------
 
 render_lang <- function(lang = "fr", posts, root) {

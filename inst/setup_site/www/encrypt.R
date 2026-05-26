@@ -15,12 +15,12 @@ if (isTRUE(staticryptR::check_system())) {
 staticryptR::staticryptr(
   files = "_site",
   directory = ".",
-  recursive = TRUE, 
+  recursive = TRUE,
   password = Sys.getenv("STATICRYPT_PASSWORD"),
   short = TRUE, # set to FALSE if you want to enforce a long password
   template_color_primary = "#e6142d",
   template_color_secondary = "#f9f9f3",
   template_title = "Accès restreint",
-  template_instructions = "Entrez le mot de passe ou contactez xavier.timbeau@sciencespo.fr",
+  template_instructions = "Entrez le mot de passe ou contactez un responsable de la page que vous souhaitez atteindre.",
   template_button = "Accès"
 )

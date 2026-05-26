@@ -72,7 +72,7 @@ In any case a message should be displayed inviting the used to manually modify i
 
 - should work like site2branch if ofce_host is TRUE in the yaml, otherwise it does a quarto publish gh-pages
 
-
+1
 ## rescan_site()
 
   - a function that scans for new qmds and adds them to the other-links section of the quarto yaml
@@ -86,3 +86,6 @@ In any case a message should be displayed inviting the used to manually modify i
      
      Where -text is the title of the page if one is in the yaml, otherwise use the basename of the qmd, icon is newspaper bydefault and href is the path to html pages ie if the new_page.qmd is at the root then href is new_page.html , if it's under a subfolder at the root ie subfolder/new_page.qmd, then href is subfolder/new_page.html
      
+## encrypt_site()
+
+it's a function that encrypts a website. it adds the necessary lines in the _quarto.yml and the ftp_deploy.yml to be able to encrypt the website via the script in www/encrypt.R (also found in the ofceweb package install files in case the script hasnt been copied yet, it should be copied in the www folder). Upon execution, the function prompts the user on the console to enter a password which will be then stored as a github repository secret called STATICRYPT_PASSWORD

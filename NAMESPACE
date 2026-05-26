@@ -3,6 +3,7 @@
 export(deploy_site)
 export(download_gh_dir)
 export(download_gh_file)
+export(encrypt_site)
 export(publish_blog)
 export(render_blog)
 export(render_home)

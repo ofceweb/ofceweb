@@ -18,8 +18,7 @@ Invisible `NULL`. Appelée pour ses effets de bord.
 \description{
 Annule les effets de [encrypt_site()] :
 \enumerate{
-  \item Supprime `www/encrypt.R` à la racine du dépôt.
-  \item Retire `www/encrypt.R` de la section `project: post-render` du
+  \item Bascule la variable `encrypt_site` à `false` dans le
         `_quarto.yml`.
   \item Retire le bloc `env: STATICRYPT_PASSWORD` du job
         `.github/workflows/ftp_deploy.yml`.

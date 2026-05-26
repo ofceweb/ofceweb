@@ -17,12 +17,11 @@ Invisible `NULL`. Appelée pour ses effets de bord.
 }
 \description{
 Configure le site courant pour qu'il soit chiffré au moment du render via
-`staticrypt` (encrypt.R en `post-render` de Quarto). Concrètement :
+`staticrypt` (étape gérée directement par [render_site()] lorsque la
+variable `encrypt_site` du `_quarto.yml` vaut `true`). Concrètement :
 \enumerate{
-  \item Copie `www/encrypt.R` depuis `inst/setup_site/www/` du package
-        si le fichier n'existe pas encore à la racine du dépôt.
-  \item Ajoute `www/encrypt.R` à la section `project: post-render` du
-        `_quarto.yml` (idempotent).
+  \item Bascule la variable `encrypt_site` à `true` dans le
+        `_quarto.yml` (idempotent ; ajoutée si absente).
   \item Ajoute la variable d'environnement `STATICRYPT_PASSWORD` au job
         `.github/workflows/ftp_deploy.yml` (idempotent).
   \item Demande un mot de passe à l'utilisateur et le stocke comme secret

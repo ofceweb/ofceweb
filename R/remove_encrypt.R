@@ -2,8 +2,7 @@
 #'
 #' Annule les effets de [encrypt_site()] :
 #' \enumerate{
-#'   \item Supprime `www/encrypt.R` à la racine du dépôt.
-#'   \item Retire `www/encrypt.R` de la section `project: post-render` du
+#'   \item Bascule la variable `encrypt_site` à `false` dans le
 #'         `_quarto.yml`.
 #'   \item Retire le bloc `env: STATICRYPT_PASSWORD` du job
 #'         `.github/workflows/ftp_deploy.yml`.
@@ -29,57 +28,35 @@ remove_encrypt <- function(path = ".", delete_secret = TRUE) {
 
   cli::cli_h1("remove_encrypt dans {.path {fs::path_file(root)}}")
 
-  # ---- 1. suppression de www/encrypt.R -----------------------------------
-  dest_script <- fs::path(root, "www", "encrypt.R")
-  if(fs::file_exists(dest_script)) {
-    fs::file_delete(dest_script)
-    cli::cli_alert_success("Suppression de {.file www/encrypt.R}")
-    www_dir <- fs::path(root, "www")
-    if(fs::dir_exists(www_dir) && length(fs::dir_ls(www_dir)) == 0) {
-      fs::dir_delete(www_dir)
-      cli::cli_alert_info("Dossier {.file www/} vide — supprimé.")
-    }
-  } else {
-    cli::cli_alert_info("{.file www/encrypt.R} absent — suppression ignorée.")
-  }
-
-  # ---- 2. retrait dans _quarto.yml ---------------------------------------
+  # ---- 1. bascule dans _quarto.yml ---------------------------------------
   yml_path <- fs::path(root, "_quarto.yml")
   if(!fs::file_exists(yml_path)) {
     cli::cli_alert_warning(
       "{.file _quarto.yml} introuvable — patch ignoré."
     )
   } else {
-    yml <- yaml::read_yaml(yml_path)
-    pr <- yml$project$`post-render`
-    pr_list <- if(is.null(pr)) character() else as.character(pr)
-    target <- "www/encrypt.R"
-    if(target %in% pr_list) {
-      pr_list <- setdiff(pr_list, target)
-      if(length(pr_list) == 0) {
-        yml$project$`post-render` <- NULL
-        if(length(yml$project) == 0) yml$project <- NULL
-      } else {
-        yml$project$`post-render` <- as.list(pr_list)
-      }
-      yaml::write_yaml(
-        yml, yml_path,
-        indent.mapping.sequence = TRUE,
-        handlers = list(logical = yaml::verbatim_logical)
-      )
+    lines <- readLines(yml_path, warn = FALSE)
+    idx <- grep("^\\s*encrypt_site\\s*:", lines)
+    if(length(idx) == 0) {
+      lines <- c(lines, "encrypt_site: false")
+      writeLines(lines, yml_path)
       cli::cli_alert_success(
-        "Retrait de {.val {target}} dans {.field project: post-render} du \\
-         {.file _quarto.yml}"
+        "Ajout de {.code encrypt_site: false} dans {.file _quarto.yml}"
+      )
+    } else if(grepl("false", lines[[idx[[1]]]], ignore.case = TRUE)) {
+      cli::cli_alert_info(
+        "{.code encrypt_site: false} déjà présent — {.file _quarto.yml} inchangé."
       )
     } else {
-      cli::cli_alert_info(
-        "{.val {target}} absent de {.field post-render} — \\
-         {.file _quarto.yml} inchangé."
+      lines[[idx[[1]]]] <- sub(":\\s*.*$", ": false", lines[[idx[[1]]]])
+      writeLines(lines, yml_path)
+      cli::cli_alert_success(
+        "Bascule de {.code encrypt_site} à {.val false} dans {.file _quarto.yml}"
       )
     }
   }
 
-  # ---- 3. retrait dans ftp_deploy.yml ------------------------------------
+  # ---- 2. retrait dans ftp_deploy.yml ------------------------------------
   wf <- fs::path(root, ".github", "workflows", "ftp_deploy.yml")
   if(!fs::file_exists(wf)) {
     cli::cli_alert_warning(
@@ -128,7 +105,7 @@ remove_encrypt <- function(path = ".", delete_secret = TRUE) {
     }
   }
 
-  # ---- 4. suppression du secret GitHub via gh ----------------------------
+  # ---- 3. suppression du secret GitHub via gh ----------------------------
   if(!delete_secret) {
     cli::cli_alert_info(
       "{.arg delete_secret = FALSE} — secret GitHub conservé."

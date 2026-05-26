@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(Rscript -e 'devtools::check\\(document = FALSE, args = \"--no-tests\", quiet = FALSE\\)')",
-      "Bash(Rscript *)"
+      "Bash(Rscript *)",
+      "Bash(curl -sI https://www.ofce.fr/staging/site_ofce_servers/v0/site_libs/bootstrap/bootstrap.min.css)",
+      "Bash(curl -s https://www.ofce.fr/staging/site_ofce_servers/v0/)",
+      "Bash(curl -s https://www.ofce.fr/staging/site_ofce_servers/v0/index.html)"
     ]
   }
 }

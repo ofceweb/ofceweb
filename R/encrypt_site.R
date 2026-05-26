@@ -1,12 +1,11 @@
 #' Active le chiffrement statique du site
 #'
 #' Configure le site courant pour qu'il soit chiffré au moment du render via
-#' `staticrypt` (encrypt.R en `post-render` de Quarto). Concrètement :
+#' `staticrypt` (étape gérée directement par [render_site()] lorsque la
+#' variable `encrypt_site` du `_quarto.yml` vaut `true`). Concrètement :
 #' \enumerate{
-#'   \item Copie `www/encrypt.R` depuis `inst/setup_site/www/` du package
-#'         si le fichier n'existe pas encore à la racine du dépôt.
-#'   \item Ajoute `www/encrypt.R` à la section `project: post-render` du
-#'         `_quarto.yml` (idempotent).
+#'   \item Bascule la variable `encrypt_site` à `true` dans le
+#'         `_quarto.yml` (idempotent ; ajoutée si absente).
 #'   \item Ajoute la variable d'environnement `STATICRYPT_PASSWORD` au job
 #'         `.github/workflows/ftp_deploy.yml` (idempotent).
 #'   \item Demande un mot de passe à l'utilisateur et le stocke comme secret
@@ -41,48 +40,28 @@ encrypt_site <- function(path = ".", password = NULL) {
 
   cli::cli_h1("encrypt_site dans {.path {fs::path_file(root)}}")
 
-  # ---- 1. copie de www/encrypt.R -----------------------------------------
-  dest_script <- fs::path(root, "www", "encrypt.R")
-  if(!fs::file_exists(dest_script)) {
-    pkg_root <- system.file("setup_site", package = "ofceweb")
-    if(!nzchar(pkg_root))
-      pkg_root <- fs::path(root, "inst", "setup_site") # dev fallback
-    src_script <- fs::path(pkg_root, "www", "encrypt.R")
-    if(!fs::file_exists(src_script))
-      cli::cli_abort("Script source introuvable : {.file {src_script}}")
-    fs::dir_create(fs::path(root, "www"))
-    fs::file_copy(src_script, dest_script, overwrite = FALSE)
-    cli::cli_alert_success("Copie de {.file www/encrypt.R}")
-  } else {
-    cli::cli_alert_info("{.file www/encrypt.R} déjà présent — copie ignorée.")
-  }
-
-  # ---- 2. patch du _quarto.yml -------------------------------------------
-  yml <- yaml::read_yaml(yml_path)
-  if(is.null(yml$project)) yml$project <- list()
-  pr <- yml$project$`post-render`
-  pr_list <- if(is.null(pr)) character() else as.character(pr)
-  target <- "www/encrypt.R"
-  if(!target %in% pr_list) {
-    pr_list <- c(pr_list, target)
-    yml$project$`post-render` <- as.list(pr_list)
-    yaml::write_yaml(
-      yml, yml_path,
-      indent.mapping.sequence = TRUE,
-      handlers = list(logical = yaml::verbatim_logical)
-    )
+  # ---- 1. patch du _quarto.yml -------------------------------------------
+  lines <- readLines(yml_path, warn = FALSE)
+  idx <- grep("^\\s*encrypt_site\\s*:", lines)
+  if(length(idx) == 0) {
+    lines <- c(lines, "encrypt_site: true")
+    writeLines(lines, yml_path)
     cli::cli_alert_success(
-      "Ajout de {.val {target}} dans {.field project: post-render} du \\
-       {.file _quarto.yml}"
+      "Ajout de {.code encrypt_site: true} dans {.file _quarto.yml}"
+    )
+  } else if(grepl("true", lines[[idx[[1]]]], ignore.case = TRUE)) {
+    cli::cli_alert_info(
+      "{.code encrypt_site: true} déjà présent — {.file _quarto.yml} inchangé."
     )
   } else {
-    cli::cli_alert_info(
-      "{.val {target}} déjà présent dans {.field post-render} — \\
-       {.file _quarto.yml} inchangé."
+    lines[[idx[[1]]]] <- sub(":\\s*.*$", ": true", lines[[idx[[1]]]])
+    writeLines(lines, yml_path)
+    cli::cli_alert_success(
+      "Bascule de {.code encrypt_site} à {.val true} dans {.file _quarto.yml}"
     )
   }
 
-  # ---- 3. patch du workflow ftp_deploy.yml -------------------------------
+  # ---- 2. patch du workflow ftp_deploy.yml -------------------------------
   wf <- fs::path(root, ".github", "workflows", "ftp_deploy.yml")
   if(!fs::file_exists(wf)) {
     cli::cli_alert_warning(
@@ -120,7 +99,7 @@ encrypt_site <- function(path = ".", password = NULL) {
     }
   }
 
-  # ---- 4. owner/repo depuis le remote ------------------------------------
+  # ---- 3. owner/repo depuis le remote ------------------------------------
   remotes <- tryCatch(gert::git_remote_list(repo = root),
                       error = function(e) NULL)
   origin_url <- NULL
@@ -142,14 +121,14 @@ encrypt_site <- function(path = ".", password = NULL) {
     cli::cli_abort("Impossible de parser l'URL remote : {.val {origin_url}}")
   owner_repo <- paste0(m[[2]], "/", m[[3]])
 
-  # ---- 5. gh installé ? --------------------------------------------------
+  # ---- 4. gh installé ? --------------------------------------------------
   if(nzchar(Sys.which("gh")) == 0)
     cli::cli_abort(
       "L'outil {.code gh} (GitHub CLI) est requis mais introuvable. \\
        Installer puis {.code gh auth login}."
     )
 
-  # ---- 6. demande du mot de passe ----------------------------------------
+  # ---- 5. demande du mot de passe ----------------------------------------
   if(is.null(password)) {
     if(requireNamespace("askpass", quietly = TRUE)) {
       password <- askpass::askpass(
@@ -165,7 +144,7 @@ encrypt_site <- function(path = ".", password = NULL) {
   if(is.null(password) || !nzchar(password))
     cli::cli_abort("Mot de passe vide — secret non créé.")
 
-  # ---- 7. création du secret GitHub via gh -------------------------------
+  # ---- 6. création du secret GitHub via gh -------------------------------
   cli::cli_alert_info(
     "Création du secret {.code STATICRYPT_PASSWORD} sur {.val {owner_repo}}…"
   )
@@ -185,7 +164,7 @@ encrypt_site <- function(path = ".", password = NULL) {
     "Secret {.code STATICRYPT_PASSWORD} enregistré sur {.val {owner_repo}}."
   )
 
-  # ---- 8. enregistrement dans .Renviron local ----------------------------
+  # ---- 7. enregistrement dans .Renviron local ----------------------------
   renv_path <- fs::path(root, ".Renviron")
   renv_lines <- if(fs::file_exists(renv_path))
     readLines(renv_path, warn = FALSE) else character()

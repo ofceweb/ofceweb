@@ -4,10 +4,12 @@
 
 From a repository, we have a set of functions that help set up a website, render it, deploy it to a branch for publication either on the OFCE servers or on through gh-pages.
 
-We have three functions 
+We have three main functions
 - setup_site()
 - render_site()
-- site2deploy() 
+- deploy_site()
+
+plus a few helpers: site_version_up(), rescan_site(), encrypt_site() / remove_encrypt().
 
 ## setup_site()
 
@@ -19,8 +21,8 @@ setup_site functions should have the follwing workflow :
   - the _quarto.yaml at the root of the repo
   - if in the scanned qmds there is no index.qmd, copy the index.qmd at the root of the repo
   - the content of the folder called wwww needs to be put at the root of the repo in a folder called www
-  - the workflow folder which should see the contents of the folder being put in a ".github/workflows/" folder
-  - and the extensioms folder
+  - the workflow folder which should see the contents of the folder being put in a ".github/workflows/" folder (files with a `.html` suffix in the package source get that suffix stripped on copy, so e.g. `ftp_deploy.yml.html` lands as `ftp_deploy.yml`)
+  - and the `_extensions` folder
 
 
 ### Editing the quarto.yaml
@@ -49,7 +51,7 @@ git push origin gh-pages
 ---
 and go back to whatever github branch we were in previously
 
-The ftp-deploy must also be adapted. A line should be added in the with: section , the server-dir: argument should be added with the name of the repo, then if versioning is on, the version (v0 for setup_site()) . The site_version_up() described below should also modify this file accordinngly
+The ftp-deploy must also be adapted. The `server-dir:` line in the `with:` section is set to `<repo_name>/` (or `<repo_name>/v0/` if versioning is on). In addition, the references to `secrets.FTP_USER` / `secrets.FTP_PASSWORD` in `ftp_deploy.yml` are rewritten to `secrets.STAGING_USER` / `secrets.STAGING_PASSWORD` (or `WP_*` if `ofce_server_location = "wp"`). `site_version_up()` updates the `server-dir:` line in sync with the `site-path`.
 
 ### versionning
 
@@ -70,15 +72,18 @@ v10_42A -->  v10_43A
 
 In any case a message should be displayed inviting the used to manually modify in the quarto.yml if necessary
 
-## deploy_site() 
+## render_site()
 
-- should work like site2branch if ofce_host is TRUE in the yaml, otherwise it does a quarto publish gh-pages
+Build pipeline for a generic (non-bilingual) site initialized via `setup_site()`. Wipes `_site/`, runs `quarto::quarto_render()`, rebuilds the sitemap via `build_sitemap()`, strips Quarto's content-hashed suffixes from `_site/site_libs/*` via `patch_sitelibs_hashes()`, and — if `encrypt_site: true` is set in `_quarto.yml` — runs `staticryptR::staticryptr()` over `_site/` using the password in the `STATICRYPT_PASSWORD` env var. Optionally pushes via `site2branch()` and starts a local preview with `servr::httw()` (with absolute `other-links` URLs rewritten to relative paths so navigation works locally).
 
-1
+## deploy_site()
+
+Reads the `ofce_host` key from `_quarto.yml`. If `TRUE`, delegates to `site2branch()` (push of `_site` to the FTP deploy branch). If `FALSE`, runs `quarto publish gh-pages`. Prints the final site URL on success.
+
 ## rescan_site()
 
-  - a function that scans for new qmds and adds them to the other-links section of the quarto yaml
-  when adding pages to the other-links section it should be with the 
+  - a function that scans for new qmds and rewrites the `other-links` section of the quarto yaml (full rewrite, not append — `index.qmd` is placed first if present)
+  when adding pages to the other-links section it should be with the
   folloing syntax  :   
   
   other-links:
@@ -88,10 +93,20 @@ In any case a message should be displayed inviting the used to manually modify i
      
      Where -text is the title of the page if one is in the yaml, otherwise use the basename of the qmd, icon is newspaper bydefault and href is the path to html pages ie if the new_page.qmd is at the root then href is new_page.html , if it's under a subfolder at the root ie subfolder/new_page.qmd, then href is subfolder/new_page.html
      
-## encrypt_si
+## encrypt_site()
 
-it's a function that encrypts a website. it adds the necessary lines in the _quarto.yml and the ftp_deploy.yml to be able to encrypt the website via the script in www/encrypt.R (also found in the ofceweb package install files in case the script hasnt been copied yet, it should be copied in the www folder). Upon execution, the function prompts the user on the console to enter a password which will be then stored as a github repository secret called STATICRYPT_PASSWORD
+Enables static site encryption. Encryption itself is **not** done by this function: it is performed by `render_site()` via `staticryptR::staticryptr()` when the key `encrypt_site: true` is present in the `_quarto.yml`. `encrypt_site()` just sets up everything needed for that to work, both locally and on GitHub Actions.
+
+Concretely, the function:
+
+1. Adds / flips the `encrypt_site: true` key at the root of the `_quarto.yml` (idempotent).
+2. Patches `.github/workflows/ftp_deploy.yml` to expose `STATICRYPT_PASSWORD` to the job (inserts an `env:` block right after `runs-on: ubuntu-latest` that reads `${{ secrets.STATICRYPT_PASSWORD }}`).
+3. Prompts the user for a password (via `askpass` if available, otherwise `readline()`) — unless the `password` argument is provided directly.
+4. Creates the GitHub secret `STATICRYPT_PASSWORD` on the current repo via `gh secret set` (resolves `owner/repo` from the `origin` remote). Prerequisite: `gh` installed and authenticated.
+5. Writes `STATICRYPT_PASSWORD=...` into a `.Renviron` at the repo root and adds `.Renviron` to `.gitignore`, so that local renders have access to the password without shell configuration.
+
+Arguments: `path` (default `"."`) and `password` (default `NULL` → interactive prompt).
 
 ## remove_encrypt()
 
-Pour defaire ce qu'encrypt_site() a fait
+Undoes what `encrypt_site()` did. Idempotent. Flips `encrypt_site` to `false` in the `_quarto.yml`, removes the `env: STATICRYPT_PASSWORD` block from `ftp_deploy.yml`, and (unless `delete_secret = FALSE`) removes the GitHub secret `STATICRYPT_PASSWORD` via `gh secret delete`. Does not touch the local `.Renviron`.

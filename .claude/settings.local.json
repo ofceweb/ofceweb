@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Rscript -e 'devtools::check\\(document = FALSE, args = \"--no-tests\", quiet = FALSE\\)')",
+      "Bash(Rscript *)"
+    ]
+  }
+}

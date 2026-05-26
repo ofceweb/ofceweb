@@ -286,6 +286,11 @@ setup_site <- function(
   cli::cli_li("qmds        : {length(qmd_info)} fichier{?s}")
   cli::cli_li("hypothesis  : {hypothesis}")
 
+  cli::cli_alert_warning(
+    "Pensez à {.strong commiter et pousser} les changements avant de \\
+     lancer {.run ofceweb::render_site()}."
+  )
+
   invisible(NULL)
 }
 

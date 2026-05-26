@@ -1,0 +1,262 @@
+---
+title: "Construire un site avec ofceweb"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Construire un site avec ofceweb}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+Ce vignette décrit le cycle complet d'un site générique propulsé par
+`ofceweb` : initialisation depuis un dépôt vierge, chiffrement optionnel,
+rendu, puis déploiement. Trois fonctions structurent ce cycle :
+
+- `setup_site()` — pose les gabarits et configure le `_quarto.yml`,
+- `render_site()` — construit `_site/`,
+- `deploy_site()` — publie le résultat.
+
+Les helpers `encrypt_site()` / `remove_encrypt()`, `rescan_site()` et
+`site_version_up()` viennent en complément.
+
+**Pré-requis.** Ce vignette suppose que vous avez déjà configuré un
+PAT GitHub (`GITHUB_PAT` et `DEPLOY_PAT`) et installé `gh` puis lancé
+`gh auth login`. Si ce n'est pas le cas, voir d'abord
+[*Pré-requis : PAT GitHub, gh CLI, variables d'environnement*](prerequisites.html).
+
+## 1. Choisir le type de site
+
+Avant de lancer quoi que ce soit, deux questions sont à trancher : où le
+site est-il hébergé, et le dépôt est-il public ou privé ?
+
+### Hébergement OFCE ou GitHub Pages
+
+| Choix                    | `setup_site(ofce_host = …)` | Publication               | Dépôt sous l'organisation OFCE ? |
+|--------------------------|-----------------------------|---------------------------|----------------------------------|
+| Serveurs OFCE (FTP)      | `TRUE` (défaut)             | `_site` → branche `site-deploy` → workflow GitHub Actions `ftp_deploy.yml` → FTP `www.ofce.fr` | Recommandé. Sinon contacter Xavier T. ou Anissa pour l'accès au serveur. |
+| GitHub Pages             | `FALSE`                     | `quarto publish gh-pages` (branche orpheline `gh-pages` créée par `setup_site()`) | Indifférent. |
+
+L'hébergement OFCE est le défaut historique : `site-url =
+https://www.ofce.fr/` et `site-path = <ofce_server_location>/<repo>[/v0]`
+(par défaut `staging/<repo>/v0`). Le workflow FTP est patché pour
+pointer sur les bons secrets (`STAGING_USER`/`STAGING_PASSWORD` pour
+`staging`, `WP_*` pour `wp`).
+
+GitHub Pages est plus simple côté infra : pas de secrets FTP à
+configurer, juste une branche `gh-pages` que Quarto alimente.
+
+### Dépôt public ou privé
+
+- **Public** : aucun réglage spécifique. C'est le cas le plus courant.
+- **Privé hébergé OFCE** : fonctionne tel quel — la publication passe
+  par FTP, donc la visibilité du dépôt n'a pas d'incidence sur le site
+  rendu.
+- **Privé hébergé GitHub Pages** : GitHub Pages sur dépôt privé exige
+  un plan GitHub Enterprise / Pro. En pratique : soit rendre le dépôt
+  public, soit basculer sur l'hébergement OFCE, soit ajouter une couche
+  de chiffrement via `encrypt_site()` (voir §3).
+
+## 2. Préparer un dépôt minimal
+
+Le strict nécessaire avant d'appeler `setup_site()` :
+
+1. Créer un dépôt GitHub vide (avec ou sans README — peu importe).
+2. Le cloner localement.
+3. Ouvrir une session R à la racine du dépôt.
+
+Aucun fichier `.qmd` n'est obligatoire : si aucun `index.qmd` n'est
+trouvé, `setup_site()` en copie un par défaut. Si des `.qmd` existent
+déjà, ils seront détectés et listés dans `other-links`.
+
+```r
+# depuis la racine du dépôt fraîchement cloné
+ofceweb::setup_site()
+```
+
+Ce que fait `setup_site()` :
+
+- Scanne les `*.qmd` (en ignorant ceux qui commencent par `_`) et
+  récupère le `title` de leur front matter (sinon le nom de fichier).
+- Copie depuis `inst/setup_site/` du package :
+  - `_quarto.yml` à la racine,
+  - `index.qmd` à la racine (uniquement s'il n'en existe pas déjà un),
+  - le dossier `www/` (assets : logos, CSS, …),
+  - le dossier `_extensions/`,
+  - les workflows GitHub vers `.github/workflows/`.
+- Renseigne le `_quarto.yml` : `title`, `site-url`, `site-path`,
+  `repo-url`, la section `other-links` (une entrée par `qmd`,
+  `index.qmd` en tête), et les commentaires `hypothesis` si demandé.
+- Ajoute `_site` au `.gitignore`.
+- Si `ofce_host = FALSE` : crée la branche orpheline `gh-pages` et la
+  pousse sur `origin` (no-op si elle existe déjà ou si le working tree
+  n'est pas propre).
+
+Arguments principaux :
+
+| Argument               | Défaut       | Effet |
+|------------------------|--------------|-------|
+| `ofce_host`            | `TRUE`       | Hébergement OFCE vs GitHub Pages. |
+| `ofce_server_location` | `"staging"`  | `"staging"` ou `"wp"`. Détermine le préfixe du `site-path` et les secrets FTP utilisés. |
+| `website_code`         | `NULL`       | Code court (lettres/chiffres/`_`) utilisé comme `site-path` à la place du nom du dépôt. Ignoré si `ofce_host = FALSE`. |
+| `website_title`        | `NULL`       | Force le titre. Sinon : titre de `index.qmd`, sinon nom du dépôt. |
+| `hypothesis`           | `TRUE`       | Active les commentaires Hypothesis. |
+| `versionning`          | `TRUE`       | Ajoute `/v0` au `site-path` (OFCE uniquement). Voir `site_version_up()` pour incrémenter. |
+
+Commiter le résultat avant d'aller plus loin — `setup_site()` peut être
+relancé pour ajuster, mais la suite suppose un working tree propre.
+
+## 3. Chiffrer le site (optionnel)
+
+Utile principalement pour les sites publiés sur GitHub Pages depuis un
+dépôt public quand le contenu doit rester confidentiel (rapports
+embargo, brouillons, etc.). À sauter si le site est destiné à être
+public.
+
+```r
+ofceweb::encrypt_site()           # demande un mot de passe
+# ou
+ofceweb::encrypt_site(password = "…")
+```
+
+Pré-requis : `gh` (GitHub CLI) installé et authentifié
+(`gh auth login`), avec droits admin sur le dépôt. Voir
+[*Pré-requis*](prerequisites.html#installer-gh-github-cli) pour
+l'installation et `gh auth login`.
+
+Ce que fait `encrypt_site()` :
+
+1. Ajoute `encrypt_site: true` dans `_quarto.yml` (idempotent).
+2. Injecte un bloc `env: STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}`
+   dans `.github/workflows/ftp_deploy.yml`.
+3. Crée le secret GitHub `STATICRYPT_PASSWORD` via `gh secret set`.
+4. Écrit `STATICRYPT_PASSWORD=…` dans un `.Renviron` local (et
+   l'ajoute au `.gitignore`) pour que les rendus locaux disposent du
+   mot de passe sans configuration shell.
+
+Le chiffrement lui-même n'est **pas** exécuté ici — il l'est par
+`render_site()` (via `staticryptR::staticryptr()`) chaque fois qu'il
+détecte `encrypt_site: true` dans le `_quarto.yml`. Redémarrer la
+session R après `encrypt_site()` pour que `.Renviron` soit chargé.
+
+### Cas OFCE vs GitHub Pages
+
+Le mécanisme diffère sensiblement selon l'hébergement :
+
+- **OFCE** : `render_site()` chiffre `_site/` localement, puis
+  `deploy_site()` pousse vers `site-deploy` et le workflow GitHub
+  Actions `ftp_deploy.yml` uploade en FTP. Le bloc
+  `env: STATICRYPT_PASSWORD` injecté dans `ftp_deploy.yml` et le
+  secret GitHub correspondant servent à fournir le mot de passe à un
+  éventuel rendu déclenché côté CI (intégration continue — i.e.
+  GitHub Actions, par opposition à votre machine). Tant que vous
+  rendez en local, le secret n'est pas strictement nécessaire mais
+  ne coûte rien.
+
+- **GitHub Pages** : `deploy_site()` lance `quarto publish gh-pages`
+  **depuis votre machine**, qui publie le `_site/` déjà chiffré par
+  le render local. Le chiffrement fonctionne donc, mais à deux
+  conditions implicites :
+
+  1. Vous devez avoir lancé `render_site()` localement avant
+     `deploy_site()` — sinon `quarto publish gh-pages` rendra à la
+     volée, sans passer par la branche de chiffrement de
+     `render_site()`.
+  2. Le patch de `ftp_deploy.yml` et le secret GitHub créés par
+     `encrypt_site()` ne servent à rien dans ce cas : aucun workflow
+     CI n'est utilisé pour publier. Si vous ajoutez plus tard un
+     workflow CI qui rend le site sur GitHub Actions, il faudra y
+     exposer `STATICRYPT_PASSWORD` à la main — `encrypt_site()` ne
+     patche que `ftp_deploy.yml`.
+
+Pour désactiver : `ofceweb::remove_encrypt()` (idempotent, supprime le
+secret GitHub sauf si `delete_secret = FALSE`).
+
+## 4. Rendre le site
+
+```r
+ofceweb::render_site()
+```
+
+Pipeline :
+
+- Vérifie que `_quarto.yml` existe (sinon renvoie vers `setup_site()`).
+- Vide `_site/`.
+- Lance `quarto::quarto_render(output_format = "all")`.
+- Reconstruit `_site/sitemap.xml` à partir du contenu réel de `_site/`
+  (Quarto ne couvre que les pages fraîchement rendues).
+- Strippe les hash de contenu des fichiers `_site/site_libs/*` pour
+  que la synchronisation FTP ne re-transfère pas l'identique à chaque
+  rendu (`patch_sitelibs_hashes()`).
+- Si `encrypt_site: true` : applique `staticryptR::staticryptr()` sur
+  `_site/` avec `STATICRYPT_PASSWORD`.
+- Lance une prévisualisation locale via `servr::httw("_site")` (URLs
+  absolues réécrites en relatif pour la navigation locale).
+
+Arguments utiles :
+
+| Argument       | Défaut | Effet |
+|----------------|--------|-------|
+| `render_site`  | `TRUE` | Démarre le serveur local. Mettre à `FALSE` pour un build "headless". |
+| `site2branch`  | `FALSE`| Pousse directement vers la branche de déploiement (raccourci équivalent à enchaîner `deploy_site()`). |
+| `workers`      | `8L`   | Workers parallèles. |
+| `check_repo`   | `TRUE` | Vérifie l'état du dépôt git avant le rendu. |
+
+## 5. Déployer
+
+```r
+ofceweb::deploy_site()
+```
+
+`deploy_site()` lit la clé `ofce_host` du `_quarto.yml` et choisit :
+
+- **OFCE** (`ofce_host: true`) → délègue à `site2branch()` : copie
+  `_site/` dans un dépôt temporaire, fait un commit unique, force-push
+  vers `origin/site-deploy`, puis déclenche le workflow GitHub Actions
+  `ftp_deploy.yml` (qui pousse en FTP). Les credentials sont lus dans
+  `DEPLOY_PAT` (à défaut, le keystore OS) — voir
+  [*Pré-requis*](prerequisites.html#stocker-github_pat-et-deploy_pat-dans-lenvironnement)
+  pour la configuration de cette variable. `GITHUB_TOKEN` ne suffit
+  pas car il ne peut pas dispatcher d'autres workflows.
+- **GitHub Pages** (`ofce_host: false`) → lance
+  `quarto publish gh-pages --no-prompt --no-browser`.
+
+L'URL finale est affichée sur succès.
+
+Pour forcer un re-upload FTP complet (par exemple après nettoyage côté
+serveur) sans purger le serveur :
+
+```r
+ofceweb::deploy_site(full_deploy = TRUE)
+```
+
+## 6. Récapitulatif
+
+```r
+# 1. dépôt cloné, session R à sa racine
+ofceweb::setup_site(
+  ofce_host = TRUE,                    # ou FALSE pour GitHub Pages
+  ofce_server_location = "staging",    # ou "wp"
+  website_title = "Mon site"
+)
+
+# 2. (optionnel) chiffrement
+ofceweb::encrypt_site()                # redémarrer la session R après
+
+# 3. rendu
+ofceweb::render_site()
+
+# 4. déploiement
+ofceweb::deploy_site()
+```
+
+## Helpers à connaître
+
+- `rescan_site()` — rebalaye les `.qmd` et réécrit la section
+  `other-links` du `_quarto.yml`. À lancer après ajout/suppression de
+  pages.
+- `site_version_up()` — incrémente le segment de version du `site-path`
+  (`v0` → `v1`, `v3_4` → `v3_5`, etc.). OFCE uniquement.
+- `remove_encrypt()` — désactive le chiffrement.

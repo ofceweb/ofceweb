@@ -186,9 +186,14 @@ encrypt_site <- function(path = ".", password = NULL) {
     cli::cli_alert_success("Ajout de {.file .Renviron} à {.file .gitignore}.")
   }
 
-  cli::cli_alert_info(
-    "Redémarrer la session R pour que {.envvar STATICRYPT_PASSWORD} soit \\
-     chargé depuis {.file .Renviron}."
+  cli::cli_alert_warning(
+    "{.strong Redémarrage de la session R nécessaire} pour que \\
+     {.envvar STATICRYPT_PASSWORD} soit chargé depuis {.file .Renviron} \\
+     — sans ça, {.run ofceweb::render_site()} ne pourra pas chiffrer."
+  )
+  cli::cli_alert_warning(
+    "Pensez à {.strong commiter et pousser} les changements \\
+     ({.file _quarto.yml}, {.file ftp_deploy.yml}) avant de déployer."
   )
 
   invisible(NULL)

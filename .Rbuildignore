@@ -2,4 +2,5 @@
 ^\.Rproj\.user$
 ^\.positai$
 ^\.claude$
-setup_site.md
+^setup_site\.md$
+^CLAUDE\.md$

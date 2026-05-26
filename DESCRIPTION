@@ -33,7 +33,7 @@ Imports:
     jsonlite, 
     lightparser,
     lubridate,
-    magick, 
+    magick,
     purrr,
     qs2,
     quarto,

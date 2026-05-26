@@ -14,7 +14,7 @@
 #' @returns Invisible `NULL`.
 #' @seealso [site2branch()], [setup_site()]
 #' @export
-site2deploy <- function(
+deploy_site <- function(
     path = ".",
     progress = TRUE,
     trigger = TRUE,

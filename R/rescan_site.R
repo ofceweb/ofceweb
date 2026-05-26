@@ -12,7 +12,7 @@
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @export
-rescan_pages <- function(path = ".", icon = "newspaper") {
+rescan_site <- function(path = ".", icon = "newspaper") {
 
   root <- fs::path_abs(fs::path_expand(path))
 
@@ -23,7 +23,7 @@ rescan_pages <- function(path = ".", icon = "newspaper") {
   if(!fs::file_exists(dest_yaml))
     cli::cli_abort("Aucun {.file _quarto.yml} trouvé dans {.path {root}}.")
 
-  cli::cli_h1("rescan_pages dans {.path {fs::path_file(root)}}")
+  cli::cli_h1("rescan_site dans {.path {fs::path_file(root)}}")
 
   qmds <- fs::dir_ls(root, recurse = TRUE, glob = "*.qmd", type = "file")
   qmds <- qmds[!grepl("^_", fs::path_file(qmds))]

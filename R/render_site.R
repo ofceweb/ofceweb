@@ -20,8 +20,7 @@
 #'
 #' @returns Invisible : sortie de [gert::git_status()].
 #' @seealso [setup_site()], [site2branch()], [render_blog()]
-#' @importFrom fs path_expand path_abs path_norm path_file path file_exists
-#'   dir_exists dir_delete dir_ls file_delete
+#' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists dir_delete dir_ls file_delete
 #' @importFrom cli cli_h1 cli_h2 cli_abort cli_text cli_alert_warning
 #' @importFrom tictoc tic toc
 #' @importFrom servr daemon_stop httw
@@ -93,7 +92,7 @@ render_site <- function(
     ofceweb::site2branch(root, progress = progress, trigger = trigger)
   else
     cli::cli_text(
-      "Pour publier _site, lancer {.run ofceweb::site2branch()}")
+      "Pour publier _site, lancer {.run ofceweb::deploy_site()}")
 
   if(render_site) {
     cli::cli_h2("Prévisualisation du site")

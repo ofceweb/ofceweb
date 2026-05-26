@@ -18,13 +18,12 @@
 #'   titre de `index.qmd` s'il existe, sinon le nom du dépôt.
 #' @param hypothesis Logique. Active ou non les commentaires hypothesis dans le
 #'   `_quarto.yml`. Défaut `TRUE`.
+#' @param versionning Logique. Si `TRUE` (défaut) et `ofce_host = TRUE`, ajoute
+#'   un segment `/v0` au `site-path`. Voir [site_version_up()] pour incrémenter.
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
-#' @importFrom fs path_expand path_abs path_norm path_file path path_rel
-#'   path_ext_set path_ext_remove path_ext file_exists dir_exists file_copy
-#'   dir_copy dir_create dir_ls
-#' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success
-#'   cli_alert_warning cli_alert_danger cli_alert_info cli_text
+#' @importFrom fs path_expand path_abs path_norm path_file path path_rel path_ext_set path_ext_remove path_ext file_exists dir_exists file_copy dir_copy dir_create dir_ls
+#' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_danger cli_alert_info cli_text
 #' @importFrom yaml read_yaml write_yaml verbatim_logical
 #' @importFrom gert git_remote_list
 #' @export
@@ -34,7 +33,8 @@ setup_site <- function(
     ofce_server_location = "staging",
     website_code = NULL,
     website_title = NULL,
-    hypothesis = TRUE) {
+    hypothesis = TRUE,
+    versionning = TRUE) {
 
   root <- getwd()
 
@@ -209,7 +209,9 @@ setup_site <- function(
       ofce_server_location <- "staging"
     }
     yml$website$`site-url` <- "https://www.ofce.fr/"
-    yml$website$`site-path` <- paste0(ofce_server_location, "/", website_path)
+    sp_val <- paste0(ofce_server_location, "/", website_path)
+    if(isTRUE(versionning)) sp_val <- paste0(sp_val, "/v0")
+    yml$website$`site-path` <- sp_val
     patch_ftp_workflow_secrets(root, ofce_server_location)
     cli::cli_alert_info(
       "Si votre dépôt n'est pas sur l'organisation OFCE, merci de voir avec Xavier T. ou Anissa pour la configuration de l'accès au serveur avant la publication du site."
@@ -291,8 +293,8 @@ patch_ftp_workflow_secrets <- function(root, ofce_server_location) {
   if(!fs::file_exists(wf)) return(invisible(NULL))
   prefix <- toupper(ofce_server_location)
   lines <- readLines(wf)
-  lines <- gsub("secrets\\.FTP_USERNAME",
-                paste0("secrets.", prefix, "_USERNAME"), lines, fixed = FALSE)
+  lines <- gsub("secrets\\.FTP_USER",
+                paste0("secrets.", prefix, "_USER"), lines, fixed = FALSE)
   lines <- gsub("secrets\\.FTP_PASSWORD",
                 paste0("secrets.", prefix, "_PASSWORD"), lines, fixed = FALSE)
   writeLines(lines, wf)

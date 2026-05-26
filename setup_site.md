@@ -49,12 +49,31 @@ git push origin gh-pages
 ---
 and go back to whatever github branch we were in previously
 
-## site2deploy() 
+### versionning
+
+in setup_site() versionning is an argument that takes TRUE or FALSE. TRUE is by default. When activated , the site-path argument in the _quarto.yml is augmented with a "v0" path. ie "site-path: staging/repo_name/v0/"
+This only works with ofce_host = TRUE .
+A sister function is to be added called site_version_up() . It only works if ofce_host: true in the yaml , and it takes an argument called custom_version . custom version is NULL  by default. if not null then v0 in site-path of the _quarto.yml is replaced by the custom_version. If NULL then upgrading the version is done by detecting the version and uppinsg it by one. The function must detect the last number on the character string ie if v0 , then version to up is 0 . if v0_1 then it becomes v0_2. Upping versions is done by 1 increment .
+Version numbers must be alphanumeric with underscores only (no other signs accepted). 
+
+Some examples :
+
+v10 --> v11
+v3_4 --> v3_5
+v5_AS_34 -->  v5_AS_35
+v5_AS42 -->  v5_AS43
+v10_42A -->  v10_43A
+0 --> 1 
+6v --> 7v
+
+In any case a message should be displayed inviting the used to manually modify in the quarto.yml if necessary
+
+## deploy_site() 
 
 - should work like site2branch if ofce_host is TRUE in the yaml, otherwise it does a quarto publish gh-pages
 
 
-## rescan_pages()
+## rescan_site()
 
   - a function that scans for new qmds and adds them to the other-links section of the quarto yaml
   when adding pages to the other-links section it should be with the 
@@ -66,3 +85,4 @@ and go back to whatever github branch we were in previously
      href: annexes.html  
      
      Where -text is the title of the page if one is in the yaml, otherwise use the basename of the qmd, icon is newspaper bydefault and href is the path to html pages ie if the new_page.qmd is at the root then href is new_page.html , if it's under a subfolder at the root ie subfolder/new_page.qmd, then href is subfolder/new_page.html
+     

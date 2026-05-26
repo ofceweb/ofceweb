@@ -10,7 +10,8 @@ setup_site(
   ofce_server_location = "staging",
   website_code = NULL,
   website_title = NULL,
-  hypothesis = TRUE
+  hypothesis = TRUE,
+  versionning = TRUE
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ titre de `index.qmd` s'il existe, sinon le nom du dépôt.}
 
 \item{hypothesis}{Logique. Active ou non les commentaires hypothesis dans le
 `_quarto.yml`. Défaut `TRUE`.}
+
+\item{versionning}{Logique. Si `TRUE` (défaut) et `ofce_host = TRUE`, ajoute
+un segment `/v0` au `site-path`. Voir [site_version_up()] pour incrémenter.}
 }
 \value{
 Invisible `NULL`. Appelée pour ses effets de bord.

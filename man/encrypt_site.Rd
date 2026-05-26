@@ -27,6 +27,9 @@ Configure le site courant pour qu'il soit chiffré au moment du render via
         `.github/workflows/ftp_deploy.yml` (idempotent).
   \item Demande un mot de passe à l'utilisateur et le stocke comme secret
         GitHub du dépôt sous le nom `STATICRYPT_PASSWORD` via `gh`.
+  \item Enregistre `STATICRYPT_PASSWORD` dans le `.Renviron` à la racine
+        du dépôt (et l'ajoute au `.gitignore`) afin que les renders locaux
+        disposent du mot de passe sans configuration shell.
 }
 }
 \details{

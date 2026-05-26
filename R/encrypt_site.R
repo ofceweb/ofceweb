@@ -11,6 +11,9 @@
 #'         `.github/workflows/ftp_deploy.yml` (idempotent).
 #'   \item Demande un mot de passe à l'utilisateur et le stocke comme secret
 #'         GitHub du dépôt sous le nom `STATICRYPT_PASSWORD` via `gh`.
+#'   \item Enregistre `STATICRYPT_PASSWORD` dans le `.Renviron` à la racine
+#'         du dépôt (et l'ajoute au `.gitignore`) afin que les renders locaux
+#'         disposent du mot de passe sans configuration shell.
 #' }
 #'
 #' Pré-requis : l'outil `gh` doit être installé et authentifié
@@ -182,9 +185,31 @@ encrypt_site <- function(path = ".", password = NULL) {
     "Secret {.code STATICRYPT_PASSWORD} enregistré sur {.val {owner_repo}}."
   )
 
+  # ---- 8. enregistrement dans .Renviron local ----------------------------
+  renv_path <- fs::path(root, ".Renviron")
+  renv_lines <- if(fs::file_exists(renv_path))
+    readLines(renv_path, warn = FALSE) else character()
+  keep <- !grepl("^\\s*STATICRYPT_PASSWORD\\s*=", renv_lines)
+  renv_lines <- c(
+    renv_lines[keep],
+    sprintf("STATICRYPT_PASSWORD=%s", password)
+  )
+  writeLines(renv_lines, renv_path)
+  cli::cli_alert_success(
+    "{.envvar STATICRYPT_PASSWORD} écrit dans {.file .Renviron}."
+  )
+
+  gi_path <- fs::path(root, ".gitignore")
+  gi_lines <- if(fs::file_exists(gi_path))
+    readLines(gi_path, warn = FALSE) else character()
+  if(!any(grepl("^\\s*\\.Renviron\\s*$", gi_lines))) {
+    writeLines(c(gi_lines, ".Renviron"), gi_path)
+    cli::cli_alert_success("Ajout de {.file .Renviron} à {.file .gitignore}.")
+  }
+
   cli::cli_alert_info(
-    "Pour tester localement, exporter {.envvar STATICRYPT_PASSWORD} dans le \\
-     shell avant {.code quarto render}."
+    "Redémarrer la session R pour que {.envvar STATICRYPT_PASSWORD} soit \\
+     chargé depuis {.file .Renviron}."
   )
 
   invisible(NULL)

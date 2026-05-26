@@ -49,6 +49,8 @@ git push origin gh-pages
 ---
 and go back to whatever github branch we were in previously
 
+The ftp-deploy must also be adapted. A line should be added in the with: section , the server-dir: argument should be added with the name of the repo, then if versioning is on, the version (v0 for setup_site()) . The site_version_up() described below should also modify this file accordinngly
+
 ### versionning
 
 in setup_site() versionning is an argument that takes TRUE or FALSE. TRUE is by default. When activated , the site-path argument in the _quarto.yml is augmented with a "v0" path. ie "site-path: staging/repo_name/v0/"
@@ -86,6 +88,10 @@ In any case a message should be displayed inviting the used to manually modify i
      
      Where -text is the title of the page if one is in the yaml, otherwise use the basename of the qmd, icon is newspaper bydefault and href is the path to html pages ie if the new_page.qmd is at the root then href is new_page.html , if it's under a subfolder at the root ie subfolder/new_page.qmd, then href is subfolder/new_page.html
      
-## encrypt_site()
+## encrypt_si
 
 it's a function that encrypts a website. it adds the necessary lines in the _quarto.yml and the ftp_deploy.yml to be able to encrypt the website via the script in www/encrypt.R (also found in the ofceweb package install files in case the script hasnt been copied yet, it should be copied in the www folder). Upon execution, the function prompts the user on the console to enter a password which will be then stored as a github repository secret called STATICRYPT_PASSWORD
+
+## remove_encrypt()
+
+Pour defaire ce qu'encrypt_site() a fait

@@ -213,6 +213,9 @@ setup_site <- function(
     if(isTRUE(versionning)) sp_val <- paste0(sp_val, "/v0")
     yml$website$`site-path` <- sp_val
     patch_ftp_workflow_secrets(root, ofce_server_location)
+    server_dir <- website_path
+    if(isTRUE(versionning)) server_dir <- paste0(server_dir, "/v0")
+    set_ftp_server_dir(root, server_dir)
     cli::cli_alert_info(
       "Si votre dépôt n'est pas sur l'organisation OFCE, merci de voir avec Xavier T. ou Anissa pour la configuration de l'accès au serveur avant la publication du site."
     )
@@ -300,6 +303,33 @@ patch_ftp_workflow_secrets <- function(root, ofce_server_location) {
   writeLines(lines, wf)
   cli::cli_alert_success(
     "Mise à jour des secrets FTP dans {.file .github/workflows/ftp_deploy.yml} ({prefix}_USERNAME / {prefix}_PASSWORD)"
+  )
+  invisible(NULL)
+}
+
+# Insère ou met à jour la ligne `server-dir:` dans
+# .github/workflows/ftp_deploy.yml. `server_dir` est de la forme
+# "<repo>" ou "<repo>/v0" ; un `/` final est ajouté si absent.
+set_ftp_server_dir <- function(root, server_dir) {
+  wf <- fs::path(root, ".github", "workflows", "ftp_deploy.yml")
+  if(!fs::file_exists(wf)) return(invisible(NULL))
+  if(!grepl("/$", server_dir)) server_dir <- paste0(server_dir, "/")
+  lines <- readLines(wf)
+  sd_re <- "^(\\s*)server-dir:\\s*.*$"
+  if(any(grepl(sd_re, lines))) {
+    lines <- sub(sd_re, paste0("\\1server-dir: ", server_dir), lines)
+  } else {
+    pw_idx <- grep("^\\s*password:\\s", lines)
+    if(length(pw_idx) == 0) return(invisible(NULL))
+    pw_idx <- pw_idx[[1]]
+    indent <- sub("^(\\s*)password:.*$", "\\1", lines[pw_idx])
+    lines <- append(lines,
+                    paste0(indent, "server-dir: ", server_dir),
+                    after = pw_idx)
+  }
+  writeLines(lines, wf)
+  cli::cli_alert_success(
+    "Mise à jour de {.code server-dir} dans {.file .github/workflows/ftp_deploy.yml} : {.val {server_dir}}"
   )
   invisible(NULL)
 }

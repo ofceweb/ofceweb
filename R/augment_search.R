@@ -50,8 +50,8 @@
 
   if(full_text) {
     text <- post |>
-      slice(-1) |>
-      pull(text) |>
+      dplyr::slice(-1) |>
+      dplyr::pull(text) |>
       unlist()
     text <- text |>
       stringr::str_remove_all(

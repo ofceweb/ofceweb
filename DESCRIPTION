@@ -1,17 +1,38 @@
 Package: ofceweb
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
+Title: Tous les outils pour le fonctionnement du web OFCE
+Version: 0.2.0
 Authors@R: c(
     person(
-      "", "Doe",
-      email = "jane@example.com",
+      "Xavier", "Timbeau",
+      email = "xavier.timbeau@sciencespo.fr",
       role = c("aut", "cre")
+    ),
+    person(
+      "Anissa", "Saumtally",
+      email = "anissa.saumtally@sciencespo.fr",
+      role = "aut"
+    ) ,
+    person(
+      "Elliot", "Aurissergues",
+      email = "elliot.aurissergues@sciencespo.fr",
+      role = "aut"
+    ) ,
+    person(
+      "Paul", "Malliet",
+      email = "paul.malliet@sciencespo.fr",
+      role = "aut"
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
-License: What license is it under?
+Description: Outils de build et de déploiement pour l'infrastructure web de
+    l'OFCE. Fournit les fonctions communes utilisées par les dépôts consommateurs
+    (webblog, webhome, prev2x0[39], sites génériques) pour initialiser un site
+    Quarto, le rendre (avec gestion bilingue FR/EN et cache des posts pour le
+    blog), construire le sitemap, indexer les contenus pour Algolia, chiffrer
+    éventuellement le site via staticrypt, puis pousser le résultat sur une
+    branche de déploiement et déclencher le workflow GitHub Actions de
+    publication FTP.
+License: CC-by 4.0
 Encoding: UTF-8
 LazyData: true
 Imports:
@@ -28,21 +49,22 @@ Imports:
     gh,
     gitcreds,
     glue,
-    here,
     httr2,
-    jsonlite, 
+    jsonlite,
     lightparser,
     lubridate,
     magick,
     purrr,
     qs2,
     quarto,
-    rprojroot,
-    servr, 
-    stringr, 
-    tibble, 
+    servr,
+    stringr,
+    tibble,
     tictoc,
     yaml
+Suggests:
+    askpass,
+    staticryptR
 remotes:
   github::ofce/ofce
 Config/roxygen2/version: 8.0.0

@@ -43,7 +43,8 @@ L'hébergement OFCE est le défaut historique : `site-url =
 https://www.ofce.fr/` et `site-path = <ofce_server_location>/<repo>[/v0]`
 (par défaut `staging/<repo>/v0`). Le workflow FTP est patché pour
 pointer sur les bons secrets (`STAGING_USER`/`STAGING_PASSWORD` pour
-`staging`, `WP_*` pour `wp`).
+`staging`, `WP_USER`/`WP_PASSWORD` pour `wp`,
+`THREEME_USER`/`THREEME_PASSWORD` pour `threeme`).
 
 GitHub Pages est plus simple côté infra : pas de secrets FTP à
 configurer, juste une branche `gh-pages` que Quarto alimente.
@@ -99,7 +100,7 @@ Arguments principaux :
 | Argument               | Défaut       | Effet |
 |------------------------|--------------|-------|
 | `ofce_host`            | `TRUE`       | Hébergement OFCE vs GitHub Pages. |
-| `ofce_server_location` | `"staging"`  | `"staging"` ou `"wp"`. Détermine le préfixe du `site-path` et les secrets FTP utilisés. |
+| `ofce_server_location` | `"staging"`  | `"staging"`, `"wp"` ou `"threeme"`. Détermine le préfixe du `site-path` et les secrets FTP utilisés. |
 | `website_code`         | `NULL`       | Code court (lettres/chiffres/`_`) utilisé comme `site-path` à la place du nom du dépôt. Ignoré si `ofce_host = FALSE`. |
 | `website_title`        | `NULL`       | Force le titre. Sinon : titre de `index.qmd`, sinon nom du dépôt. |
 | `hypothesis`           | `TRUE`       | Active les commentaires Hypothesis. |
@@ -238,7 +239,7 @@ ofceweb::deploy_site(full_deploy = TRUE)
 # 1. dépôt cloné, session R à sa racine
 ofceweb::setup_site(
   ofce_host = TRUE,                    # ou FALSE pour GitHub Pages
-  ofce_server_location = "staging",    # ou "wp"
+  ofce_server_location = "staging",    # ou "wp", "threeme"
   website_title = "Mon site"
 )
 

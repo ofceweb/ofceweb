@@ -49,8 +49,8 @@ chargent `ofceweb` et appellent ses points d'entrée.
 
 ::: {.callout-note collapse="true" icon=false title="Pourquoi OFCE par défaut"}
 C'est le défaut historique : `www.ofce.fr/<site-path>`. Les workflows
-fournis (`ftp_deploy.yml`) et les secrets `STAGING_*` / `WP_*` sont
-déjà câblés. GitHub Pages est un fallback utile pour les sites hors
+fournis (`ftp_deploy.yml`) et les secrets `STAGING_*` / `WP_*` /
+`THREEME_*` sont déjà câblés. GitHub Pages est un fallback utile pour les sites hors
 organisation OFCE ou expérimentaux.
 :::
 
@@ -164,7 +164,7 @@ tout le monde peut reproduire.
 ```r
 ofceweb::setup_site(
   ofce_host = TRUE,
-  ofce_server_location = "staging",
+  ofce_server_location = "staging",   # ou "wp", "threeme"
   website_title = "Mon site",
   hypothesis = TRUE,
   versionning = TRUE

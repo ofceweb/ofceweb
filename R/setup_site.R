@@ -10,7 +10,9 @@
 #'   serveurs OFCE (`site-url = https://www.ofce.fr/`). Si `FALSE`, le site est
 #'   publié via GitHub Pages et le `site-url` est dérivé du remote `origin`.
 #' @param ofce_server_location Chaîne. Emplacement sur le serveur OFCE,
-#'   utilisé comme préfixe du `site-path`. Défaut `"staging"`.
+#'   utilisé comme préfixe du `site-path`. Valeurs reconnues :
+#'   `"staging"` (défaut), `"wp"`, `"threeme"`. Détermine aussi le préfixe
+#'   des secrets FTP utilisés (`STAGING_*`, `WP_*`, `THREEME_*`).
 #' @param website_code Chaîne ou `NULL`. Code court du site (lettres, chiffres,
 #'   underscores uniquement). Si invalide, retombe sur `NULL`. Si `NULL`, on
 #'   utilise le nom du dépôt GitHub.
@@ -202,9 +204,9 @@ setup_site <- function(
   yml <- yaml::read_yaml(dest_yaml)
 
   if(isTRUE(ofce_host)) {
-    if(!ofce_server_location %in% c("staging", "wp")) {
+    if(!ofce_server_location %in% c("staging", "wp", "threeme")) {
       cli::cli_alert_warning(
-        "ofce_server_location {.val {ofce_server_location}} non reconnu. Valeurs attendues : {.val staging} ou {.val wp}. Utilisation de {.val staging} par défaut."
+        "ofce_server_location {.val {ofce_server_location}} non reconnu. Valeurs attendues : {.val staging}, {.val wp} ou {.val threeme}. Utilisation de {.val staging} par défaut."
       )
       ofce_server_location <- "staging"
     }
@@ -295,7 +297,8 @@ setup_site <- function(
 }
 
 # Réécrit les références aux secrets FTP dans .github/workflows/ftp_deploy.yml
-# en fonction de l'emplacement OFCE (staging -> STAGING_*, wp -> WP_*).
+# en fonction de l'emplacement OFCE (staging -> STAGING_*, wp -> WP_*,
+# threeme -> THREEME_*).
 patch_ftp_workflow_secrets <- function(root, ofce_server_location) {
   wf <- fs::path(root, ".github", "workflows", "ftp_deploy.yml")
   if(!fs::file_exists(wf)) return(invisible(NULL))

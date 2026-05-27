@@ -22,7 +22,9 @@ serveurs OFCE (`site-url = https://www.ofce.fr/`). Si `FALSE`, le site est
 publié via GitHub Pages et le `site-url` est dérivé du remote `origin`.}
 
 \item{ofce_server_location}{Chaîne. Emplacement sur le serveur OFCE,
-utilisé comme préfixe du `site-path`. Défaut `"staging"`.}
+utilisé comme préfixe du `site-path`. Valeurs reconnues :
+`"staging"` (défaut), `"wp"`, `"threeme"`. Détermine aussi le préfixe
+des secrets FTP utilisés (`STAGING_*`, `WP_*`, `THREEME_*`).}
 
 \item{website_code}{Chaîne ou `NULL`. Code court du site (lettres, chiffres,
 underscores uniquement). Si invalide, retombe sur `NULL`. Si `NULL`, on

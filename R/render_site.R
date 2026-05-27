@@ -91,14 +91,6 @@ render_site <- function(
 
   if(encrypt_flag) {
 
-    if (!requireNamespace("staticryptR", quietly = TRUE)) {
-      stop(
-        "staticryptR package is required for this script to work.
-    Please install with: install.packages('staticryptR')",
-        call. = FALSE
-      )
-    }
-
     if (isTRUE(staticryptR::check_system())) {
       message(
         "Encrypting..."

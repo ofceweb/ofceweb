@@ -58,6 +58,7 @@ Imports:
     qs2,
     quarto,
     servr,
+    staticryptR,
     stringr,
     tibble,
     tictoc,
@@ -65,8 +66,7 @@ Imports:
 Suggests:
     askpass,
     knitr,
-    rmarkdown,
-    staticryptR
+    rmarkdown
 VignetteBuilder: knitr
 remotes:
   github::ofce/ofce

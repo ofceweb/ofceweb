@@ -1,0 +1,50 @@
+---
+title: "OFCE outils web workshop"
+author: "Anissa Saumtally"
+format: ofce-html
+---
+
+
+# Plan du workshop
+
+## Mises a jour
+
+  1. Mise à jour de R, Rtools pour windows
+  2. Mise à jour de quarto
+  3. Mise à jour de Rstudio
+  4. Installation des packages via setup.R de ThreeME V4 (git et non git)
+  5. installer le package web
+  
+## Preparer son environnement de travail en R
+
+  1. creer un PAT sur github
+  2. installer gh sur le systeme (MacOS et Windows version)
+  3. declarer les PAT (GITHUB_PAT et DEPLOY_PAT sur son environnement de maniere permanente )
+  4. s'authentifier sur Rstudio avec gh auth 
+  
+## Workflow pour un site
+
+  1. creeer un repo qui ne contient que le minimum pour les pages du site
+  2. decider de la localisation du site : ofce_host ou gh-pages, repo privé ou public , avec ou sans cryptage (acces par mot de passe)
+  2b. si le site est a mettre sur ofce, choisir si staging (en gros travaux en cours, travaux echanges avec le'exterieur ) ou wp (si document de travail ofce). si le repo est sur l'organisation github ofce rien a specifier, s'il s'agit d'un repo sur une autre orga, contacter Anissa ou Xavier T. pour obtenir les credentials sur votre repo
+  3. hypothesis ou pas , expliquer possible de mettre que sur certaine page. Mode d'emploi hypothesis, comment creer un compte, creer un groupe invitger un exterieur au groupe. 
+  4. versionning ou pas : expliquer que cela permet de garder en memoire des iterations precedentes (avec acces web), et que cela remet a jour hypothesis car techniquement c'est une nouvelle page. attention a bien envoyer le bon lien aux collaborateurs, expliquer comment mettre a jour la vrersion avec fontion et manuellement
+  5. setup_site() -c'est bien de commiter apres
+  6. optionnel : encrypt_site() expliquer qu'il faut redemarrer R apres pour que le mot de passe soit pris en compte
+  7. render_site() : si ok, il faut commit et push au moins la premiere fois (expliquer pourquoi)
+  8. deploy_site() pour la publication 
+  
+## L'apres publication 
+
+  1. ajouter des pages (rescan_site) comment ca fonctionne
+  2. versionning si besoin (rappeler que dans ce cas il faut communiquer le nouveau lien )
+  3. render_site et deploy_site
+  4. verifier les bugs sur github action (si le ftp deploy echoue , ou peut on le voir)
+  5. remove_encrypt()
+  
+  
+  
+  
+
+
+

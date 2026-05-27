@@ -5,7 +5,13 @@
       "Bash(Rscript *)",
       "Bash(curl -sI https://www.ofce.fr/staging/site_ofce_servers/v0/site_libs/bootstrap/bootstrap.min.css)",
       "Bash(curl -s https://www.ofce.fr/staging/site_ofce_servers/v0/)",
-      "Bash(curl -s https://www.ofce.fr/staging/site_ofce_servers/v0/index.html)"
+      "Bash(curl -s https://www.ofce.fr/staging/site_ofce_servers/v0/index.html)",
+      "Bash(git -C /Users/139804/Work/ofceweb status)",
+      "Bash(git -C /Users/139804/Work/ofceweb log --oneline -5)",
+      "Bash(git -C /Users/139804/Work/ofceweb add .gitignore DESCRIPTION R/encrypt_site.R R/setup_site.R vignettes/build-a-site.Rmd vignettes/prerequisites.Rmd)",
+      "Bash(git -C /Users/139804/Work/ofceweb commit -m ' *)",
+      "Bash(git -C /Users/139804/Work/ofceweb push)",
+      "Bash(git -C /Users/139804/Work/ofceweb add .Rbuildignore)"
     ]
   }
 }

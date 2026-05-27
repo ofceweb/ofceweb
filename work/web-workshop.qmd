@@ -1,0 +1,416 @@
+---
+title: "Construire un site OFCE"
+subtitle: "Atelier `ofceweb`"
+author: "OFCE"
+format: pres-revealjs
+---
+
+# Avant de commencer
+
+## De quoi parle-t-on ?
+
+`ofceweb` est le toolkit R qui sert à :
+
+- initialiser un site Quarto (`setup_site()`)
+- le rendre (`render_site()`)
+- le publier (`deploy_site()`)
+- optionnellement le chiffrer (`encrypt_site()`)
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi un package ?"}
+Plusieurs sites OFCE partagent la même infrastructure (workflows FTP,
+sitemap, indexation Algolia, chiffrement staticrypt). Plutôt que de
+dupliquer cette plomberie dans chaque dépôt, on la centralise ici.
+Les dépôts consommateurs (`webblog`, `webhome`, sites génériques)
+chargent `ofceweb` et appellent ses points d'entrée.
+:::
+
+## Deux questions à trancher
+
+::: {.incremental}
+- **Où héberger** : serveurs OFCE (FTP) ou GitHub Pages ?
+- **Quelle visibilité** : dépôt public ou privé ?
+:::
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi ça compte"}
+- L'hébergement détermine la chaîne de déploiement : FTP via GitHub
+  Actions vs `quarto publish gh-pages` local.
+- La visibilité conditionne les options de chiffrement : un site
+  sensible publié sur dépôt public + GitHub Pages doit passer par
+  `encrypt_site()`. Sur OFCE, la visibilité du dépôt n'a aucun
+  impact (le FTP ignore GitHub).
+:::
+
+## Hébergement : tableau de décision
+
+| Choix          | `ofce_host` | Publication                   |
+|----------------|-------------|-------------------------------|
+| Serveurs OFCE  | `TRUE`      | FTP via `ftp_deploy.yml`      |
+| GitHub Pages   | `FALSE`     | `quarto publish gh-pages`     |
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi OFCE par défaut"}
+C'est le défaut historique : `www.ofce.fr/<site-path>`. Les workflows
+fournis (`ftp_deploy.yml`) et les secrets `STAGING_*` / `WP_*` sont
+déjà câblés. GitHub Pages est un fallback utile pour les sites hors
+organisation OFCE ou expérimentaux.
+:::
+
+# Pré-requis machine
+
+## Action — créer un PAT GitHub
+
+1. Aller sur <https://github.com/settings/tokens?type=beta>
+2. *Generate new token*
+3. **Name** : `ofceweb-deploy`
+4. **Expiration** : *No expiration* (ou date au choix)
+5. **Repository access** : dépôts concernés
+6. **Permissions** : Contents R/W, Actions R/W, Secrets R/W (si
+   chiffrement)
+7. Copier le token immédiatement (plus jamais visible ensuite)
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi un PAT ?"}
+Un Personal Access Token remplace votre mot de passe pour les
+opérations programmatiques (push HTTPS, API, dispatch de workflow).
+Il est révocable, scope-able, et indispensable pour que `site2branch()`
+puisse pousser sur `site-deploy` puis dispatcher `ftp_deploy.yml`.
+:::
+
+## Action — stocker le PAT
+
+Dans R :
+
+```r
+usethis::edit_r_environ()
+```
+
+Y ajouter (sans guillemets ni espaces) :
+
+```
+GITHUB_PAT=ghp_xxxxxxxxxxxx
+DEPLOY_PAT=ghp_xxxxxxxxxxxx
+```
+
+Puis **redémarrer R**.
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi deux variables ?"}
+`GITHUB_PAT` est lu par `usethis`, `gh`, `gitcreds` pour les appels
+API classiques. `DEPLOY_PAT` est lu en priorité par `site2branch()`
+parce que sur GitHub Actions, le `GITHUB_TOKEN` ne peut pas
+dispatcher d'autres workflows — il faut un PAT explicite. En local,
+on met la même valeur dans les deux.
+:::
+
+## Action — installer `gh` (macOS)
+
+```sh
+brew install gh
+```
+
+## Action — installer `gh` (Windows)
+
+```powershell
+winget install --id GitHub.cli
+```
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi `gh` ?"}
+`encrypt_site()` utilise `gh secret set` pour créer le secret GitHub
+`STATICRYPT_PASSWORD` sur le dépôt. C'est la voie la plus fiable et
+auditée pour gérer les secrets d'un repo en CLI, et elle évite de
+manipuler des tokens à la main dans les URLs.
+:::
+
+## Action — authentifier `gh`
+
+```sh
+gh auth login
+```
+
+Réponses :
+
+- Account → **GitHub.com**
+- Protocol → **HTTPS**
+- Authenticate Git? → **Yes**
+- Method → **Login with a web browser**
+
+Vérification :
+
+```sh
+gh auth status
+```
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi HTTPS + browser"}
+HTTPS évite la configuration SSH (libgit2 ne sait pas utiliser
+l'agent SSH système — c'est pour ça que `site2branch()` réécrit déjà
+les remotes SSH en HTTPS). Le flux navigateur évite de coller un PAT
+qui peut traîner dans l'historique du shell.
+:::
+
+# `setup_site()`
+
+## Action — préparer le dépôt
+
+1. Créer un dépôt GitHub vide
+2. Le cloner localement
+3. Ouvrir une session R à sa racine
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi un dépôt vierge"}
+`setup_site()` copie ses propres gabarits (`_quarto.yml`, `www/`,
+`_extensions/`, workflows). Un dépôt vide évite tout conflit avec
+des fichiers préexistants et garantit un point de départ propre que
+tout le monde peut reproduire.
+:::
+
+## Action — lancer `setup_site()`
+
+```r
+ofceweb::setup_site(
+  ofce_host = TRUE,
+  ofce_server_location = "staging",
+  website_title = "Mon site",
+  hypothesis = TRUE,
+  versionning = TRUE
+)
+```
+
+::: {.callout-note collapse="true" icon=false title="Que fait la fonction"}
+- Scanne les `.qmd` du dépôt
+- Copie `_quarto.yml`, `index.qmd` (si absent), `www/`, `_extensions/`,
+  workflows
+- Renseigne titre, `site-url`, `site-path`, `other-links`,
+  `repo-url`, hypothesis
+- Ajoute `_site` au `.gitignore`
+- Si `ofce_host = FALSE` : crée la branche orpheline `gh-pages`
+:::
+
+## Action — commiter & pousser
+
+```sh
+git add -A
+git commit -m "setup_site"
+git push
+```
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi maintenant"}
+`setup_site()` modifie pas mal de fichiers (`_quarto.yml`, workflows,
+gabarits). Commiter immédiatement permet :
+
+- de revenir en arrière proprement si les choix d'arguments ne sont
+  pas les bons
+- d'avoir un working tree propre avant la suite (notamment
+  `encrypt_site()` et `site2branch()` y sont sensibles)
+- de partager la config initiale aux collaborateurs
+:::
+
+## Versionning OFCE
+
+`versionning = TRUE` ajoute `/v0` au `site-path`.
+
+Pour incrémenter plus tard :
+
+```r
+ofceweb::site_version_up()              # v0 → v1
+ofceweb::site_version_up("v2024_q1")    # custom
+```
+
+::: {.callout-note collapse="true" icon=false title="À quoi ça sert"}
+Permet de publier une nouvelle itération du site (ex. édition
+annuelle d'un rapport) sans écraser la précédente. Chaque version
+vit à une URL distincte (`/v0`, `/v1`, …) et reste accessible.
+OFCE uniquement — sans valeur sur GitHub Pages.
+:::
+
+# `encrypt_site()` (optionnel)
+
+## Quand l'utiliser
+
+Site sensible publié sur :
+
+- dépôt public + GitHub Pages
+- OFCE avec contenu sous embargo
+
+À sauter si le site est publiquement diffusable.
+
+::: {.callout-note collapse="true" icon=false title="Comment ça marche"}
+`encrypt_site()` **ne chiffre pas** : c'est `render_site()` qui
+applique `staticryptR::staticryptr()` sur `_site/` quand il voit
+`encrypt_site: true` dans `_quarto.yml`. La fonction
+`encrypt_site()` se contente de mettre en place les conditions :
+flag YAML, secret GitHub, variable locale.
+:::
+
+## Action — activer le chiffrement
+
+```r
+ofceweb::encrypt_site()
+```
+
+L'utilisateur est invité à saisir un mot de passe (masqué si
+`askpass` est dispo).
+
+::: {.callout-note collapse="true" icon=false title="Ce qui est modifié"}
+1. `_quarto.yml` : ajoute `encrypt_site: true`
+2. `.github/workflows/ftp_deploy.yml` : injecte `env:
+   STATICRYPT_PASSWORD`
+3. Secret GitHub `STATICRYPT_PASSWORD` créé via `gh secret set`
+4. `.Renviron` local : écrit le mot de passe (puis ajouté au
+   `.gitignore`)
+:::
+
+## Action — redémarrer R + commiter
+
+1. **Redémarrer la session R** (sinon `STATICRYPT_PASSWORD` n'est
+   pas chargé)
+2. Commiter et pousser les changements :
+
+```sh
+git add _quarto.yml .github/workflows/ftp_deploy.yml .gitignore
+git commit -m "encrypt_site"
+git push
+```
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi le redémarrage"}
+`.Renviron` est lu **au démarrage** de R. Sans redémarrage,
+`Sys.getenv("STATICRYPT_PASSWORD")` retourne `""` et
+`render_site()` chiffrera avec un mot de passe vide — non détecté
+au moment du render, débogué péniblement après.
+:::
+
+## Caveat GitHub Pages
+
+Sur gh-pages, le chiffrement ne fonctionne **que** si vous lancez
+`render_site()` localement avant `deploy_site()`.
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi"}
+`deploy_site()` sur gh-pages exécute `quarto publish gh-pages`
+**depuis votre machine**, publiant le `_site/` déjà chiffré. Aucun
+workflow CI ne déclenche un rendu côté GitHub Actions, donc le
+secret et le patch de `ftp_deploy.yml` posés par `encrypt_site()`
+sont inertes dans ce mode.
+:::
+
+# `render_site()`
+
+## Action — rendre le site
+
+```r
+ofceweb::render_site()
+```
+
+Un serveur local démarre automatiquement pour prévisualiser `_site/`.
+
+::: {.callout-note collapse="true" icon=false title="Pipeline interne"}
+1. Vide `_site/`
+2. `quarto::quarto_render(output_format = "all")`
+3. Reconstruit `_site/sitemap.xml`
+4. Strippe les hash de contenu des fichiers `site_libs/*`
+5. Si `encrypt_site: true` : applique `staticryptR::staticryptr()`
+6. Lance `servr::httw("_site")` (URLs absolues réécrites en relatif
+   pour la nav locale)
+:::
+
+## Options utiles
+
+```r
+# build "headless", sans prévisualisation
+ofceweb::render_site(render_site = FALSE)
+
+# build + push + dispatch en un appel
+ofceweb::render_site(site2branch = TRUE)
+
+# parallélisme custom
+ofceweb::render_site(workers = 4L)
+```
+
+::: {.callout-note collapse="true" icon=false title="Pourquoi patcher les hash"}
+Quarto suffixe les fichiers `site_libs/*` d'un hash de contenu
+(`bootstrap-abc123.min.css`). À chaque rendu le hash change même si
+le contenu est identique, et le sync FTP retransmet tout. Le patch
+les renomme en versions stables → upload incrémental.
+:::
+
+# `deploy_site()`
+
+## Action — publier
+
+```r
+ofceweb::deploy_site()
+```
+
+::: {.callout-note collapse="true" icon=false title="Logique de branchement"}
+Lit `ofce_host` dans `_quarto.yml` :
+
+- `TRUE` → `site2branch()` : push de `_site/` vers `site-deploy`,
+  puis dispatch de `ftp_deploy.yml`
+- `FALSE` → `quarto publish gh-pages --no-prompt --no-browser`
+
+L'URL finale est affichée sur succès.
+:::
+
+## Re-upload complet (OFCE)
+
+```r
+ofceweb::deploy_site(full_deploy = TRUE)
+```
+
+::: {.callout-note collapse="true" icon=false title="Quand l'utiliser"}
+`.ftp-deploy-sync-state.json` mémorise les hash des fichiers déjà
+uploadés. `full_deploy = TRUE` zéro-fie ces hash → tous les fichiers
+sont re-transmis (sans purger le serveur). Utile après un nettoyage
+manuel côté FTP ou si le sync state est suspect.
+:::
+
+# Cycle complet
+
+## Récap en 4 étapes
+
+```r
+# 1. config (dépôt cloné, session R à sa racine)
+ofceweb::setup_site()
+
+# 2. (optionnel) chiffrement
+ofceweb::encrypt_site()    # puis redémarrer R
+
+# 3. rendu
+ofceweb::render_site()
+
+# 4. déploiement
+ofceweb::deploy_site()
+```
+
+::: {.callout-note collapse="true" icon=false title="Au quotidien"}
+Une fois la config initiale faite, le cycle de tous les jours se
+réduit à :
+
+```r
+ofceweb::render_site()
+ofceweb::deploy_site()
+```
+
+ou en un seul appel :
+
+```r
+ofceweb::render_site(site2branch = TRUE)
+```
+:::
+
+## Helpers à connaître
+
+- `rescan_site()` — rebalaye les `.qmd` et réécrit `other-links`
+- `site_version_up()` — incrémente la version du `site-path` (OFCE)
+- `remove_encrypt()` — désactive le chiffrement
+
+::: {.callout-note collapse="true" icon=false title="Quand les utiliser"}
+- `rescan_site()` : après ajout/suppression de pages, pour que la
+  navigation reflète l'arborescence réelle
+- `site_version_up()` : à chaque nouvelle édition publiée
+- `remove_encrypt()` : pour rendre un site précédemment chiffré
+  accessible sans mot de passe (idempotent ; supprime aussi le
+  secret GitHub par défaut)
+:::
+
+# Questions
+
+## Documentation
+
+- Vignette `prerequisites` : PAT, gh CLI, variables d'env
+- Vignette `build-a-site` : cycle complet
+- `?ofceweb::setup_site` etc. pour le détail des arguments

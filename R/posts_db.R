@@ -225,7 +225,7 @@ copy_post <- function(posts, lang = "fr",
 #'   `"en"`).
 #' @return Invisibly, the total number of files synced back across all posts.
 #' @keywords internal
-sync_back_sourcoise <- function(cached, lang) {
+sync_back_sourcoise <- function(cached, lang, max_size_mb = 50) {
   to_sync <- dplyr::filter(cached, !from_cache)
 
   if (nrow(to_sync) == 0L) {
@@ -259,6 +259,21 @@ sync_back_sourcoise <- function(cached, lang) {
       }
 
       new_files <- setdiff(copy_files, already_synced)
+      if (length(new_files) == 0L) return(invisible(NULL))
+
+      # Drop files exceeding the size threshold
+      max_bytes <- max_size_mb * 1024^2
+      new_files <- purrr::keep(new_files, \(fname) {
+        sz <- fs::file_size(fs::path_join(c(copy_sourcoise, fname)))
+        if (sz > max_bytes) {
+          cli::cli_alert_warning(
+            "Sync-back ({lang}) ignoré (>{max_size_mb} Mo) : {fname}"
+          )
+          FALSE
+        } else {
+          TRUE
+        }
+      })
       if (length(new_files) == 0L) return(invisible(NULL))
 
       fs::dir_create(target_sourcoise, recurse = TRUE)

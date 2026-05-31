@@ -176,7 +176,7 @@ render_blog <- function(
   now <- lubridate::stamp("28/12/2026 12:32:54", quiet=TRUE)(lubridate::now(tzone = "Europe/Paris"))
   cache <- gert::git_add("_posts_cache", force=TRUE)
   gert::git_add("posts_db.qs2", force=TRUE)
-  gert::git_add("posts", force=TRUE)
+  gert::git_add("posts", force=FALSE)
   ds_store <- gert::git_status(staged = TRUE) |>
     dplyr::filter(stringr::str_detect(file, "DS_Store$"), staged)
   status <- gert::git_status(staged = TRUE)

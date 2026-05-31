@@ -103,6 +103,37 @@ render_home <- function(
 
 }
 
+#' Publie la homepage du site OFCE
+#'
+#' Wrapper de convenance autour de [render_home()] qui positionne
+#' `site2branch = TRUE` pour déployer automatiquement `_site` vers la branche
+#' git après le rendu.
+#'
+#' @inheritParams render_home
+#' @returns Appelée pour ses effets de bord. Retourne invisiblement `NULL`.
+#' @seealso [render_home()], [site2branch()]
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' publish_home()
+#' }
+publish_home <- function(
+    path = ".",
+    check_repo = TRUE,
+    progress = TRUE,
+    render_site = TRUE,
+    trigger = TRUE) {
+  render_home(
+    path = path,
+    check_repo = check_repo,
+    progress = progress,
+    render_site = render_site,
+    site2branch = TRUE,
+    trigger = trigger
+  )
+}
+
 run_render_scripts <- function(scripts) {
   for (cmd in scripts) {
     if (grepl("^Rscript\\s+", cmd)) {

@@ -121,6 +121,7 @@ render_blog <- function(
     "fr",
     root,
     progress = progress)
+  sync_back_sourcoise(cached_fr, "fr")
 
   # en anglais
   cli::cli_h2("Génération du blog en {.emph anglais}")
@@ -143,6 +144,7 @@ render_blog <- function(
     "en",
     root,
     progress = progress)
+  sync_back_sourcoise(cached_en, "en")
 
   if (check_freeze) {
     uncached <- dplyr::bind_rows(cached_fr, cached_en) |>
@@ -174,6 +176,7 @@ render_blog <- function(
   now <- lubridate::stamp("28/12/2026 12:32:54", quiet=TRUE)(lubridate::now(tzone = "Europe/Paris"))
   cache <- gert::git_add("_posts_cache", force=TRUE)
   gert::git_add("posts_db.qs2", force=TRUE)
+  gert::git_add("posts", force=TRUE)
   ds_store <- gert::git_status(staged = TRUE) |>
     dplyr::filter(stringr::str_detect(file, "DS_Store$"), staged)
   status <- gert::git_status(staged = TRUE)

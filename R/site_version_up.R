@@ -51,30 +51,7 @@ site_version_up <- function(path = ".", custom_version = NULL) {
        acceptés."
     )
 
-  if(!is.null(custom_version)) {
-    if(!is.character(custom_version) || length(custom_version) != 1 ||
-       !nzchar(custom_version) ||
-       !grepl("^[A-Za-z0-9_]+$", custom_version)) {
-      cli::cli_abort(
-        "{.arg custom_version} doit être une chaîne alphanumérique avec \\
-         underscores uniquement (pas d'autres signes)."
-      )
-    }
-    new_version <- custom_version
-  } else {
-    m <- regmatches(current_version,
-                    regexec("^(.*?)([0-9]+)([^0-9]*)$", current_version))[[1]]
-    if(length(m) < 4)
-      cli::cli_abort(
-        "Impossible de détecter un numéro à incrémenter dans la version \\
-         {.val {current_version}}. Utiliser {.arg custom_version} pour forcer."
-      )
-    prefix <- m[[2]]
-    num    <- m[[3]]
-    suffix <- m[[4]]
-    new_num <- as.character(as.integer(num) + 1L)
-    new_version <- paste0(prefix, new_num, suffix)
-  }
+  new_version <- increment_version_str(current_version, custom = custom_version)
 
   segments[length(segments)] <- new_version
   new_sp <- paste(segments, collapse = "/")

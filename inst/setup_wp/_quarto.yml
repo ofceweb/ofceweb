@@ -1,0 +1,61 @@
+wp: ~
+annee: 2026
+version: v0
+
+title: "Titre du document de travail"
+date: "YYYY-MM-DD"
+date-modified: last-modified
+
+author:
+  - name: "Prénom Nom"
+    email: "prenom.nom@sciencespo.fr"
+    affiliation: "OFCE, Sciences Po Paris"
+    affiliation-url: "https://www.ofce.fr"
+
+lang: fr
+
+citation:
+  type: article-journal
+  container-title: "Document de travail de l'OFCE"
+
+project:
+  type: website
+
+execute:
+  freeze: auto
+
+website:
+  site-url: "https://ofce.github.io/REPO/"
+  repo-url: "https://github.com/ofce/REPO/"
+  page-navigation: true
+  bread-crumbs: true
+  favicon: www/ofce_m.png
+  navbar:
+    title: false
+    search: true
+    left:
+      - text: "WP {{< meta annee >}}-{{< meta wp >}}"
+        icon: house
+        href: index.html
+      - text: Annexes
+        icon: file-bar-graph
+        href: annexes.html
+      - text: Historique
+        icon: newspaper
+        href: news.html
+  other-links:
+    - text: Annexes
+      icon: file-bar-graph
+      href: annexes.html
+    - text: "Historique des changements"
+      icon: newspaper
+      href: news.html
+
+format:
+  wp-html: default
+  wp-pdf:
+    output-file: "OFCEWP-draft.pdf"
+
+ofce_wp: true
+comments:
+  hypothesis: false

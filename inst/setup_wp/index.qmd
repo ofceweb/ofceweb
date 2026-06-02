@@ -1,0 +1,26 @@
+---
+abstract: |
+  Résumé du document de travail. Remplacer ce texte par le résumé
+  (environ 150 mots). Il apparaîtra sur la page HTML et dans le PDF.
+
+format:
+  wp-pdf:
+    output-file: "OFCEWP-draft.pdf"
+---
+
+## Introduction
+
+Remplacer ce texte par le corps du document de travail.
+
+Les références bibliographiques sont gérées via `references.bib`.
+Citer avec `[@clé]`.
+
+## Section 1
+
+...
+
+## Conclusion
+
+...
+
+## Références {.unnumbered}

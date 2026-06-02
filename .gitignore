@@ -51,3 +51,6 @@ rsconnect/
 .positai
 CLAUDE.md
 report.md
+
+# WP manifest (generated in WP repos, not here)
+manifest.json

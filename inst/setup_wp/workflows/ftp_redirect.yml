@@ -1,0 +1,47 @@
+name: FTP redirect WP (stable URL)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout site-redirect branch
+        uses: actions/checkout@v4
+        with:
+          ref: site-redirect
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: FTP deploy redirect
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server:   ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.WP_USER }}
+          password: ${{ secrets.WP_PASSWORD }}
+          port: 21
+          local-dir: ./
+          server-dir: ${{ vars.FTP_REDIRECT_DIR }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+
+      - name: Commit FTP state back to site-redirect
+        run: |
+          git add .ftp-deploy-sync-state.json
+          if git diff --staged --quiet; then
+            echo "No FTP state changes"
+          else
+            git commit -m "ftp redirect state ${{ github.run_id }}"
+            git push
+          fi

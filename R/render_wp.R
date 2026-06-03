@@ -3,8 +3,9 @@
 #' Orchestre le build complet d'un WP Quarto : vérification du dépôt git,
 #' vérification de la structure WP, nettoyage de `_site/`, rendu Quarto
 #' (HTML + PDF), construction du sitemap, patch des hashes Bootstrap,
-#' écriture du manifeste, et optionnellement déploiement sur la branche de
-#' déploiement et prévisualisation locale.
+#' écriture du manifeste, synchronisation de la variable GitHub Actions
+#' `FTP_SERVER_DIR` (WPs publiés uniquement), et optionnellement déploiement
+#' sur la branche de déploiement et prévisualisation locale.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param check_repo Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
@@ -157,4 +158,41 @@ render_wp <- function(
   }
 
   invisible(status)
+}
+
+#' Rendu et déploiement complet d'un document de travail (WP) OFCE
+#'
+#' Enchaîne [render_wp()] puis [deploy_wp()] : rend le WP, pousse `_site/`
+#' vers la branche de déploiement FTP, et met à jour la page de redirection
+#' vers l'URL stable (via [push_wp_redirect()]).
+#'
+#' @inheritParams render_wp
+#' @param trigger Logique. Déclenche les workflows GitHub Actions FTP après le
+#'   push. Défaut `TRUE`.
+#'
+#' @returns Invisible `NULL`.
+#' @seealso [render_wp()], [deploy_wp()], [push_wp_redirect()], [setup_wp()]
+#' @export
+publish_wp <- function(
+    path        = ".",
+    check_repo  = TRUE,
+    check       = TRUE,
+    progress    = TRUE,
+    render_site = TRUE,
+    trigger     = TRUE,
+    workers     = 8L) {
+  render_wp(
+    path        = path,
+    check_repo  = check_repo,
+    check       = check,
+    progress    = progress,
+    render_site = render_site,
+    site2branch = FALSE,
+    workers     = workers
+  )
+  deploy_wp(
+    path        = path,
+    progress    = progress,
+    trigger     = trigger
+  )
 }

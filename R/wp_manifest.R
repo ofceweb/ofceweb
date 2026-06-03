@@ -65,7 +65,7 @@ wp_manifest <- function(path = ".") {
 
   # URL de déploiement
   url <- if (!is.null(wp) && !is.null(annee)) {
-    sprintf("https://www.ofce.fr/wp/%d/%d/%s/", annee, wp, version)
+    sprintf("https://www.ofce.fr/wp/%d/%03d/%s/", annee, wp, version)
   } else {
     # brouillon : GitHub Pages
     su <- yml$website$`site-url`

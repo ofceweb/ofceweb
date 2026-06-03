@@ -47,7 +47,7 @@ deploy_wp <- function(
 
   # URL finale pour le message de succès
   final_url <- if (!is.null(wp) && !is.null(annee)) {
-    sprintf("https://www.ofce.fr/wp/%d/%d/%s/index.html", annee, wp, version)
+    sprintf("https://www.ofce.fr/wp/%d/%03d/%s/index.html", annee, wp, version)
   } else {
     su <- yml$website$`site-url`
     if (!is.null(su) && nzchar(su)) paste0(sub("/?$", "/", su), "index.html") else NULL
@@ -68,6 +68,13 @@ deploy_wp <- function(
       trigger     = trigger,
       full_deploy = full_deploy,
       ...
+    )
+
+    # URL stable : redirection vers la version courante
+    tryCatch(
+      push_wp_redirect(root, progress = progress, trigger = trigger),
+      error = function(e)
+        cli::cli_alert_warning("Redirection stable non mise à jour : {e$message}")
     )
 
     if (!is.null(final_url))

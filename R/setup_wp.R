@@ -5,6 +5,17 @@
 #' adapte le `_quarto.yml` avec les métadonnées du WP (titre, numéro, année,
 #' langue, URLs).
 #'
+#' La fonction est **non-destructive** : sur un dépôt existant, les fichiers
+#' gabarits (dont `_quarto.yml`) ne sont pas écrasés, et les champs YAML ne
+#' sont mis à jour que si l'argument correspondant a été fourni explicitement.
+#' Les champs déjà absents ne sont pas injectés. Seuls `repo-url` et
+#' `ofce_wp: true` sont toujours positionnés (valeurs dérivées sans ambiguïté).
+#'
+#' Pour les WPs publiés (`wp` non nul), la fonction met à jour la variable
+#' GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
+#' à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
+#' aussi migré automatiquement si `server-dir` y est encore codé en dur.
+#'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param website_title Chaîne ou `NULL`. Titre du WP. Si `NULL`, utilise le
 #'   nom du dépôt GitHub.
@@ -223,6 +234,9 @@ setup_wp <- function(
   # version : le gabarit le fournit pour les nouveaux WPs — jamais injecté
   # dans un fichier existant.
 
+  # ofce_wp : marqueur de dépôt WP OFCE — toujours positionné
+  yml$ofce_wp <- TRUE
+
   # repo-url : toujours calculé depuis le remote git (valeur dérivée, sans
   # ambiguïté et sans risque pour l'utilisateur)
   if (!is.na(gh$host) && !is.na(gh$repo)) {
@@ -233,12 +247,27 @@ setup_wp <- function(
   if (wp_provided) {
     if (!is.null(wp)) {
       yml$website$`site-url`  <- "https://www.ofce.fr/"
-      site_path <- paste0("wp/", annee, "/", wp)
+      site_path <- sprintf("wp/%d/%03d", annee, wp)
       if (isTRUE(versionning)) site_path <- paste0(site_path, "/v0")
       yml$website$`site-path` <- site_path
     } else {
       yml$website$`site-url`  <- sprintf("https://%s.github.io/%s/", gh_org, repo_name)
       yml$website$`site-path` <- NULL
+    }
+  }
+
+  # citation.url : URL stable (sans version) — valeur dérivée, toujours mise
+  # à jour pour les WPs publiés afin que les citations ne se brisent pas lors
+  # des mises à jour de version.
+  if (!is.null(yml$wp)) {
+    sp <- yml$website$`site-path`
+    su <- yml$website$`site-url` %||% ""
+    if (!is.null(sp) && nzchar(sp)) {
+      stable_path <- sub("/[^/]+$", "", sp)   # retire le dernier segment (/v0)
+      if (!grepl("/$", su)) su <- paste0(su, "/")
+      stable_url <- paste0(su, stable_path, "/")
+      if (is.null(yml$citation)) yml$citation <- list()
+      yml$citation$url <- stable_url
     }
   }
 
@@ -304,6 +333,9 @@ setup_wp <- function(
     if (!is.null(server_dir) && nzchar(server_dir)) {
       if (!grepl("/$", server_dir)) server_dir <- paste0(server_dir, "/")
       set_gh_var(root, "FTP_SERVER_DIR", server_dir)
+      # URL stable : répertoire parent du site-path (sans le segment de version)
+      redirect_dir <- paste0(sub("/[^/]+$", "", sub("/$", "", server_dir)), "/")
+      set_gh_var(root, "FTP_REDIRECT_DIR", redirect_dir)
     }
   }
 
@@ -335,6 +367,8 @@ setup_wp <- function(
   cli::cli_li("site-url    : {yml$website$`site-url`}")
   if (!is.null(yml$website$`site-path`))
     cli::cli_li("site-path   : {yml$website$`site-path`}")
+  if (!is.null(yml$citation$url))
+    cli::cli_li("citation url: {yml$citation$url}")
   cli::cli_li("hypothesis  : {isTRUE(yml$comments$hypothesis)}")
   cli::cli_li("pdf         : {if (is.na(pdf_output)) '(non applicable)' else pdf_output}")
 

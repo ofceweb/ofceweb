@@ -2,8 +2,8 @@
 #'
 #' Lit le champ `version` dans `_quarto.yml`, l'incrémente (`"v0"` → `"v1"`,
 #' `"v3_4"` → `"v3_5"`, etc.), met à jour `_quarto.yml` (champ `version` et
-#' dernier segment de `site-path`), met à jour `server-dir` dans le workflow
-#' FTP et régénère `manifest.json`.
+#' dernier segment de `site-path`), met à jour la variable GitHub Actions
+#' `FTP_SERVER_DIR` et régénère `manifest.json`.
 #'
 #' Ne fonctionne que pour un WP publié (`wp` non nul dans `_quarto.yml`).
 #'
@@ -71,12 +71,17 @@ wp_version_up <- function(path = ".", custom_version = NULL) {
     "version mise à jour : {.val {current_version}} → {.val {new_version}}")
   cli::cli_alert_info("Nouveau site-path : {.val {yml$website$`site-path`}}")
 
-  # Mise à jour de la variable GitHub FTP_SERVER_DIR
+  # Mise à jour des variables GitHub FTP_SERVER_DIR et FTP_REDIRECT_DIR
   if (!is.null(sp) && nzchar(sp)) {
-    tryCatch(
-      set_gh_var(root, "FTP_SERVER_DIR", yml$website$`site-path`),
-      error = function(e)
-        cli::cli_alert_warning("FTP_SERVER_DIR non mis à jour : {conditionMessage(e)}")
+    new_site_path <- yml$website$`site-path`
+    tryCatch({
+      server_dir   <- if (grepl("/$", new_site_path)) new_site_path
+                      else paste0(new_site_path, "/")
+      redirect_dir <- paste0(sub("/[^/]+$", "", sub("/$", "", server_dir)), "/")
+      set_gh_var(root, "FTP_SERVER_DIR",   server_dir)
+      set_gh_var(root, "FTP_REDIRECT_DIR", redirect_dir)
+    }, error = function(e)
+      cli::cli_alert_warning("Variables GitHub non mises à jour : {conditionMessage(e)}")
     )
   }
 

@@ -228,6 +228,13 @@ OFCE
 <li><a href="#/action-installer-gh-windows" id="/toc-action-installer-gh-windows">Action — installer <code>gh</code> (Windows)</a></li>
 <li><a href="#/action-authentifier-gh" id="/toc-action-authentifier-gh">Action — authentifier <code>gh</code></a></li>
 </ul></li>
+<li>Installer les packages R
+<ul>
+<li><a href="#/setup-threeme-v4" id="/toc-setup-threeme-v4">Setup <code>ThreeME v4</code></a></li>
+<li><a href="#/setup.r-vérifs-bootstrap" id="/toc-setup.r-vérifs-bootstrap"><code>setup.R</code> — vérifs &amp; bootstrap</a></li>
+<li><a href="#/setup.r-packages-cran" id="/toc-setup.r-packages-cran"><code>setup.R</code> — packages CRAN</a></li>
+<li><a href="#/setup.r-packages-github-chargement" id="/toc-setup.r-packages-github-chargement"><code>setup.R</code> — packages GitHub &amp; chargement</a></li>
+</ul></li>
 <li><code>setup_site()</code>
 <ul>
 <li><a href="#/action-préparer-le-dépôt" id="/toc-action-préparer-le-dépôt">Action — préparer le dépôt</a></li>
@@ -276,6 +283,9 @@ OFCE
 </div>
 <div class="agenda-inactive agenda-post-active">
 <p>Pré-requis machine</p>
+</div>
+<div class="agenda-inactive agenda-post-active">
+<p>Installer les packages R</p>
 </div>
 <div class="agenda-inactive agenda-post-active">
 <p><code>setup_site()</code></p>
@@ -371,7 +381,7 @@ OFCE
 <p><strong>Pourquoi OFCE par défaut</strong></p>
 </div>
 <div class="callout-content">
-<p>C’est le défaut historique : <code>www.ofce.fr/&lt;site-path&gt;</code>. Les workflows fournis (<code>ftp_deploy.yml</code>) et les secrets <code>STAGING_*</code> / <code>WP_*</code> sont déjà câblés. GitHub Pages est un fallback utile pour les sites hors organisation OFCE ou expérimentaux.</p>
+<p>C’est le défaut historique : <code>www.ofce.fr/&lt;site-path&gt;</code>. Les workflows fournis (<code>ftp_deploy.yml</code>) et les secrets <code>STAGING_*</code> / <code>WP_*</code> / <code>THREEME_*</code> sont déjà câblés. GitHub Pages est un fallback utile pour les sites hors organisation OFCE ou expérimentaux.</p>
 </div>
 </div>
 </div>
@@ -389,6 +399,9 @@ OFCE
 </div>
 <div class="agenda-active">
 <p>Pré-requis machine</p>
+</div>
+<div class="agenda-inactive agenda-post-active">
+<p>Installer les packages R</p>
 </div>
 <div class="agenda-inactive agenda-post-active">
 <p><code>setup_site()</code></p>
@@ -502,6 +515,131 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </section></section>
 <section>
 <section class="title-slide slide level1 agenda-slide center">
+<h1>Installer les packages R</h1>
+<div class="agenda-heading">
+
+</div>
+<div class="agenda">
+<div class="agenda-inactive agenda-pre-active">
+<p>Avant de commencer</p>
+</div>
+<div class="agenda-inactive agenda-pre-active">
+<p>Pré-requis machine</p>
+</div>
+<div class="agenda-active">
+<p>Installer les packages R</p>
+</div>
+<div class="agenda-inactive agenda-post-active">
+<p><code>setup_site()</code></p>
+</div>
+<div class="agenda-inactive agenda-post-active">
+<p><code>encrypt_site()</code> (optionnel)</p>
+</div>
+<div class="agenda-inactive agenda-post-active">
+<p><code>render_site()</code></p>
+</div>
+<div class="agenda-inactive agenda-post-active">
+<p><code>deploy_site()</code></p>
+</div>
+<div class="agenda-inactive agenda-post-active">
+<p>Cycle complet</p>
+</div>
+<div class="agenda-inactive agenda-post-active">
+<p>Questions</p>
+</div>
+</div>
+</section>
+<section id="setup-threeme-v4" class="slide level2">
+<h2>Setup <code>ThreeME v4</code></h2>
+<p>Le dépôt <code>ThreeME_V4</code> fournit un script <code>src/setup.R</code> qui installe toutes les dépendances R (CRAN + GitHub) d’un coup. À sourcer depuis la racine du projet :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href=""></a><span class="fu">source</span>(<span class="st">"src/setup.R"</span>)</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div title="Ce que fait le script">
+<div class="callout callout-note no-icon callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<p><strong>Ce que fait le script</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li>Vérifie R ≥ 4.5.1</li>
+<li>Installe <code>pak</code> et <code>tidyverse</code> s’ils manquent</li>
+<li>Installe via <code>pak::pak()</code> tous les packages CRAN listés qui ne sont pas déjà présents</li>
+<li>Charge les packages GitHub (<code>ofce</code>, <code>ofceweb</code>, <code>ermeeth</code>, <code>tresthor</code>, <code>pegr</code>, <code>ggbraid</code>) — installation commentée, à décommenter pour mise à jour</li>
+<li>Source l’ensemble des fonctions de <code>src/functions_src/</code></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="setup.r-vérifs-bootstrap" class="slide level2">
+<h2><code>setup.R</code> — vérifs &amp; bootstrap</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href=""></a><span class="fu">options</span>(<span class="at">scipen =</span> <span class="dv">14</span>)</span>
+<span id="cb8-2"><a href=""></a></span>
+<span id="cb8-3"><a href=""></a><span class="cf">if</span>(<span class="fu">paste</span>(R.version<span class="sc">$</span>major, R.version<span class="sc">$</span>minor, <span class="at">sep =</span> <span class="st">"."</span>) <span class="sc">&lt;</span> <span class="st">"4.5.1"</span>){</span>
+<span id="cb8-4"><a href=""></a>  <span class="fu">stop</span>(<span class="st">"\U1F4A3 \U1F4A3 Please update your R version to at least 4.5.1"</span>)</span>
+<span id="cb8-5"><a href=""></a>}</span>
+<span id="cb8-6"><a href=""></a></span>
+<span id="cb8-7"><a href=""></a><span class="cf">if</span>(<span class="st">"pak"</span> <span class="sc">%in%</span> <span class="fu">installed.packages</span>()[ , <span class="st">"Package"</span>] <span class="sc">==</span> <span class="cn">FALSE</span>){</span>
+<span id="cb8-8"><a href=""></a>  <span class="fu">install.packages</span>(<span class="st">"pak"</span>)</span>
+<span id="cb8-9"><a href=""></a>}</span>
+<span id="cb8-10"><a href=""></a><span class="cf">if</span>(<span class="st">"tidyverse"</span> <span class="sc">%in%</span> <span class="fu">installed.packages</span>()[ , <span class="st">"Package"</span>] <span class="sc">==</span> <span class="cn">FALSE</span>){</span>
+<span id="cb8-11"><a href=""></a>  <span class="fu">install.packages</span>(<span class="st">"tidyverse"</span>)</span>
+<span id="cb8-12"><a href=""></a>}</span>
+<span id="cb8-13"><a href=""></a></span>
+<span id="cb8-14"><a href=""></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb8-15"><a href=""></a><span class="fu">library</span>(pak)</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="setup.r-packages-cran" class="slide level2">
+<h2><code>setup.R</code> — packages CRAN</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href=""></a>required_CRAN_packages <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb9-2"><a href=""></a>  <span class="st">"beepr"</span>, <span class="st">"cointReg"</span>, <span class="st">"colorspace"</span>, <span class="st">"countrycode"</span>, <span class="st">"crayon"</span>, <span class="st">"data.table"</span>,</span>
+<span id="cb9-3"><a href=""></a>  <span class="st">"Deriv"</span>, <span class="st">"devtools"</span>, <span class="st">"DiagrammeR"</span>, <span class="st">"dplyr"</span>, <span class="st">"dtplyr"</span>, <span class="st">"eFRED"</span>, <span class="st">"eurostat"</span>,</span>
+<span id="cb9-4"><a href=""></a>  <span class="st">"extrafont"</span>, <span class="st">"flextable"</span>, <span class="st">"fst"</span>, <span class="st">"geomtextpath"</span>, <span class="st">"ggarrow"</span>,</span>
+<span id="cb9-5"><a href=""></a>  <span class="st">"ggh4x"</span>, <span class="st">"ggiraph"</span>, <span class="st">"ggplot2"</span>, <span class="st">"ggpp"</span>, <span class="st">"ggpubr"</span>, <span class="st">"ggrepel"</span>, <span class="st">"ggsci"</span>,</span>
+<span id="cb9-6"><a href=""></a>  <span class="st">"ggtext"</span>, <span class="st">"ggthemes"</span>, <span class="st">"glue"</span>, <span class="st">"gridExtra"</span>, <span class="st">"gridGraphics"</span>, <span class="st">"gsubfn"</span>, <span class="st">"gt"</span>,</span>
+<span id="cb9-7"><a href=""></a>  <span class="st">"haven"</span>, <span class="st">"hrbrthemes"</span>, <span class="st">"htmlwidgets"</span>, <span class="st">"httr"</span>, <span class="st">"insee"</span>, <span class="st">"jsonlite"</span>,</span>
+<span id="cb9-8"><a href=""></a>  <span class="st">"kableExtra"</span>, <span class="st">"knitr"</span>, <span class="st">"learnr"</span>, <span class="st">"lemon"</span>, <span class="st">"lobstr"</span>, <span class="st">"lubridate"</span>, <span class="st">"magick"</span>,</span>
+<span id="cb9-9"><a href=""></a>  <span class="st">"magrittr"</span>, <span class="st">"marquee"</span>, <span class="st">"MetricsWeighted"</span>, <span class="st">"microbenchmark"</span>, <span class="st">"officer"</span>,</span>
+<span id="cb9-10"><a href=""></a>  <span class="st">"openxlsx"</span>, <span class="st">"paletteer"</span>, <span class="st">"patchwork"</span>, <span class="st">"plotly"</span>, <span class="st">"png"</span>, <span class="st">"qs2"</span>, <span class="st">"quarto"</span>,</span>
+<span id="cb9-11"><a href=""></a>  <span class="st">"questionr"</span>, <span class="st">"RColorBrewer"</span>, <span class="st">"Rcpp"</span>, <span class="st">"RcppArmadillo"</span>, <span class="st">"rdbnomics"</span>, <span class="st">"readr"</span>,</span>
+<span id="cb9-12"><a href=""></a>  <span class="st">"readxl"</span>, <span class="st">"remotes"</span>, <span class="st">"RJSONIO"</span>, <span class="st">"rmarkdown"</span>, <span class="st">"rsdmx"</span>, <span class="st">"rsvg"</span>, <span class="st">"scales"</span>, <span class="st">"shiny"</span>,</span>
+<span id="cb9-13"><a href=""></a>  <span class="st">"showtext"</span>, <span class="st">"sourcoise"</span>, <span class="st">"splitstackshape"</span>, <span class="st">"staticryptR"</span>, <span class="st">"stringi"</span>, <span class="st">"stringr"</span>,</span>
+<span id="cb9-14"><a href=""></a>  <span class="st">"svglite"</span>, <span class="st">"sys"</span>, <span class="st">"tibble"</span>, <span class="st">"tictoc"</span>, <span class="st">"tidyquant"</span>, <span class="st">"tidyr"</span>, <span class="st">"tidyverse"</span>,</span>
+<span id="cb9-15"><a href=""></a>  <span class="st">"viridis"</span>, <span class="st">"webshot2"</span>, <span class="st">"writexl"</span>, <span class="st">"zip"</span>, <span class="st">"zoo"</span></span>
+<span id="cb9-16"><a href=""></a>)</span>
+<span id="cb9-17"><a href=""></a></span>
+<span id="cb9-18"><a href=""></a>not_installed_CRAN <span class="ot">&lt;-</span> required_CRAN_packages[</span>
+<span id="cb9-19"><a href=""></a>  <span class="sc">!</span>(required_CRAN_packages <span class="sc">%in%</span> <span class="fu">installed.packages</span>()[ , <span class="st">"Package"</span>])</span>
+<span id="cb9-20"><a href=""></a>]</span>
+<span id="cb9-21"><a href=""></a></span>
+<span id="cb9-22"><a href=""></a><span class="cf">if</span>(<span class="fu">length</span>(not_installed_CRAN) <span class="sc">&gt;</span> <span class="dv">0</span>){</span>
+<span id="cb9-23"><a href=""></a>  not_installed_CRAN <span class="sc">|&gt;</span> <span class="fu">map</span>(<span class="sc">~</span>pak<span class="sc">::</span><span class="fu">pak</span>(.x))</span>
+<span id="cb9-24"><a href=""></a>}</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="setup.r-packages-github-chargement" class="slide level2">
+<h2><code>setup.R</code> — packages GitHub &amp; chargement</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href=""></a>required_GIT_packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"ofce"</span>, <span class="st">"ofceweb"</span>, <span class="st">"ermeeth"</span>,</span>
+<span id="cb10-2"><a href=""></a>                           <span class="st">"tresthor"</span>, <span class="st">"pegr"</span>, <span class="st">"ggbraid"</span>)</span>
+<span id="cb10-3"><a href=""></a></span>
+<span id="cb10-4"><a href=""></a><span class="co"># À décommenter pour mettre à jour :</span></span>
+<span id="cb10-5"><a href=""></a><span class="co"># pak::pak("OFCE/ofce", ask = FALSE)</span></span>
+<span id="cb10-6"><a href=""></a><span class="co"># pak::pak("OFCE/tresthor", ask = FALSE)</span></span>
+<span id="cb10-7"><a href=""></a><span class="co"># if(!"pegr" %in% installed.packages()[ , "Package"]){</span></span>
+<span id="cb10-8"><a href=""></a><span class="co">#   pak::pak("mslegrand/pegr", ask = FALSE)</span></span>
+<span id="cb10-9"><a href=""></a><span class="co"># }</span></span>
+<span id="cb10-10"><a href=""></a><span class="co"># pak::pak("ThreeME-org/ermeeth", ask = FALSE)</span></span>
+<span id="cb10-11"><a href=""></a><span class="co"># pak::pak("ofceweb/ofceweb", ask = FALSE)</span></span>
+<span id="cb10-12"><a href=""></a><span class="co"># pak::pak("nsgrantham/ggbraid", ask = FALSE)</span></span>
+<span id="cb10-13"><a href=""></a></span>
+<span id="cb10-14"><a href=""></a>purrr<span class="sc">::</span><span class="fu">map</span>(<span class="fu">c</span>(required_CRAN_packages, required_GIT_packages),</span>
+<span id="cb10-15"><a href=""></a>           <span class="sc">~</span><span class="fu">require</span>(.x, <span class="at">character.only =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb10-16"><a href=""></a></span>
+<span id="cb10-17"><a href=""></a>purrr<span class="sc">::</span><span class="fu">map</span>(<span class="fu">list.files</span>(<span class="fu">file.path</span>(<span class="st">"src"</span>, <span class="st">"functions_src"</span>, <span class="st">""</span>)),</span>
+<span id="cb10-18"><a href=""></a>           <span class="sc">~</span><span class="fu">source</span>(<span class="fu">file.path</span>(<span class="st">"src"</span>, <span class="st">"functions_src"</span>, .x)))</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+</section></section>
+<section>
+<section class="title-slide slide level1 agenda-slide center">
 <h1><code>setup_site()</code></h1>
 <div class="agenda-heading">
 
@@ -512,6 +650,9 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </div>
 <div class="agenda-inactive agenda-pre-active">
 <p>Pré-requis machine</p>
+</div>
+<div class="agenda-inactive agenda-pre-active">
+<p>Installer les packages R</p>
 </div>
 <div class="agenda-active">
 <p><code>setup_site()</code></p>
@@ -555,13 +696,13 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </section>
 <section id="action-lancer-setup_site" class="slide level2">
 <h2>Action — lancer <code>setup_site()</code></h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">setup_site</span>(</span>
-<span id="cb7-2"><a href=""></a>  <span class="at">ofce_host =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb7-3"><a href=""></a>  <span class="at">ofce_server_location =</span> <span class="st">"staging"</span>,</span>
-<span id="cb7-4"><a href=""></a>  <span class="at">website_title =</span> <span class="st">"Mon site"</span>,</span>
-<span id="cb7-5"><a href=""></a>  <span class="at">hypothesis =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb7-6"><a href=""></a>  <span class="at">versionning =</span> <span class="cn">TRUE</span></span>
-<span id="cb7-7"><a href=""></a>)</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">setup_site</span>(</span>
+<span id="cb11-2"><a href=""></a>  <span class="at">ofce_host =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb11-3"><a href=""></a>  <span class="at">ofce_server_location =</span> <span class="st">"staging"</span>,   <span class="co"># ou "wp", "threeme"</span></span>
+<span id="cb11-4"><a href=""></a>  <span class="at">website_title =</span> <span class="st">"Mon site"</span>,</span>
+<span id="cb11-5"><a href=""></a>  <span class="at">hypothesis =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb11-6"><a href=""></a>  <span class="at">versionning =</span> <span class="cn">TRUE</span></span>
+<span id="cb11-7"><a href=""></a>)</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <div title="Que fait la fonction">
 <div class="callout callout-note no-icon callout-titled callout-style-default">
 <div class="callout-body">
@@ -583,9 +724,9 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </section>
 <section id="action-commiter-pousser" class="slide level2">
 <h2>Action — commiter &amp; pousser</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode numberSource sh number-lines code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href=""></a><span class="fu">git</span> add <span class="at">-A</span></span>
-<span id="cb8-2"><a href=""></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"setup_site"</span></span>
-<span id="cb8-3"><a href=""></a><span class="fu">git</span> push</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode numberSource sh number-lines code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href=""></a><span class="fu">git</span> add <span class="at">-A</span></span>
+<span id="cb12-2"><a href=""></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"setup_site"</span></span>
+<span id="cb12-3"><a href=""></a><span class="fu">git</span> push</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <div title="Pourquoi maintenant">
 <div class="callout callout-note no-icon callout-titled callout-style-default">
 <div class="callout-body">
@@ -608,8 +749,8 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 <h2>Versionning OFCE</h2>
 <p><code>versionning = TRUE</code> ajoute <code>/v0</code> au <code>site-path</code>.</p>
 <p>Pour incrémenter plus tard :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">site_version_up</span>()              <span class="co"># v0 → v1</span></span>
-<span id="cb9-2"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">site_version_up</span>(<span class="st">"v2024_q1"</span>)    <span class="co"># custom</span></span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">site_version_up</span>()              <span class="co"># v0 → v1</span></span>
+<span id="cb13-2"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">site_version_up</span>(<span class="st">"v2024_q1"</span>)    <span class="co"># custom</span></span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <div title="À quoi ça sert">
 <div class="callout callout-note no-icon callout-titled callout-style-default">
 <div class="callout-body">
@@ -635,6 +776,9 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </div>
 <div class="agenda-inactive agenda-pre-active">
 <p>Pré-requis machine</p>
+</div>
+<div class="agenda-inactive agenda-pre-active">
+<p>Installer les packages R</p>
 </div>
 <div class="agenda-inactive agenda-pre-active">
 <p><code>setup_site()</code></p>
@@ -679,7 +823,7 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </section>
 <section id="action-activer-le-chiffrement" class="slide level2">
 <h2>Action — activer le chiffrement</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">encrypt_site</span>()</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">encrypt_site</span>()</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <p>L’utilisateur est invité à saisir un mot de passe (masqué si <code>askpass</code> est dispo).</p>
 <div title="Ce qui est modifié">
 <div class="callout callout-note no-icon callout-titled callout-style-default">
@@ -705,9 +849,9 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 <li><strong>Redémarrer la session R</strong> (sinon <code>STATICRYPT_PASSWORD</code> n’est pas chargé)</li>
 <li>Commiter et pousser les changements :</li>
 </ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode numberSource sh number-lines code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href=""></a><span class="fu">git</span> add _quarto.yml .github/workflows/ftp_deploy.yml .gitignore</span>
-<span id="cb11-2"><a href=""></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"encrypt_site"</span></span>
-<span id="cb11-3"><a href=""></a><span class="fu">git</span> push</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode numberSource sh number-lines code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href=""></a><span class="fu">git</span> add _quarto.yml .github/workflows/ftp_deploy.yml .gitignore</span>
+<span id="cb15-2"><a href=""></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"encrypt_site"</span></span>
+<span id="cb15-3"><a href=""></a><span class="fu">git</span> push</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <div title="Pourquoi le redémarrage">
 <div class="callout callout-note no-icon callout-titled callout-style-default">
 <div class="callout-body">
@@ -751,6 +895,9 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 <p>Pré-requis machine</p>
 </div>
 <div class="agenda-inactive agenda-pre-active">
+<p>Installer les packages R</p>
+</div>
+<div class="agenda-inactive agenda-pre-active">
 <p><code>setup_site()</code></p>
 </div>
 <div class="agenda-inactive agenda-pre-active">
@@ -772,7 +919,7 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </section>
 <section id="action-rendre-le-site" class="slide level2">
 <h2>Action — rendre le site</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>()</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>()</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Un serveur local démarre automatiquement pour prévisualiser <code>_site/</code>.</p>
 <div title="Pipeline interne">
 <div class="callout callout-note no-icon callout-titled callout-style-default">
@@ -796,14 +943,14 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </section>
 <section id="options-utiles" class="slide level2">
 <h2>Options utiles</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href=""></a><span class="co"># build "headless", sans prévisualisation</span></span>
-<span id="cb13-2"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>(<span class="at">render_site =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb13-3"><a href=""></a></span>
-<span id="cb13-4"><a href=""></a><span class="co"># build + push + dispatch en un appel</span></span>
-<span id="cb13-5"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>(<span class="at">site2branch =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-6"><a href=""></a></span>
-<span id="cb13-7"><a href=""></a><span class="co"># parallélisme custom</span></span>
-<span id="cb13-8"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>(<span class="at">workers =</span> <span class="dv">4</span>L)</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href=""></a><span class="co"># build "headless", sans prévisualisation</span></span>
+<span id="cb17-2"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>(<span class="at">render_site =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb17-3"><a href=""></a></span>
+<span id="cb17-4"><a href=""></a><span class="co"># build + push + dispatch en un appel</span></span>
+<span id="cb17-5"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>(<span class="at">site2branch =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-6"><a href=""></a></span>
+<span id="cb17-7"><a href=""></a><span class="co"># parallélisme custom</span></span>
+<span id="cb17-8"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>(<span class="at">workers =</span> <span class="dv">4</span>L)</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <div title="Pourquoi patcher les hash">
 <div class="callout callout-note no-icon callout-titled callout-style-default">
 <div class="callout-body">
@@ -831,6 +978,9 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 <p>Pré-requis machine</p>
 </div>
 <div class="agenda-inactive agenda-pre-active">
+<p>Installer les packages R</p>
+</div>
+<div class="agenda-inactive agenda-pre-active">
 <p><code>setup_site()</code></p>
 </div>
 <div class="agenda-inactive agenda-pre-active">
@@ -852,7 +1002,7 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </section>
 <section id="action-publier" class="slide level2">
 <h2>Action — publier</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">deploy_site</span>()</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">deploy_site</span>()</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <div title="Logique de branchement">
 <div class="callout callout-note no-icon callout-titled callout-style-default">
 <div class="callout-body">
@@ -873,7 +1023,7 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </section>
 <section id="re-upload-complet-ofce" class="slide level2">
 <h2>Re-upload complet (OFCE)</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">deploy_site</span>(<span class="at">full_deploy =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">deploy_site</span>(<span class="at">full_deploy =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <div title="Quand l'utiliser">
 <div class="callout callout-note no-icon callout-titled callout-style-default">
 <div class="callout-body">
@@ -901,6 +1051,9 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 <p>Pré-requis machine</p>
 </div>
 <div class="agenda-inactive agenda-pre-active">
+<p>Installer les packages R</p>
+</div>
+<div class="agenda-inactive agenda-pre-active">
 <p><code>setup_site()</code></p>
 </div>
 <div class="agenda-inactive agenda-pre-active">
@@ -922,17 +1075,17 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </section>
 <section id="récap-en-4-étapes" class="slide level2">
 <h2>Récap en 4 étapes</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href=""></a><span class="co"># 1. config (dépôt cloné, session R à sa racine)</span></span>
-<span id="cb16-2"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">setup_site</span>()</span>
-<span id="cb16-3"><a href=""></a></span>
-<span id="cb16-4"><a href=""></a><span class="co"># 2. (optionnel) chiffrement</span></span>
-<span id="cb16-5"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">encrypt_site</span>()    <span class="co"># puis redémarrer R</span></span>
-<span id="cb16-6"><a href=""></a></span>
-<span id="cb16-7"><a href=""></a><span class="co"># 3. rendu</span></span>
-<span id="cb16-8"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>()</span>
-<span id="cb16-9"><a href=""></a></span>
-<span id="cb16-10"><a href=""></a><span class="co"># 4. déploiement</span></span>
-<span id="cb16-11"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">deploy_site</span>()</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href=""></a><span class="co"># 1. config (dépôt cloné, session R à sa racine)</span></span>
+<span id="cb20-2"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">setup_site</span>()</span>
+<span id="cb20-3"><a href=""></a></span>
+<span id="cb20-4"><a href=""></a><span class="co"># 2. (optionnel) chiffrement</span></span>
+<span id="cb20-5"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">encrypt_site</span>()    <span class="co"># puis redémarrer R</span></span>
+<span id="cb20-6"><a href=""></a></span>
+<span id="cb20-7"><a href=""></a><span class="co"># 3. rendu</span></span>
+<span id="cb20-8"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>()</span>
+<span id="cb20-9"><a href=""></a></span>
+<span id="cb20-10"><a href=""></a><span class="co"># 4. déploiement</span></span>
+<span id="cb20-11"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">deploy_site</span>()</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <div title="Au quotidien">
 <div class="callout callout-note no-icon callout-titled callout-style-default">
 <div class="callout-body">
@@ -941,10 +1094,10 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </div>
 <div class="callout-content">
 <p>Une fois la config initiale faite, le cycle de tous les jours se réduit à :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>()</span>
-<span id="cb17-2"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">deploy_site</span>()</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>()</span>
+<span id="cb21-2"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">deploy_site</span>()</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 <p>ou en un seul appel :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>(<span class="at">site2branch =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href=""></a>ofceweb<span class="sc">::</span><span class="fu">render_site</span>(<span class="at">site2branch =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
 </div>
@@ -986,6 +1139,9 @@ DEPLOY_PAT=ghp_xxxxxxxxxxxx</code></pre>
 </div>
 <div class="agenda-inactive agenda-pre-active">
 <p>Pré-requis machine</p>
+</div>
+<div class="agenda-inactive agenda-pre-active">
+<p>Installer les packages R</p>
 </div>
 <div class="agenda-inactive agenda-pre-active">
 <p><code>setup_site()</code></p>

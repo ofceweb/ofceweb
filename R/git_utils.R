@@ -183,6 +183,92 @@ download_gh_file <- function(path, dest = path, owner="ofceweb", repo = "webblog
 # download_gh_dir("OFCE", "Blog_OFCE", "posts", ext = ".qmd", max_depth = 3)
 
 
+# Crée ou met à jour une GitHub Actions repository variable (publique).
+# Utilise PATCH pour mettre à jour, POST pour créer si 404.
+# Avertit sans lever d'erreur en cas d'absence de token ou d'échec API.
+set_gh_var <- function(root = ".", name, value) {
+  remotes <- tryCatch(gert::git_remote_list(repo = root), error = function(e) NULL)
+  if (is.null(remotes) || nrow(remotes) == 0) {
+    cli::cli_alert_warning("Pas de remote git — variable GitHub {.val {name}} non définie.")
+    return(invisible(NULL))
+  }
+  origin_url <- remotes$url[remotes$name == "origin"]
+  if (length(origin_url) == 0) origin_url <- remotes$url[[1]]
+
+  slug <- origin_url |>
+    sub(pattern = "\\.git$",           replacement = "") |>
+    sub(pattern = "^git@[^:]+:",       replacement = "") |>
+    sub(pattern = "^https://[^/]+/",   replacement = "")
+  parts <- strsplit(slug, "/")[[1]]
+  owner <- parts[[1]]; repo <- parts[[2]]
+
+  token <- Sys.getenv("DEPLOY_PAT", "")
+  if (!nchar(token))
+    token <- tryCatch(
+      gitcreds::gitcreds_get("https://github.com")$password,
+      error = function(e) ""
+    )
+  if (!nchar(token)) {
+    cli::cli_alert_warning(c(
+      "Pas de token GitHub — variable {.val {name}} non définie sur GitHub.",
+      "i" = "Définissez {.envvar DEPLOY_PAT} ou connectez-vous avec {.run usethis::create_github_token()}."
+    ))
+    return(invisible(NULL))
+  }
+
+  value <- as.character(value)
+
+  gh_req <- function(method, endpoint, body) {
+    httr2::request(sprintf("https://api.github.com%s", endpoint)) |>
+      httr2::req_method(method) |>
+      httr2::req_auth_bearer_token(token) |>
+      httr2::req_headers(
+        Accept                 = "application/vnd.github+json",
+        `X-GitHub-Api-Version` = "2022-11-28"
+      ) |>
+      httr2::req_body_json(body) |>
+      httr2::req_error(is_error = \(r) FALSE) |>
+      httr2::req_perform()
+  }
+
+  # PATCH pour mise à jour ; POST pour création si 404
+  patch_resp <- gh_req(
+    "PATCH",
+    sprintf("/repos/%s/%s/actions/variables/%s", owner, repo, name),
+    list(name = name, value = value)
+  )
+
+  if (httr2::resp_status(patch_resp) == 204L) {
+    cli::cli_alert_success("Variable GitHub {.val {name}} mise à jour : {.val {value}}")
+    return(invisible(NULL))
+  }
+
+  if (httr2::resp_status(patch_resp) == 404L) {
+    post_resp <- gh_req(
+      "POST",
+      sprintf("/repos/%s/%s/actions/variables", owner, repo),
+      list(name = name, value = value)
+    )
+    if (httr2::resp_status(post_resp) == 201L) {
+      cli::cli_alert_success("Variable GitHub {.val {name}} créée : {.val {value}}")
+      return(invisible(NULL))
+    }
+    body_msg <- tryCatch(httr2::resp_body_json(post_resp)$message, error = \(e) "?")
+    cli::cli_alert_warning(
+      "Impossible de créer la variable GitHub {.val {name}} \\
+       (HTTP {httr2::resp_status(post_resp)}) : {body_msg}"
+    )
+    return(invisible(NULL))
+  }
+
+  body_msg <- tryCatch(httr2::resp_body_json(patch_resp)$message, error = \(e) "?")
+  cli::cli_alert_warning(
+    "Impossible de mettre à jour la variable GitHub {.val {name}} \\
+     (HTTP {httr2::resp_status(patch_resp)}) : {body_msg}"
+  )
+  invisible(NULL)
+}
+
 check_repo_status <- function(repo = ".") {
   # Fetch latest refs from remote (no merge)
   fetch <- tryCatch(

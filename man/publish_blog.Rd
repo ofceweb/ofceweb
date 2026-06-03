@@ -12,7 +12,7 @@ publish_blog(
   progress = TRUE,
   render_site = TRUE,
   check_freeze = FALSE,
-  trigger = FALSE,
+  trigger = TRUE,
   freeze = TRUE
 )
 }

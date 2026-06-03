@@ -144,6 +144,96 @@ les remotes SSH en HTTPS). Le flux navigateur évite de coller un PAT
 qui peut traîner dans l'historique du shell.
 :::
 
+# Installer les packages R
+
+## Setup `ThreeME v4`
+
+Le dépôt `ThreeME_V4` fournit un script `src/setup.R` qui installe toutes les dépendances R (CRAN + GitHub) d'un coup. À sourcer depuis la racine du projet :
+
+```r
+source("src/setup.R")
+```
+
+::: {.callout-note collapse="true" icon=false title="Ce que fait le script"}
+- Vérifie R ≥ 4.5.1
+- Installe `pak` et `tidyverse` s'ils manquent
+- Installe via `pak::pak()` tous les packages CRAN listés qui ne sont pas déjà présents
+- Charge les packages GitHub (`ofce`, `ofceweb`, `ermeeth`, `tresthor`, `pegr`, `ggbraid`) — installation commentée, à décommenter pour mise à jour
+- Source l'ensemble des fonctions de `src/functions_src/`
+:::
+
+## `setup.R` — vérifs & bootstrap
+
+```r
+options(scipen = 14)
+
+if(paste(R.version$major, R.version$minor, sep = ".") < "4.5.1"){
+  stop("\U1F4A3 \U1F4A3 Please update your R version to at least 4.5.1")
+}
+
+if("pak" %in% installed.packages()[ , "Package"] == FALSE){
+  install.packages("pak")
+}
+if("tidyverse" %in% installed.packages()[ , "Package"] == FALSE){
+  install.packages("tidyverse")
+}
+
+library(tidyverse)
+library(pak)
+```
+
+## `setup.R` — packages CRAN
+
+```r
+required_CRAN_packages <- c(
+  "beepr", "cointReg", "colorspace", "countrycode", "crayon", "data.table",
+  "Deriv", "devtools", "DiagrammeR", "dplyr", "dtplyr", "eFRED", "eurostat",
+  "extrafont", "flextable", "fst", "geomtextpath", "ggarrow",
+  "ggh4x", "ggiraph", "ggplot2", "ggpp", "ggpubr", "ggrepel", "ggsci",
+  "ggtext", "ggthemes", "glue", "gridExtra", "gridGraphics", "gsubfn", "gt",
+  "haven", "hrbrthemes", "htmlwidgets", "httr", "insee", "jsonlite",
+  "kableExtra", "knitr", "learnr", "lemon", "lobstr", "lubridate", "magick",
+  "magrittr", "marquee", "MetricsWeighted", "microbenchmark", "officer",
+  "openxlsx", "paletteer", "patchwork", "plotly", "png", "qs2", "quarto",
+  "questionr", "RColorBrewer", "Rcpp", "RcppArmadillo", "rdbnomics", "readr",
+  "readxl", "remotes", "RJSONIO", "rmarkdown", "rsdmx", "rsvg", "scales", "shiny",
+  "showtext", "sourcoise", "splitstackshape", "staticryptR", "stringi", "stringr",
+  "svglite", "sys", "tibble", "tictoc", "tidyquant", "tidyr", "tidyverse",
+  "viridis", "webshot2", "writexl", "zip", "zoo"
+)
+
+not_installed_CRAN <- required_CRAN_packages[
+  !(required_CRAN_packages %in% installed.packages()[ , "Package"])
+]
+
+if(length(not_installed_CRAN) > 0){
+  not_installed_CRAN |> map(~pak::pak(.x))
+}
+```
+
+## `setup.R` — packages GitHub & chargement
+
+```r
+required_GIT_packages <- c("ofce", "ofceweb", "ermeeth",
+                           "tresthor", "pegr", "ggbraid")
+
+# À décommenter pour mettre à jour :
+# pak::pak("OFCE/ofce", ask = FALSE)
+# pak::pak("OFCE/tresthor", ask = FALSE)
+# if(!"pegr" %in% installed.packages()[ , "Package"]){
+#   pak::pak("mslegrand/pegr", ask = FALSE)
+# }
+# pak::pak("ThreeME-org/ermeeth", ask = FALSE)
+# pak::pak("ofceweb/ofceweb", ask = FALSE)
+# pak::pak("nsgrantham/ggbraid", ask = FALSE)
+
+purrr::map(c(required_CRAN_packages, required_GIT_packages),
+           ~require(.x, character.only = TRUE))
+
+purrr::map(list.files(file.path("src", "functions_src", "")),
+           ~source(file.path("src", "functions_src", .x)))
+```
+
 # `setup_site()`
 
 ## Action — préparer le dépôt

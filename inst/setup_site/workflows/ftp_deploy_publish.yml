@@ -1,4 +1,4 @@
-name: FTP deploy from site-deploy branch
+name: site-publish to FTP OFCE
 
 on:
   workflow_dispatch:
@@ -11,10 +11,10 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout site-deploy branch
+      - name: Checkout site-publish branch
         uses: actions/checkout@v4
         with:
-          ref: site-deploy
+          ref: site-publish
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure git identity
@@ -26,11 +26,11 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server:   ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USER }}
+          username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           local-dir: ./
-          server-dir: ${{ vars.FTP_SERVER_DIR }}
+          server-dir: ${{ vars.FTP_PUBLISH_SERVER_DIR }}
           dangerous-clean-slate: false
           exclude: |
             **/.git*
@@ -39,7 +39,7 @@ jobs:
             CNAME
             robots.txt
 
-      - name: Commit FTP state back to site-deploy
+      - name: Commit FTP state back to site-publish
         run: |
           git add .ftp-deploy-sync-state.json
           if git diff --staged --quiet; then

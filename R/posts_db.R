@@ -208,3 +208,92 @@ copy_post <- function(posts, lang = "fr",
   # |>
   #   futurize::futurize()
 }
+
+
+#' Sync back `.sourcoise/` directories from rendered copies to source posts
+#'
+#' After rendering a language pass, any `.sourcoise/` directory that appeared
+#' (or was populated) inside the ephemeral copy folder is mirrored back to the
+#' original `posts/` tree. Only files **not already present** in the target
+#' `.sourcoise/` are copied, which naturally deduplicates across the FR and EN
+#' passes without extra bookkeeping.
+#'
+#' @param cached Data frame returned by [get_from_cache()]. Must contain at
+#'   least the columns `from_cache`, `origin` (path to the rendered copy), and
+#'   `source` (path to the original post folder under `posts/`).
+#' @param lang Character. Language label used for cli messages (`"fr"` or
+#'   `"en"`).
+#' @return Invisibly, the total number of files synced back across all posts.
+#' @keywords internal
+sync_back_sourcoise <- function(cached, lang, max_size_mb = 50) {
+  to_sync <- dplyr::filter(cached, !from_cache)
+
+  if (nrow(to_sync) == 0L) {
+    cli::cli_alert_info("Sync-back .sourcoise ({lang}) : aucun post re-rendu.")
+    return(invisible(0L))
+  }
+
+  total <- 0L
+
+  purrr::pwalk(to_sync, \(origin, source, name, ...) {
+    if (!fs::dir_exists(origin)) return(invisible(NULL))
+
+    # Find every .sourcoise/ directory at any depth inside the copy
+    all_dirs <- fs::dir_ls(origin, recurse = TRUE, type = "directory", all = TRUE)
+    sourcoise_dirs <- all_dirs[fs::path_file(all_dirs) == ".sourcoise"]
+
+    if (length(sourcoise_dirs) == 0L) return(invisible(NULL))
+
+    purrr::walk(sourcoise_dirs, \(copy_sourcoise) {
+      # Preserve relative path from copy root → mirror under source root
+      rel <- fs::path_rel(copy_sourcoise, origin)
+      target_sourcoise <- fs::path_join(c(source, rel))
+
+      copy_files <- fs::dir_ls(copy_sourcoise, type = "file", all = TRUE) |>
+        fs::path_file()
+
+      already_synced <- if (fs::dir_exists(target_sourcoise)) {
+        fs::dir_ls(target_sourcoise, type = "file", all = TRUE) |> fs::path_file()
+      } else {
+        character(0L)
+      }
+
+      new_files <- setdiff(copy_files, already_synced)
+      if (length(new_files) == 0L) return(invisible(NULL))
+
+      # Drop files exceeding the size threshold
+      max_bytes <- max_size_mb * 1024^2
+      new_files <- purrr::keep(new_files, \(fname) {
+        sz <- fs::file_size(fs::path_join(c(copy_sourcoise, fname)))
+        if (sz > max_bytes) {
+          cli::cli_alert_warning(
+            "Sync-back ({lang}) ignoré (>{max_size_mb} Mo) : {fname}"
+          )
+          FALSE
+        } else {
+          TRUE
+        }
+      })
+      if (length(new_files) == 0L) return(invisible(NULL))
+
+      fs::dir_create(target_sourcoise, recurse = TRUE)
+      purrr::walk(new_files, \(fname) {
+        fs::file_copy(
+          fs::path_join(c(copy_sourcoise, fname)),
+          fs::path_join(c(target_sourcoise, fname)),
+          overwrite = FALSE
+        )
+      })
+
+      total <<- total + length(new_files)
+      cli::cli_alert_success(
+        "Sync-back ({lang}) {length(new_files)} fichier{?s} \u2192 {target_sourcoise}"
+      )
+    })
+  })
+
+  if (total == 0L)
+    cli::cli_alert_info("Sync-back .sourcoise ({lang}) : rien de nouveau.")
+
+  invisible(total)
+}

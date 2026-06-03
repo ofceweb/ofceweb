@@ -27,9 +27,10 @@
 #'   (`"ok"`, `"warning"`, `"error"`) et `message` (chr). [render_wp()] appelle
 #'   cette fonction et abandonne si des erreurs bloquantes sont présentes.
 #' @seealso [render_wp()], [setup_wp()]
-#' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists dir_ls path_ext_remove
-#' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_danger cli_rule
+#' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists dir_ls path_ext_remove path_rel
+#' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_danger cli_rule cli_alert_info
 #' @importFrom yaml read_yaml
+#' @importFrom glue glue
 #' @export
 check_wp <- function(path = ".", verbose = TRUE) {
 
@@ -41,11 +42,13 @@ check_wp <- function(path = ".", verbose = TRUE) {
   diags <- list()
 
   add_diag <- function(field, status, message) {
-    diags[[length(diags) + 1L]] <<- data.frame(
+    n <- length(diags) + 1L
+    if(as.character(message) |> is.null())
+      browser()
+    diags[[n]] <<- list(
       field   = as.character(field),
       status  = as.character(status),
-      message = as.character(message),
-      stringsAsFactors = FALSE
+      message = as.character(message)
     )
   }
 
@@ -55,8 +58,17 @@ check_wp <- function(path = ".", verbose = TRUE) {
   yml_path <- fs::path(root, "_quarto.yml")
   if (!fs::file_exists(yml_path)) {
     add_diag("_quarto.yml", "error", "Fichier absent. Lancer setup_wp() d'abord.")
-    df <- do.call(rbind, diags)
-    if (verbose) print_wp_diags(df)
+    df <- if (length(diags) > 0) {
+      data.frame(
+        field   = sapply(diags, `[[`, "field"),
+        status  = sapply(diags, `[[`, "status"),
+        message = sapply(diags, `[[`, "message"),
+        stringsAsFactors = FALSE
+      )
+    } else {
+      data.frame(field = character(), status = character(), message = character(), stringsAsFactors = FALSE)
+    }
+    if (verbose) print_wp_diags(df, root)
     return(invisible(df))
   }
 
@@ -67,8 +79,17 @@ check_wp <- function(path = ".", verbose = TRUE) {
                     NULL
                   })
   if (is.null(yml)) {
-    df <- do.call(rbind, diags)
-    if (verbose) print_wp_diags(df)
+    df <- if (length(diags) > 0) {
+      data.frame(
+        field   = sapply(diags, `[[`, "field"),
+        status  = sapply(diags, `[[`, "status"),
+        message = sapply(diags, `[[`, "message"),
+        stringsAsFactors = FALSE
+      )
+    } else {
+      data.frame(field = character(), status = character(), message = character(), stringsAsFactors = FALSE)
+    }
+    if (verbose) print_wp_diags(df, root)
     return(invisible(df))
   }
 
@@ -78,12 +99,18 @@ check_wp <- function(path = ".", verbose = TRUE) {
   }
 
   # Champs obligatoires dans _quarto.yml
-  for (field in c("annee", "date", "citation")) {
+  # (annee sera vérifié plus précisément si WP publié)
+  for (field in c("date", "citation")) {
     if (is.null(yml[[field]])) {
       add_diag(field, "error", sprintf("Champ `%s` absent de _quarto.yml.", field))
     } else {
       add_diag(field, "ok", sprintf("Champ `%s` présent.", field))
     }
+  }
+
+  # annee : vérification basique d'abord
+  if (is.null(yml$annee)) {
+    add_diag("annee", "error", "Champ `annee` absent de _quarto.yml.")
   }
 
   if (is.null(yml$author) && is.null(yml$authors)) {
@@ -134,23 +161,39 @@ check_wp <- function(path = ".", verbose = TRUE) {
     add_diag("news.qmd", "warning", "news.qmd absent — pas d'historique des révisions.")
   }
 
+  # ---- .github/workflows (error) -----------------------------------------
+  workflows_dir <- fs::path(root, ".github", "workflows")
+  if (fs::dir_exists(workflows_dir)) {
+    ftp_deploy_path <- fs::path(workflows_dir, "ftp_deploy.yml")
+    if (fs::file_exists(ftp_deploy_path)) {
+      add_diag(".github/workflows", "ok", ".github/workflows/ et ftp_deploy.yml présents.")
+    } else {
+      add_diag(".github/workflows", "error",
+               ".github/workflows/ présent mais ftp_deploy.yml absent — lancer setup_wp() d'abord.")
+    }
+  } else {
+    add_diag(".github/workflows", "error",
+             ".github/workflows/ absent — lancer setup_wp() d'abord.")
+  }
+
   # ---- Contrôles spécifiques WP publié -------------------------------------
   if (!is.null(yml$wp)) {
-    # annee doit être un entier valide
-    annee_ok <- !is.null(yml$annee) &&
-                !is.na(suppressWarnings(as.integer(yml$annee))) &&
-                as.integer(yml$annee) > 1990L
-    if (annee_ok) {
-      add_diag("annee", "ok", sprintf("annee = %s valide pour un WP publié.", yml$annee))
-    } else {
-      add_diag("annee", "error",
-               sprintf("annee `%s` invalide pour un WP publié (entier > 1990 attendu).", yml$annee))
+    # annee : validation plus stricte pour WP publié
+    if (!is.null(yml$annee)) {
+      annee_ok <- !is.na(suppressWarnings(as.integer(yml$annee))) &&
+                  as.integer(yml$annee) > 1990L
+      if (annee_ok) {
+        add_diag("annee", "ok", sprintf("annee = %s valide pour un WP publié.", yml$annee))
+      } else {
+        add_diag("annee", "error",
+                 sprintf("annee `%s` invalide pour un WP publié (entier > 1990 attendu).", yml$annee))
+      }
     }
 
     # version cohérente avec dernier segment de site-path
     sp      <- yml$website$`site-path`
     version <- as.character(yml$version)
-    if (!is.null(sp) && nzchar(sp) && !is.null(version)) {
+    if (!is.null(sp) && nzchar(sp) && !length(version)==0) {
       segs     <- strsplit(sp, "/", fixed = TRUE)[[1]]
       last_seg <- segs[length(segs)]
       if (identical(last_seg, version)) {
@@ -204,18 +247,26 @@ check_wp <- function(path = ".", verbose = TRUE) {
   all_pdf_outputs <- character()
 
   # project-level
-  for (fmt in c("wp-pdf", "wp-typst")) {
-    of <- yml$format[[fmt]]$`output-file`
-    if (!is.null(of) && nzchar(of)) all_pdf_outputs <- c(all_pdf_outputs, of)
+  if (!is.null(yml$format)) {
+    for (fmt in c("wp-pdf", "wp-typst")) {
+      fmt_val <- yml$format[[fmt]]
+      if (is.list(fmt_val)) {
+        of <- fmt_val$`output-file`
+        if (!is.null(of) && nzchar(of)) all_pdf_outputs <- c(all_pdf_outputs, of)
+      }
+    }
   }
 
   # document-level
   for (qmd in all_qmds) {
     qy <- tryCatch(get_yaml(qmd), error = function(e) NULL)
-    if (is.null(qy)) next
+    if (is.null(qy) || !is.list(qy) || is.null(qy$format) || !is.list(qy$format)) next
     for (fmt in c("wp-pdf", "wp-typst")) {
-      of <- qy$format[[fmt]]$`output-file`
-      if (!is.null(of) && nzchar(of)) all_pdf_outputs <- c(all_pdf_outputs, of)
+      fmt_val <- qy$format[[fmt]]
+      if (is.list(fmt_val)) {
+        of <- fmt_val$`output-file`
+        if (!is.null(of) && nzchar(of)) all_pdf_outputs <- c(all_pdf_outputs, of)
+      }
     }
   }
 
@@ -230,17 +281,25 @@ check_wp <- function(path = ".", verbose = TRUE) {
   }
 
   # ---- Résumé --------------------------------------------------------------
-  df <- do.call(rbind, diags)
-  if (is.null(df)) df <- data.frame(field = character(), status = character(),
-                                     message = character(), stringsAsFactors = FALSE)
+  df <- if (length(diags) > 0) {
+    tdiag <- purrr::transpose(diags)
+    data.frame(
+      field   = tdiag[["field"]] |> unlist(),
+      status  = tdiag[["status"]] |> unlist(),
+      message = tdiag[["message"]] |> unlist(),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    data.frame(field = character(), status = character(), message = character(), stringsAsFactors = FALSE)
+  }
 
-  if (verbose) print_wp_diags(df)
+  if (verbose) print_wp_diags(df, root)
 
   invisible(df)
 }
 
 # Affiche les diagnostics check_wp() dans la console.
-print_wp_diags <- function(df) {
+print_wp_diags <- function(df, root = NULL) {
   if (nrow(df) == 0L) return(invisible(NULL))
 
   cli::cli_rule("Diagnostics check_wp()")
@@ -266,5 +325,32 @@ print_wp_diags <- function(df) {
     cli::cli_alert_success(
       "Aucune erreur bloquante. {n_warn} avertissement{?s}.")
   }
+
+  # Build the path parameter for suggestions
+  run_path <- if (!is.null(root) && !identical(root, getwd())) {
+    fs::path_rel(root, getwd())
+  } else {
+    "."
+  }
+
+  # Check if .github/workflows is missing and suggest setup_wp()
+  workflows_missing <- df[df$field == ".github/workflows" & df$status == "error", ]
+  if (nrow(workflows_missing) > 0L) {
+    cli::cli_rule()
+    msg <- glue::glue("Dossier .github/workflows/ manquant. Exécutez {{.run setup_wp('{run_path}')}} pour initialiser le dépôt.")
+    cli::cli_alert_info(msg)
+    return(invisible(NULL))
+  }
+
+  # Check if there are missing required fields and suggest complete_wp_yaml()
+  missing_required_fields <- c("date", "annee", "author", "citation")
+  rows_missing <- df[df$field %in% missing_required_fields & df$status == "error", ]
+
+  if (nrow(rows_missing) > 0L) {
+    cli::cli_rule()
+    msg <- glue::glue("Des champs obligatoires manquent. Exécutez {{.run complete_wp_yaml('{run_path}')}} pour les remplir automatiquement.")
+    cli::cli_alert_info(msg)
+  }
+
   invisible(NULL)
 }

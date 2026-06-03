@@ -32,6 +32,13 @@ setup_wp <- function(
     hypothesis = FALSE,
     versionning = TRUE) {
 
+  # Détecter les arguments fournis explicitement (avant toute modification)
+  wp_provided         <- !missing(wp)
+  annee_provided      <- !missing(annee)
+  lang_provided       <- !missing(lang)
+  title_provided      <- !missing(website_title)
+  hypothesis_provided <- !missing(hypothesis)
+
   root <- path |>
     fs::path_expand() |>
     fs::path_abs() |>
@@ -104,11 +111,15 @@ setup_wp <- function(
   if (!nzchar(pkg_setup_site))
     pkg_setup_site <- fs::path(root, "inst", "setup_site")
 
-  # ---- 5. copie _quarto.yml (toujours) --------------------------------------
+  # ---- 5. copie _quarto.yml (seulement si absent) ---------------------------
   src_yaml  <- fs::path(pkg_setup_wp, "_quarto.yml")
   dest_yaml <- fs::path(root, "_quarto.yml")
-  fs::file_copy(src_yaml, dest_yaml, overwrite = TRUE)
-  cli::cli_alert_success("Copie de {.file _quarto.yml}")
+  if (!fs::file_exists(dest_yaml)) {
+    fs::file_copy(src_yaml, dest_yaml, overwrite = FALSE)
+    cli::cli_alert_success("Copie de {.file _quarto.yml}")
+  } else {
+    cli::cli_alert_info("{.file _quarto.yml} déjà présent — non écrasé.")
+  }
 
   # ---- 6. copie index.qmd (si absent) ---------------------------------------
   src_index    <- fs::path(pkg_setup_wp, "index.qmd")
@@ -156,64 +167,118 @@ setup_wp <- function(
     cli::cli_alert_success("Copie de {.path _extensions/wp/}")
   }
 
-  # ---- 10. copie des workflows ----------------------------------------------
+  # ---- 10. copie des workflows (seulement si absents) -----------------------
   src_wf  <- fs::path(pkg_setup_wp, "workflows")
   dest_wf <- fs::path(root, ".github", "workflows")
   if (fs::dir_exists(src_wf)) {
     fs::dir_create(dest_wf, recurse = TRUE)
+    n_copied <- 0L
     for (f in fs::dir_ls(src_wf, type = "file")) {
       fname <- fs::path_file(f)
       if (fs::path_ext(fname) == "html") fname <- fs::path_ext_remove(fname)
-      fs::file_copy(f, fs::path(dest_wf, fname), overwrite = TRUE)
+      dest_f <- fs::path(dest_wf, fname)
+      if (!fs::file_exists(dest_f)) {
+        fs::file_copy(f, dest_f, overwrite = FALSE)
+        n_copied <- n_copied + 1L
+      } else {
+        cli::cli_alert_info("{.file .github/workflows/{fname}} déjà présent — non écrasé.")
+      }
     }
-    cli::cli_alert_success("Copie des workflows vers {.path .github/workflows/}")
+    if (n_copied > 0L)
+      cli::cli_alert_success("Copie de {n_copied} workflow{?s} vers {.path .github/workflows/}")
+  }
+
+  # ---- 10b. migration server-dir → ${{ vars.FTP_SERVER_DIR }} ---------------
+  # Idempotent : remplace la ligne codée en dur dans les workflows existants
+  # par la référence à la variable GitHub. N'écrase pas un fichier déjà migré.
+  ftp_wf <- fs::path(dest_wf, "ftp_deploy.yml")
+  if (fs::file_exists(ftp_wf)) {
+    wf_lines <- readLines(ftp_wf, warn = FALSE)
+    needs_migration <- any(grepl("server-dir:", wf_lines)) &&
+                       !any(grepl("vars\\.FTP_SERVER_DIR", wf_lines))
+    if (needs_migration) {
+      wf_lines <- sub(
+        "^(\\s*)server-dir:.*$",
+        "\\1server-dir: ${{ vars.FTP_SERVER_DIR }}",
+        wf_lines
+      )
+      writeLines(wf_lines, ftp_wf)
+      cli::cli_alert_success(
+        "{.file .github/workflows/ftp_deploy.yml} migré vers {.code {{vars.FTP_SERVER_DIR}}}"
+      )
+    }
   }
 
   # ---- 11. édition du _quarto.yml ------------------------------------------
   yml <- yaml::read_yaml(dest_yaml)
+  yml_before <- yml  # snapshot pour détecter les changements réels
 
-  yml$wp     <- wp
-  yml$annee  <- annee
-  yml$version <- "v0"
-  yml$title  <- final_title
-  yml$lang   <- lang
+  # Champs-arguments : écrire UNIQUEMENT si l'argument a été fourni explicitement.
+  # Pour un nouveau WP, le gabarit contient déjà les valeurs par défaut.
+  # Pour un WP existant, l'absence d'un champ est intentionnelle.
+  if (wp_provided)    yml$wp    <- wp
+  if (annee_provided) yml$annee <- annee
+  if (lang_provided)  yml$lang  <- lang
+  if (title_provided) yml$title <- final_title
+  # version : le gabarit le fournit pour les nouveaux WPs — jamais injecté
+  # dans un fichier existant.
 
-  # URLs
+  # repo-url : toujours calculé depuis le remote git (valeur dérivée, sans
+  # ambiguïté et sans risque pour l'utilisateur)
   if (!is.na(gh$host) && !is.na(gh$repo)) {
     yml$website$`repo-url` <- sprintf("https://github.com/%s/%s/", gh$host, gh$repo)
   }
 
-  if (!is.null(wp)) {
-    # WP publié : hébergement OFCE
-    yml$website$`site-url`  <- "https://www.ofce.fr/"
-    site_path <- paste0("wp/", annee, "/", wp)
-    if (isTRUE(versionning)) site_path <- paste0(site_path, "/v0")
-    yml$website$`site-path` <- site_path
-  } else {
-    # Brouillon : GitHub Pages
-    yml$website$`site-url`  <- sprintf("https://%s.github.io/%s/", gh_org, repo_name)
-    yml$website$`site-path` <- NULL
+  # site-url / site-path : uniquement si wp a été fourni explicitement
+  if (wp_provided) {
+    if (!is.null(wp)) {
+      yml$website$`site-url`  <- "https://www.ofce.fr/"
+      site_path <- paste0("wp/", annee, "/", wp)
+      if (isTRUE(versionning)) site_path <- paste0(site_path, "/v0")
+      yml$website$`site-path` <- site_path
+    } else {
+      yml$website$`site-url`  <- sprintf("https://%s.github.io/%s/", gh_org, repo_name)
+      yml$website$`site-path` <- NULL
+    }
   }
 
-  # Hypothesis
-  yml$comments <- list(hypothesis = isTRUE(hypothesis))
-
-  # output-file du PDF
-  pdf_output <- if (!is.null(wp)) {
-    sprintf("OFCEWP%d-%d.pdf", annee, wp)
-  } else {
-    "OFCEWP-draft.pdf"
+  # hypothesis : uniquement si fourni explicitement
+  if (hypothesis_provided) {
+    yml$comments <- list(hypothesis = isTRUE(hypothesis))
   }
-  if (is.null(yml$format)) yml$format <- list()
-  if (is.null(yml$format$`wp-pdf`)) yml$format$`wp-pdf` <- list()
-  yml$format$`wp-pdf`$`output-file` <- pdf_output
 
-  yaml::write_yaml(
-    yml, dest_yaml,
-    indent.mapping.sequence = TRUE,
-    handlers = list(logical = yaml::verbatim_logical)
-  )
-  cli::cli_alert_success("Mise à jour de {.file _quarto.yml}")
+  # output-file PDF : uniquement si wp ou annee fournis explicitement ET si le
+  # format wp-pdf ou wp-typst est déjà déclaré dans le YAML (ne pas injecter
+  # un format que le WP n'utilise pas)
+  uses_wp_pdf <- is.list(yml$format) &&
+                 (is.list(yml$format$`wp-pdf`) || is.list(yml$format$`wp-typst`))
+  if ((wp_provided || annee_provided) && uses_wp_pdf) {
+    effective_wp    <- if (wp_provided)    wp    else yml$wp
+    effective_annee <- if (annee_provided) annee else as.integer(yml$annee)
+    pdf_output <- if (!is.null(effective_wp)) {
+      sprintf("OFCEWP%d-%d.pdf", effective_annee, effective_wp)
+    } else {
+      "OFCEWP-draft.pdf"
+    }
+    target_fmt <- if (is.list(yml$format$`wp-pdf`)) "wp-pdf" else "wp-typst"
+    yml$format[[target_fmt]]$`output-file` <- pdf_output
+  } else {
+    pdf_output <- yml$format$`wp-pdf`$`output-file` %||%
+                  yml$format$`wp-typst`$`output-file` %||% NA_character_
+  }
+
+  # N'écrire le fichier que si le YAML a réellement changé — évite le
+  # reformatage parasite (dates, order des clés, etc.)
+  if (!identical(yml_before, yml)) {
+    yaml::write_yaml(
+      yml, dest_yaml,
+      indent.mapping.sequence = TRUE,
+      handlers = list(logical = yaml::verbatim_logical)
+    )
+    cli::cli_alert_success("Mise à jour de {.file _quarto.yml}")
+  } else {
+    cli::cli_alert_info("{.file _quarto.yml} — aucun changement nécessaire.")
+  }
 
   # Met aussi à jour l'output-file dans index.qmd si on vient de le créer
   if (created_index) {
@@ -231,12 +296,14 @@ setup_wp <- function(
   }
 
   # ---- 12. server-dir dans le workflow FTP ----------------------------------
-  if (!is.null(wp)) {
-    wf_ftp <- fs::path(root, ".github", "workflows", "ftp_deploy.yml")
-    if (fs::file_exists(wf_ftp)) {
-      server_dir <- paste0("wp/", annee, "/", wp)
-      if (isTRUE(versionning)) server_dir <- paste0(server_dir, "/v0")
-      set_ftp_server_dir(root, server_dir)
+  # yml$wp est la valeur effective : argument fourni (mis à jour en section 11)
+  # ou valeur déjà présente dans le YAML. NULL uniquement pour les brouillons.
+  if (!is.null(yml$wp)) {
+    yml_after  <- tryCatch(yaml::read_yaml(dest_yaml), error = function(e) NULL)
+    server_dir <- yml_after$website$`site-path`
+    if (!is.null(server_dir) && nzchar(server_dir)) {
+      if (!grepl("/$", server_dir)) server_dir <- paste0(server_dir, "/")
+      set_gh_var(root, "FTP_SERVER_DIR", server_dir)
     }
   }
 
@@ -260,16 +327,16 @@ setup_wp <- function(
 
   # ---- Résumé ---------------------------------------------------------------
   cli::cli_h2("Résumé")
-  cli::cli_li("titre       : {final_title}")
-  cli::cli_li("wp          : {if (is.null(wp)) 'brouillon (null)' else wp}")
-  cli::cli_li("annee       : {annee}")
-  cli::cli_li("version     : v0")
-  cli::cli_li("lang        : {lang}")
+  cli::cli_li("titre       : {yml$title}")
+  cli::cli_li("wp          : {if (is.null(yml$wp)) 'brouillon (null)' else yml$wp}")
+  cli::cli_li("annee       : {yml$annee}")
+  cli::cli_li("version     : {yml$version}")
+  cli::cli_li("lang        : {yml$lang}")
   cli::cli_li("site-url    : {yml$website$`site-url`}")
   if (!is.null(yml$website$`site-path`))
     cli::cli_li("site-path   : {yml$website$`site-path`}")
-  cli::cli_li("hypothesis  : {hypothesis}")
-  cli::cli_li("pdf         : {pdf_output}")
+  cli::cli_li("hypothesis  : {isTRUE(yml$comments$hypothesis)}")
+  cli::cli_li("pdf         : {if (is.na(pdf_output)) '(non applicable)' else pdf_output}")
 
   cli::cli_alert_warning(
     "Pensez à {.strong commiter et pousser} les changements avant de \\

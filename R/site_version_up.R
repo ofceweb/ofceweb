@@ -66,7 +66,7 @@ site_version_up <- function(path = ".", custom_version = NULL) {
   if(length(segments) >= 2) {
     server_dir <- paste(segments[(length(segments) - 1):length(segments)],
                         collapse = "/")
-    set_ftp_server_dir(root, server_dir)
+    set_gh_var(root, "FTP_SERVER_DIR", server_dir)
   }
 
   cli::cli_alert_success(

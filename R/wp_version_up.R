@@ -71,12 +71,12 @@ wp_version_up <- function(path = ".", custom_version = NULL) {
     "version mise à jour : {.val {current_version}} → {.val {new_version}}")
   cli::cli_alert_info("Nouveau site-path : {.val {yml$website$`site-path`}}")
 
-  # Mise à jour server-dir dans le workflow FTP
+  # Mise à jour de la variable GitHub FTP_SERVER_DIR
   if (!is.null(sp) && nzchar(sp)) {
     tryCatch(
-      set_ftp_server_dir(root, yml$website$`site-path`),
+      set_gh_var(root, "FTP_SERVER_DIR", yml$website$`site-path`),
       error = function(e)
-        cli::cli_alert_warning("server-dir non mis à jour : {conditionMessage(e)}")
+        cli::cli_alert_warning("FTP_SERVER_DIR non mis à jour : {conditionMessage(e)}")
     )
   }
 

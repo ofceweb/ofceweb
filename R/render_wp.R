@@ -117,6 +117,23 @@ render_wp <- function(
            error = function(e)
              cli::cli_alert_warning("manifest.json non généré : {conditionMessage(e)}"))
 
+  # ---- 7.5. synchronisation server-dir FTP ---------------------------------
+  # site-path dans _quarto.yml est la source de vérité pour server-dir dans le
+  # workflow FTP. On synchronise ici pour que le déploiement soit toujours
+  # cohérent, même si le workflow a été copié depuis le gabarit (placeholder)
+  # ou si la version a été incrémentée depuis le dernier setup.
+  if (!is.null(yml_top) && !is.null(yml_top$wp)) {
+    server_dir <- yml_top$website$`site-path`
+    if (!is.null(server_dir) && nzchar(server_dir)) {
+      if (!grepl("/$", server_dir)) server_dir <- paste0(server_dir, "/")
+      tryCatch(
+        set_gh_var(root, "FTP_SERVER_DIR", server_dir),
+        error = function(e)
+          cli::cli_alert_warning("FTP_SERVER_DIR non mis à jour : {conditionMessage(e)}")
+      )
+    }
+  }
+
   tictoc::toc()
 
   status <- gert::git_status(staged = TRUE)

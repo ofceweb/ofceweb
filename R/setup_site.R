@@ -217,7 +217,9 @@ setup_site <- function(
     patch_ftp_workflow_secrets(root, ofce_server_location)
     server_dir <- website_path
     if(isTRUE(versionning)) server_dir <- paste0(server_dir, "/v0")
-    set_ftp_server_dir(root, server_dir)
+    set_gh_var(root, "FTP_SERVER_DIR", server_dir)
+    # Publish deploy (site-publish branch) — chemin sans versionnement
+    set_gh_var(root, "FTP_PUBLISH_SERVER_DIR", website_path)
     cli::cli_alert_info(
       "Si votre dépôt n'est pas sur l'organisation OFCE, merci de voir avec Xavier T. ou Anissa pour la configuration de l'accès au serveur avant la publication du site."
     )
@@ -315,6 +317,8 @@ patch_ftp_workflow_secrets <- function(root, ofce_server_location) {
   invisible(NULL)
 }
 
+# Déprécié — utiliser set_gh_var(root, "FTP_SERVER_DIR", server_dir) à la place.
+# Conservé temporairement pour compatibilité ; plus utilisé en interne.
 # Insère ou met à jour la ligne `server-dir:` dans
 # .github/workflows/ftp_deploy.yml. `server_dir` est de la forme
 # "<repo>" ou "<repo>/v0" ; un `/` final est ajouté si absent.

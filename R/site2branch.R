@@ -171,8 +171,10 @@ site2branch <- function(
   if (trigger) {
     tryCatch(
       trigger_action(root = root, workflow = workflow),
-      error = function(e)
-        cli::cli_warn("FTP dispatch \u00e9chou\u00e9 : {e$message} — relancer manuellement avec trigger_action().")
+      error = function(e) {
+        cli::cli_warn("FTP dispatch \u00e9chou\u00e9 : {e$message}")
+        cli::cli_warn("... relancer manuellement avec trigger_action() ou vérifier que la branche main a été poussée sur github.com.")
+      }
     )
   }
   invisible(NULL)

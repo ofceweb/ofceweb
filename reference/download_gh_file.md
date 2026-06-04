@@ -1,0 +1,54 @@
+# Download a single file from a GitHub repository
+
+Looks up a file by path in the GitHub Contents API and downloads it to a
+local destination using \`curl\`. A Bearer token is attached
+automatically when a GitHub PAT is configured (needed for private
+repositories).
+
+## Usage
+
+``` r
+download_gh_file(
+  path,
+  dest = path,
+  owner = "ofceweb",
+  repo = "webblog",
+  ref = "site-deploy"
+)
+```
+
+## Arguments
+
+- path:
+
+  Path to the file inside the repository (e.g.
+  \`"posts/2024-01-01/index.qmd"\`).
+
+- dest:
+
+  Local path to write the file to. Defaults to \`path\`.
+
+- owner:
+
+  GitHub user or organisation name. Defaults to \`"ofceweb"\`.
+
+- repo:
+
+  Repository name. Defaults to \`"webblog"\`.
+
+- ref:
+
+  Git ref (branch, tag, or SHA). Defaults to \`"site-deploy"\`.
+
+## Value
+
+The local path \`dest\` on success, or \`NULL\` if the file was not
+found in the repository.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+download_gh_file("posts/my-post/index.qmd", dest = "local/index.qmd")
+} # }
+```

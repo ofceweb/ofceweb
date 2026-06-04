@@ -22,7 +22,8 @@ Lit le `_quarto.yml` à la racine du dépôt, repère le dernier segment du
 remplace simplement le segment de version par cette valeur. Sinon, détecte
 la dernière séquence de chiffres dans le segment et l'augmente de 1
 (ex. `v0` -> `v1`, `v3_4` -> `v3_5`, `v5_AS42` -> `v5_AS43`,
-`v10_42A` -> `v10_43A`, `6v` -> `7v`).
+`v10_42A` -> `v10_43A`, `6v` -> `7v`). Met également à jour la variable
+GitHub Actions `FTP_SERVER_DIR` avec le nouveau `site-path`.
 }
 \details{
 Ne fonctionne que si `ofce_host: true` est présent dans le `_quarto.yml`.

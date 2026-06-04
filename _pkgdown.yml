@@ -1,0 +1,19 @@
+url: https://ofceweb.github.io/ofceweb/
+template:
+  bootstrap: 5
+  theme: atom-one-light
+  bslib:
+    base_font: {google: "Open Sans"}
+    heading_font: {google: "Open Sans"}
+    code_font: {google: "Fira Code"}
+
+deploy:
+  install_metadata: true
+
+footer:
+  structure:
+    left: [developed_by]
+    right: [rtfm, ccby, built_with]
+  components:
+    rtfm: RTFM
+    ccby: CC BY 4.0

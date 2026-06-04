@@ -19,8 +19,8 @@ Invisible `NULL`. Appelée pour ses effets de bord.
 \description{
 Lit le champ `version` dans `_quarto.yml`, l'incrémente (`"v0"` → `"v1"`,
 `"v3_4"` → `"v3_5"`, etc.), met à jour `_quarto.yml` (champ `version` et
-dernier segment de `site-path`), met à jour `server-dir` dans le workflow
-FTP et régénère `manifest.json`.
+dernier segment de `site-path`), met à jour la variable GitHub Actions
+`FTP_SERVER_DIR` et régénère `manifest.json`.
 }
 \details{
 Ne fonctionne que pour un WP publié (`wp` non nul dans `_quarto.yml`).

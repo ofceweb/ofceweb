@@ -41,6 +41,18 @@ du dépôt, initialise la branche `gh-pages` pour la pré-publication, et
 adapte le `_quarto.yml` avec les métadonnées du WP (titre, numéro, année,
 langue, URLs).
 }
+\details{
+La fonction est **non-destructive** : sur un dépôt existant, les fichiers
+gabarits (dont `_quarto.yml`) ne sont pas écrasés, et les champs YAML ne
+sont mis à jour que si l'argument correspondant a été fourni explicitement.
+Les champs déjà absents ne sont pas injectés. Seuls `repo-url` et
+`ofce_wp: true` sont toujours positionnés (valeurs dérivées sans ambiguïté).
+
+Pour les WPs publiés (`wp` non nul), la fonction met à jour la variable
+GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
+à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
+aussi migré automatiquement si `server-dir` y est encore codé en dur.
+}
 \seealso{
 [render_wp()], [deploy_wp()], [wp_version_up()]
 }

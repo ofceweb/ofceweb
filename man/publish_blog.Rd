@@ -10,7 +10,7 @@ publish_blog(
   workers = 8L,
   check_repo = TRUE,
   progress = TRUE,
-  render_site = TRUE,
+  render_site = FALSE,
   check_freeze = FALSE,
   trigger = TRUE,
   freeze = TRUE

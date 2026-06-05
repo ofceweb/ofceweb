@@ -158,20 +158,20 @@ est en cours de développement
   : Initialise un dépôt de document de travail (WP) OFCE
 - [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
   : Vérifie la structure d'un dépôt de document de travail (WP)
-- [`complete_wp()`](https://ofceweb.github.io/ofceweb/reference/complete_wp.md)
-  : Complète les champs manquants dans \`\_quarto.yml\` pour un WP
 - [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md)
   : Rendu complet d'un document de travail (WP) OFCE
 - [`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md)
   : Rendu et déploiement complet d'un document de travail (WP) OFCE
 - [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)
   : Déploie un document de travail (WP) OFCE
-- [`wp_manifest()`](https://ofceweb.github.io/ofceweb/reference/wp_manifest.md)
-  : Génère ou met à jour le manifeste JSON d'un document de travail
-- [`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)
-  : Déploie la page de redirection vers la dernière version d'un WP OFCE
+- [`rescan_wp()`](https://ofceweb.github.io/ofceweb/reference/rescan_wp.md)
+  : Rescanne les pages d'un document de travail
 - [`wp_version_up()`](https://ofceweb.github.io/ofceweb/reference/wp_version_up.md)
   : Incrémente la version d'un document de travail OFCE publié
+- [`encrypt_wp()`](https://ofceweb.github.io/ofceweb/reference/encrypt_wp.md)
+  : Active le chiffrement statique d'un document de travail
+- [`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)
+  : Désactive le chiffrement statique du site
 
 ## Sites
 

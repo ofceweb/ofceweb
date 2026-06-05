@@ -1,4 +1,4 @@
-# pkgdown ![](pkgdown/favicon/favicon-96x96.png)
+# ofceweb
 
 Tout ce qui sert à générer les pages HTML du site web de l’OFCE se
 trouve ici.

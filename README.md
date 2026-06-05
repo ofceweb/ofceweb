@@ -1,4 +1,4 @@
-# pkgdown <img src="pkgdown/favicon/favicon-96x96.png" align="right" />
+# ofceweb <img src="man/figures/logo.svg" align="right" />
 
 Tout ce qui sert à générer les pages HTML du site web de l'OFCE se trouve ici.
 

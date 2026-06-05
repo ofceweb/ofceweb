@@ -7,6 +7,43 @@ template:
     heading_font: {google: "Open Sans"}
     code_font: {google: "Fira Code"}
 
+reference:
+- title: Working papers
+  contents:
+  - setup_wp
+  - check_wp
+  - complete_wp
+  - render_wp
+  - publish_wp
+  - deploy_wp
+  - wp_manifest
+  - push_wp_redirect
+  - wp_version_up
+- title: Sites
+  contents:
+  - setup_site
+  - render_site
+  - deploy_site
+  - rescan_site
+  - site_version_up
+  - encrypt_site
+  - remove_encrypt
+  - render_prev_publish
+- title: Blog
+  contents:
+  - render_blog
+  - publish_blog
+  - create_blog_version
+- title: Autres
+  contents:
+  - render_home
+  - publish_home
+  - site2branch
+  - site2publish
+  - trigger_action
+  - download_gh_dir
+  - download_gh_file
+
 articles:
 - title: Articles
   contents:

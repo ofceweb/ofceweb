@@ -12,13 +12,13 @@ reference:
   contents:
   - setup_wp
   - check_wp
-  - complete_wp
   - render_wp
   - publish_wp
   - deploy_wp
-  - wp_manifest
-  - push_wp_redirect
+  - rescan_wp
   - wp_version_up
+  - encrypt_wp
+  - remove_encrypt
 - title: Sites
   contents:
   - setup_site

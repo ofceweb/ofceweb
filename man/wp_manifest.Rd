@@ -28,3 +28,4 @@ l'index des documents de travail OFCE.
 \seealso{
 [render_wp()], [wp_version_up()]
 }
+\keyword{internal}

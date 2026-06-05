@@ -37,3 +37,4 @@ Champs complétés si absents :
 \seealso{
 [check_wp()], [setup_wp()]
 }
+\keyword{internal}

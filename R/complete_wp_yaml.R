@@ -26,7 +26,7 @@
 #' @importFrom cli cli_h1 cli_alert_info cli_rule
 #' @section Working Paper (WP) Users:
 #'
-#' @export
+#' @keywords internal
 complete_wp <- function(path = ".", verbose = TRUE) {
 
   root <- path |>

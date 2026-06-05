@@ -17,7 +17,7 @@
 #' @importFrom cli cli_alert_success cli_alert_warning
 #' @section Working Paper (WP) Users:
 #'
-#' @export
+#' @keywords internal
 wp_manifest <- function(path = ".") {
 
   root <- path |>

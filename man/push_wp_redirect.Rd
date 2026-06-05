@@ -36,3 +36,4 @@ Ne fait rien pour les WPs brouillons (`wp: null`).
 \seealso{
 [deploy_wp()], [publish_wp()], [wp_version_up()]
 }
+\keyword{internal}

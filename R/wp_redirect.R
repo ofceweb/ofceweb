@@ -24,7 +24,7 @@
 #' @importFrom glue glue
 #' @section Working Paper (WP) Users:
 #'
-#' @export
+#' @keywords internal
 push_wp_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
 
   root <- path |>

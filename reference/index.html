@@ -30,7 +30,7 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="working-papers">Working papers<a class="anchor" aria-label="anchor" href="#working-papers"></a></h2>
 
 
 
@@ -40,6 +40,13 @@
 
 
       <dl><dt>
+
+          <code><a href="setup_wp.html">setup_wp()</a></code>
+
+        </dt>
+        <dd>Initialise un dépôt de document de travail (WP) OFCE</dd>
+
+        <dt>
 
           <code><a href="check_wp.html">check_wp()</a></code>
 
@@ -55,59 +62,10 @@
 
         <dt>
 
-          <code><a href="create_blog_version.html">create_blog_version()</a></code>
+          <code><a href="render_wp.html">render_wp()</a></code>
 
         </dt>
-        <dd>Créer une version blog d'un article EcoGaphe</dd>
-
-        <dt>
-
-          <code><a href="deploy_site.html">deploy_site()</a></code>
-
-        </dt>
-        <dd>Déploie le site selon l'hébergement déclaré dans `_quarto.yml`</dd>
-
-        <dt>
-
-          <code><a href="deploy_wp.html">deploy_wp()</a></code>
-
-        </dt>
-        <dd>Déploie un document de travail (WP) OFCE</dd>
-
-        <dt>
-
-          <code><a href="download_gh_dir.html">download_gh_dir()</a></code>
-
-        </dt>
-        <dd>Download a directory from a GitHub repository</dd>
-
-        <dt>
-
-          <code><a href="download_gh_file.html">download_gh_file()</a></code>
-
-        </dt>
-        <dd>Download a single file from a GitHub repository</dd>
-
-        <dt>
-
-          <code><a href="encrypt_site.html">encrypt_site()</a></code>
-
-        </dt>
-        <dd>Active le chiffrement statique du site</dd>
-
-        <dt>
-
-          <code><a href="publish_blog.html">publish_blog()</a></code>
-
-        </dt>
-        <dd>Publish the bilingual blog</dd>
-
-        <dt>
-
-          <code><a href="publish_home.html">publish_home()</a></code>
-
-        </dt>
-        <dd>Publie la homepage du site OFCE</dd>
+        <dd>Rendu complet d'un document de travail (WP) OFCE</dd>
 
         <dt>
 
@@ -118,6 +76,20 @@
 
         <dt>
 
+          <code><a href="deploy_wp.html">deploy_wp()</a></code>
+
+        </dt>
+        <dd>Déploie un document de travail (WP) OFCE</dd>
+
+        <dt>
+
+          <code><a href="wp_manifest.html">wp_manifest()</a></code>
+
+        </dt>
+        <dd>Génère ou met à jour le manifeste JSON d'un document de travail</dd>
+
+        <dt>
+
           <code><a href="push_wp_redirect.html">push_wp_redirect()</a></code>
 
         </dt>
@@ -125,31 +97,26 @@
 
         <dt>
 
-          <code><a href="remove_encrypt.html">remove_encrypt()</a></code>
+          <code><a href="wp_version_up.html">wp_version_up()</a></code>
 
         </dt>
-        <dd>Désactive le chiffrement statique du site</dd>
+        <dd>Incrémente la version d'un document de travail OFCE publié</dd>
+      </dl></div><div class="section level2">
+      <h2 id="sites">Sites<a class="anchor" aria-label="anchor" href="#sites"></a></h2>
 
-        <dt>
 
-          <code><a href="render_blog.html">render_blog()</a></code>
 
-        </dt>
-        <dd>Render the bilingual blog</dd>
+      <dl></dl></div><div class="section level2">
 
-        <dt>
 
-          <code><a href="render_home.html">render_home()</a></code>
 
-        </dt>
-        <dd>Génère la homepage du site OFCE</dd>
 
-        <dt>
+      <dl><dt>
 
-          <code><a href="render_prev_publish.html">render_prev_publish()</a></code>
+          <code><a href="setup_site.html">setup_site()</a></code>
 
         </dt>
-        <dd>Génère le site de la prévision</dd>
+        <dd>Initialise un site OFCE dans le dépôt courant</dd>
 
         <dt>
 
@@ -160,10 +127,10 @@
 
         <dt>
 
-          <code><a href="render_wp.html">render_wp()</a></code>
+          <code><a href="deploy_site.html">deploy_site()</a></code>
 
         </dt>
-        <dd>Rendu complet d'un document de travail (WP) OFCE</dd>
+        <dd>Déploie le site selon l'hébergement déclaré dans `_quarto.yml`</dd>
 
         <dt>
 
@@ -174,17 +141,84 @@
 
         <dt>
 
-          <code><a href="setup_site.html">setup_site()</a></code>
+          <code><a href="site_version_up.html">site_version_up()</a></code>
 
         </dt>
-        <dd>Initialise un site OFCE dans le dépôt courant</dd>
+        <dd>Incrémente la version dans le `site-path` du `_quarto.yml`</dd>
 
         <dt>
 
-          <code><a href="setup_wp.html">setup_wp()</a></code>
+          <code><a href="encrypt_site.html">encrypt_site()</a></code>
 
         </dt>
-        <dd>Initialise un dépôt de document de travail (WP) OFCE</dd>
+        <dd>Active le chiffrement statique du site</dd>
+
+        <dt>
+
+          <code><a href="remove_encrypt.html">remove_encrypt()</a></code>
+
+        </dt>
+        <dd>Désactive le chiffrement statique du site</dd>
+
+        <dt>
+
+          <code><a href="render_prev_publish.html">render_prev_publish()</a></code>
+
+        </dt>
+        <dd>Génère le site de la prévision</dd>
+      </dl></div><div class="section level2">
+      <h2 id="blog">Blog<a class="anchor" aria-label="anchor" href="#blog"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="render_blog.html">render_blog()</a></code>
+
+        </dt>
+        <dd>Render the bilingual blog</dd>
+
+        <dt>
+
+          <code><a href="publish_blog.html">publish_blog()</a></code>
+
+        </dt>
+        <dd>Publish the bilingual blog</dd>
+
+        <dt>
+
+          <code><a href="create_blog_version.html">create_blog_version()</a></code>
+
+        </dt>
+        <dd>Créer une version blog d'un article EcoGaphe</dd>
+      </dl></div><div class="section level2">
+      <h2 id="autres">Autres<a class="anchor" aria-label="anchor" href="#autres"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="render_home.html">render_home()</a></code>
+
+        </dt>
+        <dd>Génère la homepage du site OFCE</dd>
+
+        <dt>
+
+          <code><a href="publish_home.html">publish_home()</a></code>
+
+        </dt>
+        <dd>Publie la homepage du site OFCE</dd>
 
         <dt>
 
@@ -202,13 +236,6 @@
 
         <dt>
 
-          <code><a href="site_version_up.html">site_version_up()</a></code>
-
-        </dt>
-        <dd>Incrémente la version dans le `site-path` du `_quarto.yml`</dd>
-
-        <dt>
-
           <code><a href="trigger_action.html">trigger_action()</a></code>
 
         </dt>
@@ -216,19 +243,20 @@
 
         <dt>
 
-          <code><a href="wp_manifest.html">wp_manifest()</a></code>
+          <code><a href="download_gh_dir.html">download_gh_dir()</a></code>
 
         </dt>
-        <dd>Génère ou met à jour le manifeste JSON d'un document de travail</dd>
+        <dd>Download a directory from a GitHub repository</dd>
 
         <dt>
 
-          <code><a href="wp_version_up.html">wp_version_up()</a></code>
+          <code><a href="download_gh_file.html">download_gh_file()</a></code>
 
         </dt>
-        <dd>Incrémente la version d'un document de travail OFCE publié</dd>
+        <dd>Download a single file from a GitHub repository</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

@@ -56,6 +56,8 @@ publish_wp(
 
 Invisible \`NULL\`.
 
+## Working Paper (WP) Users
+
 ## See also
 
 \[render_wp()\], \[deploy_wp()\], \[push_wp_redirect()\], \[setup_wp()\]

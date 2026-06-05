@@ -80,6 +80,8 @@ package — suitable for interactive local use.
 SSH remote URLs are automatically converted to HTTPS before pushing
 because libgit2 cannot use the system SSH agent.
 
+## Site Users
+
 ## Examples
 
 ``` r

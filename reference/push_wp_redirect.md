@@ -38,6 +38,8 @@ avec le répertoire parent du \`site-path\`.
 
 Ne fait rien pour les WPs brouillons (\`wp: null\`).
 
+## Working Paper (WP) Users
+
 ## See also
 
 \[deploy_wp()\], \[publish_wp()\], \[wp_version_up()\]

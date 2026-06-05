@@ -44,6 +44,8 @@ deploy_site(
 
 Invisible \`NULL\`.
 
+## Site Users
+
 ## See also
 
 \[site2branch()\], \[setup_site()\]

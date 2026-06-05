@@ -64,6 +64,8 @@ render_wp(
 
 Invisible : sortie de \[gert::git_status()\].
 
+## Working Paper (WP) Users
+
 ## See also
 
 \[setup_wp()\], \[check_wp()\], \[deploy_wp()\]

@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Tous les outils pour le fonctionnement du web OFCE • ofceweb</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/Open_Sans-0.4.10/font.css" rel="stylesheet">
@@ -13,8 +18,9 @@
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Tous les outils pour le fonctionnement du web OFCE">
-<meta name="description" content="Outils de build et de déploiement pour linfrastructure web de lOFCE. Fournit les fonctions communes utilisées par les dépôts consommateurs (webblog, webhome, prev2x0[39], sites génériques) pour initialiser un site Quarto, le rendre (avec gestion bilingue FR/EN et cache des posts pour le blog), construire le sitemap, indexer les contenus pour Algolia, chiffrer éventuellement le site via staticrypt, puis pousser le résultat sur une branche de déploiement et déclencher le workflow GitHub Actions de publication FTP.">
-<meta property="og:description" content="Outils de build et de déploiement pour linfrastructure web de lOFCE. Fournit les fonctions communes utilisées par les dépôts consommateurs (webblog, webhome, prev2x0[39], sites génériques) pour initialiser un site Quarto, le rendre (avec gestion bilingue FR/EN et cache des posts pour le blog), construire le sitemap, indexer les contenus pour Algolia, chiffrer éventuellement le site via staticrypt, puis pousser le résultat sur une branche de déploiement et déclencher le workflow GitHub Actions de publication FTP.">
+<meta name="description" content="Outils de build et de déploiement pour linfrastructure web de lOFCE. Fournit les fonctions communes utilisées par les dépôts sources (webblog, webhome, prev2x0[39], sites génériques) pour initialiser un site Quarto, le rendre (avec gestion bilingue FR/EN et cache des posts pour le blog), construire le sitemap, indexer les contenus pour Algolia, chiffrer éventuellement le site via staticrypt, puis pousser le résultat sur une branche de déploiement et déclencher le workflow GitHub Actions de publication FTP.">
+<meta property="og:description" content="Outils de build et de déploiement pour linfrastructure web de lOFCE. Fournit les fonctions communes utilisées par les dépôts sources (webblog, webhome, prev2x0[39], sites génériques) pour initialiser un site Quarto, le rendre (avec gestion bilingue FR/EN et cache des posts pour le blog), construire le sitemap, indexer les contenus pour Algolia, chiffrer éventuellement le site via staticrypt, puis pousser le résultat sur une branche de déploiement et déclencher le workflow GitHub Actions de publication FTP.">
+<meta property="og:image" content="https://ofceweb.github.io/ofceweb/logo.svg">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -34,14 +40,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/build-a-site.html">Construire un site avec ofceweb</a></li>
-    <li><a class="dropdown-item" href="articles/prerequisites.html">Pré-requis : PAT GitHub, gh CLI, variables d'environnement</a></li>
-    <li><a class="dropdown-item" href="articles/working-papers.html">Documents de travail (Working Papers)</a></li>
-  </ul>
-</li>
+<li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -54,9 +53,81 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><p>Package ofceweb qui regroupe les fonctions nécessaires à l’infrastructure web de l’ofce</p>
-<p><code>pak::pak("ofceweb/ofceweb")</code> pour l’installation.</p>
-
+  <main id="main" class="col-md-9"><div class="section level1">
+<div class="page-header">
+<img src="logo.svg" class="logo" alt=""><h1 id="pkgdown-">pkgdown <img src="pkgdown/favicon/favicon-96x96.png" align="right"><a class="anchor" aria-label="anchor" href="#pkgdown-"></a>
+</h1>
+</div>
+<p>Tout ce qui sert à générer les pages HTML du site web de l’OFCE se trouve ici.</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>Pour installer <a href="https://ofceweb.github.io/ofceweb/">ofceweb</a>, utiliser <a href="https://pak.r-lib.org/" class="external-link">pak</a> ou <code>renv::install()</code></p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"ofceweb/ofceweb"</span><span class="op">)</span></span>
+<span><span class="co"># ou </span></span>
+<span><span class="fu">renv</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"ofceweb/ofceweb"</span><span class="op">)</span></span></code></pre></div>
+<p>Le package couvre les usages de plusieurs types d’utilisateurs.</p>
+</div>
+<div class="section level2">
+<h2 id="publier-un-document-de-travail-en-phase-staging-ou-publication">Publier un document de travail en phase <em>staging</em> ou <em>publication</em>
+<a class="anchor" aria-label="anchor" href="#publier-un-document-de-travail-en-phase-staging-ou-publication"></a>
+</h2>
+<p>Le principe est d’avoir le document de travail dans un repo github, sur son compte personnel ou dans l’organisation OFCE.</p>
+<p>Le format du repo est assez libre, un <em>template</em> est proposé, avec quelques éléments obligatoires pour la publication. Le <em>template</em> est implémenté par <code><a href="reference/setup_wp.html">setup_wp()</a></code>, fonction non destructive qui préserve ce qui est déjà mis en place (yaml, fichiers). <code><a href="reference/check_wp.html">check_wp()</a></code> diagnostique l’installation et pointe vers les problèmes non bloquants ou bloquants.</p>
+<p>Tant que le document de travail est en phase <em>staging</em>, il est servi par github.com (<code>gh-pages</code>). Il est possible de le crypter afin d’en limiter l’accès à un public choisi. La mise en place du cryptage est faite par <code><a href="reference/encrypt_site.html">encrypt_site()</a></code> et le cryptage est enlevé par <code><a href="reference/remove_encrypt.html">remove_encrypt()</a></code>. Pour le cryptage, il faut définir un mot de passe <strong>qui ne doit pas être en clair dans le repo</strong>. Pensez à utiliser <code>usethis::edit_r_environ()</code> pour définir une variable contenant le mot de passe ou assurez vous que le mot de passe est dans un fichier dans <code>.gitignore</code>.</p>
+<p>La publication suppose la validation. il faut alors enlever le cryptage, définir un numéro de document de travail et le publier sur le site de l’OFCE. Cela suppose que les identifiants d’accès au site ftp de l’OFCE sont remplis. C’est automatique sur l’organisation OFCE sur github.com. Sinon, il faut demander à un administrateur de renseigner les secrets github sur le repo qui contient le document de travail.</p>
+<p>Le document de travail peut être versionné, les différentes versions peuvent être conservées, une url stable est toujours disponible (www.ofce.fr/wp/{YYYY}/{NNN}) pour le document de travail de l’OFCE n°YYYY-NNN. L’url stable pointe vers la dernière version poussée sur le site.</p>
+<p>Une fois le document de travail validé, les auteurs peuvent modifier le document de travail librement. En cas d’abus, cet accès peut être retiré.</p>
+</div>
+<div class="section level2">
+<h2 id="publier-un-mini-site-en-phase-staging-ou-publication">Publier un mini-site en phase <em>staging</em> ou <em>publication</em>
+<a class="anchor" aria-label="anchor" href="#publier-un-mini-site-en-phase-staging-ou-publication"></a>
+</h2>
+<p>Un mini-site ressemble beaucoup à un document de travail, à ceci près que le format est plus libre et que le mini-site n’est pas nécessairement publié. A priori, les mini-sites publiés doivent être référencés dans le site général. Merci de contacter les administrateurs dans ce cas.</p>
+<p>Le mini-site est mis en place par <code><a href="reference/setup_site.html">setup_site()</a></code> (attention, peut être cette fonction est destructive, pensez à commiter avant de l’employer). Il est possiblement crypté (<code><a href="reference/encrypt_site.html">ofceweb::encrypt_site()</a></code>). Le cryptage est enlevé par <code><a href="reference/remove_encrypt.html">remove_encrypt()</a></code>. Pour le cryptage, il faut définir un mot de passe <strong>qui ne doit pas être en clair dans le repo</strong>. Pensez à utiliser <code>usethis::edit_r_environ()</code> pour définir une variable contenant le mot de passe ou assurez vous que le mot de passe est dans un fichier dans <code>.gitignore</code>.</p>
+<p>Le mini-site peut être publié sur <code>gh-pages</code> comme sur le site de l’OFCE. Notez que le site ne sera référencé s’il n’est pas publié.</p>
+<p>La mise à jour du mini-site se fait en le republiant.</p>
+</div>
+<div class="section level2">
+<h2 id="publier-la-prévision-en-phase-staging-ou-publication">Publier la prévision en phase <em>staging</em> ou <em>publication</em>
+<a class="anchor" aria-label="anchor" href="#publier-la-pr%C3%A9vision-en-phase-staging-ou-publication"></a>
+</h2>
+<p>La prévision est un mini-site particulier. Une version <em>staging</em> (commentaires ouverts, cryptée, non référencée) co existe avec une verison <em>publish</em> (commentaires fermés, url définie (www.ofce.fr/prev/prevYYMM), non cryptée, référencée, suivi statitistique).</p>
+<p>Les principales fonctions sont <code>render_prev()</code> et <code>publish_prev()</code>. Les fonctions helpers seront ajoutées progressivement.</p>
+</div>
+<div class="section level2">
+<h2 id="administrer-les-principales-pages-du-site-web-de-lofce">Administrer les principales pages du site web de l’OFCE<a class="anchor" aria-label="anchor" href="#administrer-les-principales-pages-du-site-web-de-lofce"></a>
+</h2>
+<div class="section level3">
+<h3 id="le-blog">Le blog<a class="anchor" aria-label="anchor" href="#le-blog"></a>
+</h3>
+<p><a href="https://github.com/ofceweb/webblog" class="external-link">webblog</a> est le repo du blog de l’OFCE. Pour le modifier vous devez avoir les droits.</p>
+<p>Pour générer le blog : aller dans le repo <a href="https://github.com/ofceweb/webblog" class="external-link">webblog</a>, lancer <code><a href="reference/render_blog.html">render_blog()</a></code> ; avec l’option <code>site2branch=TRUE</code>, le rendu est uploadé sur github dans la branche <code>site-deploy</code> et envoyé sur le site de l’OFCE ; <code><a href="reference/site2branch.html">site2branch()</a></code> fait la même opération. La fonction est documentée pour les options avancées.</p>
+<p>Pas de cryptage disponible.</p>
+<p>Une github action génère le blog une fois par jour en mode <code>force_freeze=FALSE</code> ce qui met à jour les posts périodiques (<code>freeze: false</code> dans le yaml).</p>
+<p>Le blog relecture sera prochainement inclu dans la procédure.</p>
+</div>
+<div class="section level3">
+<h3 id="la-home-page">La <em>home page</em>
+<a class="anchor" aria-label="anchor" href="#la-home-page"></a>
+</h3>
+<p><a href="https://github.com/ofceweb/webhome" class="external-link">webhome</a> est le repo de la home page ;</p>
+<p>Pour générer la <em>home page</em>, aller dans le repo <a href="https://github.com/ofceweb/webhome" class="external-link">webhome</a>, lancer <code><a href="reference/render_home.html">render_home()</a></code> ; avec l’option <code>site2branch=TRUE</code>, le rendu est uploadé sur github dans la branche <code>site-deploy</code> et envoyé sur le site de l’OFCE ; <code><a href="reference/site2branch.html">site2branch()</a></code> fait la même opération. La fonction est documentée pour les options avancées.</p>
+</div>
+<div class="section level3">
+<h3 id="les-statistiques-de-fréquention-et-de-production">les statistiques de fréquention et de production<a class="anchor" aria-label="anchor" href="#les-statistiques-de-fr%C3%A9quention-et-de-production"></a>
+</h3>
+<p><a href="https://github.com/ofceweb/webstat" class="external-link">webstat</a> est le repo du dashboard des statistiques de fréquentation (crytpé) ;</p>
+<p>Pour générer le <a href="https://www.ofce.fr/webstat" class="external-link">dashboard de fréquentation webstat</a> : aller dans le repo <a href="https://github.com/ofceweb/webstat" class="external-link">webstat</a>, et pusher sur main, le site est généré à partir de cet évènement ; 2 fois par jour webstat est actualisé.</p>
+</div>
+<div class="section level3">
+<h3 id="prochainement-le-nowcast">Prochainement le nowcast<a class="anchor" aria-label="anchor" href="#prochainement-le-nowcast"></a>
+</h3>
+<p>Le <a href="https://github.com/ofceweb/nowcast" class="external-link">nowcast</a> a bientôt sa page. Il est en cours de développement</p>
+</div>
+</div>
+</div>
   </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">

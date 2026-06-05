@@ -42,6 +42,8 @@ built-in \`GITHUB_TOKEN\` cannot dispatch other workflows (GitHub blocks
 it to prevent recursive runs). 2. The OS credential store via gitcreds —
 suitable for interactive local use.
 
+## Other
+
 ## Examples
 
 ``` r

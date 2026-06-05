@@ -70,6 +70,8 @@ publish_blog(
 
 A data frame of staged git changes, returned invisibly.
 
+## Webblog Users
+
 ## See also
 
 \[render_blog()\], \[site2branch()\]

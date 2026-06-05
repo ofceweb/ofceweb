@@ -55,6 +55,8 @@ download_gh_dir(
 \`invisible(NULL)\`, called for its side-effect of writing files to
 \`destdir\`.
 
+## Other
+
 ## Examples
 
 ``` r

@@ -25,3 +25,5 @@ rescan_site(path = ".", icon = "newspaper")
 ## Value
 
 Invisible \`NULL\`. Appelée pour ses effets de bord.
+
+## Home Users

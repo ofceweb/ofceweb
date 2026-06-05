@@ -45,6 +45,8 @@ download_gh_file(
 The local path \`dest\` on success, or \`NULL\` if the file was not
 found in the repository.
 
+## Other
+
 ## Examples
 
 ``` r

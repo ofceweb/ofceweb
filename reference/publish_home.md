@@ -48,6 +48,8 @@ publish_home(
 
 Appelée pour ses effets de bord. Retourne invisiblement \`NULL\`.
 
+## Home Users
+
 ## See also
 
 \[render_home()\], \[site2branch()\]

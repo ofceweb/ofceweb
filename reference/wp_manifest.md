@@ -26,6 +26,8 @@ La liste du manifeste (invisible).
 Le manifeste est collecté par \`webhome\` via la GitHub API pour
 construire l'index des documents de travail OFCE.
 
+## Working Paper (WP) Users
+
 ## See also
 
 \[render_wp()\], \[wp_version_up()\]

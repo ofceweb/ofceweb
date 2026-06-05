@@ -54,3 +54,5 @@ render_prev_publish(
 ## Value
 
 Appelée pour ses effets de bord. Retourne invisiblement \`NULL\`.
+
+## Working Paper (WP) Users

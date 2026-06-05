@@ -48,6 +48,8 @@ deploy_wp(
 
 Invisible \`NULL\`.
 
+## Working Paper (WP) Users
+
 ## See also
 
 \[render_wp()\], \[site2branch()\], \[wp_version_up()\]

@@ -44,6 +44,8 @@ Invisible \`NULL\`. Appelée pour ses effets de bord.
 Pré-requis : l'outil \`gh\` doit être installé et authentifié (\`gh auth
 login\`) avec les droits d'administration sur le dépôt.
 
+## Site Users
+
 ## See also
 
 \[setup_site()\], \[deploy_site()\]

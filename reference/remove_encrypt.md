@@ -38,6 +38,8 @@ Invisible \`NULL\`. Appelée pour ses effets de bord.
 Toutes les étapes sont idempotentes : si un élément n'existe pas,
 l'étape est simplement ignorée.
 
+## Site Users
+
 ## See also
 
 \[encrypt_site()\]

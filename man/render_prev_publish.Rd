@@ -40,3 +40,7 @@ Orchestre le rendu complet de la prévision
 appel à [quarto::quarto_render()] avec le profil `publish`, puis optionnellement déploiement du répertoire
 `_site_publish` vers une branche git et/ou prévisualisation locale via un serveur HTTP.
 }
+\section{Working Paper (WP) Users}{
+
+}
+

@@ -48,3 +48,7 @@ package (`inst/setup_site/`) à la racine du dépôt, puis adapte le
 `_quarto.yml` en fonction des arguments (hébergement OFCE ou GitHub Pages,
 titre, code de site, commentaires hypothesis, etc.).
 }
+\section{Home Users}{
+
+}
+

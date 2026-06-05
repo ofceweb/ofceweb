@@ -96,6 +96,8 @@ fast_collect_gh_files  <-  function(owner, repo, path, destdir=path, ref = "HEAD
 #' download_gh_dir("OFCE", "Blog_OFCE", "posts", ext = ".qmd", max_depth = 3)
 #' }
 #'
+#' @section Other:
+#'
 #' @export
 download_gh_dir <- function(owner, repo, path, destdir = path, ref = "HEAD",
                             ext = NULL, max_depth = 3) {
@@ -153,6 +155,8 @@ download_gh_dir <- function(owner, repo, path, destdir = path, ref = "HEAD",
 #' \dontrun{
 #' download_gh_file("posts/my-post/index.qmd", dest = "local/index.qmd")
 #' }
+#'
+#' @section Other:
 #'
 #' @export
 download_gh_file <- function(path, dest = path, owner="ofceweb", repo = "webblog", ref="site-deploy") {

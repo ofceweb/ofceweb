@@ -18,6 +18,8 @@
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @seealso [setup_site()]
+#' @section Site Users:
+#'
 #' @export
 site_version_up <- function(path = ".", custom_version = NULL) {
 

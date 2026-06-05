@@ -19,6 +19,8 @@
 #'   Par défaut égale à `site2branch`.
 #'
 #' @returns Appelée pour ses effets de bord. Retourne invisiblement `NULL`.
+#' @section Home Users:
+#'
 #' @export
 render_home <- function(
     path = ".",
@@ -112,6 +114,8 @@ render_home <- function(
 #' @inheritParams render_home
 #' @returns Appelée pour ses effets de bord. Retourne invisiblement `NULL`.
 #' @seealso [render_home()], [site2branch()]
+#' @section Home Users:
+#'
 #' @export
 #'
 #' @examples

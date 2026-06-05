@@ -24,6 +24,8 @@
 #' @importFrom fs path_expand path_abs path_norm path
 #' @importFrom yaml read_yaml
 #' @importFrom cli cli_h1 cli_alert_info cli_rule
+#' @section Working Paper (WP) Users:
+#'
 #' @export
 complete_wp <- function(path = ".", verbose = TRUE) {
 

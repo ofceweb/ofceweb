@@ -33,6 +33,10 @@ Looks up a file by path in the GitHub Contents API and downloads it to a
 local destination using `curl`.  A Bearer token is attached automatically
 when a GitHub PAT is configured (needed for private repositories).
 }
+\section{Other}{
+
+}
+
 \examples{
 \dontrun{
 download_gh_file("posts/my-post/index.qmd", dest = "local/index.qmd")

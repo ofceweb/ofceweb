@@ -51,6 +51,10 @@ A data frame of staged git changes, returned invisibly.
 A convenience wrapper around [render_blog()] that sets `site2branch = TRUE`
 to deploy `_site` to the deployment branch after rendering.
 }
+\section{Webblog Users}{
+
+}
+
 \examples{
 \dontrun{
 publish_blog()

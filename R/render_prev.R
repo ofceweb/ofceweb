@@ -18,6 +18,8 @@
 #'   Par défaut égale à `site2branch`.
 #'
 #' @returns Appelée pour ses effets de bord. Retourne invisiblement `NULL`.
+#' @section Working Paper (WP) Users:
+#'
 #' @export
 render_prev_publish <- function(
     path = ".",

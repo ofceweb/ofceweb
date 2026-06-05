@@ -70,6 +70,10 @@ Two variables are read from the calling environment (not function arguments):
 - `push_site_deploy`: if `TRUE`, calls [site2branch()] to push `_site` to the
   deployment branch; otherwise prints instructions for doing so manually.
 }
+\section{Webblog Users}{
+
+}
+
 \examples{
 \dontrun{
 render_blog()

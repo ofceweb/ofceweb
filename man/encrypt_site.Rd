@@ -35,6 +35,10 @@ variable `encrypt_site` du `_quarto.yml` vaut `true`). Concrètement :
 Pré-requis : l'outil `gh` doit être installé et authentifié
 (`gh auth login`) avec les droits d'administration sur le dépôt.
 }
+\section{Site Users}{
+
+}
+
 \seealso{
 [setup_site()], [deploy_site()]
 }

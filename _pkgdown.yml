@@ -7,6 +7,13 @@ template:
     heading_font: {google: "Open Sans"}
     code_font: {google: "Fira Code"}
 
+articles:
+- title: Articles
+  contents:
+  - prerequisites
+  - working-papers
+  - build-a-site
+
 deploy:
   install_metadata: true
 

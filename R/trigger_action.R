@@ -21,6 +21,8 @@
 #'   Branch on which the workflow will be run. Defaults to `"site-deploy"`.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
+#' @section Other:
+#'
 #' @export
 #'
 #' @examples

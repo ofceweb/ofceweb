@@ -28,6 +28,8 @@
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_danger cli_alert_info cli_text
 #' @importFrom yaml read_yaml write_yaml verbatim_logical
 #' @importFrom gert git_remote_list
+#' @section Home Users:
+#'
 #' @export
 setup_site <- function(
     path = ".",

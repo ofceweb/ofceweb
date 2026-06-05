@@ -37,6 +37,8 @@
 #'   unrelated on the FTP server.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
+#' @section Site Users:
+#'
 #' @export
 #'
 #' @examples
@@ -208,6 +210,8 @@ site2branch <- function(
 #'   Passed to [site2branch()]. Set to `TRUE` to force a complete re-upload.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
+#' @section Site Users:
+#'
 #' @export
 #'
 #' @examples

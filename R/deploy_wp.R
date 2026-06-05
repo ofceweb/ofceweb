@@ -21,6 +21,8 @@
 #' @importFrom fs path_expand path_abs path_norm path file_exists dir_exists
 #' @importFrom cli cli_h2 cli_abort cli_alert_success cli_alert_warning cli_text
 #' @importFrom yaml read_yaml
+#' @section Working Paper (WP) Users:
+#'
 #' @export
 deploy_wp <- function(
     path = ".",

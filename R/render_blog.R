@@ -41,6 +41,8 @@
 #'   returned invisibly.
 #'
 #' @seealso [site2branch()]
+#' @section Webblog Users:
+#'
 #' @export
 #'
 #' @examples
@@ -217,6 +219,8 @@ render_blog <- function(
 #' @inheritParams render_blog
 #' @return A data frame of staged git changes, returned invisibly.
 #' @seealso [render_blog()], [site2branch()]
+#' @section Webblog Users:
+#'
 #' @export
 #'
 #' @examples

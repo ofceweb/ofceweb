@@ -15,6 +15,8 @@
 #' @importFrom yaml read_yaml
 #' @importFrom jsonlite toJSON
 #' @importFrom cli cli_alert_success cli_alert_warning
+#' @section Working Paper (WP) Users:
+#'
 #' @export
 wp_manifest <- function(path = ".") {
 

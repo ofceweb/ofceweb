@@ -25,7 +25,7 @@ Authors@R: c(
     )
   )
 Description: Outils de build et de déploiement pour l'infrastructure web de
-    l'OFCE. Fournit les fonctions communes utilisées par les dépôts consommateurs
+    l'OFCE. Fournit les fonctions communes utilisées par les dépôts sources
     (webblog, webhome, prev2x0[39], sites génériques) pour initialiser un site
     Quarto, le rendre (avec gestion bilingue FR/EN et cache des posts pour le
     blog), construire le sitemap, indexer les contenus pour Algolia, chiffrer

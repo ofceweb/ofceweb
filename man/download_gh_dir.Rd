@@ -40,6 +40,10 @@ files in parallel with [fast_collect_gh_files()], then downloads them
 locally using `curl`, adding a Bearer token header when a GitHub PAT is
 available (required for private repositories).
 }
+\section{Other}{
+
+}
+
 \examples{
 \dontrun{
 # Download only .qmd files from the posts/ directory

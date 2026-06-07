@@ -40,7 +40,14 @@ wp_version_up <- function(path = ".", custom_version = NULL) {
       "Ce WP est encore un brouillon ({.code wp: null}). \\
        Définir d'abord le numéro WP dans {.file _quarto.yml} avant d'incrémenter la version.")
 
-  current_version <- as.character(yml$version %||% "v0")
+  if (is.null(yml$version)) {
+    cli::cli_abort(
+      c("Pas de champ {.code version} dans {.file _quarto.yml}.",
+        "i" = "Ce WP n'est pas versionné. Ajouter {.code version: v0} \\
+         dans {.file _quarto.yml} (et un segment {.code /v0} au {.code site-path}) \\
+         pour activer le versionnement."))
+  }
+  current_version <- as.character(yml$version)
 
   if (!grepl("^[A-Za-z0-9_]+$", current_version))
     cli::cli_abort(
@@ -79,7 +86,12 @@ wp_version_up <- function(path = ".", custom_version = NULL) {
     tryCatch({
       server_dir   <- if (grepl("/$", new_site_path)) new_site_path
                       else paste0(new_site_path, "/")
-      redirect_dir <- paste0(sub("/[^/]+$", "", sub("/$", "", server_dir)), "/")
+      server_dir_clean <- sub("/$", "", server_dir)
+      redirect_dir <- if (grepl("/v\\d+$", server_dir_clean)) {
+        paste0(sub("/v\\d+$", "", server_dir_clean), "/")
+      } else {
+        paste0(server_dir_clean, "/")
+      }
       set_gh_var(root, "FTP_SERVER_DIR",   server_dir)
       set_gh_var(root, "FTP_REDIRECT_DIR", redirect_dir)
     }, error = function(e)

@@ -34,7 +34,7 @@ wp_manifest <- function(path = ".") {
   # Champs de base
   wp      <- yml$wp       # NULL ou integer
   annee   <- if (!is.null(yml$annee)) as.integer(yml$annee) else NULL
-  version <- if (!is.null(yml$version)) as.character(yml$version) else "v0"
+  version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
   lang    <- if (!is.null(yml$lang))    as.character(yml$lang)    else "fr"
   title   <- if (!is.null(yml$title))   as.character(yml$title)   else ""
 
@@ -67,7 +67,8 @@ wp_manifest <- function(path = ".") {
 
   # URL de déploiement
   url <- if (!is.null(wp) && !is.null(annee)) {
-    sprintf("https://www.ofce.fr/wp/%d/%03d/%s/", annee, wp, version)
+    ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
+    sprintf("https://www.ofce.fr/wp/%d/%03d/%s", annee, wp, ver_seg)
   } else {
     # brouillon : GitHub Pages
     su <- yml$website$`site-url`

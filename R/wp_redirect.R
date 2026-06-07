@@ -43,8 +43,13 @@ push_wp_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
     return(invisible(NULL))
   }
 
-  version   <- as.character(yml$version %||% "v0")
+  version   <- if (!is.null(yml$version)) as.character(yml$version) else NULL
   site_path <- yml$website$`site-path`
+
+  if (is.null(version)) {
+    cli::cli_alert_info("Pas de champ {.code version} — redirection stable ignorée.")
+    return(invisible(NULL))
+  }
 
   if (is.null(site_path) || !nzchar(site_path)) {
     cli::cli_alert_warning(
@@ -52,8 +57,12 @@ push_wp_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
     return(invisible(NULL))
   }
 
-  # Répertoire parent du site-path (sans le segment de version)
-  redirect_dir <- sub("/[^/]+$", "", site_path)
+  # Répertoire parent du site-path (sans le segment de version, si présent)
+  redirect_dir <- if (grepl("/v\\d+$", site_path)) {
+    sub("/v\\d+$", "", site_path)
+  } else {
+    site_path
+  }
   if (!grepl("/$", redirect_dir)) redirect_dir <- paste0(redirect_dir, "/")
 
   # ---- Variable GitHub FTP_REDIRECT_DIR ------------------------------------

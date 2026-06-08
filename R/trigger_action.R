@@ -18,7 +18,8 @@
 #' @param workflow `[character(1)]`\cr
 #'   File name of the workflow to dispatch (e.g. `"ftp_deploy.yml"`).
 #' @param branch `[character(1)]`\cr
-#'   Branch on which the workflow will be run. Defaults to `"site-deploy"`.
+#'   Branch on which the workflow will be run. Defaults to `NULL`, which
+#'   auto-detects the repository's default branch via the GitHub API.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
 #' @section Other:
@@ -28,11 +29,11 @@
 #' @examples
 #' \dontrun{
 #' trigger_action()
-#' trigger_action(workflow = "deploy.yml", branch = "main")
+#' trigger_action(workflow = "deploy.yml")
 #' }
 trigger_action <- function(root     = ".",
                            workflow = "ftp_deploy.yml",
-                           branch   = "main") {
+                           branch   = NULL) {
   # Resolve owner/repo from git remote
   remotes    <- gert::git_remote_list(repo = root)
   origin_url <- remotes$url[remotes$name == "origin"]
@@ -59,6 +60,25 @@ trigger_action <- function(root     = ".",
       "Aucun token GitHub trouv\u00e9.",
       "i" = "D\u00e9finissez {.envvar DEPLOY_PAT} dans {.file ~/.Renviron} ou connectez-vous avec {.code usethis::create_github_token()}."
     ))
+
+  # If branch not specified, detect default branch from GitHub API
+  if (is.null(branch)) {
+    repo_url <- sprintf(
+      "https://api.github.com/repos/%s/%s", owner, repo
+    )
+    repo_resp <- httr2::request(repo_url) |>
+      httr2::req_auth_bearer_token(token) |>
+      httr2::req_headers(
+        "Accept"               = "application/vnd.github+json",
+        "X-GitHub-Api-Version" = "2022-11-28"
+      ) |>
+      httr2::req_error(is_error = \(r) FALSE) |>
+      httr2::req_perform()
+    branch <- tryCatch(
+      httr2::resp_body_json(repo_resp)$default_branch,
+      error = \(e) "main"
+    )
+  }
 
   url <- sprintf(
     "https://api.github.com/repos/%s/%s/actions/workflows/%s/dispatches",

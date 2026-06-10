@@ -53,6 +53,10 @@ GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
 à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
 aussi migré automatiquement si `server-dir` y est encore codé en dur.
 }
+\section{Working Paper (WP) Users}{
+
+}
+
 \seealso{
 [render_wp()], [deploy_wp()], [wp_version_up()]
 }

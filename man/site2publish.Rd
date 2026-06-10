@@ -40,6 +40,10 @@ Credentials are resolved in the following order:
 SSH remote URLs are automatically converted to HTTPS before pushing because
 libgit2 cannot use the system SSH agent.
 }
+\section{Site Users}{
+
+}
+
 \examples{
 \dontrun{
 # Push _site/ and trigger the FTP workflow

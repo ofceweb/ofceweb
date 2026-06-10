@@ -33,6 +33,8 @@
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_info
 #' @importFrom yaml read_yaml write_yaml verbatim_logical
 #' @importFrom gert git_remote_list
+#' @section Working Paper (WP) Users:
+#'
 #' @export
 setup_wp <- function(
     path = ".",
@@ -90,20 +92,20 @@ setup_wp <- function(
   }
 
   parse_remote_wp <- function(url) {
-    if (is.null(url)) return(list(host = NA_character_, repo = NA_character_))
+    if (is.null(url)) return(list(owner = NA_character_, repo = NA_character_))
     url2 <- sub("\\.git$", "", url)
     if (grepl("^git@", url2)) {
       m <- regmatches(url2, regexec("git@[^:]+:([^/]+)/(.+)$", url2))[[1]]
     } else {
       m <- regmatches(url2, regexec("https?://[^/]+/([^/]+)/(.+)$", url2))[[1]]
     }
-    if (length(m) < 3) return(list(host = NA_character_, repo = NA_character_))
-    list(host = m[[2]], repo = m[[3]])
+    if (length(m) < 3) return(list(owner = NA_character_, repo = NA_character_))
+    list(owner = m[[2]], repo = m[[3]])
   }
 
   gh     <- parse_remote_wp(origin_url)
   repo_name <- if (is.na(gh$repo)) fs::path_file(root) else gh$repo
-  gh_org    <- if (is.na(gh$host)) "ofce" else gh$host
+  gh_org    <- if (is.na(gh$owner)) "ofce" else gh$owner
 
   # ---- 3. titre du WP -------------------------------------------------------
   final_title <- if (!is.null(website_title) && nzchar(website_title)) {
@@ -239,8 +241,8 @@ setup_wp <- function(
 
   # repo-url : toujours calculé depuis le remote git (valeur dérivée, sans
   # ambiguïté et sans risque pour l'utilisateur)
-  if (!is.na(gh$host) && !is.na(gh$repo)) {
-    yml$website$`repo-url` <- sprintf("https://github.com/%s/%s/", gh$host, gh$repo)
+  if (!is.na(gh$owner) && !is.na(gh$repo)) {
+    yml$website$`repo-url` <- sprintf("https://github.com/%s/%s/", gh$owner, gh$repo)
   }
 
   # site-url / site-path : uniquement si wp a été fourni explicitement
@@ -263,7 +265,8 @@ setup_wp <- function(
     sp <- yml$website$`site-path`
     su <- yml$website$`site-url` %||% ""
     if (!is.null(sp) && nzchar(sp)) {
-      stable_path <- sub("/[^/]+$", "", sp)   # retire le dernier segment (/v0)
+      # Strip version segment only if present (e.g. /v0, /v1)
+      stable_path <- if (grepl("/v\\d+$", sp)) sub("/v\\d+$", "", sp) else sp
       if (!grepl("/$", su)) su <- paste0(su, "/")
       stable_url <- paste0(su, stable_path, "/")
       if (is.null(yml$citation)) yml$citation <- list()
@@ -334,7 +337,12 @@ setup_wp <- function(
       if (!grepl("/$", server_dir)) server_dir <- paste0(server_dir, "/")
       set_gh_var(root, "FTP_SERVER_DIR", server_dir)
       # URL stable : répertoire parent du site-path (sans le segment de version)
-      redirect_dir <- paste0(sub("/[^/]+$", "", sub("/$", "", server_dir)), "/")
+      server_dir_clean <- sub("/$", "", server_dir)
+      redirect_dir <- if (grepl("/v\\d+$", server_dir_clean)) {
+        paste0(sub("/v\\d+$", "", server_dir_clean), "/")
+      } else {
+        paste0(server_dir_clean, "/")
+      }
       set_gh_var(root, "FTP_REDIRECT_DIR", redirect_dir)
     }
   }

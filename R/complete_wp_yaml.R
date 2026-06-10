@@ -24,7 +24,9 @@
 #' @importFrom fs path_expand path_abs path_norm path
 #' @importFrom yaml read_yaml
 #' @importFrom cli cli_h1 cli_alert_info cli_rule
-#' @export
+#' @section Working Paper (WP) Users:
+#'
+#' @keywords internal
 complete_wp <- function(path = ".", verbose = TRUE) {
 
   root <- path |>

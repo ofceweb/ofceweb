@@ -21,6 +21,8 @@
 #' @importFrom fs path_expand path_abs path_norm path file_exists dir_exists
 #' @importFrom cli cli_h2 cli_abort cli_alert_success cli_alert_warning cli_text
 #' @importFrom yaml read_yaml
+#' @section Working Paper (WP) Users:
+#'
 #' @export
 deploy_wp <- function(
     path = ".",
@@ -43,11 +45,12 @@ deploy_wp <- function(
 
   wp      <- yml$wp
   annee   <- yml$annee
-  version <- as.character(yml$version %||% "v0")
+  version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
 
   # URL finale pour le message de succès
   final_url <- if (!is.null(wp) && !is.null(annee)) {
-    sprintf("https://www.ofce.fr/wp/%d/%03d/%s/index.html", annee, wp, version)
+    ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
+    sprintf("https://www.ofce.fr/wp/%d/%03d/%sindex.html", annee, wp, ver_seg)
   } else {
     su <- yml$website$`site-url`
     if (!is.null(su) && nzchar(su)) paste0(sub("/?$", "/", su), "index.html") else NULL
@@ -56,7 +59,7 @@ deploy_wp <- function(
   if (!is.null(wp)) {
     # ---- WP publié : FTP via site-deploy ------------------------------------
     cli::cli_h2("Déploiement WP publié (site2branch → FTP)")
-    cli::cli_text("WP {wp} / {annee} / {version} → {.url {final_url %||% 'www.ofce.fr'}}")
+    cli::cli_text("WP {wp} / {annee}{if (!is.null(version)) paste0(' / ', version) else ''} → {.url {final_url %||% 'www.ofce.fr'}}")
 
     if (!fs::dir_exists(fs::path(root, "_site")))
       cli::cli_alert_warning(

@@ -31,6 +31,8 @@
 #' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_danger cli_rule cli_alert_info
 #' @importFrom yaml read_yaml
 #' @importFrom glue glue
+#' @section Working Paper (WP) Users:
+#'
 #' @export
 check_wp <- function(path = ".", verbose = TRUE) {
 

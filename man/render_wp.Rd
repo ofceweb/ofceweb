@@ -48,6 +48,10 @@ vérification de la structure WP, nettoyage de `_site/`, rendu Quarto
 `FTP_SERVER_DIR` (WPs publiés uniquement), et optionnellement déploiement
 sur la branche de déploiement et prévisualisation locale.
 }
+\section{Working Paper (WP) Users}{
+
+}
+
 \seealso{
 [setup_wp()], [check_wp()], [deploy_wp()]
 }

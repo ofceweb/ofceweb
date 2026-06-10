@@ -34,6 +34,10 @@ The GitHub token is resolved in the following order:
 2. The OS credential store via \pkg{gitcreds} — suitable for interactive
    local use.
 }
+\section{Other}{
+
+}
+
 \examples{
 \dontrun{
 trigger_action()

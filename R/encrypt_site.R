@@ -24,6 +24,8 @@
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @seealso [setup_site()], [deploy_site()]
+#' @section Site Users:
+#'
 #' @export
 encrypt_site <- function(path = ".", password = NULL) {
 

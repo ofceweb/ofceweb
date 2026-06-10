@@ -19,6 +19,8 @@
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @seealso [encrypt_site()]
+#' @section Site Users:
+#'
 #' @export
 remove_encrypt <- function(path = ".", delete_secret = TRUE) {
 

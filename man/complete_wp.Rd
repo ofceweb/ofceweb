@@ -30,6 +30,11 @@ Champs complétés si absents :
   \item `ofce_wp` : positionné à `TRUE` pour signaler un WP OFCE
 }
 }
+\section{Working Paper (WP) Users}{
+
+}
+
 \seealso{
 [check_wp()], [setup_wp()]
 }
+\keyword{internal}

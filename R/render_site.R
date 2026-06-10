@@ -28,6 +28,8 @@
 #' @importFrom future.mirai mirai_multisession
 #' @importFrom quarto quarto_render
 #' @importFrom gert git_status
+#' @section Site Users:
+#'
 #' @export
 render_site <- function(
     path = ".",

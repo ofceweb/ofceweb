@@ -21,6 +21,11 @@ construit un `manifest.json` normalisé et l'écrit à la racine du dépôt
 Le manifeste est collecté par `webhome` via la GitHub API pour construire
 l'index des documents de travail OFCE.
 }
+\section{Working Paper (WP) Users}{
+
+}
+
 \seealso{
 [render_wp()], [wp_version_up()]
 }
+\keyword{internal}

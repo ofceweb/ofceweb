@@ -4,7 +4,7 @@
 #' site generator) into an orphan-style commit and force-pushes it to the
 #' `site-deploy` branch (or what is spefiied in `branch`) of the `origin` remote.  Optionally triggers a
 #' downstream GitHub Actions workflow (e.g. an FTP deploy) via the
-#' `workflow_dispatch` API (check your default branch is `main`).
+#' `workflow_dispatch` API (the default branch is auto-detected).
 #'
 #' Credentials are resolved in the following order:
 #' 1. The `DEPLOY_PAT` environment variable (recommended on CI).
@@ -37,6 +37,8 @@
 #'   unrelated on the FTP server.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
+#' @section Site Users:
+#'
 #' @export
 #'
 #' @examples
@@ -185,7 +187,7 @@ site2branch <- function(
 #' Commits the contents of `_site_publish/` into an orphan-style commit and force-pushes it to the
 #' `site-publish` branch of the `origin` remote.  Triggers a
 #' downstream GitHub Actions workflow (e.g. an FTP deploy) via the
-#' `workflow_dispatch` API (check your default branch is `main`).
+#' `workflow_dispatch` API (the default branch is auto-detected).
 #'
 #' Credentials are resolved in the following order:
 #' 1. The `DEPLOY_PAT` environment variable (recommended on CI).
@@ -208,6 +210,8 @@ site2branch <- function(
 #'   Passed to [site2branch()]. Set to `TRUE` to force a complete re-upload.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
+#' @section Site Users:
+#'
 #' @export
 #'
 #' @examples

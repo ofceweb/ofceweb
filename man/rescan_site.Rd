@@ -22,3 +22,7 @@ y compris `index.qmd`.
 Le titre est lu dans le YAML front-matter du qmd ; à défaut, on utilise le
 nom du fichier sans extension.
 }
+\section{Home Users}{
+
+}
+

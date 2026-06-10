@@ -113,12 +113,12 @@ augment_search <- function(root = ".", progress = TRUE) {
   # ── Write output ─────────────────────────────────────────────────────────────
 
   out_path <- fs::path_join(c("/tmp", "search_augmented.json"))
+  unlink(out_path, force = TRUE)
   jsonlite::write_json(posts_meta, out_path, auto_unbox = FALSE, pretty = TRUE)
 
   cli::cli_alert_success(
     "Wrote {nrow(posts_meta)} entries ({sum(posts_meta$lang=='fr')} fr, {sum(posts_meta$lang=='en')} en) to {out_path}"
   )
-
   # ── Upload to Algolia ────────────────────────────────────────────────────────
   # Requires three environment variables (set in ~/.Renviron or CI secrets):
   #   ALGOLIA_APP_ID   — e.g. "ABCDE12345"

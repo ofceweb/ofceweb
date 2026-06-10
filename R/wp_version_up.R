@@ -21,7 +21,6 @@
 #'
 #' @export
 wp_version_up <- function(path = ".", custom_version = NULL) {
-
   root <- fs::path_abs(fs::path_expand(path))
   yml_path <- fs::path(root, "_quarto.yml")
 
@@ -41,27 +40,25 @@ wp_version_up <- function(path = ".", custom_version = NULL) {
        Définir d'abord le numéro WP dans {.file _quarto.yml} avant d'incrémenter la version.")
 
   if (is.null(yml$version)) {
-    cli::cli_abort(
-      c("Pas de champ {.code version} dans {.file _quarto.yml}.",
-        "i" = "Ce WP n'est pas versionné. Ajouter {.code version: v0} \\
-         dans {.file _quarto.yml} (et un segment {.code /v0} au {.code site-path}) \\
-         pour activer le versionnement."))
+    current_version <- "\u2205"
+    new_version <- "v0"
+  } else {
+    current_version <- as.character(yml$version)
+
+    if (!grepl("^[A-Za-z0-9_]+$", current_version))
+      cli::cli_abort(
+        "La version courante {.val {current_version}} contient des caractères \\
+         interdits. Seuls les alphanumériques et underscores sont acceptés."
+      )
+
+    new_version <- increment_version_str(current_version, custom = custom_version)
   }
-  current_version <- as.character(yml$version)
-
-  if (!grepl("^[A-Za-z0-9_]+$", current_version))
-    cli::cli_abort(
-      "La version courante {.val {current_version}} contient des caractères \\
-       interdits. Seuls les alphanumériques et underscores sont acceptés."
-    )
-
-  new_version <- increment_version_str(current_version, custom = custom_version)
 
   # Mise à jour de _quarto.yml
   yml$version <- new_version
 
   # Mise à jour du dernier segment de site-path
-  sp <- yml$website$`site-path`
+  sp <- yml$website$`site-path` |> as.character()
   if (!is.null(sp) && nzchar(sp)) {
     segs <- strsplit(sp, "/", fixed = TRUE)[[1]]
     segs[length(segs)] <- new_version

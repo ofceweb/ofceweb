@@ -53,8 +53,6 @@ website:
 
 format:
   wp-html: default
-  wp-pdf:
-    output-file: "OFCEWP-draft.pdf"
 
 ofce_wp: true
 comments:

@@ -115,6 +115,12 @@ check_wp <- function(path = ".", verbose = TRUE) {
     add_diag("annee", "error", "Champ `annee` absent de _quarto.yml.")
   }
 
+  # wp : doit être fourni quand annee est fourni
+  if (!is.null(yml$annee) && is.null(yml$wp)) {
+    add_diag("wp", "error",
+             "Champ `annee` renseigné mais `wp` absent de _quarto.yml — numéro du WP manquant ?")
+  }
+
   if (is.null(yml$author) && is.null(yml$authors)) {
     add_diag("author", "error", "Champ `author` absent de _quarto.yml.")
   } else {
@@ -192,23 +198,79 @@ check_wp <- function(path = ".", verbose = TRUE) {
       }
     }
 
-    # version cohérente avec dernier segment de site-path
+    # site-path : présence et cohérence structurelle (wp/YYYY/NNN[/vX])
     sp      <- yml$website$`site-path`
-    version <- as.character(yml$version)
-    if (!is.null(sp) && nzchar(sp) && !length(version)==0) {
-      segs     <- strsplit(sp, "/", fixed = TRUE)[[1]]
-      last_seg <- segs[length(segs)]
-      if (identical(last_seg, version)) {
-        add_diag("version/site-path", "ok",
-                 sprintf("version `%s` cohérente avec site-path.", version))
-      } else {
-        add_diag("version/site-path", "error",
-                 sprintf("version `%s` incohérente avec le dernier segment de site-path `%s`.",
-                         version, last_seg))
-      }
-    } else if (is.null(sp) || !nzchar(sp)) {
+    version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
+
+    if (is.null(sp) || !nzchar(sp)) {
       add_diag("site-path", "error",
                "WP publié (wp non nul) mais site-path absent de _quarto.yml.")
+    } else {
+      segs <- strsplit(sp, "/", fixed = TRUE)[[1]]
+      n    <- length(segs)
+
+      # Structure attendue : YYYY/NNN  ou  YYYY/NNN/vX
+      struct_ok <- n %in% c(2L, 3L)
+
+      if (!struct_ok) {
+        add_diag("site-path", "error",
+                 sprintf(
+                   "site-path `%s` mal formé — attendu : `YYYY/NNN` ou `YYYY/NNN/vX`.",
+                   sp))
+      } else {
+        # Segment YYYY
+        annee_seg <- suppressWarnings(as.integer(segs[1L]))
+        annee_yml <- suppressWarnings(as.integer(yml$annee))
+        if (!is.na(annee_seg) && !is.na(annee_yml) && annee_seg == annee_yml) {
+          add_diag("site-path/annee", "ok",
+                   sprintf("Segment année `%s` cohérent avec annee.", segs[1L]))
+        } else {
+          add_diag("site-path/annee", "error",
+                   sprintf(
+                     "Segment année `%s` dans site-path incohérent avec annee = `%s`.",
+                     segs[1L], yml$annee))
+        }
+
+        # Segment NNN
+        wp_seg <- suppressWarnings(as.integer(segs[2L]))
+        wp_yml <- suppressWarnings(as.integer(yml$wp))
+        if (!is.na(wp_seg) && !is.na(wp_yml) && wp_seg == wp_yml) {
+          add_diag("site-path/wp", "ok",
+                   sprintf("Segment numéro WP `%s` cohérent avec wp.", segs[2L]))
+        } else {
+          add_diag("site-path/wp", "error",
+                   sprintf(
+                     "Segment numéro WP `%s` dans site-path incohérent avec wp = `%s`.",
+                     segs[2L], yml$wp))
+        }
+
+        # Segment version (optionnel)
+        if (!is.null(version) && nzchar(version)) {
+          if (n == 3L) {
+            if (identical(segs[3L], version)) {
+              add_diag("site-path/version", "ok",
+                       sprintf("Segment version `%s` cohérent avec version.", segs[3L]))
+            } else {
+              add_diag("site-path/version", "error",
+                       sprintf(
+                         "Segment version `%s` dans site-path incohérent avec version = `%s`.",
+                         segs[3L], version))
+            }
+          } else {
+            # n == 2 : version définie dans le YAML mais absente du chemin
+            add_diag("site-path/version", "warning",
+                     sprintf(
+                       "version `%s` définie dans le YAML mais absente de site-path `%s`.",
+                       version, sp))
+          }
+        } else if (n == 3L) {
+          # segment version présent dans le chemin mais yml$version absent
+          add_diag("site-path/version", "warning",
+                   sprintf(
+                     "Segment version `%s` présent dans site-path mais `version` absente du YAML.",
+                     segs[3L]))
+        }
+      }
     }
   }
 

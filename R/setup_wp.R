@@ -24,7 +24,7 @@
 #' @param annee Entier. Année de publication. Défaut = année courante.
 #' @param lang Chaîne. Langue principale : `"fr"` (défaut) ou `"en"`.
 #' @param hypothesis Logique. Active les commentaires Hypothesis. Défaut `FALSE`.
-#' @param versionning Logique. Si `TRUE` (défaut) et WP publié (`wp` non `NULL`),
+#' @param versionning Logique. Si `TRUE` et WP publié (`wp` non `NULL`),
 #'   ajoute `/v0` au `site-path`.
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
@@ -42,15 +42,8 @@ setup_wp <- function(
     wp = NULL,
     annee = as.integer(format(Sys.Date(), "%Y")),
     lang = "fr",
-    hypothesis = FALSE,
-    versionning = TRUE) {
-
-  # Détecter les arguments fournis explicitement (avant toute modification)
-  wp_provided         <- !missing(wp)
-  annee_provided      <- !missing(annee)
-  lang_provided       <- !missing(lang)
-  title_provided      <- !missing(website_title)
-  hypothesis_provided <- !missing(hypothesis)
+    hypothesis = NULL,
+    versionning = NULL) {
 
   root <- path |>
     fs::path_expand() |>
@@ -61,6 +54,68 @@ setup_wp <- function(
     cli::cli_abort("Le dossier {.path {root}} n'existe pas.")
 
   cli::cli_h1("setup_wp dans {.path {fs::path_file(root)}}")
+
+  # Détecter les arguments fournis explicitement (avant toute modification)
+  wp_provided         <- !missing(wp)
+  annee_provided      <- !missing(annee)
+  lang_provided       <- !missing(lang)
+  title_provided      <- !missing(website_title)
+  hypothesis_provided <- !missing(hypothesis)
+  version_provided    <- !missing(versionning)
+
+  # Vérifier si les arguments ne sont pas dans un yml
+  dest_yaml <- fs::path(root, "_quarto.yml")
+  dest_index <- fs::path(root, "index.qmd")
+  yml <- yaml::read_yaml(dest_yaml)
+  if(file.exists(dest_index))
+    index_yml <- get_yaml(dest_index) else
+      index_yml <- list()
+  yml_before <- yml  # snapshot pour détecter les changements réels
+
+  if(!is.null(yml[["wp"]])&&!wp_provided) {
+    wp <- yml[["wp"]]
+    wp_provided <- TRUE
+  }
+  if(!is.null(yml[["annee"]])&&!annee_provided) {
+    annee <- yml[["annee"]]
+    annee_provided <- TRUE
+  }
+  if(!is.null(yml[["lang"]])&&!lang_provided) {
+    lang <- yml[["lang"]]
+    lang_provided <- TRUE
+  }
+  if(is.null(yml[["lang"]])&&!lang_provided) {
+    lang <- "fr"
+    lang_provided <- TRUE
+  }
+  if(!is.null(yml[["website"]][["title"]])&&!title_provided) {
+    title_provided <- TRUE
+    website_title <- yml[["website"]][["title"]]
+  } else {
+    if(!is.null(index_yml[["title"]])){
+      title_provided <- TRUE
+      website_title <- index_yml[["title"]]
+    }
+  }
+  if(!is.null(yml[["comment"]][["hypothesis"]])&&!hypothesis_provided) {
+    hypothesis_provided <- TRUE
+    hypothesis <- yml[["comment"]][["hypothesis"]]
+  }
+  if(is.null(yml[["comment"]][["hypothesis"]])&&!hypothesis_provided) {
+    hypothesis_provided <- TRUE
+    hypothesis <- is.null(wp)
+  }
+  if(hypothesis_provided){
+      hypothesis <- isTRUE(hypothesis)
+    }
+  version <- yml[["version"]]
+  if(version_provided & is.null(yml[["version"]]) & isTRUE(versionning))
+    version <- "v0"
+
+  if(!version_provided & !is.null(yml[["version"]])) {
+    version_provided <- TRUE
+    versionning <- TRUE
+  }
 
   # ---- 0. validation des arguments -----------------------------------------
   if (!is.null(wp)) {
@@ -126,9 +181,9 @@ setup_wp <- function(
 
   # ---- 5. copie _quarto.yml (seulement si absent) ---------------------------
   src_yaml  <- fs::path(pkg_setup_wp, "_quarto.yml")
-  dest_yaml <- fs::path(root, "_quarto.yml")
   if (!fs::file_exists(dest_yaml)) {
     fs::file_copy(src_yaml, dest_yaml, overwrite = FALSE)
+
     cli::cli_alert_success("Copie de {.file _quarto.yml}")
   } else {
     cli::cli_alert_info("{.file _quarto.yml} déjà présent — non écrasé.")
@@ -140,6 +195,7 @@ setup_wp <- function(
   created_index <- !fs::file_exists(dest_index)
   if (created_index) {
     fs::file_copy(src_index, dest_index, overwrite = FALSE)
+    index_yml <- get_yaml(dest_index)
     cli::cli_alert_success("Copie de {.file index.qmd}")
   } else {
     cli::cli_alert_info("{.file index.qmd} déjà présent — non écrasé.")
@@ -208,7 +264,7 @@ setup_wp <- function(
   if (fs::file_exists(ftp_wf)) {
     wf_lines <- readLines(ftp_wf, warn = FALSE)
     needs_migration <- any(grepl("server-dir:", wf_lines)) &&
-                       !any(grepl("vars\\.FTP_SERVER_DIR", wf_lines))
+      !any(grepl("vars\\.FTP_SERVER_DIR", wf_lines))
     if (needs_migration) {
       wf_lines <- sub(
         "^(\\s*)server-dir:.*$",
@@ -223,8 +279,6 @@ setup_wp <- function(
   }
 
   # ---- 11. édition du _quarto.yml ------------------------------------------
-  yml <- yaml::read_yaml(dest_yaml)
-  yml_before <- yml  # snapshot pour détecter les changements réels
 
   # Champs-arguments : écrire UNIQUEMENT si l'argument a été fourni explicitement.
   # Pour un nouveau WP, le gabarit contient déjà les valeurs par défaut.
@@ -232,7 +286,8 @@ setup_wp <- function(
   if (wp_provided)    yml$wp    <- wp
   if (annee_provided) yml$annee <- annee
   if (lang_provided)  yml$lang  <- lang
-  if (title_provided) yml$title <- final_title
+  if (title_provided) yml[["website"]][["title"]] <- final_title
+  if (hypothesis_provided) yml[["comments"]][["hypothesis"]] <- hypothesis
   # version : le gabarit le fournit pour les nouveaux WPs — jamais injecté
   # dans un fichier existant.
 
@@ -248,11 +303,20 @@ setup_wp <- function(
   # site-url / site-path : uniquement si wp a été fourni explicitement
   if (wp_provided) {
     if (!is.null(wp)) {
+      # Année effective : yml$annee est déjà à jour (mis à jour ligne 233 si
+      # annee_provided, sinon valeur existante du YAML, sinon argument par défaut).
+      effective_annee_sp <- suppressWarnings(as.integer(yml$annee %||% annee))
+      if (is.na(effective_annee_sp)) effective_annee_sp <- annee
       yml$website$`site-url`  <- "https://www.ofce.fr/"
-      site_path <- sprintf("wp/%d/%03d", annee, wp)
-      if (isTRUE(versionning)) site_path <- paste0(site_path, "/v0")
+      site_path_base <- sprintf("%d/%03d", effective_annee_sp, wp)
+      if (isTRUE(versionning))
+        site_path <- paste0(site_path_base, "/", version)
+      else
+        site_path <- site_path_base
+      yml$version <- version
       yml$website$`site-path` <- site_path
     } else {
+      yml$version <- NULL
       yml$website$`site-url`  <- sprintf("https://%s.github.io/%s/", gh_org, repo_name)
       yml$website$`site-path` <- NULL
     }
@@ -282,8 +346,8 @@ setup_wp <- function(
   # output-file PDF : uniquement si wp ou annee fournis explicitement ET si le
   # format wp-pdf ou wp-typst est déjà déclaré dans le YAML (ne pas injecter
   # un format que le WP n'utilise pas)
-  uses_wp_pdf <- is.list(yml$format) &&
-                 (is.list(yml$format$`wp-pdf`) || is.list(yml$format$`wp-typst`))
+  uses_wp_pdf <- is.list(index_yml$format) &&
+    (is.list(index_yml$format$`wp-pdf`) || is.list(index_yml$format$`wp-typst`))
   if ((wp_provided || annee_provided) && uses_wp_pdf) {
     effective_wp    <- if (wp_provided)    wp    else yml$wp
     effective_annee <- if (annee_provided) annee else as.integer(yml$annee)
@@ -292,11 +356,11 @@ setup_wp <- function(
     } else {
       "OFCEWP-draft.pdf"
     }
-    target_fmt <- if (is.list(yml$format$`wp-pdf`)) "wp-pdf" else "wp-typst"
-    yml$format[[target_fmt]]$`output-file` <- pdf_output
+    target_fmt <- if (is.list(index_yml$format$`wp-pdf`)) "wp-pdf" else "wp-typst"
+    index_yml$format[[target_fmt]]$`output-file` <- pdf_output
   } else {
-    pdf_output <- yml$format$`wp-pdf`$`output-file` %||%
-                  yml$format$`wp-typst`$`output-file` %||% NA_character_
+    pdf_output <- index_yml$format$`wp-pdf`$`output-file` %||%
+      index_yml$format$`wp-typst`$`output-file` %||% NA_character_
   }
 
   # N'écrire le fichier que si le YAML a réellement changé — évite le
@@ -312,15 +376,14 @@ setup_wp <- function(
     cli::cli_alert_info("{.file _quarto.yml} — aucun changement nécessaire.")
   }
 
-  # Met aussi à jour l'output-file dans index.qmd si on vient de le créer
-  if (created_index) {
+  # Met aussi à jour l'output-file dans index.qmd
+  if (TRUE) {
     tryCatch({
-      idx_yml <- get_yaml(dest_index)
-      if (is.null(idx_yml)) idx_yml <- list()
-      if (is.null(idx_yml$format)) idx_yml$format <- list()
-      if (is.null(idx_yml$format$`wp-pdf`)) idx_yml$format$`wp-pdf` <- list()
-      idx_yml$format$`wp-pdf`$`output-file` <- pdf_output
-      put_yaml(idx_yml, dest_index)
+      if (is.null(index_yml)) index_yml <- list()
+      if (is.null(index_yml$format)) index_yml$format <- list()
+      if (is.null(index_yml$format$`wp-pdf`)) index_yml$format$`wp-pdf` <- list()
+      index_yml$format$`wp-pdf`$`output-file` <- pdf_output
+      put_yaml(index_yml, dest_index)
       cli::cli_alert_success("output-file mis à jour dans {.file index.qmd}")
     }, error = function(e) {
       cli::cli_alert_warning("Impossible de patcher index.qmd : {conditionMessage(e)}")
@@ -367,11 +430,11 @@ setup_wp <- function(
 
   # ---- Résumé ---------------------------------------------------------------
   cli::cli_h2("Résumé")
-  cli::cli_li("titre       : {yml$title}")
+  cli::cli_li("titre       : {yml$website$title}")
   cli::cli_li("wp          : {if (is.null(yml$wp)) 'brouillon (null)' else yml$wp}")
   cli::cli_li("annee       : {yml$annee}")
   cli::cli_li("version     : {yml$version}")
-  cli::cli_li("lang        : {yml$lang}")
+  cli::cli_li("lang        : {yml[['lang']]}")
   cli::cli_li("site-url    : {yml$website$`site-url`}")
   if (!is.null(yml$website$`site-path`))
     cli::cli_li("site-path   : {yml$website$`site-path`}")
@@ -381,7 +444,7 @@ setup_wp <- function(
   cli::cli_li("pdf         : {if (is.na(pdf_output)) '(non applicable)' else pdf_output}")
 
   cli::cli_alert_warning(
-    "Pensez à {.strong commiter et pousser} les changements avant de \\
+    "Pensez à {.emph commiter} et {.emph pusher} les changements avant de
      lancer {.run ofceweb::render_wp()}."
   )
 

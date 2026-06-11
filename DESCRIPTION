@@ -1,7 +1,7 @@
 Package: ofceweb
 Type: Package
 Title: Tous les outils pour le fonctionnement du web OFCE
-Version: 0.4.0
+Version: 0.4.1
 Authors@R: c(
     person(
       "Xavier", "Timbeau",

@@ -1,9 +1,11 @@
 ---
+title: "Titre du document de travail"
 abstract: |
   Résumé du document de travail. Remplacer ce texte par le résumé
   (environ 150 mots). Il apparaîtra sur la page HTML et dans le PDF.
 
 format:
+  wp-html: default
   wp-pdf:
     output-file: "OFCEWP-draft.pdf"
 ---

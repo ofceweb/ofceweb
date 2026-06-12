@@ -171,13 +171,13 @@ setup_wp <- function(
 
   # ---- 4. localisation des gabarits -----------------------------------------
   pkg_setup_wp   <- system.file("setup_wp",   package = "ofceweb")
-  pkg_setup_site <- system.file("setup_site", package = "ofceweb")
+  pkg_share <- system.file("share", package = "ofceweb")
   if (!nzchar(pkg_setup_wp))
     pkg_setup_wp <- fs::path(find.package("ofceweb"), "inst", "setup_wp")
   if (!nzchar(pkg_setup_wp))
     pkg_setup_wp <- fs::path(root, "inst", "setup_wp")   # dev fallback
-  if (!nzchar(pkg_setup_site))
-    pkg_setup_site <- fs::path(root, "inst", "setup_site")
+  if (!nzchar(pkg_share))
+    pkg_share <- fs::path(root, "inst", "share")
 
   # ---- 5. copie _quarto.yml (seulement si absent) ---------------------------
   src_yaml  <- fs::path(pkg_setup_wp, "_quarto.yml")
@@ -212,8 +212,8 @@ setup_wp <- function(
     }
   }
 
-  # ---- 8. copie www/ depuis setup_site/ ------------------------------------
-  src_www <- fs::path(pkg_setup_site, "www")
+  # ---- 8. copie www/ depuis share/ ------------------------------------
+  src_www <- fs::path(pkg_share, "www")
   if (fs::dir_exists(src_www)) {
     dest_www <- fs::path(root, "www")
     fs::dir_create(dest_www)
@@ -227,7 +227,7 @@ setup_wp <- function(
   }
 
   # ---- 9. copie _extensions/wp/ depuis setup_site/ -------------------------
-  src_ext_wp <- fs::path(pkg_setup_site, "_extensions", "wp")
+  src_ext_wp <- fs::path(pkg_share, "_extensions", "wp")
   if (fs::dir_exists(src_ext_wp)) {
     dest_ext <- fs::path(root, "_extensions")
     dest_ext_wp <- fs::path(dest_ext, "wp")
@@ -443,10 +443,10 @@ setup_wp <- function(
   cli::cli_li("hypothesis  : {isTRUE(yml$comments$hypothesis)}")
   cli::cli_li("pdf         : {if (is.na(pdf_output)) '(non applicable)' else pdf_output}")
 
-  cli::cli_alert_warning(
-    "Pensez à {.emph commiter} et {.emph pusher} les changements avant de
-     lancer {.run ofceweb::render_wp()}."
-  )
+  cli::cli_bullets(
+    c(
+      ">" = "{.emph commiter} et {.emph pusher} les changements avant de lancer {.run ofceweb::render_wp()}."
+  ))
 
   invisible(NULL)
 }

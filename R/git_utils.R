@@ -273,7 +273,7 @@ set_gh_var <- function(root = ".", name, value) {
   invisible(NULL)
 }
 
-check_repo_status <- function(repo = ".") {
+check_repo_status <- function(repo = ".", prompt = TRUE) {
   # Fetch latest refs from remote (no merge)
   fetch <- tryCatch(
     gert::git_fetch(repo = repo, verbose = FALSE),
@@ -317,10 +317,12 @@ check_repo_status <- function(repo = ".") {
   if (ab$behind > 0) {
     cli::cli_alert_danger(
       "Status        : BEHIND remote — run git_branch_fast_forward() or git pull")
-    answer <- readline("Are you sure you want to proceed? [y/N] ")
-    if (!tolower(answer) %in% c("y", "yes")) {
-      message("Aborted.")
-      stop("Your blog repo is behind origin")
+    if(prompt) {
+      answer <- readline("Are you sure you want to proceed? [y/N] ")
+      if (!tolower(answer) %in% c("y", "yes")) {
+        message("Aborted.")
+        stop("Your blog repo is behind origin")
+      }
     }
   }
   invisible(ab)

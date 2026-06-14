@@ -55,6 +55,9 @@
 
 - `render_wp.R` : correction d’un bug où le chiffrement
   `encrypt_site: true` n’était pas appliqué lors du rendu local.
+- plus d’utilisation de “/tmp” mais
+  [`tempdir()`](https://rdrr.io/r/base/tempfile.html) à la place pour
+  éviter un bug possible sur windows  
 - NAMESPACE mis à jour avec les 9 nouvelles exportations.
 
 ## ofceweb v0.4.1

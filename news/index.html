@@ -68,6 +68,7 @@
 <h3 id="corrections-0-5-0">Corrections<a class="anchor" aria-label="anchor" href="#corrections-0-5-0"></a></h3>
 <ul><li>
 <code>render_wp.R</code> : correction d’un bug où le chiffrement <code>encrypt_site: true</code> n’était pas appliqué lors du rendu local.</li>
+<li>plus d’utilisation de “/tmp” mais <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code> à la place pour éviter un bug possible sur windows<br></li>
 <li>NAMESPACE mis à jour avec les 9 nouvelles exportations.</li>
 </ul></div>
 </div>

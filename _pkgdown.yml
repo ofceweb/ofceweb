@@ -7,8 +7,39 @@ template:
     heading_font: {google: "Open Sans"}
     code_font: {google: "Fira Code"}
 
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+  components:
+    github:
+      icon: fab fa-github
+      href: https://github.com/ofceweb/ofceweb
+
 reference:
+- title: Prévisions
+  desc: >
+    Suite complète pour les dépôts de prévision OFCE (`prev{YY}0{3|9}`).
+    Deux modes de déploiement : **staging** (versionné, chiffré en CI via
+    staticrypt) et **publish** (URL fixe, non chiffré). Le chiffrement du
+    site staging est appliqué par le workflow GitHub Actions
+    `ftp_deploy_staging.yml` — pas localement.
+  contents:
+  - setup_prev
+  - check_prev
+  - render_prev
+  - stage_prev
+  - publish_prev
+  - deploy_prev
+  - site2staging
+  - prev_version_up
+  - render_prev_publish
+
 - title: Working papers
+  desc: >
+    Fonctions pour les dépôts de documents de travail OFCE (WP). Un WP peut
+    être en mode brouillon (déployé sur GitHub Pages) ou publié (déployé via
+    FTP sur `www.ofce.fr/wp/{annee}/{N}/`).
   contents:
   - setup_wp
   - check_wp
@@ -19,17 +50,12 @@ reference:
   - wp_version_up
   - encrypt_wp
   - remove_encrypt
-- title: Prévisions
-  contents:
-  - setup_prev
-  - check_prev
-  - render_prev
-  - stage_prev
-  - publish_prev
-  - deploy_prev
-  - prev_version_up
-  - site2staging
-- title: Sites
+
+- title: Sites génériques
+  desc: >
+    Fonctions pour les sites Quarto génériques hébergés sur `www.ofce.fr`.
+    Supporte l'hébergement OFCE (FTP via branche de déploiement) et GitHub
+    Pages.
   contents:
   - setup_site
   - render_site
@@ -38,15 +64,28 @@ reference:
   - site_version_up
   - encrypt_site
   - remove_encrypt
+
 - title: Blog
+  desc: >
+    Fonctions pour le blog OFCE bilingue (FR/EN). Gère le cache des posts,
+    la construction du sitemap et le déploiement incrémental.
   contents:
   - render_blog
   - publish_blog
   - create_blog_version
-- title: Autres
+
+- title: Page d'accueil
+  desc: Fonctions pour le site d'accueil OFCE.
   contents:
   - render_home
   - publish_home
+
+- title: Déploiement & utilitaires
+  desc: >
+    Fonctions de bas niveau partagées entre les différents types de dépôts :
+    push vers une branche de déploiement, déclenchement de workflows GitHub
+    Actions, téléchargement de fichiers depuis GitHub.
+  contents:
   - site2branch
   - site2publish
   - trigger_action

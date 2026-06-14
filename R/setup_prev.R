@@ -46,6 +46,7 @@
 #' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists file_copy dir_copy dir_create dir_ls path_rel path_dir
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_info cli_bullets
 #' @importFrom yaml read_yaml write_yaml verbatim_logical
+#' @importFrom gert git_remote_list
 #' @section Prévision Users:
 #'
 #' @export

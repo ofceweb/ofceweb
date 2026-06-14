@@ -1,0 +1,4 @@
+---
+title: "Zone Euro"
+date: today
+---

@@ -67,19 +67,19 @@ copy_files <- function(lang = "fr", freeze = TRUE, progress = TRUE) {
   cli::cli_alert_info("Copie des fichiers site en {lang}")
   has_freeze <- FALSE
   dir <- stringr::str_c("_", lang)
-
+  tmp_freeze <- fs::path_join(c(tempdir(), "_freeze"))
   if(fs::dir_exists(dir)) {
     if(fs::dir_exists(glue::glue("{dir}/_freeze"))&freeze) {
       has_freeze <- TRUE
-      unlink("/tmp/_freeze", recursive=TRUE, force = TRUE)
-      fs::file_move(glue::glue("{dir}/_freeze"), "/tmp/_freeze")
+      unlink(tmp_freeze, recursive=TRUE, force = TRUE)
+      fs::file_move(glue::glue("{dir}/_freeze"), tmp_freeze)
     }
     unlink(dir, recursive = TRUE, force = TRUE)
   }
 
   fs::dir_create(dir)
   if(has_freeze)
-    fs::file_move("/tmp/_freeze", glue::glue("{dir}/_freeze"))
+    fs::file_move(tm_freeze, glue::glue("{dir}/_freeze"))
 
   root_files <- c("_quarto.yml", "_quarto-en.yml", "_quarto-fr.yml", "index.qmd", "about.qmd")
   #, "about.en.qmd")

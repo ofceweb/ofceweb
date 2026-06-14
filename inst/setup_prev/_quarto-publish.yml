@@ -1,0 +1,10 @@
+website:
+  site-path: "prev/prevYYMM"
+
+comments:
+  hypothesis: false
+
+encrypt_site: false
+
+project:
+  output-dir: "_site_publish"

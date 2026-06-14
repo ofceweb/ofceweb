@@ -19,6 +19,16 @@ reference:
   - wp_version_up
   - encrypt_wp
   - remove_encrypt
+- title: Prévisions
+  contents:
+  - setup_prev
+  - check_prev
+  - render_prev
+  - stage_prev
+  - publish_prev
+  - deploy_prev
+  - prev_version_up
+  - site2staging
 - title: Sites
   contents:
   - setup_site
@@ -28,7 +38,6 @@ reference:
   - site_version_up
   - encrypt_site
   - remove_encrypt
-  - render_prev_publish
 - title: Blog
   contents:
   - render_blog

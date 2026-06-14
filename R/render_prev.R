@@ -1,97 +1,245 @@
-#' Génère le site de la prévision
+#' Rend le site de prévision OFCE (staging ou publish)
 #'
-#' Orchestre le rendu complet de la prévision
-#' appel à [quarto::quarto_render()] avec le profil `publish`, puis optionnellement déploiement du répertoire
-#' `_site_publish` vers une branche git et/ou prévisualisation locale via un serveur HTTP.
+#' Lance un build Quarto du dépôt de prévision courant avec le profil indiqué.
+#' Nettoie le répertoire de sortie avant le rendu. Le chiffrement n'a **pas**
+#' lieu en local — il est appliqué en CI par le workflow `ftp_deploy_staging.yml`
+#' avant le transfert FTP.
 #'
-#' @param path Chemin vers la racine du projet (dossier `prevxx[3|9]`). Par défaut
-#'   `"."` (répertoire de travail courant).
+#' @param path Chemin vers la racine du dépôt. Défaut `"."`.
+#' @param profile `"staging"` (défaut) ou `"publish"`. Détermine le profil
+#'   Quarto utilisé et le répertoire de sortie (`_site_staging` ou
+#'   `_site_publish`).
 #' @param check_repo Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
-#'   avant le rendu via [check_repo_status()].
-#' @param progress Logique. Si `TRUE` (défaut), affiche la progression lors du
-#'   rendu Quarto et du déploiement.
-#' @param render_site Logique. Si `TRUE` (défaut), lance un serveur HTTP local
-#'   ([servr::httw()]) sur `_site` après le rendu pour prévisualiser le résultat.
-#' @param site2branch Logique. Si `TRUE`, appelle [site2branch()] pour pousser
-#'   `_site` vers la branche git `site-deploy`. Par défaut `FALSE`.
-#' @param trigger Valeur passée à l'argument `trigger` de [site2branch()].
-#'   Par défaut égale à `site2branch`.
+#'   via [check_repo_status()].
+#' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
+#' @param preview Logique. Si `TRUE`, lance un serveur HTTP local via
+#'   [servr::httw()] sur le répertoire de sortie après le rendu. Défaut `TRUE`
+#'   pour le profil `"staging"`, `FALSE` pour `"publish"`.
+#' @param workers Entier. Nombre de workers parallèles. Défaut `8L`.
 #'
-#' @returns Appelée pour ses effets de bord. Retourne invisiblement `NULL`.
-#' @section Working Paper (WP) Users:
+#' @returns Invisible `NULL`. Appelée pour ses effets de bord.
+#' @seealso [stage_prev()], [publish_prev()], [setup_prev()], [check_prev()]
+#' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists dir_delete dir_ls file_delete
+#' @importFrom cli cli_h1 cli_h2 cli_abort cli_alert_warning
+#' @importFrom tictoc tic toc
+#' @importFrom servr daemon_stop httw
+#' @importFrom future plan
+#' @importFrom future.mirai mirai_multisession
+#' @importFrom quarto quarto_render
+#' @importFrom yaml read_yaml
+#' @section Prévision Users:
 #'
 #' @export
-render_prev_publish <- function(
-    path = ".",
+render_prev <- function(
+    path     = ".",
+    profile  = "staging",
     check_repo = TRUE,
-    progress = TRUE,
-    render_site = TRUE,
-    site2branch = TRUE,
-    trigger = site2branch) {
+    progress   = TRUE,
+    preview    = (profile == "staging"),
+    workers    = 8L) {
+
+  profile <- match.arg(profile, c("staging", "publish"))
 
   root <- path |>
     fs::path_expand() |>
     fs::path_abs() |>
     fs::path_norm()
 
-  project <- fs::path_file(root)
-  cli::cli_h1("repo {project}")
+  project <- fs::path_file(root) |> as.character()
+  cli::cli_h1("render_prev [{profile}] : {project}")
 
-  if(!dir.exists(fs::path_join(c(root, "france"))) |
-     !dir.exists(fs::path_join(c(root, "inter" ))) |
-     !dir.exists(fs::path_join(c(root, "fiches"))) )  {
-    cli::cli_abort("Le projet ne contient pas les dossiers france/inter/fiches")
-  }
+  if (!fs::file_exists(fs::path(root, "_quarto.yml")))
+    cli::cli_abort(
+      "Pas de {.file _quarto.yml} dans {.path {root}}. \\
+       Lancer {.run ofceweb::setup_prev()}.")
 
-  if(!stringr::str_detect(project,"^prev[0-9]{2}0[39]")) {
-    cli::cli_alert_danger(
-      "Ce n'est pas un dépôt de prévision {.emph prev2x0x}, mais {.emph {project}}")
-    answer <- readline("Etes vous sûr.e de vouloir continuer ? [o/N] ")
-    if (!tolower(answer) %in% c("o", "oui"))
-      cli::cli_abort("ABORT")
-  }
+  yml_top <- tryCatch(yaml::read_yaml(fs::path(root, "_quarto.yml")),
+                      error = function(e) NULL)
+  if (!is.null(yml_top) && !isTRUE(yml_top$ofce_prev))
+    cli::cli_alert_warning(
+      "Le {.file _quarto.yml} ne contient pas {.code ofce_prev: true}. \\
+       Dépôt initialisé via {.run ofceweb::setup_prev()} ?")
 
   oldwd <- getwd()
-  quarto_yml_path <- "_quarto.yml"
-  quarto_yml_bak  <- "_quarto.yml.bak"
-
-  on.exit({
-    # fs::file_copy(quarto_yml_bak, quarto_yml_path, overwrite = TRUE)
-    # fs::file_delete(quarto_yml_bak)
-    setwd(oldwd)
-  })
-
+  on.exit(setwd(oldwd))
   setwd(root)
 
-  if (check_repo)
-    check_repo_status()
+  if (check_repo) check_repo_status()
 
   tictoc::tic()
+  servr::daemon_stop()
+  future::plan(future.mirai::mirai_multisession, workers = workers)
 
-  cli::cli_h2("Génération du site {.emph publish} de {project}")
+  site_dir <- if (profile == "staging") "_site_staging" else "_site_publish"
 
-  quarto::quarto_render(
-    profile="publish",
-    as_job = FALSE)
+  # Vider le répertoire de sortie
+  if (fs::dir_exists(site_dir))
+    tryCatch(
+      fs::dir_delete(site_dir),
+      error = function(e) { Sys.sleep(1); fs::dir_delete(site_dir) }
+    )
 
-  fs::dir_ls("_site_publish", recurse=TRUE, regexp = "DS_Store$",  type = "file", all = TRUE) |>
-    fs::file_delete()
+  cli::cli_h2("Rendu Quarto (profil : {.emph {profile}})")
+  quarto::quarto_render(profile = profile, as_job = FALSE)
+
+  # Nettoyer les DS_Store
+  if (fs::dir_exists(site_dir))
+    fs::dir_ls(site_dir, recurse = TRUE, regexp = "DS_Store$",
+               type = "file", all = TRUE) |>
+      fs::file_delete()
 
   tictoc::toc()
 
-  if (site2branch)
-    site2publish(
-      progress = TRUE,
-      trigger = trigger)
-  else {
-    cli::cli_text(
-      "Pour publier _site_publish, lancer {.run ofceweb::site2publish(trigger = TRUE)}"
+  cli::cli_text(
+    "Rendu dans {.path {site_dir}}. \\
+     Pour déployer, lancer {.run ofceweb::deploy_prev('{profile}')}")
+
+  if (preview) {
+    cli::cli_h2("Prévisualisation locale ({site_dir})")
+    servr::httw(site_dir, daemon = TRUE)
+  }
+
+  invisible(NULL)
+}
+
+
+#' Rend et déploie la prévision en staging
+#'
+#' Enchaîne [render_prev()] avec le profil `"staging"` puis pousse
+#' `_site_staging/` (en clair) vers la branche `site-staging` via
+#' [site2staging()]. Le chiffrement est appliqué **en CI** par le workflow
+#' `ftp_deploy_staging.yml` avant le transfert FTP.
+#'
+#' @inheritParams render_prev
+#' @param site2branch Logique. Si `TRUE` (défaut), appelle [site2staging()]
+#'   après le rendu.
+#' @param trigger Passé à [site2staging()]. Défaut = valeur de `site2branch`.
+#' @param full_deploy Passé à [site2staging()]. Défaut `FALSE`.
+#'
+#' @returns Invisible `NULL`.
+#' @seealso [render_prev()], [deploy_prev()], [publish_prev()]
+#' @section Prévision Users:
+#'
+#' @export
+stage_prev <- function(
+    path        = ".",
+    check_repo  = TRUE,
+    progress    = TRUE,
+    site2branch = TRUE,
+    trigger     = site2branch,
+    full_deploy = FALSE,
+    preview     = FALSE,
+    workers     = 8L) {
+
+  render_prev(
+    path       = path,
+    profile    = "staging",
+    check_repo = check_repo,
+    progress   = progress,
+    preview    = preview,
+    workers    = workers
+  )
+
+  if (site2branch) {
+    site2staging(
+      path        = path,
+      progress    = progress,
+      trigger     = trigger,
+      full_deploy = full_deploy
     )
+  } else {
+    cli::cli_text(
+      "Pour déployer en staging, lancer \\
+       {.run ofceweb::deploy_prev('staging')}")
   }
 
-  if(render_site) {
-    cli::cli_h2("Render du site {.emph publish}")
-    servr::httw("_site_publish", daemon = TRUE)
+  invisible(NULL)
+}
+
+
+#' Rend et publie la prévision (publish)
+#'
+#' Enchaîne [render_prev()] avec le profil `"publish"` puis pousse
+#' `_site_publish/` vers la branche `site-publish` via [site2publish()].
+#'
+#' @inheritParams stage_prev
+#'
+#' @returns Invisible `NULL`.
+#' @seealso [render_prev()], [deploy_prev()], [stage_prev()]
+#' @section Prévision Users:
+#'
+#' @export
+publish_prev <- function(
+    path        = ".",
+    check_repo  = TRUE,
+    progress    = TRUE,
+    site2branch = TRUE,
+    trigger     = site2branch,
+    full_deploy = FALSE,
+    preview     = FALSE,
+    workers     = 8L) {
+
+  render_prev(
+    path       = path,
+    profile    = "publish",
+    check_repo = check_repo,
+    progress   = progress,
+    preview    = preview,
+    workers    = workers
+  )
+
+  if (site2branch) {
+    site2publish(
+      path        = path,
+      progress    = progress,
+      trigger     = trigger,
+      full_deploy = full_deploy
+    )
+  } else {
+    cli::cli_text(
+      "Pour publier, lancer {.run ofceweb::deploy_prev('publish')}")
   }
 
+  invisible(NULL)
+}
+
+
+#' Génère le site de la prévision (déprécié)
+#'
+#' @description
+#' `r lifecycle::badge("deprecated")`
+#'
+#' Cette fonction est remplacée par [publish_prev()].
+#'
+#' @inheritParams render_prev
+#' @param render_site Logique. Passé à `preview` de [publish_prev()].
+#' @param site2branch Logique. Passé à `site2branch` de [publish_prev()].
+#' @param trigger Passé à [publish_prev()].
+#'
+#' @returns Invisible `NULL`.
+#' @seealso [publish_prev()]
+#' @section Prévision Users:
+#'
+#' @export
+render_prev_publish <- function(
+    path        = ".",
+    check_repo  = TRUE,
+    progress    = TRUE,
+    render_site = TRUE,
+    site2branch = TRUE,
+    trigger     = site2branch) {
+
+  .Deprecated("publish_prev",
+              msg = paste0(
+                "`render_prev_publish()` est dépréciée. ",
+                "Utiliser `publish_prev()` à la place."))
+
+  publish_prev(
+    path        = path,
+    check_repo  = check_repo,
+    progress    = progress,
+    site2branch = site2branch,
+    trigger     = trigger,
+    preview     = render_site
+  )
 }

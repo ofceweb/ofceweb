@@ -194,7 +194,7 @@ encrypt_site <- function(path = ".", password = NULL) {
      — sans ça, {.run ofceweb::render_site()} ne pourra pas chiffrer."
   )
   cli::cli_alert_warning(
-    "Pensez à {.strong commiter et pousser} les changements \\
+    "Pensez à {.emph commiter} et {.emph pusher} les changements \\
      ({.file _quarto.yml}, {.file ftp_deploy.yml}) avant de déployer."
   )
 

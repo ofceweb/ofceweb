@@ -1,0 +1,50 @@
+name: Prévisions publish — FTP deploy
+
+on:
+  push:
+    branches: [site-publish]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout site-publish branch
+        uses: actions/checkout@v4
+        with:
+          ref: site-publish
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: FTP deploy (publish)
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server:   ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          local-dir: ./
+          server-dir: ${{ vars.FTP_PUBLISH_DIR }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+
+      - name: Commit FTP state back to site-publish
+        run: |
+          git add .ftp-deploy-sync-state.json
+          if git diff --staged --quiet; then
+            echo "No FTP state changes"
+          else
+            git commit -m "ftp state ${{ github.run_id }}"
+            git push
+          fi

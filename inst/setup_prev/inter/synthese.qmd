@@ -1,0 +1,4 @@
+---
+title: "Synthèse internationale"
+date: today
+---

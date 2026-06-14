@@ -1,0 +1,12 @@
+website:
+  site-path: "staging/prevYYMM/v0"
+
+version: "v0"
+
+comments:
+  hypothesis: true
+
+encrypt_site: true
+
+project:
+  output-dir: "_site_staging"

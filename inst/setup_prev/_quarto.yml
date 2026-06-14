@@ -1,0 +1,194 @@
+ofce_prev: true
+prev: "YYMM"       # ex. "2609" pour septembre 2026
+annee: 2026
+mois: 9             # 3 ou 9
+
+project:
+  type: ofce-website
+  execute-dir: file
+  post-render:
+    - _extensions/crossref-listings/concatenate.ts
+
+execute:
+  eval: true
+  echo: false
+  warning: false
+  messages: false
+  cache: false
+
+website:
+  title: "Prévisions de l'OFCE"
+  site-url: "https://www.ofce.fr/"
+  favicon: _extensions/ofce-website/img/favicon.ico
+  draft-mode: gone
+
+  page-navigation: true
+  twitter-card:
+    image: www/ofce_banner_alt2.png
+    title: "Prévisions de l'OFCE"
+    card-style: summary
+    creator: '\@OFCE'
+    site: "https://www.ofce.fr"
+    description: "Les prévisions économiques de l'OFCE"
+
+  repo-url: "https://github.com/ofce/prevYYMM/"
+  reader-mode: false
+  bread-crumbs: true
+  page-footer:
+    border: true
+    left: "![](/www/ccby4.png){height='16'}"
+    right: "propulsé par ![](/www/quarto.png){height='16'}"
+
+  navbar:
+    logo: _extensions/ofce-website/img/logo.png
+    logo-alt: "logo de l'OFCE"
+    logo-href: https://www.ofce.fr/
+    background: white
+
+    left:
+      - text: Accueil
+        href: "https://www.ofce.fr/"
+      - text: Blog
+        href: "https://www.ofce.fr/blog2024/"
+      - text: L'OFCE
+        menu:
+          - text: À propos
+            href: "https://www.ofce.fr/ofce/ofce.html"
+          - text: L'équipe
+            href: "#"
+          - text: Réseaux scientifiques
+            href: "https://www.ofce.fr/ofce/reseaux.html"
+          - text: Rapport d'activité
+            href: "https://www.ofce.fr/ofce/rapports.html"
+          - text: Plaquette de présentation
+            href: "https://www.ofce.fr/ofce/plaquette.pdf"
+          - text: Abonnements
+            href: "https://www.ofce.fr/publications/abonnement.html"
+          - text: Nous rejoindre
+            href: "https://www.ofce.fr/ofce/recrute.html"
+          - text: Contact
+            href: "https://www.ofce.fr/ofce/contact.html"
+          - text: Mentions légales
+            href: "https://www.ofce.fr/legal/mentions_legales.html"
+          - text: Conditions générales
+            href: "https://www.ofce.fr/legal/conditions_generales.html"
+          - text: Politique des cookies
+            href: "https://www.ofce.fr/legal/cookies.html"
+      - text: Prévisions
+        menu:
+          - text: Prévision France & Monde
+            href: index.qmd
+          - text: Anciennes prévisions
+            href: "https://www.ofce.fr/indic_prev/prevision.html"
+      - text: Publications
+        menu:
+          - text: Policy Briefs
+            href: "https://www.ofce.fr/publications/policy.html"
+          - text: Working Papers
+            href: "https://www.ofce.fr/publications/working_papers.html"
+          - text: Etudes & Rapports
+            href: "https://www.ofce.fr/publications/rapports.html"
+          - text: Revue
+            href: "https://www.ofce.fr/publications/revue.html"
+
+    tools:
+      - icon: bluesky
+        href: "https://bsky.app/profile/ofce.bsky.social"
+      - icon: linkedin
+        href: "https://www.linkedin.com/company/ofce/posts/"
+      - icon: facebook
+        href: "https://www.facebook.com/ofcesciencespo/"
+
+  sidebar:
+    logo: "www/ofce_m.png"
+    collapse-level: 1
+    contents:
+      - section: "<b>France</b>"
+        contents:
+          - text: "Contexte macroéconomique"
+            file: france/panorama.qmd
+          - text: "Cadrage et prévision"
+            file: france/cadrage.qmd
+          - text: "Emploi"
+            file: france/emploi.qmd
+          - text: "Ménages"
+            file: france/menages.qmd
+          - text: "Entreprises"
+            file: france/investissement.qmd
+          - text: "Finances publiques"
+            file: france/fipu.qmd
+          - text: "Commerce extérieur"
+            file: france/comext.qmd
+      - section: "<b>International</b>"
+        contents:
+          - text: "Synthèse internationale"
+            file: inter/synthese.qmd
+          - text: "Politique monétaire"
+            file: inter/polmo.qmd
+          - text: "Inflation"
+            file: inter/inflation.qmd
+          - text: "Commerce international"
+            file: inter/commerce.qmd
+      - section: "<b>Comptes Pays</b>"
+        contents:
+          - text: "Allemagne"
+            file: tableaux_comptes/tab_compte_allemagne.qmd
+          - text: "Espagne"
+            file: tableaux_comptes/tab_compte_espagne.qmd
+          - text: "France"
+            file: tableaux_comptes/tab_compte_france.qmd
+          - text: "Italie"
+            file: tableaux_comptes/tab_compte_italie.qmd
+          - text: "Royaume-Uni"
+            file: tableaux_comptes/tab_compte_royaume_uni.qmd
+          - text: "États-Unis"
+            file: tableaux_comptes/tab_compte_etats_unis.qmd
+          - text: "Japon"
+            file: tableaux_comptes/tab_compte_japon.qmd
+      - section: "<b>Analyses Pays</b>"
+        contents:
+          - text: "Zone Euro"
+            file: fiches/zone_euro.qmd
+          - text: "Royaume-Uni"
+            file: fiches/uk.qmd
+          - text: "États-Unis"
+            file: fiches/usa.qmd
+          - text: "Chine"
+            file: fiches/chine.qmd
+          - text: "Asie (hors Chine)"
+            file: fiches/asie.qmd
+      # - section: "<b>Focus</b>"
+      #   contents: []   # à compléter manuellement
+
+format:
+  ofce-html:
+    number-depth: 4
+    number-sections: false
+    toc-depth: 4
+    title-block-categories: false
+    image-lazy-loading: true
+    link-external-icon: false
+    link-external-filter: '^(?:http:|https:)\/\/www\.ofce\.(\.fr|sciences-po\.fr)'
+    language:
+      fr:
+        toc-title: "Sur cette page"
+        other-links-title: "Documents à télécharger"
+    css: www/webex.css
+    include-after-body: www/webex.js
+    keywords: [prévision économique, croissance, france, europe, zone euro, ofce, déficit public, PIB, activité économique, chômage, emploi]
+
+profile:
+  default: publish
+  group:
+    - [staging, publish]
+
+editor: visual
+
+language:
+  section-title-appendices: "Références & Annexes"
+
+filters:
+  - quarto
+  - crossref-listings
+
+citeproc: true

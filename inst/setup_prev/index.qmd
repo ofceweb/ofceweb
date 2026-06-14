@@ -1,0 +1,212 @@
+---
+title: "Titre de la prévision"
+subtitle: "Perspectives AAAA-AAAA pour l'économie française, européenne et mondiale"
+toc: true
+
+format:
+  ofce-html:
+    toc-title: Sur cette page
+
+sidebar: resume
+
+share:
+  twitter: true
+  facebook: true
+  linkedin: true
+  mastodon: true
+  bluesky: true
+  email: true
+  location: socialshare
+  permalink: https://www.ofce.fr/prev/prevYYMM/
+  description: "Perspectives de l'OFCE pour l'économie française, européenne et mondiale"
+
+editors:
+  - Nom, Prénom
+
+date: today
+---
+
+::::: {.content-visible when-format="html"}
+::: {#socialshare}
+:::
+
+```{r, include = FALSE, cache = FALSE}
+ofce::init_qmd()
+prev <- source_data("/data_pays/data_vars.R")
+```
+
+[Département Analyse et Prévision](https://www.ofce.fr/ofce/ofce.html)
+
+⚠️ *Résumé exécutif à rédiger.*
+
+```{r include=FALSE}
+fra_data <- resume_annuel("FRA")
+euz_data <- resume_annuel("EUZ")
+
+data <- f_pays()$trim |>
+  select(date, pib = PIB, pop = population, pays) |>
+  group_by(pays) |>
+  mutate(
+    pibh = pib / pop,
+    pib  = 100 * pib / mean(pib[year(date) == 2019]) - 100,
+    pibh = 100 * pibh / mean(pibh[year(date) == 2019]) - 100,
+    tp   = glue("<b>{pays_long[pays]}</b><br>{date_trim(date)}<br>Ecart de PIB par rapport à 2019 : {round(pib, 1)}%"),
+    tph  = glue("<b>{pays_long[pays]}</b><br>{date_trim(date)}<br>Ecart de PIB par habitant par rapport à 2019 : {round(pibh, 1)}%"))
+
+annotate <- tribble(
+  ~date,         ~pib,  ~pays,
+  "2022-01-01",   8,    "USA",
+  "2024-01-01",   6,    "EUZ",
+  "2023-01-01",  -1,    "DEU",
+  "2024-10-01",   2,    "FRA",
+  "2022-01-01",  -7.5,  "GBR") |>
+  mutate(date = as.Date(date))
+
+gg_pib <- ggplot(data |> filter(pays %in% c("EUZ", "FRA", "USA", "DEU", "GBR"))) +
+  annotate_prevision(-20) +
+  aes(x = date, y = pib, color = pays) +
+  geom_line(linewidth = 0.5) +
+  scale_color_pays("iso3", aesthetics = c("color", "fill")) +
+  geom_text(data = annotate, aes(label = pays_long[pays]), size = 3) +
+  geom_point_interactive(
+    aes(tooltip = tp, data_id = date, fill = pays),
+    size = 1, shape = 21, stroke = 0.5, color = "white", hover_nearest = TRUE) +
+  guides(color = "none", fill = "none") +
+  theme_ofce() +
+  scale_ofce_date(
+    date_breaks = "1 year",
+    date_minor_breaks = "3 month",
+    expand = expansion(mult = c(0.03, 0.0)),
+    limits = c(as.Date("2019-01-01"), NA)) +
+  xlab(NULL) + ylab(NULL) +
+  scale_y_continuous(
+    labels = scales::label_number(suffix = "%"),
+    limits = c(-25, 25)) +
+  ofce_caption(
+    source = "Eurostat, INSEE, Destatis, BEA",
+    note   = "Ecart du PIB en volume aux prix chaînés par rapport à la moyenne de 2019") +
+  ofce::licence_auteur(author = "DAP")
+
+annotateh <- tribble(
+  ~date,         ~pibh, ~pays,
+  "2022-01-01",   7.5,  "USA",
+  "2023-01-01",  -3,    "DEU",
+  "2025-04-01",   2.75, "FRA",
+  "2024-01-01",   4,    "EUZ",
+  "2022-01-01",  -7.5,  "GBR") |>
+  mutate(date = as.Date(date))
+
+gg_pibh <- ggplot(data |> filter(pays %in% c("EUZ", "FRA", "USA", "DEU", "GBR"))) +
+  annotate_prevision(-20) +
+  aes(x = date, y = pibh, color = pays) +
+  geom_line(linewidth = 0.5) +
+  scale_color_pays("iso3", aesthetics = c("color", "fill")) +
+  geom_text(data = annotateh, aes(label = pays_long[pays]), size = 3) +
+  geom_point_interactive(
+    aes(tooltip = tph, data_id = date, fill = pays),
+    size = 1, shape = 21, stroke = 0.5, color = "white", hover_nearest = TRUE) +
+  guides(color = "none", fill = "none") +
+  theme_ofce() +
+  scale_ofce_date(
+    date_breaks = "1 year",
+    date_minor_breaks = "3 month",
+    expand = expansion(mult = c(0.03, 0.0)),
+    limits = c(as.Date("2019-01-01"), NA)) +
+  xlab(NULL) + ylab(NULL) +
+  scale_y_continuous(
+    labels = scales::label_number(suffix = "%"),
+    limits = c(-25, 25)) +
+  ofce_caption(
+    source = "Eurostat, INSEE, Destatis, BEA",
+    note   = "Ecart du PIB en volume par habitant aux prix chaînés par rapport à la moyenne de 2019") +
+  ofce::licence_auteur(author = "DAP")
+```
+
+📈 La croissance annuelle du PIB français serait de `r fra_data["pib_AAAA1"]`% et de `r fra_data["pib_AAAA2"]`% en AAAA2, après `r fra_data["pib_AAAA0"]`% en AAAA0. Pour la zone euro, elle serait de `r euz_data["pib_AAAA1"]`% en AAAA1 et `r euz_data["pib_AAAA2"]`% en AAAA2 après `r euz_data["pib_AAAA0"]`% en AAAA0.
+
+```{r, results='asis'}
+#| label: fig-olu
+#| fig-cap: Trajectoire de croissance et prévisions
+#| fig-asp: 0.7
+tabsetize(list(
+  "PIB"              = gg_pib,
+  "PIB par habitant" = gg_pibh), r = 2)
+```
+
+```{r, results='asis'}
+ofce::margin_download(
+  data |> select(date, pib, pibh, pays),
+  "ecart_pib", "données PIB (écart à 2019)")
+```
+
+💶 *Phrase sur l'inflation.*
+
+👩‍🏭 *Phrase sur le chômage.*
+
+🏦 *Phrase sur le déficit public.*
+
+#### Prévisions OFCE, [France](/france/panorama.qmd) et [International](/inter/synthese.qmd) {.unnumbered .size1}
+
+```{r}
+source_data("/data_pays/tab_synthese.R", lapse = "1 hour") |>
+  gt() |>
+  cols_label(code = "", zone = "", pays = "") |>
+  cols_label_with(-c(code, zone, pays), ~ str_extract(.x, "([:digit:]{4})")) |>
+  tab_spanner(label = "Croissance",      id = "croissance", columns = starts_with("pib"))     |>
+  tab_spanner(label = "Solde public",    id = "deficit",    columns = starts_with("deficit")) |>
+  tab_spanner(label = "Taux de chômage", id = "chom",       columns = starts_with("tcho"))    |>
+  tab_spanner(label = "Inflation",       id = "inf",        columns = starts_with("ipch"))    |>
+  ofce::ofce_tab_options(row_group.as_column = TRUE) |>
+  sub_missing(missing_text = "–") |>
+  cols_hide(pays) |>
+  ofce::ofce_align_decimal() |>
+  ofce::ofce_fmt_decimal() |>
+  fmt_markdown(zone) |>
+  fmt_flag(code) |>
+  ofce::ofce_cols_fill(ends_with(c("AAAA1", "AAAA2"))) |>
+  cols_align("left", zone) |>
+  tab_footnote("Croissance annuelle du produit intérieur brut",                              cells_column_spanners("croissance")) |>
+  tab_footnote("Déficit des Administrations Publiques",                                      cells_column_spanners("deficit"))    |>
+  tab_footnote("Croissance annuelle de l'indice des prix à la consommation harmonisé",       cells_column_spanners("inf"))        |>
+  tab_footnote("Taux de chômage au sens du BIT, en % de la population active, fin d'année", cells_column_spanners("chom"))       |>
+  tab_source_note("Sources : Instituts de statistique nationaux, prévision OFCE") |>
+  save_gt()
+```
+
+```{r, results='asis'}
+ofce::margin_download(
+  source_data("/data_pays/tab_synthese.R"),
+  "annuel", "Prév. OFCE")
+```
+
+#### Citation {.unnumbered .unlisted}
+
+::: csl-entry
+Nom E. et Nom X. (sous la direction de), Auteur A., Auteur B. (AAAA). "Titre de la prévision", *Revue de l'OFCE n°XXX*.
+:::
+
+<br>
+
+<details>
+
+<summary>Bibtex</summary>
+
+``` bib
+@book{prevYYMM,
+  title="Titre, prévision de l'OFCE",
+  editor={Nom, Prénom and Nom, Prénom},
+  note={Département Analyse et Prévision},
+  journal={Revue de l'OFCE},
+  number={XXX},
+  year={AAAA},
+  url={https://www.ofce.fr/prev/prevYYMM/}}
+```
+
+</details>
+
+#### Licence {.unnumbered .unlisted}
+
+```{=html}
+<p class="size9" xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="http://www.ofce.fr/prev/prevYYMM/">Prévision de l'OFCE</a> par <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="http://www.ofce.fr">l'OFCE</a> est sous licence  <a href="https://creativecommons.org/licenses/by/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY 4.0<img style="height:20px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" alt=""><img style="height:20px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" alt=""></a></p>
+```
+:::::

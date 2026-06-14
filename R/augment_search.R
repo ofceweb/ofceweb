@@ -112,7 +112,7 @@ augment_search <- function(root = ".", progress = TRUE) {
 
   # ── Write output ─────────────────────────────────────────────────────────────
 
-  out_path <- fs::path_join(c("/tmp", "search_augmented.json"))
+  out_path <- fs::path_join(c(tempdir(), "search_augmented.json"))
   unlink(out_path, force = TRUE)
   jsonlite::write_json(posts_meta, out_path, auto_unbox = FALSE, pretty = TRUE)
 

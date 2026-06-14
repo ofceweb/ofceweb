@@ -93,8 +93,11 @@ verison *publish* (commentaires fermés, url définie
 (www.ofce.fr/prev/prevYYMM), non cryptée, référencée, suivi
 statitistique).
 
-Les principales fonctions sont `render_prev()` et `publish_prev()`. Les
-fonctions helpers seront ajoutées progressivement.
+Les principales fonctions sont
+[`render_prev()`](https://ofceweb.github.io/ofceweb/reference/render_prev.md)
+et
+[`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md).
+Les fonctions helpers seront ajoutées progressivement.
 
 ## Administrer les principales pages du site web de l’OFCE
 

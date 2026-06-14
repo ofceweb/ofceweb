@@ -3,8 +3,8 @@
 Commits the contents of \`\_site_publish/\` into an orphan-style commit
 and force-pushes it to the \`site-publish\` branch of the \`origin\`
 remote. Triggers a downstream GitHub Actions workflow (e.g. an FTP
-deploy) via the \`workflow_dispatch\` API (check your default branch is
-\`main\`).
+deploy) via the \`workflow_dispatch\` API (the default branch is
+auto-detected).
 
 ## Usage
 

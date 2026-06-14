@@ -1,9 +1,8 @@
-# Génère le site de la prévision
+# Génère le site de la prévision (déprécié)
 
-Orchestre le rendu complet de la prévision appel à
-\[quarto::quarto_render()\] avec le profil \`publish\`, puis
-optionnellement déploiement du répertoire \`\_site_publish\` vers une
-branche git et/ou prévisualisation locale via un serveur HTTP.
+\`r lifecycle::badge("deprecated")\`
+
+Cette fonction est remplacée par \[publish_prev()\].
 
 ## Usage
 
@@ -22,37 +21,35 @@ render_prev_publish(
 
 - path:
 
-  Chemin vers la racine du projet (dossier \`prevxx\[3\|9\]\`). Par
-  défaut \`"."\` (répertoire de travail courant).
+  Chemin vers la racine du dépôt. Défaut \`"."\`.
 
 - check_repo:
 
-  Logique. Si \`TRUE\` (défaut), vérifie l'état du dépôt git avant le
-  rendu via \[check_repo_status()\].
+  Logique. Si \`TRUE\` (défaut), vérifie l'état du dépôt git via
+  \[check_repo_status()\].
 
 - progress:
 
-  Logique. Si \`TRUE\` (défaut), affiche la progression lors du rendu
-  Quarto et du déploiement.
+  Logique. Affichage de la progression. Défaut \`TRUE\`.
 
 - render_site:
 
-  Logique. Si \`TRUE\` (défaut), lance un serveur HTTP local
-  (\[servr::httw()\]) sur \`\_site\` après le rendu pour prévisualiser
-  le résultat.
+  Logique. Passé à \`preview\` de \[publish_prev()\].
 
 - site2branch:
 
-  Logique. Si \`TRUE\`, appelle \[site2branch()\] pour pousser
-  \`\_site\` vers la branche git \`site-deploy\`. Par défaut \`FALSE\`.
+  Logique. Passé à \`site2branch\` de \[publish_prev()\].
 
 - trigger:
 
-  Valeur passée à l'argument \`trigger\` de \[site2branch()\]. Par
-  défaut égale à \`site2branch\`.
+  Passé à \[publish_prev()\].
 
 ## Value
 
-Appelée pour ses effets de bord. Retourne invisiblement \`NULL\`.
+Invisible \`NULL\`.
 
-## Working Paper (WP) Users
+## Prévision Users
+
+## See also
+
+\[publish_prev()\]

@@ -1,6 +1,37 @@
 # Package index
 
+## Prévisions
+
+Suite complète pour les dépôts de prévision OFCE (`prev{YY}0{3|9}`).
+Deux modes de déploiement : **staging** (versionné, chiffré en CI via
+staticrypt) et **publish** (URL fixe, non chiffré). Le chiffrement du
+site staging est appliqué par le workflow GitHub Actions
+`ftp_deploy_staging.yml` — pas localement.
+
+- [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
+  : Initialise un dépôt de prévision OFCE
+- [`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
+  : Vérifie la structure d'un dépôt de prévision OFCE
+- [`render_prev()`](https://ofceweb.github.io/ofceweb/reference/render_prev.md)
+  : Rend le site de prévision OFCE (staging ou publish)
+- [`stage_prev()`](https://ofceweb.github.io/ofceweb/reference/stage_prev.md)
+  : Rend et déploie la prévision en staging
+- [`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md)
+  : Rend et publie la prévision (publish)
+- [`deploy_prev()`](https://ofceweb.github.io/ofceweb/reference/deploy_prev.md)
+  : Déploie la prévision OFCE (staging ou publish)
+- [`site2staging()`](https://ofceweb.github.io/ofceweb/reference/site2staging.md)
+  : Pousse \`\_site_staging/\` vers la branche \`site-staging\`
+- [`prev_version_up()`](https://ofceweb.github.io/ofceweb/reference/prev_version_up.md)
+  : Incrémente la version staging d'une prévision OFCE
+- [`render_prev_publish()`](https://ofceweb.github.io/ofceweb/reference/render_prev_publish.md)
+  : Génère le site de la prévision (déprécié)
+
 ## Working papers
+
+Fonctions pour les dépôts de documents de travail OFCE (WP). Un WP peut
+être en mode brouillon (déployé sur GitHub Pages) ou publié (déployé via
+FTP sur `www.ofce.fr/wp/{annee}/{N}/`).
 
 - [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
   : Initialise un dépôt de document de travail (WP) OFCE
@@ -21,7 +52,11 @@
 - [`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)
   : Désactive le chiffrement statique du site
 
-## Sites
+## Sites génériques
+
+Fonctions pour les sites Quarto génériques hébergés sur `www.ofce.fr`.
+Supporte l’hébergement OFCE (FTP via branche de déploiement) et GitHub
+Pages.
 
 - [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
   : Initialise un site OFCE dans le dépôt courant
@@ -37,10 +72,11 @@
   : Active le chiffrement statique du site
 - [`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)
   : Désactive le chiffrement statique du site
-- [`render_prev_publish()`](https://ofceweb.github.io/ofceweb/reference/render_prev_publish.md)
-  : Génère le site de la prévision
 
 ## Blog
+
+Fonctions pour le blog OFCE bilingue (FR/EN). Gère le cache des posts,
+la construction du sitemap et le déploiement incrémental.
 
 - [`render_blog()`](https://ofceweb.github.io/ofceweb/reference/render_blog.md)
   : Render the bilingual blog
@@ -49,12 +85,21 @@
 - [`create_blog_version()`](https://ofceweb.github.io/ofceweb/reference/create_blog_version.md)
   : Créer une version blog d'un article EcoGaphe
 
-## Autres
+## Page d’accueil
+
+Fonctions pour le site d’accueil OFCE.
 
 - [`render_home()`](https://ofceweb.github.io/ofceweb/reference/render_home.md)
   : Génère la homepage du site OFCE
 - [`publish_home()`](https://ofceweb.github.io/ofceweb/reference/publish_home.md)
   : Publie la homepage du site OFCE
+
+## Déploiement & utilitaires
+
+Fonctions de bas niveau partagées entre les différents types de dépôts :
+push vers une branche de déploiement, déclenchement de workflows GitHub
+Actions, téléchargement de fichiers depuis GitHub.
+
 - [`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
   : Push a rendered site folder to a Git branch
 - [`site2publish()`](https://ofceweb.github.io/ofceweb/reference/site2publish.md)

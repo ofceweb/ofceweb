@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,6 +20,7 @@
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ofceweb/ofceweb"><span class="fa fab fa-github"></span></a></li>
       </ul></div>
 
 
@@ -31,6 +32,45 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.0" id="ofceweb-v050">ofceweb v0.5.0<a class="anchor" aria-label="anchor" href="#ofceweb-v050"></a></h2>
+<div class="section level3">
+<h3 id="suite-de-fonctions-prévision-nouveau-0-5-0">Suite de fonctions prévision (nouveau)<a class="anchor" aria-label="anchor" href="#suite-de-fonctions-pr%C3%A9vision-nouveau-0-5-0"></a></h3>
+<ul><li>
+<code><a href="../reference/setup_prev.html">setup_prev()</a></code> — initialise un dépôt de prévision : copie les gabarits (<code>_quarto.yml</code>, profils staging/publish, <code>.qmd</code>, scripts <code>data_pays/</code>), installe les extensions Quarto depuis <code>inst/share/</code>, configure les variables GitHub Actions <code>FTP_STAGING_DIR</code> / <code>FTP_PUBLISH_DIR</code>, met à jour <code>.gitignore</code>. Détecte et corrige automatiquement <code>project.type: website</code> → <code>ofce-website</code>. Déduit <code>prev</code>, <code>annee</code> et <code>mois</code> du nom du dossier (<code>prev{YY}0{3|9}</code>).</li>
+<li>
+<code><a href="../reference/check_prev.html">check_prev()</a></code> — valide la configuration d’un dépôt (12 contrôles : nom du dossier, sous-dossiers, champs YAML, cohérence des <code>site-path</code>, présence des workflows, variables et secret GitHub).</li>
+<li>
+<code>render_prev(profile)</code> — rendu Quarto pur avec profil <code>"staging"</code> (défaut) ou <code>"publish"</code>. Le chiffrement est appliqué en CI, pas localement.</li>
+<li>
+<code><a href="../reference/stage_prev.html">stage_prev()</a></code> — <code>render_prev("staging")</code> + push <code>_site_staging/</code> vers la branche <code>site-staging</code> (en clair ; le workflow CI chiffre avant FTP).</li>
+<li>
+<code><a href="../reference/publish_prev.html">publish_prev()</a></code> — <code>render_prev("publish")</code> + push <code>_site_publish/</code> vers <code>site-publish</code>.</li>
+<li>
+<code>deploy_prev(target)</code> — déploiement seul (sans rendu), staging ou publish.</li>
+<li>
+<code><a href="../reference/site2staging.html">site2staging()</a></code> — wrapper de <code><a href="../reference/site2branch.html">site2branch()</a></code> pour la branche <code>site-staging</code>.</li>
+<li>
+<code><a href="../reference/prev_version_up.html">prev_version_up()</a></code> — incrémente la version staging dans <code>_quarto-staging.yml</code> et met à jour <code>FTP_STAGING_DIR</code>.</li>
+<li>
+<code><a href="../reference/render_prev_publish.html">render_prev_publish()</a></code> — dépréciée, redirige vers <code><a href="../reference/publish_prev.html">publish_prev()</a></code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="templates-et-ressources-0-5-0">Templates et ressources<a class="anchor" aria-label="anchor" href="#templates-et-ressources-0-5-0"></a></h3>
+<ul><li>
+<code>inst/setup_prev/</code> : gabarits YAML (<code>_quarto.yml</code> avec <code>type: ofce-website</code>, profils staging/publish), 23 fichiers <code>.qmd</code>, scripts <code>data_pays/</code> (<code>data_pays.R</code>, <code>tab_synthese.R</code>, <code>data_vars.R</code>, <code>graphiques.R</code>), workflows GitHub Actions (<code>ftp_deploy_staging.yml</code> avec chiffrement staticrypt, <code>ftp_deploy_publish.yml</code>).</li>
+<li>
+<code>inst/share/_extensions/</code> : ajout des extensions <code>ofce/ofce</code> (format <code>ofce-html</code>), <code>crossref-listings</code>, <code>mcanouil/iconify</code>, <code>pandoc-ext/section-bibliographies</code>.</li>
+<li>
+<code>inst/share/www/</code> : ajout de <code>ofce_banner_alt2.png</code>, <code>webex.css</code>, <code>webex.js</code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="corrections-0-5-0">Corrections<a class="anchor" aria-label="anchor" href="#corrections-0-5-0"></a></h3>
+<ul><li>
+<code>render_wp.R</code> : correction d’un bug où le chiffrement <code>encrypt_site: true</code> n’était pas appliqué lors du rendu local.</li>
+<li>NAMESPACE mis à jour avec les 9 nouvelles exportations.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.1" id="ofceweb-v041">ofceweb v0.4.1<a class="anchor" aria-label="anchor" href="#ofceweb-v041"></a></h2>
 <ul><li>divers bugs dans les fonctions pour les documents de travail corrigés</li>

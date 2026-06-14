@@ -7,7 +7,7 @@ automatically by \[site2branch()\] unless \`trigger = FALSE\`.
 ## Usage
 
 ``` r
-trigger_action(root = ".", workflow = "ftp_deploy.yml", branch = "main")
+trigger_action(root = ".", workflow = "ftp_deploy.yml", branch = NULL)
 ```
 
 ## Arguments
@@ -27,8 +27,8 @@ trigger_action(root = ".", workflow = "ftp_deploy.yml", branch = "main")
 - branch:
 
   \`\[character(1)\]\`  
-  Branch on which the workflow will be run. Defaults to
-  \`"site-deploy"\`.
+  Branch on which the workflow will be run. Defaults to \`NULL\`, which
+  auto-detects the repository's default branch via the GitHub API.
 
 ## Value
 
@@ -49,6 +49,6 @@ suitable for interactive local use.
 ``` r
 if (FALSE) { # \dontrun{
 trigger_action()
-trigger_action(workflow = "deploy.yml", branch = "main")
+trigger_action(workflow = "deploy.yml")
 } # }
 ```

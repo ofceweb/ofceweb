@@ -14,8 +14,8 @@ setup_wp(
   wp = NULL,
   annee = as.integer(format(Sys.Date(), "%Y")),
   lang = "fr",
-  hypothesis = FALSE,
-  versionning = TRUE
+  hypothesis = NULL,
+  versionning = NULL
 )
 ```
 
@@ -50,8 +50,8 @@ setup_wp(
 
 - versionning:
 
-  Logique. Si \`TRUE\` (défaut) et WP publié (\`wp\` non \`NULL\`),
-  ajoute \`/v0\` au \`site-path\`.
+  Logique. Si \`TRUE\` et WP publié (\`wp\` non \`NULL\`), ajoute
+  \`/v0\` au \`site-path\`.
 
 ## Value
 

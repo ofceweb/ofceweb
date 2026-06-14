@@ -4,7 +4,7 @@
 \alias{trigger_action}
 \title{Trigger a GitHub Actions workflow via `workflow_dispatch`}
 \usage{
-trigger_action(root = ".", workflow = "ftp_deploy.yml", branch = "main")
+trigger_action(root = ".", workflow = "ftp_deploy.yml", branch = NULL)
 }
 \arguments{
 \item{root}{`[character(1)]`\cr
@@ -16,7 +16,8 @@ Defaults to [here::here()].}
 File name of the workflow to dispatch (e.g. `"ftp_deploy.yml"`).}
 
 \item{branch}{`[character(1)]`\cr
-Branch on which the workflow will be run. Defaults to `"site-deploy"`.}
+Branch on which the workflow will be run. Defaults to `NULL`, which
+auto-detects the repository's default branch via the GitHub API.}
 }
 \value{
 Invisibly returns `NULL`. Called for its side effects.
@@ -41,6 +42,6 @@ The GitHub token is resolved in the following order:
 \examples{
 \dontrun{
 trigger_action()
-trigger_action(workflow = "deploy.yml", branch = "main")
+trigger_action(workflow = "deploy.yml")
 }
 }

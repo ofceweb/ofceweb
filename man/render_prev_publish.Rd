@@ -2,7 +2,7 @@
 % Please edit documentation in R/render_prev.R
 \name{render_prev_publish}
 \alias{render_prev_publish}
-\title{Génère le site de la prévision}
+\title{Génère le site de la prévision (déprécié)}
 \usage{
 render_prev_publish(
   path = ".",
@@ -14,33 +14,31 @@ render_prev_publish(
 )
 }
 \arguments{
-\item{path}{Chemin vers la racine du projet (dossier `prevxx[3|9]`). Par défaut
-`"."` (répertoire de travail courant).}
+\item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
 
 \item{check_repo}{Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
-avant le rendu via [check_repo_status()].}
+via [check_repo_status()].}
 
-\item{progress}{Logique. Si `TRUE` (défaut), affiche la progression lors du
-rendu Quarto et du déploiement.}
+\item{progress}{Logique. Affichage de la progression. Défaut `TRUE`.}
 
-\item{render_site}{Logique. Si `TRUE` (défaut), lance un serveur HTTP local
-([servr::httw()]) sur `_site` après le rendu pour prévisualiser le résultat.}
+\item{render_site}{Logique. Passé à `preview` de [publish_prev()].}
 
-\item{site2branch}{Logique. Si `TRUE`, appelle [site2branch()] pour pousser
-`_site` vers la branche git `site-deploy`. Par défaut `FALSE`.}
+\item{site2branch}{Logique. Passé à `site2branch` de [publish_prev()].}
 
-\item{trigger}{Valeur passée à l'argument `trigger` de [site2branch()].
-Par défaut égale à `site2branch`.}
+\item{trigger}{Passé à [publish_prev()].}
 }
 \value{
-Appelée pour ses effets de bord. Retourne invisiblement `NULL`.
+Invisible `NULL`.
 }
 \description{
-Orchestre le rendu complet de la prévision
-appel à [quarto::quarto_render()] avec le profil `publish`, puis optionnellement déploiement du répertoire
-`_site_publish` vers une branche git et/ou prévisualisation locale via un serveur HTTP.
+`r lifecycle::badge("deprecated")`
+
+Cette fonction est remplacée par [publish_prev()].
 }
-\section{Working Paper (WP) Users}{
+\section{Prévision Users}{
 
 }
 
+\seealso{
+[publish_prev()]
+}

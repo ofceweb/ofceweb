@@ -10,8 +10,8 @@ setup_wp(
   wp = NULL,
   annee = as.integer(format(Sys.Date(), "\%Y")),
   lang = "fr",
-  hypothesis = FALSE,
-  versionning = TRUE
+  hypothesis = NULL,
+  versionning = NULL
 )
 }
 \arguments{
@@ -29,7 +29,7 @@ GitHub Pages) ; entier = WP publié (hébergement OFCE FTP).}
 
 \item{hypothesis}{Logique. Active les commentaires Hypothesis. Défaut `FALSE`.}
 
-\item{versionning}{Logique. Si `TRUE` (défaut) et WP publié (`wp` non `NULL`),
+\item{versionning}{Logique. Si `TRUE` et WP publié (`wp` non `NULL`),
 ajoute `/v0` au `site-path`.}
 }
 \value{

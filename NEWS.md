@@ -1,3 +1,7 @@
+## ofceweb v0.5.1
+
+* protection ajoutée à `setup_wp()` et `setup_prev()` pour ne pas faire le setup si le dossier est autre chose.
+
 ## ofceweb v0.5.0
 
 ### Suite de fonctions prévision (nouveau)

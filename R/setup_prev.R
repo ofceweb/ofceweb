@@ -52,9 +52,6 @@
 #' @export
 setup_prev <- function(
     path        = ".",
-    prev        = NULL,
-    annee       = as.integer(format(Sys.Date(), "%Y")),
-    mois        = NULL,
     encrypt     = TRUE,
     versionning = TRUE) {
 
@@ -71,18 +68,14 @@ setup_prev <- function(
   # ---- 1. Résolution de l'identifiant prev ---------------------------------
   project <- fs::path_file(root) |> as.character()
   parsed  <- parse_prev_id(project)
-
-  if (is.null(prev)) {
-    if (!is.null(parsed)) {
-      prev  <- parsed$id
-      if (missing(annee)) annee <- parsed$annee
-      if (is.null(mois))  mois  <- parsed$mois
-      cli::cli_alert_info("Identifiant prev déduit du dossier : {.val {prev}}")
-    } else {
-      cli::cli_alert_warning(
-        "Impossible de déduire le prev depuis `{project}`. \\
+  if (!is.null(parsed)) {
+    prev  <- parsed$id
+    annee <- parsed$annee
+    mois  <- parsed$mois
+    cli::cli_alert_info("Identifiant prev déduit du dossier : {.val {prev}}")
+  } else {
+    cli::cli_abort("Abort, impossible de déduire le prev depuis `{project}`. \\
          Préciser {.arg prev}, {.arg annee} et {.arg mois} explicitement.")
-    }
   }
 
   if (!is.null(prev)) {
@@ -131,6 +124,14 @@ setup_prev <- function(
   yml <- if (fs::file_exists(dest_yaml))
     tryCatch(yaml::read_yaml(dest_yaml), error = function(e) list())
   else list()
+
+  if (isTRUE(yml[["ofce_wp"]])) {
+    cli::cli_abort(c(
+      "Ce dépôt est un {.strong document de travail} ({.field ofce_wp: true} dans {.file _quarto.yml}).",
+      "i" = "Utilisez {.fn setup_wp} pour initialiser un dépôt de document de travail.",
+      "x" = "{.fn setup_prev} ne peut pas être appliqué à un dépôt de document de travail."
+    ))
+  }
 
   stg <- if (fs::file_exists(dest_stg))
     tryCatch(yaml::read_yaml(dest_stg), error = function(e) list())
@@ -218,7 +219,7 @@ setup_prev <- function(
   # ---- 7. site-paths -------------------------------------------------------
   prev_id         <- prev %||% "YYMM"
   staging_version <- if (!is.null(stg$version)) as.character(stg$version)
-                     else "v0"
+  else "v0"
   staging_sitepath <- sprintf("staging/prev%s/%s", prev_id, staging_version)
   publish_sitepath <- sprintf("prev/prev%s", prev_id)
 
@@ -250,7 +251,7 @@ setup_prev <- function(
     if (length(m) >= 3L)
       yml$website$`repo-url` <- sprintf("https://github.com/%s/%s/", m[[2L]], m[[3L]])
   }
-  if (is.null(yml$website$`repo-url`) && !is.null(prev)) {
+  if (!is.null(prev)) {
     yml$website$`repo-url` <- sprintf("https://github.com/ofce/prev%s/", prev)
   }
 

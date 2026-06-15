@@ -178,7 +178,7 @@ format:
     keywords: [prévision économique, croissance, france, europe, zone euro, ofce, déficit public, PIB, activité économique, chômage, emploi]
 
 profile:
-  default: publish
+  default: staging
   group:
     - [staging, publish]
 

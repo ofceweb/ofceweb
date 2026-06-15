@@ -67,6 +67,15 @@ setup_wp <- function(
   dest_yaml <- fs::path(root, "_quarto.yml")
   dest_index <- fs::path(root, "index.qmd")
   yml <- yaml::read_yaml(dest_yaml)
+
+  if (isTRUE(yml[["ofce_prev"]])) {
+    cli::cli_abort(c(
+      "Ce dépôt est une {.strong prévision} ({.field ofce_prev: true} dans {.file _quarto.yml}).",
+      "i" = "Utilisez {.fn setup_prev} pour initialiser un dépôt de prévision.",
+      "x" = "{.fn setup_wp} ne peut pas être appliqué à un dépôt de prévision."
+    ))
+  }
+
   if(file.exists(dest_index))
     index_yml <- get_yaml(dest_index) else
       index_yml <- list()

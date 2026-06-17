@@ -79,7 +79,7 @@ copy_files <- function(lang = "fr", freeze = TRUE, progress = TRUE) {
 
   fs::dir_create(dir)
   if(has_freeze)
-    fs::file_move(tm_freeze, glue::glue("{dir}/_freeze"))
+    fs::file_move(tmp_freeze, glue::glue("{dir}/_freeze"))
 
   root_files <- c("_quarto.yml", "_quarto-en.yml", "_quarto-fr.yml", "index.qmd", "about.qmd")
   #, "about.en.qmd")

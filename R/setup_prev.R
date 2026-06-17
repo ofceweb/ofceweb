@@ -7,8 +7,8 @@
 #'
 #' La fonction est **non-destructive** pour les fichiers utilisateur (`.qmd`,
 #' scripts `data_pays/`) : ils ne sont copiés que s'ils sont absents. En
-#' revanche, `_extensions/` et `www/` sont **toujours mis à jour** (ressources
-#' du package).
+#' revanche, `_extensions/`, `www/` et les **workflows GitHub Actions** sont
+#' **toujours mis à jour** depuis la version de référence du package.
 #'
 #' @section Structure créée :
 #' ```
@@ -308,7 +308,7 @@ setup_prev <- function(
                    handlers = list(logical = yaml::verbatim_logical))
   cli::cli_alert_success("Mise à jour de {.file _quarto-publish.yml}")
 
-  # ---- 11. Workflows (non-destructifs) -------------------------------------
+  # ---- 11. Workflows (toujours mis à jour depuis le package) ---------------
   src_wf  <- fs::path(pkg_setup_prev, "workflows")
   dest_wf <- fs::path(root, ".github", "workflows")
   if (fs::dir_exists(src_wf)) {
@@ -316,13 +316,8 @@ setup_prev <- function(
     for (f in fs::dir_ls(src_wf, type = "file")) {
       fname  <- fs::path_file(f)
       dest_f <- fs::path(dest_wf, fname)
-      if (!fs::file_exists(dest_f)) {
-        fs::file_copy(f, dest_f)
-        cli::cli_alert_success("Copie : {.file .github/workflows/{fname}}")
-      } else {
-        cli::cli_alert_info(
-          "{.file .github/workflows/{fname}} déjà présent \u2014 non écrasé.")
-      }
+      fs::file_copy(f, dest_f, overwrite = TRUE)
+      cli::cli_alert_success("Mise à jour : {.file .github/workflows/{fname}}")
     }
   }
 

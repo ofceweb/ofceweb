@@ -188,6 +188,11 @@ h5 {
     color: $link-color;
 }
 
+.sidebar nav[role=doc-toc]>ul,
+.sidebar nav[role=doc-toc]>.el {
+    font-size: .8rem;
+}
+
 .header-section-number {
   font-weight: bold;
 }

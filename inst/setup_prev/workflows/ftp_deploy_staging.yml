@@ -40,7 +40,7 @@ jobs:
 
       - name: Encrypt HTML files with staticrypt
         run: |
-          staticrypt \
+          staticrypt . \
             --recursive \
             --directory . \
             --password "$STATICRYPT_PASSWORD" \

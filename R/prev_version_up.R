@@ -76,6 +76,7 @@ prev_version_up <- function(path = ".", custom_version = NULL) {
   new_sp <- stg$website$`site-path`
   if (!is.null(new_sp) && nzchar(new_sp)) {
     staging_dir <- if (grepl("/$", new_sp)) new_sp else paste0(new_sp, "/")
+    staging_dir <- stringr::str_remove(staging_dir, "^staging/")
     tryCatch(
       set_gh_var(root, "FTP_STAGING_DIR", staging_dir),
       error = function(e)

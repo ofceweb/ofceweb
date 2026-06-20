@@ -40,9 +40,9 @@ jobs:
 
       - name: Encrypt HTML files with staticrypt
         run: |
-          staticrypt . \
+          staticrypt ./ \
             --recursive \
-            --directory . \
+            --directory /tmp/staticrypt-out \
             --password "$STATICRYPT_PASSWORD" \
             --short \
             --template-color-primary "#e6142d" \
@@ -51,12 +51,18 @@ jobs:
             --template-instructions "Entrez le mot de passe ou contactez un responsable de la page que vous souhaitez atteindre." \
             --template-button "Accès"
 
+          # staticrypt mirrors the source dir name into --directory output,
+          # so encrypted files are under /tmp/staticrypt-out/<repo-name>/.
+          # Sync from that subdirectory to avoid nesting the encrypted folder inside itself.
+          rsync -a "/tmp/staticrypt-out/$(basename "$PWD")/" ./
+          rm -rf /tmp/staticrypt-out
+
       - name: FTP deploy (staging)
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server:   ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          username: ${{ secrets.STAGING_USER }}
+          password: ${{ secrets.STAGING_PASSWORD }}
           port: 21
           local-dir: ./
           server-dir: ${{ vars.FTP_STAGING_DIR }}

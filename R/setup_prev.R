@@ -322,8 +322,11 @@ setup_prev <- function(
   }
 
   # ---- 12. Variables GitHub ------------------------------------------------
-  staging_dir <- paste0(staging_sitepath, "/")
-  publish_dir <- paste0(publish_sitepath, "/")
+  staging_dir <- paste0(staging_sitepath, "/") |>
+    stringr::str_remove("^staging/")
+
+  publish_dir <- paste0(publish_sitepath, "/") |>
+    stringr::str_remove("^prev/")
 
   tryCatch(
     set_gh_var(root, "FTP_STAGING_DIR", staging_dir),

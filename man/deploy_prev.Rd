@@ -6,7 +6,7 @@
 \usage{
 deploy_prev(
   path = ".",
-  target = "staging",
+  profile = "staging",
   progress = TRUE,
   trigger = TRUE,
   full_deploy = FALSE
@@ -15,7 +15,7 @@ deploy_prev(
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
 
-\item{target}{`"staging"` (défaut) ou `"publish"`.}
+\item{profile}{`"staging"` (défaut) ou `"publish"`.}
 
 \item{progress}{Logique. Affichage de la progression. Défaut `TRUE`.}
 

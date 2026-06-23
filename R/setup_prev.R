@@ -342,13 +342,15 @@ setup_prev <- function(
   )
 
   # ---- 13. .gitignore ------------------------------------------------------
-  gi_path  <- fs::path(root, ".gitignore")
-  gi_lines <- if (fs::file_exists(gi_path))
+  gi_path      <- fs::path(root, ".gitignore")
+  gi_lines     <- if (fs::file_exists(gi_path))
     readLines(gi_path, warn = FALSE) else character()
-  changed  <- FALSE
+  tmpl_path    <- system.file("setup_prev/.gitignore", package = "ofceweb")
+  tmpl_entries <- readLines(tmpl_path, warn = FALSE)
+  tmpl_entries <- tmpl_entries[nzchar(trimws(tmpl_entries))]
+  changed      <- FALSE
 
-  for (entry in c("_site_staging", "_site_publish", ".Renviron",
-                  "data_pays/data_pays.RData")) {
+  for (entry in tmpl_entries) {
     if (!any(trimws(gi_lines) == entry)) {
       gi_lines <- c(gi_lines, entry)
       changed  <- TRUE

@@ -24,7 +24,6 @@
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
-inst/doc/
 
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
 .httr-oauth
@@ -48,10 +47,18 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
-.posit/assistant
-CLAUDE.md
-report.md
+.positai
 
-# WP manifest (generated in WP repos, not here)
-manifest.json
-docs
+/.quarto/
+**/*.quarto_ipynb
+
+_freeze
+.quarto
+_site
+
+.DS_Store
+.crossrefs
+
+/.luarc.json
+
+*.pdf

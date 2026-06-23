@@ -4,17 +4,16 @@
 \alias{setup_prev}
 \title{Initialise un dépôt de prévision OFCE}
 \usage{
-setup_prev(
-  path = ".",
-  prev = NULL,
-  annee = as.integer(format(Sys.Date(), "\%Y")),
-  mois = NULL,
-  encrypt = TRUE,
-  versionning = TRUE
-)
+setup_prev(path = ".", encrypt = TRUE, versionning = TRUE)
 }
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
+
+\item{encrypt}{Logique. Si `TRUE` (défaut), positionne `encrypt_site: true`
+dans `_quarto-staging.yml` (le chiffrement a lieu en CI).}
+
+\item{versionning}{Logique. Si `TRUE` (défaut), initialise la version
+staging à `"v0"`.}
 
 \item{prev}{Chaîne à 4 chiffres identifiant la prévision (ex. `"2609"` pour
 septembre 2026). Si `NULL` (défaut), déduit automatiquement du nom du
@@ -25,12 +24,6 @@ du nom du dossier si `prev` est aussi déduit.}
 
 \item{mois}{Entier. Mois de la prévision : `3` (mars) ou `9` (septembre).
 Déduit du nom du dossier si `prev` est aussi déduit.}
-
-\item{encrypt}{Logique. Si `TRUE` (défaut), positionne `encrypt_site: true`
-dans `_quarto-staging.yml` (le chiffrement a lieu en CI).}
-
-\item{versionning}{Logique. Si `TRUE` (défaut), initialise la version
-staging à `"v0"`.}
 }
 \value{
 Invisible `NULL`. Appelée pour ses effets de bord.
@@ -44,8 +37,8 @@ fichiers de configuration Quarto (`_quarto.yml`, `_quarto-staging.yml`,
 \details{
 La fonction est **non-destructive** pour les fichiers utilisateur (`.qmd`,
 scripts `data_pays/`) : ils ne sont copiés que s'ils sont absents. En
-revanche, `_extensions/` et `www/` sont **toujours mis à jour** (ressources
-du package).
+revanche, `_extensions/`, `www/` et les **workflows GitHub Actions** sont
+**toujours mis à jour** depuis la version de référence du package.
 }
 \section{Structure créée }{
 

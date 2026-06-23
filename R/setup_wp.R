@@ -420,21 +420,22 @@ setup_wp <- function(
   }
 
   # ---- 13. .gitignore -------------------------------------------------------
-  gi_path <- fs::path(root, ".gitignore")
-  gi_lines <- if (fs::file_exists(gi_path)) readLines(gi_path, warn = FALSE) else character()
-  changed <- FALSE
+  gi_path      <- fs::path(root, ".gitignore")
+  gi_lines     <- if (fs::file_exists(gi_path)) readLines(gi_path, warn = FALSE) else character()
+  tmpl_path    <- system.file("setup_wp/.gitignore", package = "ofceweb")
+  tmpl_entries <- readLines(tmpl_path, warn = FALSE)
+  tmpl_entries <- tmpl_entries[nzchar(trimws(tmpl_entries))]
+  changed      <- FALSE
 
-  if (!any(trimws(gi_lines) %in% c("_site", "/_site", "_site/"))) {
-    gi_lines <- c(gi_lines, "_site")
-    changed <- TRUE
-  }
-  if (!any(grepl("^\\*\\.pdf$", trimws(gi_lines)))) {
-    gi_lines <- c(gi_lines, "*.pdf")
-    changed <- TRUE
+  for (entry in tmpl_entries) {
+    if (!any(trimws(gi_lines) == entry)) {
+      gi_lines <- c(gi_lines, entry)
+      changed  <- TRUE
+    }
   }
   if (changed) {
     writeLines(gi_lines, gi_path)
-    cli::cli_alert_success("Mise à jour de {.file .gitignore} ({.code _site}, {.code *.pdf})")
+    cli::cli_alert_success("Mise à jour de {.file .gitignore}")
   }
 
   # ---- Résumé ---------------------------------------------------------------

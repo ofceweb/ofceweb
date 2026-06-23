@@ -5,7 +5,7 @@
 #' `site-staging` ; pour publish, pousse `_site_publish/` vers `site-publish`.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
-#' @param target `"staging"` (défaut) ou `"publish"`.
+#' @param profile `"staging"` (défaut) ou `"publish"`.
 #' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
 #' @param trigger Logique. Déclenche le workflow GitHub Actions FTP après le
 #'   push. Défaut `TRUE`.
@@ -20,24 +20,24 @@
 #' @export
 deploy_prev <- function(
     path        = ".",
-    target      = "staging",
+    profile      = "staging",
     progress    = TRUE,
     trigger     = TRUE,
     full_deploy = FALSE) {
 
-  target <- match.arg(target, c("staging", "publish"))
+  profile <- match.arg(profile, c("staging", "publish"))
 
   root <- path |>
     fs::path_expand() |>
     fs::path_abs() |>
     fs::path_norm()
 
-  if (target == "staging") {
+  if (profile == "staging") {
     site_dir <- fs::path(root, "_site_staging")
     if (!fs::dir_exists(site_dir))
       cli::cli_abort(
         "Pas de dossier {.path _site_staging} — lancer \\
-         {.run ofceweb::render_prev('staging')} d'abord.")
+         {.run ofceweb::render_prev(profile = 'staging')} d'abord.")
     site2staging(
       path        = root,
       progress    = progress,
@@ -49,7 +49,7 @@ deploy_prev <- function(
     if (!fs::dir_exists(site_dir))
       cli::cli_abort(
         "Pas de dossier {.path _site_publish} — lancer \\
-         {.run ofceweb::render_prev('publish')} d'abord.")
+         {.run ofceweb::render_prev(profile = 'publish')} d'abord.")
     site2publish(
       path        = root,
       progress    = progress,

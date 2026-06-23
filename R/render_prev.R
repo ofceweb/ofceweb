@@ -196,7 +196,7 @@ publish_prev <- function(
     )
   } else {
     cli::cli_text(
-      "Pour publier, lancer {.run ofceweb::deploy_prev('publish')}")
+      "Pour publier, lancer {.run ofceweb::deploy_prev(profile = 'publish')}")
   }
 
   invisible(NULL)

@@ -51,7 +51,7 @@ publish_prev(
 
   Logique. Si \`TRUE\`, lance un serveur HTTP local via
   \[servr::httw()\] sur le répertoire de sortie après le rendu. Défaut
-  \`TRUE\` pour le profil \`"staging"\`, \`FALSE\` pour \`"publish"\`.
+  \`TRUE\`
 
 - workers:
 

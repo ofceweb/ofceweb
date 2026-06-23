@@ -48,14 +48,7 @@ fichiers de configuration Quarto (`_quarto.yml`, `_quarto-staging.yml`,
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">setup_prev</span><span class="op">(</span></span>
-<span>  path <span class="op">=</span> <span class="st">"."</span>,</span>
-<span>  prev <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  annee <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.Date</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"%Y"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  mois <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  encrypt <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  versionning <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">setup_prev</span><span class="op">(</span>path <span class="op">=</span> <span class="st">"."</span>, encrypt <span class="op">=</span> <span class="cn">TRUE</span>, versionning <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -64,6 +57,16 @@ fichiers de configuration Quarto (`_quarto.yml`, `_quarto-staging.yml`,
 
 <dl><dt id="arg-path">path<a class="anchor" aria-label="anchor" href="#arg-path"></a></dt>
 <dd><p>Chemin vers la racine du dépôt. Défaut `"."`.</p></dd>
+
+
+<dt id="arg-encrypt">encrypt<a class="anchor" aria-label="anchor" href="#arg-encrypt"></a></dt>
+<dd><p>Logique. Si `TRUE` (défaut), positionne `encrypt_site: true`
+dans `_quarto-staging.yml` (le chiffrement a lieu en CI).</p></dd>
+
+
+<dt id="arg-versionning">versionning<a class="anchor" aria-label="anchor" href="#arg-versionning"></a></dt>
+<dd><p>Logique. Si `TRUE` (défaut), initialise la version
+staging à `"v0"`.</p></dd>
 
 
 <dt id="arg-prev">prev<a class="anchor" aria-label="anchor" href="#arg-prev"></a></dt>
@@ -81,16 +84,6 @@ du nom du dossier si `prev` est aussi déduit.</p></dd>
 <dd><p>Entier. Mois de la prévision : `3` (mars) ou `9` (septembre).
 Déduit du nom du dossier si `prev` est aussi déduit.</p></dd>
 
-
-<dt id="arg-encrypt">encrypt<a class="anchor" aria-label="anchor" href="#arg-encrypt"></a></dt>
-<dd><p>Logique. Si `TRUE` (défaut), positionne `encrypt_site: true`
-dans `_quarto-staging.yml` (le chiffrement a lieu en CI).</p></dd>
-
-
-<dt id="arg-versionning">versionning<a class="anchor" aria-label="anchor" href="#arg-versionning"></a></dt>
-<dd><p>Logique. Si `TRUE` (défaut), initialise la version
-staging à `"v0"`.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -100,8 +93,8 @@ staging à `"v0"`.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>La fonction est **non-destructive** pour les fichiers utilisateur (`.qmd`,
 scripts `data_pays/`) : ils ne sont copiés que s'ils sont absents. En
-revanche, `_extensions/` et `www/` sont **toujours mis à jour** (ressources
-du package).</p>
+revanche, `_extensions/`, `www/` et les **workflows GitHub Actions** sont
+**toujours mis à jour** depuis la version de référence du package.</p>
     </div>
     <div class="section level2">
     <h2 id="structure-cr-e-">Structure créée <a class="anchor" aria-label="anchor" href="#structure-cr-e-"></a></h2>

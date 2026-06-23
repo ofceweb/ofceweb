@@ -9,14 +9,7 @@ de la prévision.
 ## Usage
 
 ``` r
-setup_prev(
-  path = ".",
-  prev = NULL,
-  annee = as.integer(format(Sys.Date(), "%Y")),
-  mois = NULL,
-  encrypt = TRUE,
-  versionning = TRUE
-)
+setup_prev(path = ".", encrypt = TRUE, versionning = TRUE)
 ```
 
 ## Arguments
@@ -24,6 +17,16 @@ setup_prev(
 - path:
 
   Chemin vers la racine du dépôt. Défaut \`"."\`.
+
+- encrypt:
+
+  Logique. Si \`TRUE\` (défaut), positionne \`encrypt_site: true\` dans
+  \`\_quarto-staging.yml\` (le chiffrement a lieu en CI).
+
+- versionning:
+
+  Logique. Si \`TRUE\` (défaut), initialise la version staging à
+  \`"v0"\`.
 
 - prev:
 
@@ -41,16 +44,6 @@ setup_prev(
   Entier. Mois de la prévision : \`3\` (mars) ou \`9\` (septembre).
   Déduit du nom du dossier si \`prev\` est aussi déduit.
 
-- encrypt:
-
-  Logique. Si \`TRUE\` (défaut), positionne \`encrypt_site: true\` dans
-  \`\_quarto-staging.yml\` (le chiffrement a lieu en CI).
-
-- versionning:
-
-  Logique. Si \`TRUE\` (défaut), initialise la version staging à
-  \`"v0"\`.
-
 ## Value
 
 Invisible \`NULL\`. Appelée pour ses effets de bord.
@@ -59,8 +52,9 @@ Invisible \`NULL\`. Appelée pour ses effets de bord.
 
 La fonction est \*\*non-destructive\*\* pour les fichiers utilisateur
 (\`.qmd\`, scripts \`data_pays/\`) : ils ne sont copiés que s'ils sont
-absents. En revanche, \`\_extensions/\` et \`www/\` sont \*\*toujours
-mis à jour\*\* (ressources du package).
+absents. En revanche, \`\_extensions/\`, \`www/\` et les \*\*workflows
+GitHub Actions\*\* sont \*\*toujours mis à jour\*\* depuis la version de
+référence du package.
 
 ## Structure créée
 

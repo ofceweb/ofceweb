@@ -10,7 +10,7 @@ vers \`site-staging\` ; pour publish, pousse \`\_site_publish/\` vers
 ``` r
 deploy_prev(
   path = ".",
-  target = "staging",
+  profile = "staging",
   progress = TRUE,
   trigger = TRUE,
   full_deploy = FALSE
@@ -23,7 +23,7 @@ deploy_prev(
 
   Chemin vers la racine du dépôt. Défaut \`"."\`.
 
-- target:
+- profile:
 
   \`"staging"\` (défaut) ou \`"publish"\`.
 

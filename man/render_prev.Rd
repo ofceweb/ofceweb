@@ -9,7 +9,7 @@ render_prev(
   profile = "staging",
   check_repo = TRUE,
   progress = TRUE,
-  preview = (profile == "staging"),
+  preview = TRUE,
   workers = 8L
 )
 }
@@ -26,8 +26,7 @@ via [check_repo_status()].}
 \item{progress}{Logique. Affichage de la progression. Défaut `TRUE`.}
 
 \item{preview}{Logique. Si `TRUE`, lance un serveur HTTP local via
-[servr::httw()] sur le répertoire de sortie après le rendu. Défaut `TRUE`
-pour le profil `"staging"`, `FALSE` pour `"publish"`.}
+[servr::httw()] sur le répertoire de sortie après le rendu. Défaut `TRUE`}
 
 \item{workers}{Entier. Nombre de workers parallèles. Défaut `8L`.}
 }

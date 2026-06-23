@@ -14,7 +14,6 @@
 #' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
 #' @param preview Logique. Si `TRUE`, lance un serveur HTTP local via
 #'   [servr::httw()] sur le répertoire de sortie après le rendu. Défaut `TRUE`
-#'   pour le profil `"staging"`, `FALSE` pour `"publish"`.
 #' @param workers Entier. Nombre de workers parallèles. Défaut `8L`.
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
@@ -35,7 +34,7 @@ render_prev <- function(
     profile  = "staging",
     check_repo = TRUE,
     progress   = TRUE,
-    preview    = (profile == "staging"),
+    preview    = TRUE,
     workers    = 8L) {
 
   profile <- match.arg(profile, c("staging", "publish"))

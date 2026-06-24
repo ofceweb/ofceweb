@@ -75,6 +75,8 @@ contributes:
         - html_template/title-metadata.html
       include-in-header:
         - blog-nav-active.html
+      include-after-body:
+        - encadre.js
 
     pdf:
       documentclass: scrartcl

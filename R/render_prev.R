@@ -91,7 +91,7 @@ render_prev <- function(
 
   cli::cli_text(
     "Rendu dans {.path {site_dir}}. \\
-     Pour déployer, lancer {.run ofceweb::deploy_prev('{profile}')}")
+     Pour déployer, lancer {.run ofceweb::deploy_prev(profile='{profile}')}")
 
   if (preview) {
     cli::cli_h2("Prévisualisation locale ({site_dir})")

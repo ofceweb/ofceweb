@@ -1,0 +1,264 @@
+---
+title: "Prévisions OFCE : initialisation, rendu et déploiement"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Prévisions OFCE : initialisation, rendu et déploiement}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+Ce vignette décrit le cycle complet d'un dépôt de prévision OFCE :
+initialisation, vérification, rendu et déploiement. Les fonctions
+principales sont :
+
+- `setup_prev()` — initialise ou met à jour le dépôt,
+- `check_prev()` — diagnostique la configuration,
+- `render_prev()` — construit le site avec le profil Quarto choisi,
+- `deploy_prev()` — pousse le site rendu vers le bon serveur.
+
+**Pré-requis.** Vous devez disposer d'un PAT GitHub stocké dans
+`DEPLOY_PAT` et de l'outil `gh` (GitHub CLI) authentifié. Si ce n'est
+pas encore le cas, voir
+[*Pré-requis : PAT GitHub, gh CLI, variables d'environnement*](prerequisites.html).
+
+## 1. Architecture d'un dépôt de prévision
+
+Un dépôt de prévision porte un nom de la forme `prev{YY}0{3|9}`
+(ex. `prev2603` pour mars 2026, `prev2609` pour septembre 2026). Il
+produit jusqu'à trois sorties selon le profil Quarto activé :
+
+| Profil | Répertoire local | Branche git | Workflow CI | Destination FTP |
+|--------|-----------------|-------------|-------------|-----------------|
+| `staging` | `_site_staging/` | `site-staging` | `ftp_deploy_staging.yml` | `staging/prev{id}/v{N}/` |
+| `publish` | `_site_publish/` | `site-publish` | `ftp_deploy_publish.yml` | `prev/prev{id}/` |
+| `{profil}` | `_site_{profil}/` | `site-{profil}` | `ftp_deploy_profile.yml` | `prev{id}/{profil}/` |
+
+Le chiffrement (staticrypt) est appliqué **en CI**, pas en local. Les
+fichiers rendus sont poussés en clair sur la branche de déploiement ;
+c'est le workflow GitHub Actions qui chiffre avant le transfert FTP.
+
+## 2. Initialiser le dépôt
+
+```r
+# depuis la racine du dépôt cloné localement
+ofceweb::setup_prev()
+```
+
+Le nom du dossier (ex. `prev2603`) est utilisé pour déduire
+automatiquement `prev`, `annee` et `mois`. `setup_prev()` peut
+être relancé à tout moment : les fichiers `.qmd` existants et les
+scripts `data_pays/` ne sont jamais écrasés.
+
+Ce que fait `setup_prev()` :
+
+- Copie les extensions Quarto OFCE et les assets `www/` (toujours
+  mis à jour depuis la version du package).
+- Crée (si absent) `_quarto.yml`, `_quarto-staging.yml`,
+  `_quarto-publish.yml`.
+- Copie les gabarits `.qmd` de base dans `france/`, `inter/`,
+  `fiches/`, `tableaux_comptes/` (non-destructif).
+- Dépose les trois workflows GitHub Actions dans `.github/workflows/` :
+  `ftp_deploy_staging.yml`, `ftp_deploy_publish.yml` et
+  `ftp_deploy_profile.yml` (toujours mis à jour).
+- Définit les variables GitHub `FTP_STAGING_DIR` et
+  `FTP_PUBLISH_DIR` via `gh variable set`.
+
+Après `setup_prev()`, commiter et pousser avant de rendre le site.
+Définir le secret `STATICRYPT_PASSWORD` si ce n'est pas encore fait :
+
+```sh
+gh secret set STATICRYPT_PASSWORD
+```
+
+## 3. Vérifier la configuration
+
+```r
+ofceweb::check_prev()
+```
+
+`check_prev()` parcourt la configuration et signale deux niveaux de
+problèmes :
+
+- **Erreurs bloquantes** — empêcheront le rendu ou le déploiement en
+  CI (ex. `_quarto-staging.yml` absent, `FTP_STAGING_DIR` non définie).
+- **Avertissements** — n'empêchent pas le travail local mais peuvent
+  causer des échecs CI (ex. `STATICRYPT_PASSWORD` non défini, fichier
+  de profil déclaré mais manquant).
+
+`check_prev()` retourne un data frame invisible avec les colonnes
+`field`, `status` (`"ok"`, `"warning"`, `"error"`) et `message`, ce
+qui permet de l'intégrer dans des pipelines automatisés.
+
+## 4. Rendre le site
+
+```r
+# Profil staging (défaut)
+ofceweb::render_prev(profile = "staging")
+
+# Profil publish
+ofceweb::render_prev(profile = "publish")
+
+# Profil personnalisé (ex. brouillon)
+ofceweb::render_prev(profile = "review")
+```
+
+`render_prev()` :
+
+1. Vérifie que `_quarto.yml` est présent et marqué `ofce_prev: true`.
+2. Vide le répertoire de sortie `_site_{profil}/`.
+3. Lance `quarto::quarto_render(profile = profil)` en parallèle
+   (`workers = 8L` par défaut).
+4. Supprime les fichiers `.DS_Store` du répertoire de sortie.
+5. Lance optionnellement un serveur local (`servr::httw()`) pour
+   prévisualiser le résultat (`preview = TRUE` par défaut).
+
+Pour un profil personnalisé comme `"review"`, il faut avoir déclaré ce
+profil dans `_quarto.yml` et créé le fichier `_quarto-review.yml`
+correspondant (voir §6).
+
+## 5. Déployer
+
+```r
+# Déployer la version staging
+ofceweb::deploy_prev(profile = "staging")
+
+# Déployer la version publish
+ofceweb::deploy_prev(profile = "publish")
+
+# Déployer un profil personnalisé
+ofceweb::deploy_prev(profile = "review")
+```
+
+`deploy_prev()` suppose que le rendu a déjà été effectué (le dossier
+`_site_{profil}/` doit exister). Il :
+
+1. Copie `_site_{profil}/` dans un dépôt git temporaire.
+2. Force-push vers la branche `site-{profil}` de `origin`.
+3. Déclenche le workflow GitHub Actions correspondant via
+   `workflow_dispatch`.
+
+Pour les profils personnalisés, le workflow `ftp_deploy_profile.yml`
+déploie vers `prev{id}/{profil}/` sur le serveur staging, avec
+chiffrement staticrypt — le profil joue le rôle de version.
+
+Les fonctions `stage_prev()` et `publish_prev()` combinent rendu et
+déploiement en un appel :
+
+```r
+ofceweb::stage_prev()    # render_prev("staging") + site2staging()
+ofceweb::publish_prev()  # render_prev("publish") + site2publish()
+```
+
+Pour forcer un re-upload FTP complet (utile après nettoyage côté
+serveur) :
+
+```r
+ofceweb::deploy_prev(profile = "staging", full_deploy = TRUE)
+```
+
+## 6. Profils personnalisés
+
+Un profil personnalisé permet de publier une version alternative du
+site (brouillon, revue, variante de scénario…) sur le serveur staging,
+dans un sous-dossier dédié, sans toucher aux versions staging et
+publish habituelles.
+
+### Créer un profil
+
+1. Déclarer le profil dans `_quarto.yml` :
+
+```yaml
+profile:
+  default: staging
+  group:
+    - [staging, publish, review]   # ajouter le profil ici
+```
+
+2. Créer le fichier `_quarto-review.yml` à la racine du dépôt. Au
+   minimum, il doit définir le répertoire de sortie :
+
+```yaml
+project:
+  output-dir: _site_review
+
+website:
+  site-path: staging/prev2603/review
+```
+
+3. Rendre et déployer :
+
+```r
+ofceweb::render_prev(profile = "review")
+ofceweb::deploy_prev(profile = "review")
+```
+
+Le site est alors accessible sous `staging/prev2603/review/` sur le
+serveur FTP (après chiffrement CI). Le fichier d'état FTP incrémental
+est maintenu séparément pour chaque profil (branche `site-review`).
+
+### Différences avec staging/publish
+
+| Aspect | `staging` / `publish` | Profil personnalisé |
+|--------|-----------------------|---------------------|
+| Versionnage | `staging/prev{id}/v{N}/` | Pas de version — le profil est le segment |
+| `prev_version_up()` | Applicable | Sans objet |
+| Workflow CI | `ftp_deploy_staging.yml` ou `ftp_deploy_publish.yml` | `ftp_deploy_profile.yml` |
+| Chiffrement | Oui (staging) / Non (publish) | Oui (même mot de passe que staging) |
+| Credentials FTP | Staging ou publish | Staging |
+
+## 7. Gestion des versions staging
+
+Le segment de version (`v0`, `v1`, …) apparaît dans le `site-path` du
+profil staging et dans `FTP_STAGING_DIR`. Pour incrémenter la version
+(par exemple avant un embargo) :
+
+```r
+ofceweb::prev_version_up()
+```
+
+Cela met à jour `_quarto-staging.yml` et la variable GitHub
+`FTP_STAGING_DIR`. Le prochain déploiement staging atterrira dans un
+nouveau sous-dossier, laissant la version précédente intacte sur le
+FTP.
+
+## 8. Récapitulatif
+
+```r
+# 1. dépôt cloné, session R à sa racine
+ofceweb::setup_prev()
+# git add . && git commit -m "init" && git push
+
+# 2. vérifier la configuration
+ofceweb::check_prev()
+
+# 3. rendre
+ofceweb::render_prev(profile = "staging")   # ou "publish", ou un profil custom
+
+# 4. déployer
+ofceweb::deploy_prev(profile = "staging")
+
+# raccourcis render + deploy
+ofceweb::stage_prev()
+ofceweb::publish_prev()
+```
+
+## Fonctions de référence
+
+| Fonction | Rôle |
+|----------|------|
+| `setup_prev()` | Initialise / met à jour le dépôt |
+| `check_prev()` | Diagnostique la configuration |
+| `render_prev(profile)` | Construit `_site_{profile}/` |
+| `deploy_prev(profile)` | Pousse vers la branche et déclenche le CI |
+| `stage_prev()` | render staging + deploy staging |
+| `publish_prev()` | render publish + deploy publish |
+| `site2staging()` | Deploy-only vers `site-staging` |
+| `site2publish()` | Deploy-only vers `site-publish` |
+| `site2profile(profile)` | Deploy-only vers `site-{profile}` |
+| `prev_version_up()` | Incrémente le segment de version staging |
+| `site2branch()` | Primitive git : force-push un dossier vers une branche |
+| `trigger_action()` | Déclenche un workflow GitHub Actions via API |

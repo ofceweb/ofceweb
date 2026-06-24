@@ -28,17 +28,24 @@ Contrôles effectués :
 \enumerate{
   \item Nom du dossier conforme à `prev{YY}0{3|9}` (ex. `prev2603`)
   \item Présence des sous-dossiers `france/`, `inter/`, `fiches/`,
-    `tableaux_comptes/`
+    `tableaux_comptes/`, `data_pays/`
   \item `_quarto.yml` présent et lisible
   \item Marqueur `ofce_prev: true` présent
   \item Champs `prev`, `annee`, `mois` présents dans `_quarto.yml`
+  \item `project.type: ofce-website` présent dans `_quarto.yml`
+  \item Section `profile` de `_quarto.yml` : `default: staging` et groupe
+    `[staging, publish]` (avertissements non bloquants si modifiés) ; vérifie
+    que les fichiers `_quarto-{profil}.yml` existent pour chaque profil déclaré
   \item `_quarto-staging.yml` présent avec `version`, `site-path` de la
-    forme `staging/prev{YYMM}/v{N}`, et `encrypt_site: true`
+    forme `staging/prev{YYMM}/v{N}`, `encrypt_site: true`,
+    `comments.hypothesis: true`, et `project.output-dir: _site_staging`
   \item `_quarto-publish.yml` présent avec `site-path` de la forme
-    `prev/prev{YYMM}`
+    `prev/prev{YYMM}`, `encrypt_site: false`, `comments.hypothesis: false`,
+    et `project.output-dir: _site_publish`
   \item Cohérence du `prev` id entre `_quarto.yml` et les deux profils
   \item `.github/workflows/ftp_deploy_staging.yml` présent
   \item `.github/workflows/ftp_deploy_publish.yml` présent
+  \item `.github/workflows/ftp_deploy_profile.yml` présent
   \item Variables GitHub `FTP_STAGING_DIR` et `FTP_PUBLISH_DIR` définies
     (vérification via `gh` CLI, avec fallback silencieux si absent)
   \item Secret GitHub `STATICRYPT_PASSWORD` défini (warning non bloquant —

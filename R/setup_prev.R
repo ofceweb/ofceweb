@@ -25,7 +25,8 @@
 #' ├── data_pays/               # scripts de données agrégées (non-destructif)
 #' └── .github/workflows/
 #'     ├── ftp_deploy_staging.yml
-#'     └── ftp_deploy_publish.yml
+#'     ├── ftp_deploy_publish.yml
+#'     └── ftp_deploy_profile.yml
 #' ```
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.

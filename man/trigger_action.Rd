@@ -4,7 +4,12 @@
 \alias{trigger_action}
 \title{Trigger a GitHub Actions workflow via `workflow_dispatch`}
 \usage{
-trigger_action(root = ".", workflow = "ftp_deploy.yml", branch = NULL)
+trigger_action(
+  root = ".",
+  workflow = "ftp_deploy.yml",
+  branch = NULL,
+  inputs = list()
+)
 }
 \arguments{
 \item{root}{`[character(1)]`\cr
@@ -18,6 +23,10 @@ File name of the workflow to dispatch (e.g. `"ftp_deploy.yml"`).}
 \item{branch}{`[character(1)]`\cr
 Branch on which the workflow will be run. Defaults to `NULL`, which
 auto-detects the repository's default branch via the GitHub API.}
+
+\item{inputs}{`[list()]`\cr
+Named list of workflow inputs passed to the `workflow_dispatch` event
+(e.g. `list(profile = "review")`). Defaults to an empty list (no inputs).}
 }
 \value{
 Invisibly returns `NULL`. Called for its side effects.

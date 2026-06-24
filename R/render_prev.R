@@ -6,9 +6,10 @@
 #' avant le transfert FTP.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
-#' @param profile `"staging"` (défaut) ou `"publish"`. Détermine le profil
-#'   Quarto utilisé et le répertoire de sortie (`_site_staging` ou
-#'   `_site_publish`).
+#' @param profile `"staging"` (défaut), `"publish"`, ou tout autre profil
+#'   Quarto déclaré dans `_quarto.yml`. Détermine le répertoire de sortie
+#'   (`_site_staging`, `_site_publish`, ou `_site_{profile}` pour tout autre
+#'   profil).
 #' @param check_repo Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
 #'   via [check_repo_status()].
 #' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
@@ -36,8 +37,6 @@ render_prev <- function(
     progress   = TRUE,
     preview    = TRUE,
     workers    = 8L) {
-
-  profile <- match.arg(profile, c("staging", "publish"))
 
   root <- path |>
     fs::path_expand() |>
@@ -69,7 +68,7 @@ render_prev <- function(
   servr::daemon_stop()
   future::plan(future.mirai::mirai_multisession, workers = workers)
 
-  site_dir <- if (profile == "staging") "_site_staging" else "_site_publish"
+  site_dir <- paste0("_site_", profile)
 
   # Vider le répertoire de sortie
   if (fs::dir_exists(site_dir))

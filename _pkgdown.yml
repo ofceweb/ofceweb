@@ -99,6 +99,7 @@ articles:
   - prerequisites
   - working-papers
   - build-a-site
+  - previsions
 
 deploy:
   install_metadata: true

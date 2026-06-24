@@ -1,7 +1,7 @@
 <script>
   /* === Encadrés preview === */
 document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.callout.enc-preview').forEach(function (el) {
+  document.querySelectorAll('.callout-tip').forEach(function (el) {
     var btnOpen = document.createElement('button');
     btnOpen.className = 'enc-preview-btn enc-open-btn';
     btnOpen.textContent = '▼ Lire la suite\u2026';

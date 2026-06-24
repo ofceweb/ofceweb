@@ -498,14 +498,14 @@ a {
 
 
 // encadré avec 3 lignes et un boutton spécifique
-.callout.enc-preview .callout-body-container {
+.callout-tip .callout-body-container {
   max-height: 7.5em;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
   mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
   transition: max-height 0.35s ease;
 }
-.callout.enc-preview.enc-expanded .callout-body-container {
+.callout-tip.enc-expanded .callout-body-container {
   max-height: 9999px;
   overflow: visible;
   -webkit-mask-image: none;
@@ -524,9 +524,9 @@ a {
 .enc-preview-btn.enc-close-btn {
   display: none;
 }
-.callout.enc-preview.enc-expanded .enc-preview-btn.enc-open-btn {
+.callout-tip.enc-expanded .enc-preview-btn.enc-open-btn {
   display: none;
 }
-.callout.enc-preview.enc-expanded .enc-preview-btn.enc-close-btn {
+.callout-tip.enc-expanded .enc-preview-btn.enc-close-btn {
   display: inline-block;
 }

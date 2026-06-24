@@ -45,7 +45,7 @@ jobs:
             --directory /tmp/staticrypt-out \
             --password "$STATICRYPT_PASSWORD" \
             --short \
-            --remenber 0
+            --remenber 0 \
             --template-color-primary "#e6142d" \
             --template-color-secondary "#f9f9f3" \
             --template-title "Accès restreint" \

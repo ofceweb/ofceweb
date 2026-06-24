@@ -34,7 +34,7 @@
     <div class="section level2">
       <h2 id="pr-visions">Prévisions<a class="anchor" aria-label="anchor" href="#pr-visions"></a></h2>
 
-      <div class="section-desc"><p>Suite complète pour les dépôts de prévision OFCE (<code>prev{YY}0{3|9}</code>). Deux modes de déploiement : <strong>staging</strong> (versionné, chiffré en CI via staticrypt) et <strong>publish</strong> (URL fixe, non chiffré). Le chiffrement du site staging est appliqué par le workflow GitHub Actions <code>ftp_deploy_staging.yml</code> — pas localement.</p></div>
+      <div class="section-desc"><p>Suite complète pour les dépôts de prévision OFCE (<code>prev{YY}0{3|9}</code>). Trois modes de déploiement : <strong>staging</strong> (versionné, chiffré en CI via staticrypt), <strong>publish</strong> (URL fixe, non chiffré), et <strong>profils personnalisés</strong> (arbitrary Quarto profiles avec chiffrement). Le chiffrement des sites staging et custom est appliqué par les workflows GitHub Actions — pas localement.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -89,6 +89,13 @@
 
         </dt>
         <dd>Pousse `_site_staging/` vers la branche `site-staging`</dd>
+
+        <dt>
+
+          <code><a href="site2profile.html">site2profile()</a></code>
+
+        </dt>
+        <dd>Déploie un profil personnalisé vers staging/repo/profile/</dd>
 
         <dt>
 
@@ -289,7 +296,7 @@
       </dl></div><div class="section level2">
       <h2 id="d-ploiement-utilitaires">Déploiement &amp; utilitaires<a class="anchor" aria-label="anchor" href="#d-ploiement-utilitaires"></a></h2>
 
-      <div class="section-desc"><p>Fonctions de bas niveau partagées entre les différents types de dépôts : push vers une branche de déploiement, déclenchement de workflows GitHub Actions, téléchargement de fichiers depuis GitHub.</p></div>
+      <div class="section-desc"><p>Fonctions de bas niveau partagées entre les différents types de dépôts : push vers une branche de déploiement, déclenchement de workflows GitHub Actions avec inputs optionnels, téléchargement de fichiers depuis GitHub.</p></div>
 
       <dl></dl></div><div class="section level2">
 

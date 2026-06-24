@@ -17,7 +17,8 @@ site2branch(
   progress = TRUE,
   trigger = TRUE,
   workflow = "ftp_deploy.yml",
-  full_deploy = FALSE
+  full_deploy = FALSE,
+  inputs = list()
 )
 ```
 
@@ -65,6 +66,13 @@ site2branch(
   incremental. Set to \`TRUE\` to zero out every hash in the state file
   before pushing, which causes ftp-deploy to re-upload every file
   without deleting anything unrelated on the FTP server.
+
+- inputs:
+
+  \`\[list()\]\`  
+  Named list of workflow inputs forwarded to \[trigger_action()\] and
+  passed as \`workflow_dispatch\` inputs (e.g. \`list(profile =
+  "review")\`). Defaults to an empty list.
 
 ## Value
 

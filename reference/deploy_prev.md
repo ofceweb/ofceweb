@@ -25,7 +25,9 @@ deploy_prev(
 
 - profile:
 
-  \`"staging"\` (défaut) ou \`"publish"\`.
+  \`"staging"\` (défaut), \`"publish"\`, ou tout autre profil Quarto
+  déclaré dans \`\_quarto.yml\`. Les profils personnalisés sont déployés
+  vers \`staging/repo/profile/\` sans numéro de version.
 
 - progress:
 

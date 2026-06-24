@@ -67,8 +67,8 @@ jour) ├── france/data/ \# données France (.gitkeep) ├── inter/data/
 données International (.gitkeep) ├── fiches/data/ \# données Analyses
 Pays (.gitkeep) ├── tableaux_comptes/ \# tableaux de comptes nationaux
 ├── data_pays/ \# scripts de données agrégées (non-destructif) └──
-.github/workflows/ ├── ftp_deploy_staging.yml └── ftp_deploy_publish.yml
-“\`
+.github/workflows/ ├── ftp_deploy_staging.yml ├── ftp_deploy_publish.yml
+└── ftp_deploy_profile.yml “\`
 
 ## Prévision Users
 

@@ -35,7 +35,7 @@ Contrôles effectués :
 1.  Nom du dossier conforme à \`prevYY03\|9\` (ex. \`prev2603\`)
 
 2.  Présence des sous-dossiers \`france/\`, \`inter/\`, \`fiches/\`,
-    \`tableaux_comptes/\`
+    \`tableaux_comptes/\`, \`data_pays/\`
 
 3.  \`\_quarto.yml\` présent et lisible
 
@@ -43,22 +43,34 @@ Contrôles effectués :
 
 5.  Champs \`prev\`, \`annee\`, \`mois\` présents dans \`\_quarto.yml\`
 
-6.  \`\_quarto-staging.yml\` présent avec \`version\`, \`site-path\` de
-    la forme \`staging/prevYYMM/vN\`, et \`encrypt_site: true\`
+6.  \`project.type: ofce-website\` présent dans \`\_quarto.yml\`
 
-7.  \`\_quarto-publish.yml\` présent avec \`site-path\` de la forme
-    \`prev/prevYYMM\`
+7.  Section \`profile\` de \`\_quarto.yml\` : \`default: staging\` et
+    groupe \`\[staging, publish\]\` (avertissements non bloquants si
+    modifiés) ; vérifie que les fichiers \`\_quarto-profil.yml\`
+    existent pour chaque profil déclaré
 
-8.  Cohérence du \`prev\` id entre \`\_quarto.yml\` et les deux profils
+8.  \`\_quarto-staging.yml\` présent avec \`version\`, \`site-path\` de
+    la forme \`staging/prevYYMM/vN\`, \`encrypt_site: true\`,
+    \`comments.hypothesis: true\`, et \`project.output-dir:
+    \_site_staging\`
 
-9.  \`.github/workflows/ftp_deploy_staging.yml\` présent
+9.  \`\_quarto-publish.yml\` présent avec \`site-path\` de la forme
+    \`prev/prevYYMM\`, \`encrypt_site: false\`, \`comments.hypothesis:
+    false\`, et \`project.output-dir: \_site_publish\`
 
-10. \`.github/workflows/ftp_deploy_publish.yml\` présent
+10. Cohérence du \`prev\` id entre \`\_quarto.yml\` et les deux profils
 
-11. Variables GitHub \`FTP_STAGING_DIR\` et \`FTP_PUBLISH_DIR\` définies
+11. \`.github/workflows/ftp_deploy_staging.yml\` présent
+
+12. \`.github/workflows/ftp_deploy_publish.yml\` présent
+
+13. \`.github/workflows/ftp_deploy_profile.yml\` présent
+
+14. Variables GitHub \`FTP_STAGING_DIR\` et \`FTP_PUBLISH_DIR\` définies
     (vérification via \`gh\` CLI, avec fallback silencieux si absent)
 
-12. Secret GitHub \`STATICRYPT_PASSWORD\` défini (warning non bloquant —
+15. Secret GitHub \`STATICRYPT_PASSWORD\` défini (warning non bloquant —
     le rendu local fonctionne sans lui, mais le workflow CI staging
     échouera)
 

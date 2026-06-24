@@ -74,17 +74,24 @@ un rendu ou un déploiement.</p>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Contrôles effectués :</p><ol><li><p>Nom du dossier conforme à `prevYY03|9` (ex. `prev2603`)</p></li>
 <li><p>Présence des sous-dossiers `france/`, `inter/`, `fiches/`,
-    `tableaux_comptes/`</p></li>
+    `tableaux_comptes/`, `data_pays/`</p></li>
 <li><p>`_quarto.yml` présent et lisible</p></li>
 <li><p>Marqueur `ofce_prev: true` présent</p></li>
 <li><p>Champs `prev`, `annee`, `mois` présents dans `_quarto.yml`</p></li>
+<li><p>`project.type: ofce-website` présent dans `_quarto.yml`</p></li>
+<li><p>Section `profile` de `_quarto.yml` : `default: staging` et groupe
+    `[staging, publish]` (avertissements non bloquants si modifiés) ; vérifie
+    que les fichiers `_quarto-profil.yml` existent pour chaque profil déclaré</p></li>
 <li><p>`_quarto-staging.yml` présent avec `version`, `site-path` de la
-    forme `staging/prevYYMM/vN`, et `encrypt_site: true`</p></li>
+    forme `staging/prevYYMM/vN`, `encrypt_site: true`,
+    `comments.hypothesis: true`, et `project.output-dir: _site_staging`</p></li>
 <li><p>`_quarto-publish.yml` présent avec `site-path` de la forme
-    `prev/prevYYMM`</p></li>
+    `prev/prevYYMM`, `encrypt_site: false`, `comments.hypothesis: false`,
+    et `project.output-dir: _site_publish`</p></li>
 <li><p>Cohérence du `prev` id entre `_quarto.yml` et les deux profils</p></li>
 <li><p>`.github/workflows/ftp_deploy_staging.yml` présent</p></li>
 <li><p>`.github/workflows/ftp_deploy_publish.yml` présent</p></li>
+<li><p>`.github/workflows/ftp_deploy_profile.yml` présent</p></li>
 <li><p>Variables GitHub `FTP_STAGING_DIR` et `FTP_PUBLISH_DIR` définies
     (vérification via `gh` CLI, avec fallback silencieux si absent)</p></li>
 <li><p>Secret GitHub `STATICRYPT_PASSWORD` défini (warning non bloquant —

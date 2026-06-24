@@ -7,7 +7,12 @@ automatically by \[site2branch()\] unless \`trigger = FALSE\`.
 ## Usage
 
 ``` r
-trigger_action(root = ".", workflow = "ftp_deploy.yml", branch = NULL)
+trigger_action(
+  root = ".",
+  workflow = "ftp_deploy.yml",
+  branch = NULL,
+  inputs = list()
+)
 ```
 
 ## Arguments
@@ -29,6 +34,13 @@ trigger_action(root = ".", workflow = "ftp_deploy.yml", branch = NULL)
   \`\[character(1)\]\`  
   Branch on which the workflow will be run. Defaults to \`NULL\`, which
   auto-detects the repository's default branch via the GitHub API.
+
+- inputs:
+
+  \`\[list()\]\`  
+  Named list of workflow inputs passed to the \`workflow_dispatch\`
+  event (e.g. \`list(profile = "review")\`). Defaults to an empty list
+  (no inputs).
 
 ## Value
 

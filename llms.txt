@@ -158,10 +158,11 @@ est en cours de développement
 ## Prévisions
 
 Suite complète pour les dépôts de prévision OFCE (`prev{YY}0{3|9}`).
-Deux modes de déploiement : **staging** (versionné, chiffré en CI via
-staticrypt) et **publish** (URL fixe, non chiffré). Le chiffrement du
-site staging est appliqué par le workflow GitHub Actions
-`ftp_deploy_staging.yml` — pas localement.
+Trois modes de déploiement : **staging** (versionné, chiffré en CI via
+staticrypt), **publish** (URL fixe, non chiffré), et **profils
+personnalisés** (arbitrary Quarto profiles avec chiffrement). Le
+chiffrement des sites staging et custom est appliqué par les workflows
+GitHub Actions — pas localement.
 
 - [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
   : Initialise un dépôt de prévision OFCE
@@ -177,6 +178,8 @@ site staging est appliqué par le workflow GitHub Actions
   : Déploie la prévision OFCE (staging ou publish)
 - [`site2staging()`](https://ofceweb.github.io/ofceweb/reference/site2staging.md)
   : Pousse \`\_site_staging/\` vers la branche \`site-staging\`
+- [`site2profile()`](https://ofceweb.github.io/ofceweb/reference/site2profile.md)
+  : Déploie un profil personnalisé vers staging/repo/profile/
 - [`prev_version_up()`](https://ofceweb.github.io/ofceweb/reference/prev_version_up.md)
   : Incrémente la version staging d'une prévision OFCE
 - [`render_prev_publish()`](https://ofceweb.github.io/ofceweb/reference/render_prev_publish.md)
@@ -253,7 +256,8 @@ Fonctions pour le site d’accueil OFCE.
 
 Fonctions de bas niveau partagées entre les différents types de dépôts :
 push vers une branche de déploiement, déclenchement de workflows GitHub
-Actions, téléchargement de fichiers depuis GitHub.
+Actions avec inputs optionnels, téléchargement de fichiers depuis
+GitHub.
 
 - [`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
   : Push a rendered site folder to a Git branch
@@ -276,3 +280,5 @@ Actions, téléchargement de fichiers depuis GitHub.
   Papers)](https://ofceweb.github.io/ofceweb/articles/working-papers.md):
 - [Construire un site avec
   ofceweb](https://ofceweb.github.io/ofceweb/articles/build-a-site.md):
+- [Prévisions OFCE : initialisation, rendu et
+  déploiement](https://ofceweb.github.io/ofceweb/articles/previsions.md):

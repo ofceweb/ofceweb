@@ -8,3 +8,5 @@
   Papers)](https://ofceweb.github.io/ofceweb/articles/working-papers.md):
 - [Construire un site avec
   ofceweb](https://ofceweb.github.io/ofceweb/articles/build-a-site.md):
+- [Prévisions OFCE : initialisation, rendu et
+  déploiement](https://ofceweb.github.io/ofceweb/articles/previsions.md):

@@ -26,9 +26,10 @@ render_prev(
 
 - profile:
 
-  \`"staging"\` (défaut) ou \`"publish"\`. Détermine le profil Quarto
-  utilisé et le répertoire de sortie (\`\_site_staging\` ou
-  \`\_site_publish\`).
+  \`"staging"\` (défaut), \`"publish"\`, ou tout autre profil Quarto
+  déclaré dans \`\_quarto.yml\`. Détermine le répertoire de sortie
+  (\`\_site_staging\`, \`\_site_publish\`, ou \`\_site_profile\` pour
+  tout autre profil).
 
 - check_repo:
 

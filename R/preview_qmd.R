@@ -35,7 +35,11 @@
 #' @section Prévision Users:
 #'
 #' @export
-preview_qmd <- function(profile = NULL, daemon = TRUE, ...) {
+preview_qmd <- function(profile = NULL,
+                        daemon = TRUE,
+                        use_freezer = FALSE,
+                        as_job = FALSE,
+                        ...) {
   if (!rstudioapi::isAvailable())
     cli::cli_abort(
       "{.fn preview_qmd} requiert RStudio (rstudioapi non disponible).")
@@ -108,7 +112,7 @@ preview_qmd <- function(profile = NULL, daemon = TRUE, ...) {
 
   # ---- Rendu ----------------------------------------------------------------
   cli::cli_h2("Rendu Quarto{if (!is.null(profile)) paste0(' [', profile, ']') else ''}")
-  render_args <- list(input = qmd_abs, as_job = FALSE, ...)
+  render_args <- list(input = qmd_abs, as_job = as_job, use_freezer = use_freezer, ...)
   if (!is.null(profile)) render_args$profile <- profile
   do.call(quarto::quarto_render, render_args)
 

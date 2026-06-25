@@ -184,6 +184,9 @@ GitHub Actions — pas localement.
   : Incrémente la version staging d'une prévision OFCE
 - [`render_prev_publish()`](https://ofceweb.github.io/ofceweb/reference/render_prev_publish.md)
   : Génère le site de la prévision (déprécié)
+- [`preview_qmd()`](https://ofceweb.github.io/ofceweb/reference/preview_qmd.md)
+  [`preview_qmd_staging()`](https://ofceweb.github.io/ofceweb/reference/preview_qmd.md)
+  : Prévisualise le document \`.qmd\` actif dans RStudio
 
 ## Working papers
 

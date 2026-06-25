@@ -5,14 +5,17 @@
 #' lance un serveur HTTP local avec [servr::httd()] positionné directement sur
 #' le fichier HTML produit.
 #'
-#' Le répertoire servi et le chemin initial sont déduits automatiquement :
+#' Le répertoire servi et le chemin initial sont déduits automatiquement via
+#' [quarto::quarto_inspect()] :
 #' \enumerate{
-#'   \item Si un `_quarto.yml` est trouvé dans un dossier parent, la racine du
-#'     projet est identifiée.
-#'   \item Si `profile` est non-`NULL`, `_quarto-{profile}.yml` est lu pour en
-#'     extraire `project.output-dir`.
-#'   \item Sans projet ou sans `output-dir` configuré, le serveur pointe sur le
-#'     dossier du `.qmd` lui-même.
+#'   \item `quarto inspect` est appelé sur le fichier avec le `profile` actif ;
+#'     il retourne la racine du projet (`$project$dir`) et le `output-dir`
+#'     résolu (`$project$config$project[["output-dir"]]`).
+#'   \item Si `quarto inspect` échoue (ex. type de projet non reconnu par
+#'     l'installation locale), on bascule sur la lecture manuelle de
+#'     `_quarto.yml` et `_quarto-{profile}.yml`.
+#'   \item Sans projet détecté ou sans `output-dir` configuré, le serveur
+#'     pointe sur le dossier du `.qmd` lui-même.
 #' }
 #'
 #' @param profile `[character(1)]` ou `NULL`.\cr
@@ -25,8 +28,8 @@
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @importFrom fs path_ext path_ext_set path_dir path_file path_norm path_abs path_rel
-#' @importFrom cli cli_abort cli_h1 cli_h2 cli_alert_success cli_alert_info
-#' @importFrom quarto quarto_render
+#' @importFrom cli cli_abort cli_h1 cli_h2 cli_alert_success cli_alert_info cli_alert_warning
+#' @importFrom quarto quarto_render quarto_inspect
 #' @importFrom servr daemon_stop httd
 #' @importFrom yaml read_yaml
 #' @section Prévision Users:
@@ -55,28 +58,49 @@ preview_qmd <- function(profile = NULL, daemon = TRUE, ...) {
 
   cli::cli_h1("preview_qmd : {qmd_name}")
 
-  # ---- Détection du répertoire de sortie ------------------------------------
-  root       <- .find_quarto_root(qmd_abs)
-  render_dir <- NULL
-  html_rel   <- fs::path_ext_set(qmd_name, "html")  # fallback
+  # ---- Détection du répertoire de sortie via quarto_inspect ----------------
+  html_rel <- fs::path_ext_set(qmd_name, "html")  # fallback (fichier seul)
+  root <- output_dir <- render_dir <- NULL
 
-  if (!is.null(root)) {
-    output_dir <- .detect_output_dir(root, profile)
-    if (!is.null(output_dir)) {
-      render_dir <- output_dir
-      # Chemin HTML relatif à output_dir = chemin du .qmd relatif à la racine,
-      # avec l'extension .html
-      qmd_rel  <- fs::path_rel(qmd_abs, root) |> as.character()
-      html_rel <- fs::path_ext_set(qmd_rel, "html") |> as.character()
-      cli::cli_alert_info(
-        "Projet Quarto détecté ({.path {fs::path_file(root)}}), \\
-         sortie : {.path {fs::path_file(output_dir)}/}")
-    } else {
-      render_dir <- fs::path_dir(qmd_abs)
-      cli::cli_alert_info(
-        "Projet Quarto détecté — pas d'output-dir configuré, \\
-         rendu dans le dossier du fichier.")
+  # quarto_inspect est la source autoritaire : il tient compte du profil et
+  # des extensions de projet. On bascule sur l'analyse manuelle des YAML si
+  # la commande échoue (ex. type de projet inconnu de l'installation locale).
+  inspect <- tryCatch(
+    quarto::quarto_inspect(input = qmd_abs, profile = profile, quiet = TRUE),
+    error = function(e) {
+      cli::cli_alert_warning(
+        "quarto inspect a échoué ({conditionMessage(e)}). \\
+         Repli sur la lecture des fichiers YAML.")
+      NULL
     }
+  )
+
+  if (!is.null(inspect) && !is.null(inspect$project)) {
+    root           <- inspect$project$dir
+    output_dir_rel <- inspect$project$config$project[["output-dir"]]
+    if (!is.null(output_dir_rel))
+      output_dir <- fs::path_norm(fs::path(root, output_dir_rel)) |> as.character()
+  } else {
+    # Repli : remontée de l'arborescence + lecture manuelle des YAML
+    root <- .find_quarto_root(qmd_abs)
+    if (!is.null(root))
+      output_dir <- .detect_output_dir(root, profile)
+  }
+
+  if (!is.null(output_dir)) {
+    render_dir <- output_dir
+    # Chemin HTML relatif à output_dir = chemin du .qmd relatif à la racine,
+    # avec l'extension .html
+    qmd_rel  <- fs::path_rel(qmd_abs, root) |> as.character()
+    html_rel <- fs::path_ext_set(qmd_rel, "html") |> as.character()
+    cli::cli_alert_info(
+      "Projet Quarto détecté ({.path {fs::path_file(root)}}), \\
+       sortie : {.path {fs::path_file(output_dir)}/}")
+  } else if (!is.null(root)) {
+    render_dir <- fs::path_dir(qmd_abs)
+    cli::cli_alert_info(
+      "Projet Quarto détecté — pas d'output-dir configuré, \\
+       rendu dans le dossier du fichier.")
   } else {
     render_dir <- fs::path_dir(qmd_abs)
     cli::cli_alert_info("Aucun projet Quarto détecté — rendu dans le dossier du fichier.")

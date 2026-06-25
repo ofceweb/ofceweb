@@ -1,0 +1,18 @@
+Name: Prévisualiser le .qmd actif
+Description: >
+  Rend le document .qmd actif dans RStudio avec quarto_render() puis lance
+  un serveur HTTP local via servr::httd() pour le prévisualiser dans le
+  navigateur. Le profil Quarto et le répertoire de sortie sont auto-détectés
+  depuis _quarto.yml.
+Binding: preview_qmd
+Package: ofceweb
+Interactive: false
+
+Name: Prévisualiser le .qmd actif [staging]
+Description: >
+  Idem que "Prévisualiser le .qmd actif" mais avec le profil Quarto
+  "staging" (sortie dans _site_staging/). Raccourci dédié aux dépôts de
+  prévision OFCE.
+Binding: preview_qmd_staging
+Package: ofceweb
+Interactive: false

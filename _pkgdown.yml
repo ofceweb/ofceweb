@@ -35,6 +35,7 @@ reference:
   - site2profile
   - prev_version_up
   - render_prev_publish
+  - preview_qmd
 
 - title: Working papers
   desc: >

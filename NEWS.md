@@ -1,3 +1,7 @@
+## ofceweb v0.5.3
+
+* la fonction`preview_qmd` permet la prévisualisation du qmd actif. Pratique non ?
+
 ## ofceweb v0.5.2
 
 * Corrections de bugs pour la prévision, nettoyage des paramètres (dont `profile`).

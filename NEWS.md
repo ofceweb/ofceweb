@@ -1,3 +1,9 @@
+## ofceweb v0.5.2
+
+* Corrections de bugs pour la prévision, nettoyage des paramètres (dont `profile`).
+* profils génériques (ie `review`) en plus de `publish`et `staging` déployés sur staging et cryptés avec ALT_STATICRYPT_PASSWORD u 
+* Documentation mise à jour pour la prévision, avec une vignette
+
 ## ofceweb v0.5.1
 
 * protection ajoutée à `setup_wp()` et `setup_prev()` pour ne pas faire le setup si le dossier est autre chose.

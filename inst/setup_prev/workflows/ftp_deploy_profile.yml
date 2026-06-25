@@ -47,11 +47,11 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Vérifier le secret STATICRYPT_PASSWORD
+      - name: Vérifier le secret ALT_STATICRYPT_PASSWORD
         run: |
-          if [ -z "$STATICRYPT_PASSWORD" ]; then
-            echo "::error::Le secret STATICRYPT_PASSWORD n'est pas défini sur ce dépôt."
-            echo "::error::Définissez-le via : gh secret set STATICRYPT_PASSWORD"
+          if [ -z "$ALT_STATICRYPT_PASSWORD" ]; then
+            echo "::error::Le secret ALT_STATICRYPT_PASSWORD n'est pas défini sur ce dépôt."
+            echo "::error::Définissez-le via : gh secret set ALT_STATICRYPT_PASSWORD"
             exit 1
           fi
 
@@ -63,7 +63,7 @@ jobs:
           staticrypt ./ \
             --recursive \
             --directory /tmp/staticrypt-out \
-            --password "$STATICRYPT_PASSWORD" \
+            --password "$ALT_STATICRYPT_PASSWORD" \
             --short \
             --remenber 0 \
             --template-color-primary "#e6142d" \

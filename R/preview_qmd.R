@@ -33,12 +33,11 @@
 #'
 #' @export
 preview_qmd <- function(profile = NULL, daemon = TRUE, ...) {
-
   if (!rstudioapi::isAvailable())
     cli::cli_abort(
       "{.fn preview_qmd} requiert RStudio (rstudioapi non disponible).")
 
-  ctx  <- rstudioapi::getActiveDocumentContext()
+  ctx  <- rstudioapi::getSourceEditorContext()
   path <- ctx$path
 
   if (!nzchar(path))

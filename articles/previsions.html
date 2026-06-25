@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -167,6 +167,8 @@ moment : les fichiers <code>.qmd</code> existants et les scripts
 le site. Définir le secret <code>STATICRYPT_PASSWORD</code> si ce n’est
 pas encore fait :</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">gh</span> secret set STATICRYPT_PASSWORD</span></code></pre></div>
+<p>Pour les profils qui ne sont pas <code>staging</code>, le motde passe
+ÀLT_STATICRYPT_PASSWORD` doit être défini par la même procédure.</p>
 </div>
 <div class="section level2">
 <h2 id="vérifier-la-configuration">3. Vérifier la configuration<a class="anchor" aria-label="anchor" href="#v%C3%A9rifier-la-configuration"></a>
@@ -237,7 +239,8 @@ avoir déclaré ce profil dans <code>_quarto.yml</code> et créé le fichier
 <li>Copie <code>_site_{profil}/</code> dans un dépôt git
 temporaire.</li>
 <li>Force-push vers la branche <code>site-{profil}</code> de
-<code>origin</code>.</li>
+<code>origin</code>. Cette branche ne retient pas d’historique et donc
+ne surcharge pas <code>git</code>.</li>
 <li>Déclenche le workflow GitHub Actions correspondant via
 <code>workflow_dispatch</code>.</li>
 </ol>
@@ -330,8 +333,8 @@ séparément pour chaque profil (branche <code>site-review</code>).</p>
 </tr>
 <tr class="even">
 <td>Chiffrement</td>
-<td>Oui (staging) / Non (publish)</td>
-<td>Oui (même mot de passe que staging)</td>
+<td>Oui (<code>STATICRYPT_PASSWORD</code>) / Non (publish)</td>
+<td>Oui (<code>ALT_STATICRYPT_PASSWORD</code>)</td>
 </tr>
 <tr class="odd">
 <td>Credentials FTP</td>

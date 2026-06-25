@@ -73,6 +73,9 @@ commiter et pousser avant de rendre le site. Définir le secret
 gh secret set STATICRYPT_PASSWORD
 ```
 
+Pour les profils qui ne sont pas `staging`, le motde passe
+ÀLT_STATICRYPT_PASSWORD\` doit être défini par la même procédure.
+
 ## 3. Vérifier la configuration
 
 ``` r
@@ -143,7 +146,8 @@ suppose que le rendu a déjà été effectué (le dossier `_site_{profil}/`
 doit exister). Il :
 
 1.  Copie `_site_{profil}/` dans un dépôt git temporaire.
-2.  Force-push vers la branche `site-{profil}` de `origin`.
+2.  Force-push vers la branche `site-{profil}` de `origin`. Cette
+    branche ne retient pas d’historique et donc ne surcharge pas `git`.
 3.  Déclenche le workflow GitHub Actions correspondant via
     `workflow_dispatch`.
 
@@ -219,7 +223,7 @@ est maintenu séparément pour chaque profil (branche `site-review`).
 | Versionnage | `staging/prev{id}/v{N}/` | Pas de version — le profil est le segment |
 | [`prev_version_up()`](https://ofceweb.github.io/ofceweb/reference/prev_version_up.md) | Applicable | Sans objet |
 | Workflow CI | `ftp_deploy_staging.yml` ou `ftp_deploy_publish.yml` | `ftp_deploy_profile.yml` |
-| Chiffrement | Oui (staging) / Non (publish) | Oui (même mot de passe que staging) |
+| Chiffrement | Oui (`STATICRYPT_PASSWORD`) / Non (publish) | Oui (`ALT_STATICRYPT_PASSWORD`) |
 | Credentials FTP | Staging ou publish | Staging |
 
 ## 7. Gestion des versions staging

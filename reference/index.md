@@ -70,13 +70,12 @@ Pages.
   : Rendu d'un site OFCE générique
 - [`deploy_site()`](https://ofceweb.github.io/ofceweb/reference/deploy_site.md)
   : Déploie le site selon l'hébergement déclaré dans \`\_quarto.yml\`
+- [`stage_site()`](https://ofceweb.github.io/ofceweb/reference/stage_site.md)
+  : Rend et déploie un site OFCE générique
 - [`rescan_site()`](https://ofceweb.github.io/ofceweb/reference/rescan_site.md)
   : Rescanne les pages et met à jour la section \`other-links\`
 - [`site_version_up()`](https://ofceweb.github.io/ofceweb/reference/site_version_up.md)
   : Incrémente la version dans le \`site-path\` du \`\_quarto.yml\`
-- [`push_site_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_site_redirect.md)
-  : Déploie la page de redirection vers la version courante d'un site
-  OFCE
 - [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
   : Active le chiffrement statique du site
 - [`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)

@@ -62,4 +62,4 @@ Invisible : sortie de \[gert::git_status()\].
 
 ## See also
 
-\[setup_site()\], \[site2branch()\], \[render_blog()\]
+\[setup_site()\], \[stage_site()\], \[site2branch()\], \[render_blog()\]

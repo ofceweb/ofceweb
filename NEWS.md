@@ -1,6 +1,12 @@
+## ofceweb v0.5.4
+
+* `setup_site()` est aligné sur `setup_wp()` pour plus de cohérence
+* workflow `render-deploy` (peut être lancé sur un push)
+* redirection pour une url stable dans le cas de versions (staging/_site_/ renvoie vers staging/_site_/vx)
+
 ## ofceweb v0.5.3
 
-* la fonction`preview_qmd` permet la prévisualisation du qmd actif. Pratique non ?
+* la fonction `preview_qmd` permet la prévisualisation du qmd actif. Pratique non ?
 
 ## ofceweb v0.5.2
 

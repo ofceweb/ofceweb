@@ -5,7 +5,13 @@
 \alias{preview_qmd_staging}
 \title{Prévisualise le document `.qmd` actif dans RStudio}
 \usage{
-preview_qmd(profile = NULL, daemon = TRUE, ...)
+preview_qmd(
+  profile = NULL,
+  daemon = TRUE,
+  use_freezer = FALSE,
+  as_job = FALSE,
+  ...
+)
 
 preview_qmd_staging(daemon = TRUE, ...)
 }
@@ -30,14 +36,17 @@ lance un serveur HTTP local avec [servr::httd()] positionné directement sur
 le fichier HTML produit.
 }
 \details{
-Le répertoire servi et le chemin initial sont déduits automatiquement :
+Le répertoire servi et le chemin initial sont déduits automatiquement via
+[quarto::quarto_inspect()] :
 \enumerate{
-  \item Si un `_quarto.yml` est trouvé dans un dossier parent, la racine du
-    projet est identifiée.
-  \item Si `profile` est non-`NULL`, `_quarto-{profile}.yml` est lu pour en
-    extraire `project.output-dir`.
-  \item Sans projet ou sans `output-dir` configuré, le serveur pointe sur le
-    dossier du `.qmd` lui-même.
+  \item `quarto inspect` est appelé sur le fichier avec le `profile` actif ;
+    il retourne la racine du projet (`$project$dir`) et le `output-dir`
+    résolu (`$project$config$project[["output-dir"]]`).
+  \item Si `quarto inspect` échoue (ex. type de projet non reconnu par
+    l'installation locale), on bascule sur la lecture manuelle de
+    `_quarto.yml` et `_quarto-{profile}.yml`.
+  \item Sans projet détecté ou sans `output-dir` configuré, le serveur
+    pointe sur le dossier du `.qmd` lui-même.
 }
 }
 \section{Prévision Users}{

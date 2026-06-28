@@ -64,7 +64,6 @@ reference:
   - deploy_site
   - rescan_site
   - site_version_up
-  - push_site_redirect
   - encrypt_site
   - remove_encrypt
 

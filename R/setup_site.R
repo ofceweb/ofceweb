@@ -40,7 +40,7 @@ setup_site <- function(
     hypothesis = TRUE,
     versionning = TRUE) {
 
-  root <- getwd()
+  root <- fs::path_abs(path)
 
   if(!dir.exists(root))
     cli::cli_abort("Le dossier {.path {root}} n'existe pas.")
@@ -93,8 +93,12 @@ setup_site <- function(
   src_extensions <- fs::path(pkg_root, "_extensions")
 
   dest_yaml <- fs::path(root, "_quarto.yml")
-  fs::file_copy(src_yaml, dest_yaml, overwrite = TRUE)
-  cli::cli_alert_success("Copie de {.file _quarto.yml}")
+  if (!fs::file_exists(dest_yaml)) {
+    fs::file_copy(src_yaml, dest_yaml, overwrite = FALSE)
+    cli::cli_alert_success("Copie de {.file _quarto.yml} (gabarit)")
+  } else {
+    cli::cli_alert_info("{.file _quarto.yml} déjà présent — gabarit non écrasé")
+  }
 
   if(!has_index) {
     fs::file_copy(src_index, fs::path(root, "index.qmd"), overwrite = TRUE)
@@ -212,19 +216,33 @@ setup_site <- function(
       )
       ofce_server_location <- "staging"
     }
-    yml$website$`site-url` <- "https://www.ofce.fr/"
-    sp_val <- paste0(ofce_server_location, "/", website_path)
-    if(isTRUE(versionning)) sp_val <- paste0(sp_val, "/v0")
-    yml$website$`site-path` <- sp_val
+
+    # Guard: preserve existing site-url / site-path if already set
+    if(is.null(yml$website$`site-url`) || !nzchar(yml$website$`site-url` %||% "")) {
+      yml$website$`site-url` <- "https://www.ofce.fr/"
+    }
+
+    if(is.null(yml$website$`site-path`) || !nzchar(yml$website$`site-path` %||% "")) {
+      sp_val <- paste0(ofce_server_location, "/", website_path)
+      if(isTRUE(versionning)) sp_val <- paste0(sp_val, "/v0")
+      yml$website$`site-path` <- sp_val
+      cli::cli_alert_success("site-path défini : {.val {sp_val}}")
+    } else {
+      cli::cli_alert_info("site-path conservé : {.val {yml$website$`site-path`}}")
+    }
+
     patch_ftp_workflow_secrets(root, ofce_server_location)
-    server_dir <- website_path
-    if(isTRUE(versionning)) server_dir <- paste0(server_dir, "/v0")
-    set_gh_var(root, "FTP_SERVER_DIR", server_dir)
-    # Publish deploy (site-publish branch) — chemin sans versionnement
-    set_gh_var(root, "FTP_PUBLISH_SERVER_DIR", website_path)
-    # Redirect (site-redirect branch) — chemin FTP vers le répertoire stable
-    if(isTRUE(versionning))
-      set_gh_var(root, "FTP_REDIRECT_DIR", paste0(website_path, "/"))
+
+    # Derive FTP vars from the actual (possibly pre-existing) site-path
+    sp_actual <- yml$website$`site-path`
+    # Strip location prefix (e.g. "staging/") to get the FTP sub-path
+    server_dir <- sub(paste0("^", ofce_server_location, "/?"), "", sp_actual)
+    publish_dir <- sub("/v[0-9]+$", "", server_dir)   # strip version for publish
+    set_gh_var(root, "FTP_SERVER_DIR",         server_dir)
+    set_gh_var(root, "FTP_PUBLISH_SERVER_DIR", publish_dir)
+    if(grepl("/v[0-9]+$", server_dir))
+      set_gh_var(root, "FTP_REDIRECT_DIR", paste0(publish_dir, "/"))
+
     cli::cli_alert_info(
       "Si votre dépôt n'est pas sur l'organisation OFCE, merci de voir avec Xavier T. ou Anissa pour la configuration de l'accès au serveur avant la publication du site."
     )
@@ -236,7 +254,8 @@ setup_site <- function(
   yml$website$title <- final_title
   yml$ofce_host <- isTRUE(ofce_host)
 
-  if(!is.na(gh$host) && !is.na(gh$repo))
+  if(!is.na(gh$host) && !is.na(gh$repo) &&
+     (is.null(yml$website$`repo-url`) || !nzchar(yml$website$`repo-url` %||% "")))
     yml$website$`repo-url` <- paste0("https://github.com/", gh$host, "/", gh$repo)
 
   # chemin absolu (server-root-relative) pour les hrefs other-links :

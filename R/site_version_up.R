@@ -78,6 +78,7 @@ site_version_up <- function(path = ".", custom_version = NULL) {
   cli::cli_alert_info("Nouveau {.code site-path} : {.val {new_sp}}")
 
   rescan_site(path = root)
+  push_site_redirect(path = root)
 
   invisible(NULL)
 }

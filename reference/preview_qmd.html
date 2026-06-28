@@ -48,7 +48,13 @@ le fichier HTML produit.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">preview_qmd</span><span class="op">(</span>profile <span class="op">=</span> <span class="cn">NULL</span>, daemon <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">preview_qmd</span><span class="op">(</span></span>
+<span>  profile <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  daemon <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  use_freezer <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  as_job <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">preview_qmd_staging</span><span class="op">(</span>daemon <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -79,12 +85,15 @@ arrière-plan sans bloquer la console.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Le répertoire servi et le chemin initial sont déduits automatiquement :</p><ol><li><p>Si un `_quarto.yml` est trouvé dans un dossier parent, la racine du
-    projet est identifiée.</p></li>
-<li><p>Si `profile` est non-`NULL`, `_quarto-profile.yml` est lu pour en
-    extraire `project.output-dir`.</p></li>
-<li><p>Sans projet ou sans `output-dir` configuré, le serveur pointe sur le
-    dossier du `.qmd` lui-même.</p></li>
+    <p>Le répertoire servi et le chemin initial sont déduits automatiquement via
+[quarto::quarto_inspect()] :</p><ol><li><p>`quarto inspect` est appelé sur le fichier avec le `profile` actif ;
+    il retourne la racine du projet (`$project$dir`) et le `output-dir`
+    résolu (`$project$config$project[["output-dir"]]`).</p></li>
+<li><p>Si `quarto inspect` échoue (ex. type de projet non reconnu par
+    l'installation locale), on bascule sur la lecture manuelle de
+    `_quarto.yml` et `_quarto-profile.yml`.</p></li>
+<li><p>Sans projet détecté ou sans `output-dir` configuré, le serveur
+    pointe sur le dossier du `.qmd` lui-même.</p></li>
 </ol></div>
     <div class="section level2">
     <h2 id="pr-vision-users">Prévision Users<a class="anchor" aria-label="anchor" href="#pr-vision-users"></a></h2>

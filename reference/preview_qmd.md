@@ -8,7 +8,13 @@ qu'il s'agit d'un fichier \`.qmd\`, le rend via
 ## Usage
 
 ``` r
-preview_qmd(profile = NULL, daemon = TRUE, ...)
+preview_qmd(
+  profile = NULL,
+  daemon = TRUE,
+  use_freezer = FALSE,
+  as_job = FALSE,
+  ...
+)
 
 preview_qmd_staging(daemon = TRUE, ...)
 ```
@@ -38,15 +44,19 @@ Invisible \`NULL\`. Appelée pour ses effets de bord.
 
 ## Details
 
-Le répertoire servi et le chemin initial sont déduits automatiquement :
+Le répertoire servi et le chemin initial sont déduits automatiquement
+via \[quarto::quarto_inspect()\] :
 
-1.  Si un \`\_quarto.yml\` est trouvé dans un dossier parent, la racine
-    du projet est identifiée.
+1.  \`quarto inspect\` est appelé sur le fichier avec le \`profile\`
+    actif ; il retourne la racine du projet (\`\$project\$dir\`) et le
+    \`output-dir\` résolu
+    (\`\$project\$config\$project\[\["output-dir"\]\]\`).
 
-2.  Si \`profile\` est non-\`NULL\`, \`\_quarto-profile.yml\` est lu
-    pour en extraire \`project.output-dir\`.
+2.  Si \`quarto inspect\` échoue (ex. type de projet non reconnu par
+    l'installation locale), on bascule sur la lecture manuelle de
+    \`\_quarto.yml\` et \`\_quarto-profile.yml\`.
 
-3.  Sans projet ou sans \`output-dir\` configuré, le serveur pointe sur
-    le dossier du \`.qmd\` lui-même.
+3.  Sans projet détecté ou sans \`output-dir\` configuré, le serveur
+    pointe sur le dossier du \`.qmd\` lui-même.
 
 ## Prévision Users

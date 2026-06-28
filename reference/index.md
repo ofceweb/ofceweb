@@ -74,6 +74,9 @@ Pages.
   : Rescanne les pages et met à jour la section \`other-links\`
 - [`site_version_up()`](https://ofceweb.github.io/ofceweb/reference/site_version_up.md)
   : Incrémente la version dans le \`site-path\` du \`\_quarto.yml\`
+- [`push_site_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_site_redirect.md)
+  : Déploie la page de redirection vers la version courante d'un site
+  OFCE
 - [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
   : Active le chiffrement statique du site
 - [`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)

@@ -27,7 +27,7 @@
 #' @importFrom future plan
 #' @importFrom future.mirai mirai_multisession
 #' @importFrom quarto quarto_render
-#' @importFrom gert git_status
+#' @importFrom gert git_status git_remote_list
 #' @section Site Users:
 #'
 #' @export

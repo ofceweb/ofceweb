@@ -76,9 +76,8 @@ site_version_up <- function(path = ".", custom_version = NULL) {
     "Version mise à jour : {.val {current_version}} -> {.val {new_version}}"
   )
   cli::cli_alert_info("Nouveau {.code site-path} : {.val {new_sp}}")
-  cli::cli_alert_info(
-    "Pensez à modifier manuellement le {.file _quarto.yml} si nécessaire."
-  )
+
+  rescan_site(path = root)
 
   invisible(NULL)
 }

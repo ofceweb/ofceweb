@@ -37,7 +37,7 @@ jobs:
           echo "branch=site-$PROFILE"    >> "$GITHUB_OUTPUT"
 
       - name: Checkout branche site-${{ steps.vars.outputs.profile }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref:   ${{ steps.vars.outputs.branch }}
           token: ${{ secrets.GITHUB_TOKEN }}

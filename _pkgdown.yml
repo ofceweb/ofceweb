@@ -62,6 +62,7 @@ reference:
   - setup_site
   - render_site
   - deploy_site
+  - stage_site
   - rescan_site
   - site_version_up
   - encrypt_site

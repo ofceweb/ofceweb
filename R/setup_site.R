@@ -45,6 +45,28 @@ setup_site <- function(
   if(!dir.exists(root))
     cli::cli_abort("Le dossier {.path {root}} n'existe pas.")
 
+  # ---- guard : refuser les dépôts WP / prévision ---------------------------
+  existing_yml <- fs::path(root, "_quarto.yml")
+  if(fs::file_exists(existing_yml)) {
+    yml_check <- tryCatch(yaml::read_yaml(existing_yml), error = function(e) NULL)
+    if(isTRUE(yml_check$ofce_wp))
+      cli::cli_abort(c(
+        "Ce dépôt est un {.strong document de travail} ({.code ofce_wp: true} dans {.file _quarto.yml}).",
+        "i" = "Utilisez {.run ofceweb::setup_wp()} pour les WP."
+      ))
+    if(isTRUE(yml_check$ofce_prev))
+      cli::cli_abort(c(
+        "Ce dépôt est une {.strong prévision} ({.code ofce_prev: true} dans {.file _quarto.yml}).",
+        "i" = "Utilisez {.run ofceweb::setup_prev()} pour les prévisions."
+      ))
+  }
+
+  if(dir.exists(fs::path(root, "posts")))
+    cli::cli_abort(c(
+      "Ce dépôt semble être un {.strong blog} (dossier {.path posts/} détecté).",
+      "i" = "Utilisez {.run ofceweb::render_blog()} / {.run ofceweb::publish_blog()} pour le blog."
+    ))
+
   cli::cli_h1("setup_site dans {.path {fs::path_file(root)}}")
 
   # ---- 0. branche gh-pages (ofce_host = FALSE) ----------------------------

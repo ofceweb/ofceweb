@@ -22,37 +22,43 @@
 #'
 #' @export
 site_version_up <- function(path = ".", custom_version = NULL) {
-
   root <- fs::path_abs(fs::path_expand(path))
   yml_path <- fs::path(root, "_quarto.yml")
 
-  if(!fs::file_exists(yml_path))
+  if (!fs::file_exists(yml_path)) {
     cli::cli_abort("Pas de {.file _quarto.yml} dans {.path {root}}.")
+  }
 
   yml <- yaml::read_yaml(yml_path)
 
-  if(!isTRUE(yml$ofce_host))
+  if (!isTRUE(yml$ofce_host)) {
     cli::cli_abort(
       "{.code site_version_up()} ne fonctionne que si {.code ofce_host: true} \\
        est défini dans le {.file _quarto.yml}."
     )
+  }
 
   sp <- yml$website$`site-path`
-  if(is.null(sp) || !nzchar(sp))
-    cli::cli_abort("Aucun {.code site-path} défini dans le {.file _quarto.yml}.")
+  if (is.null(sp) || !nzchar(sp)) {
+    cli::cli_abort(
+      "Aucun {.code site-path} défini dans le {.file _quarto.yml}."
+    )
+  }
 
   segments <- strsplit(sp, "/", fixed = TRUE)[[1]]
-  if(length(segments) < 1)
+  if (length(segments) < 1) {
     cli::cli_abort("{.code site-path} vide.")
+  }
 
   current_version <- segments[length(segments)]
 
-  if(!grepl("^[A-Za-z0-9_]+$", current_version))
+  if (!grepl("^[A-Za-z0-9_]+$", current_version)) {
     cli::cli_abort(
       "Le segment de version courant {.val {current_version}} contient des \\
        caractères interdits. Seuls les alphanumériques et underscores sont \\
        acceptés."
     )
+  }
 
   new_version <- increment_version_str(current_version, custom = custom_version)
 
@@ -61,14 +67,17 @@ site_version_up <- function(path = ".", custom_version = NULL) {
   yml$website$`site-path` <- new_sp
 
   yaml::write_yaml(
-    yml, yml_path,
+    yml,
+    yml_path,
     indent.mapping.sequence = TRUE,
     handlers = list(logical = yaml::verbatim_logical)
   )
 
-  if(length(segments) >= 2) {
-    server_dir <- paste(segments[(length(segments) - 1):length(segments)],
-                        collapse = "/")
+  if (length(segments) >= 2) {
+    server_dir <- paste(
+      segments[(length(segments) - 1):length(segments)],
+      collapse = "/"
+    )
     set_gh_var(root, "FTP_SERVER_DIR", server_dir)
   }
 

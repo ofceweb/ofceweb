@@ -260,10 +260,13 @@ setup_site <- function(
     # Strip location prefix (e.g. "staging/") to get the FTP sub-path
     server_dir <- sub(paste0("^", ofce_server_location, "/?"), "", sp_actual)
     publish_dir <- sub("/v[0-9]+$", "", server_dir)   # strip version for publish
+    # ftp-deploy requires paths to end with /
+    if (!grepl("/$", server_dir))  server_dir  <- paste0(server_dir,  "/")
+    if (!grepl("/$", publish_dir)) publish_dir <- paste0(publish_dir, "/")
     set_gh_var(root, "FTP_SERVER_DIR",         server_dir)
     set_gh_var(root, "FTP_PUBLISH_SERVER_DIR", publish_dir)
-    if(grepl("/v[0-9]+$", server_dir))
-      set_gh_var(root, "FTP_REDIRECT_DIR", paste0(publish_dir, "/"))
+    if(grepl("/v[0-9]+", server_dir))
+      set_gh_var(root, "FTP_REDIRECT_DIR", publish_dir)
 
     cli::cli_alert_info(
       "Si votre dépôt n'est pas sur l'organisation OFCE, merci de voir avec Xavier T. ou Anissa pour la configuration de l'accès au serveur avant la publication du site."

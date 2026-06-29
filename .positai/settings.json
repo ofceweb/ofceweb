@@ -1,0 +1,7 @@
+{
+  "permission": {
+    "external_directory": {
+      "C:/Users/timbe/github/prev2603/.github/workflows/*": "allow"
+    }
+  }
+}

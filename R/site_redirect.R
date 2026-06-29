@@ -1,12 +1,31 @@
-# Pousse la page de redirection vers la version courante d'un site OFCE sur la
-# branche `site-redirect`, puis déclenche le workflow `ftp_redirect.yml`.
-# Appelée automatiquement par site_version_up(). Ne fait rien si site-path ne
-# contient pas de segment de version.
+#' Pousse la page de redirection vers la version courante d'un site OFCE
+#'
+#' Génère un `index.html` de redirection pointant vers la version courante du
+#' site (lue depuis le `site-path` du `_quarto.yml`) et le pousse sur la
+#' branche `site-redirect`, puis déclenche le workflow `ftp_redirect.yml` pour
+#' publier la page sur le serveur FTP.
+#'
+#' Sans effet (sortie silencieuse) si `site-path` ne contient pas de segment
+#' de version (`/v\d+`) ou si `ofce_host` n'est pas `true`.
+#'
+#' Appelée automatiquement par [site_version_up()] lors d'un incrément de
+#' version, et par [stage_site()] à chaque déploiement staging.
+#'
+#' @param path Chemin vers la racine du dépôt. Défaut `"."`.
+#' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
+#' @param trigger Logique. Si `TRUE` (défaut), déclenche `ftp_redirect.yml`
+#'   après le push via [trigger_action()].
+#'
+#' @returns Invisible `NULL`. Appelée pour ses effets de bord.
+#' @seealso [site_version_up()], [stage_site()], [deploy_site()]
 #' @importFrom fs path_expand path_abs path_norm path file_exists dir_create dir_delete
 #' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_info cli_abort cli_warn
 #' @importFrom yaml read_yaml
 #' @importFrom gert git_remote_list git_fetch git_init git_add git_commit git_signature_default git_remote_add git_remote_set_url
 #' @importFrom glue glue
+#' @section Site Users:
+#'
+#' @export
 push_site_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
 
   root <- path |>

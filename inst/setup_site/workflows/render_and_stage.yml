@@ -1,0 +1,93 @@
+name: Render & Deploy Staging via FTP
+
+on:
+  # Uncomment the push trigger below to activate automatic deployment on push to main
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render-deploy:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Paris
+      STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.6'
+          use-public-rspm: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get install -y cmake libcurl4-openssl-dev libgit2-dev pandoc libmagick++-dev libnode-dev locales fonts-open-sans
+          sudo locale-gen fr_FR.UTF-8
+          sudo update-locale LANG=fr_FR.UTF-8
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install R packages via renv
+        uses: r-lib/actions/setup-renv@v2
+
+      - name: Render site
+        env:
+          DEPLOY_PAT:          ${{ secrets.DEPLOY_PAT }}
+          GITHUB_PAT:          ${{ secrets.GH_PAT }}
+          STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
+        run: Rscript -e "ofceweb::render_site(check_repo = FALSE, render_site = FALSE, workers = 4L)"
+
+      - name: Chiffrement staticrypt (si STATICRYPT_PASSWORD défini)
+        run: |
+          if [ -z "$STATICRYPT_PASSWORD" ]; then
+            echo "STATICRYPT_PASSWORD absent — déploiement sans chiffrement."
+          else
+            npm install -g staticrypt
+            staticrypt ./_site/ \
+              --recursive \
+              --directory ./_site/ \
+              --password "$STATICRYPT_PASSWORD" \
+              --short \
+              --template-color-primary "#e6142d" \
+              --template-color-secondary "#f9f9f3" \
+              --template-title "Accès restreint" \
+              --template-instructions "Entrez le mot de passe ou contactez un responsable de la page que vous souhaitez atteindre." \
+              --template-button "Accès"
+          fi
+
+      - name: FTP deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server:    ${{ secrets.FTP_SERVER }}
+          username:  ${{ secrets.STAGING_USER }}
+          password:  ${{ secrets.STAGING_PASSWORD }}
+          port: 21
+          local-dir: ./_site/
+          server-dir: ${{ vars.FTP_SERVER_DIR }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            CNAME
+            robots.txt
+
+      - name: Redirect vers version courante (si versionnage)
+        env:
+          DEPLOY_PAT: ${{ secrets.DEPLOY_PAT }}
+          GITHUB_PAT: ${{ secrets.GH_PAT }}
+        run: Rscript -e "ofceweb::push_site_redirect(trigger = TRUE)"

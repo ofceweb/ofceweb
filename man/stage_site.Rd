@@ -20,7 +20,7 @@ stage_site(
 
 \item{progress}{Logique. Affichage de la progression. Défaut `TRUE`.}
 
-\item{trigger}{Passé à [deploy_site()]. Défaut `TRUE`.}
+\item{trigger}{Passé à [deploy_site()] et [push_site_redirect()]. Défaut `TRUE`.}
 
 \item{full_deploy}{Passé à [deploy_site()]. Défaut `FALSE`.}
 
@@ -31,12 +31,14 @@ Invisible `NULL`.
 }
 \description{
 Enchaîne [render_site()] (sans prévisualisation locale) puis [deploy_site()]
-pour construire et pousser le site en une seule commande.
+pour construire et pousser le site en une seule commande. Si le `site-path`
+du `_quarto.yml` contient un segment de version (`/v\d+`), appelle
+automatiquement [push_site_redirect()] pour maintenir l'URL stable à jour.
 }
 \section{Site Users}{
 
 }
 
 \seealso{
-[render_site()], [deploy_site()], [setup_site()]
+[render_site()], [deploy_site()], [push_site_redirect()], [setup_site()]
 }

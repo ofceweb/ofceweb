@@ -170,17 +170,19 @@ rewrite_absolute_hrefs <- function(root) {
 #' Rend et déploie un site OFCE générique
 #'
 #' Enchaîne [render_site()] (sans prévisualisation locale) puis [deploy_site()]
-#' pour construire et pousser le site en une seule commande.
+#' pour construire et pousser le site en une seule commande. Si le `site-path`
+#' du `_quarto.yml` contient un segment de version (`/v\d+`), appelle
+#' automatiquement [push_site_redirect()] pour maintenir l'URL stable à jour.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param check_repo Logique. Passé à [render_site()]. Défaut `TRUE`.
 #' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
-#' @param trigger Passé à [deploy_site()]. Défaut `TRUE`.
+#' @param trigger Passé à [deploy_site()] et [push_site_redirect()]. Défaut `TRUE`.
 #' @param full_deploy Passé à [deploy_site()]. Défaut `FALSE`.
 #' @param workers Entier. Nombre de workers parallèles pour le rendu. Défaut `8L`.
 #'
 #' @returns Invisible `NULL`.
-#' @seealso [render_site()], [deploy_site()], [setup_site()]
+#' @seealso [render_site()], [deploy_site()], [push_site_redirect()], [setup_site()]
 #' @section Site Users:
 #'
 #' @export
@@ -207,6 +209,9 @@ stage_site <- function(
     trigger     = trigger,
     full_deploy = full_deploy
   )
+
+  # Redirect vers la version courante (no-op si site-path sans segment /vN)
+  push_site_redirect(path = path, progress = progress, trigger = trigger)
 
   invisible(NULL)
 }

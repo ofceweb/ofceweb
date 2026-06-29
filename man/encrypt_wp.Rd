@@ -9,10 +9,10 @@ encrypt_wp(path = ".", password = NULL)
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
 
-\item{password}{Chaîne ou `NULL` (défaut). Si `NULL`, l'utilisateur est
-invité à saisir le mot de passe (masqué si `askpass` est disponible).}
+\item{password}{Ignoré.}
 }
 \description{
-Wrapper autour de [encrypt_site()] pour les dépôts WP.
-Le comportement est identique.
+`r lifecycle::badge("deprecated")`
+
+Cette fonction est dépréciée. Voir [encrypt_site()] pour plus de détails.
 }

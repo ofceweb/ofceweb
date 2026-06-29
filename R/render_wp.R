@@ -114,23 +114,6 @@ render_wp <- function(
            error = function(e)
              cli::cli_alert_warning("Patch site_libs ignoré : {conditionMessage(e)}"))
 
-  # ---- 6.5. chiffrement statique (si encrypt_site: true) ------------------
-  if (isTRUE(yml_top$encrypt_site)) {
-    cli::cli_h2("Chiffrement staticrypt")
-    staticryptR::staticryptr(
-      files     = "_site",
-      directory = ".",
-      recursive = TRUE,
-      password  = Sys.getenv("STATICRYPT_PASSWORD"),
-      short     = TRUE,
-      template_color_primary   = "#e6142d",
-      template_color_secondary = "#f9f9f3",
-      template_title        = "Accès restreint",
-      template_instructions = "Entrez le mot de passe ou contactez un responsable de la page que vous souhaitez atteindre.",
-      template_button       = "Accès"
-    )
-  }
-
   # ---- 7. manifeste --------------------------------------------------------
   cli::cli_h2("Écriture du manifest.json")
   tryCatch(wp_manifest(root),

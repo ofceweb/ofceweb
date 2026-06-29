@@ -51,6 +51,7 @@ Imports:
     glue,
     httr2,
     jsonlite,
+    lifecycle,
     lightparser,
     lubridate,
     magick,

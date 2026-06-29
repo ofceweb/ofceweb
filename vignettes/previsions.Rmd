@@ -71,9 +71,12 @@ Après `setup_prev()`, commiter et pousser avant de rendre le site.
 Définir le secret `STATICRYPT_PASSWORD` si ce n'est pas encore fait :
 
 ```sh
-gh secret set STATICRYPT_PASSWORD
+gh secret set STATICRYPT_PASSWORD --repo owner/mon-depot
 ```
-Pour les profils qui ne sont pas `staging`, le motde passe ÀLT_STATICRYPT_PASSWORD` doit être défini par la même procédure.
+
+Ce secret unique s'applique à tous les profils (staging et profils
+personnalisés). Si le secret est absent, le déploiement s'effectue
+sans chiffrement.
 
 ## 3. Vérifier la configuration
 
@@ -208,7 +211,7 @@ est maintenu séparément pour chaque profil (branche `site-review`).
 | Versionnage | `staging/prev{id}/v{N}/` | Pas de version — le profil est le segment |
 | `prev_version_up()` | Applicable | Sans objet |
 | Workflow CI | `ftp_deploy_staging.yml` ou `ftp_deploy_publish.yml` | `ftp_deploy_profile.yml` |
-| Chiffrement | Oui (`STATICRYPT_PASSWORD`) / Non (publish) | Oui (`ALT_STATICRYPT_PASSWORD`) |
+| Chiffrement | Oui (`STATICRYPT_PASSWORD`) / Non (publish) | Oui (`STATICRYPT_PASSWORD`) |
 | Credentials FTP | Staging ou publish | Staging |
 
 ## 7. Gestion des versions staging

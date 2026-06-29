@@ -37,7 +37,7 @@ jobs:
           echo "branch=site-$PROFILE"    >> "$GITHUB_OUTPUT"
 
       - name: Checkout branche site-${{ steps.vars.outputs.profile }}
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           ref:   ${{ steps.vars.outputs.branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -47,35 +47,24 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Vérifier le secret ALT_STATICRYPT_PASSWORD
+      - name: Chiffrement staticrypt (si STATICRYPT_PASSWORD défini)
         run: |
-          if [ -z "$ALT_STATICRYPT_PASSWORD" ]; then
-            echo "::error::Le secret ALT_STATICRYPT_PASSWORD n'est pas défini sur ce dépôt."
-            echo "::error::Définissez-le via : gh secret set ALT_STATICRYPT_PASSWORD"
-            exit 1
+          if [ -z "$STATICRYPT_PASSWORD" ]; then
+            echo "STATICRYPT_PASSWORD absent — déploiement sans chiffrement."
+          else
+            npm install -g staticrypt
+            staticrypt ./ \
+              --recursive \
+              --directory ./ \
+              --password "$STATICRYPT_PASSWORD" \
+              --short \
+              --remember 0 \
+              --template-color-primary "#e6142d" \
+              --template-color-secondary "#f9f9f3" \
+              --template-title "Accès restreint" \
+              --template-instructions "Entrez le mot de passe ou contactez un responsable de la page que vous souhaitez atteindre." \
+              --template-button "Accès"
           fi
-
-      - name: Installer staticrypt
-        run: npm install -g staticrypt
-
-      - name: Chiffrer les fichiers HTML avec staticrypt
-        run: |
-          staticrypt ./ \
-            --recursive \
-            --directory /tmp/staticrypt-out \
-            --password "$ALT_STATICRYPT_PASSWORD" \
-            --short \
-            --remenber 0 \
-            --template-color-primary "#e6142d" \
-            --template-color-secondary "#f9f9f3" \
-            --template-title "Accès restreint" \
-            --template-instructions "Entrez le mot de passe ou contactez un responsable de la page que vous souhaitez atteindre." \
-            --template-button "Accès"
-
-          # staticrypt reproduit l'arborescence source dans --directory ;
-          # on synchronise depuis le sous-dossier pour éviter l'imbrication.
-          rsync -a "/tmp/staticrypt-out/$(basename "$PWD")/" ./
-          rm -rf /tmp/staticrypt-out
 
       - name: FTP deploy (profil ${{ steps.vars.outputs.profile }})
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0

@@ -9,17 +9,24 @@
 #' \enumerate{
 #'   \item Nom du dossier conforme à `prev{YY}0{3|9}` (ex. `prev2603`)
 #'   \item Présence des sous-dossiers `france/`, `inter/`, `fiches/`,
-#'     `tableaux_comptes/`
+#'     `tableaux_comptes/`, `data_pays/`
 #'   \item `_quarto.yml` présent et lisible
 #'   \item Marqueur `ofce_prev: true` présent
 #'   \item Champs `prev`, `annee`, `mois` présents dans `_quarto.yml`
+#'   \item `project.type: ofce-website` présent dans `_quarto.yml`
+#'   \item Section `profile` de `_quarto.yml` : `default: staging` et groupe
+#'     `[staging, publish]` (avertissements non bloquants si modifiés) ; vérifie
+#'     que les fichiers `_quarto-{profil}.yml` existent pour chaque profil déclaré
 #'   \item `_quarto-staging.yml` présent avec `version`, `site-path` de la
-#'     forme `staging/prev{YYMM}/v{N}`, et `encrypt_site: true`
+#'     forme `staging/prev{YYMM}/v{N}`, `encrypt_site: true`,
+#'     `comments.hypothesis: true`, et `project.output-dir: _site_staging`
 #'   \item `_quarto-publish.yml` présent avec `site-path` de la forme
-#'     `prev/prev{YYMM}`
+#'     `prev/prev{YYMM}`, `encrypt_site: false`, `comments.hypothesis: false`,
+#'     et `project.output-dir: _site_publish`
 #'   \item Cohérence du `prev` id entre `_quarto.yml` et les deux profils
 #'   \item `.github/workflows/ftp_deploy_staging.yml` présent
 #'   \item `.github/workflows/ftp_deploy_publish.yml` présent
+#'   \item `.github/workflows/ftp_deploy_profile.yml` présent
 #'   \item Variables GitHub `FTP_STAGING_DIR` et `FTP_PUBLISH_DIR` définies
 #'     (vérification via `gh` CLI, avec fallback silencieux si absent)
 #'   \item Secret GitHub `STATICRYPT_PASSWORD` défini (warning non bloquant —
@@ -72,7 +79,7 @@ check_prev <- function(path = ".", verbose = TRUE) {
   }
 
   # ---- 2. Sous-dossiers obligatoires ---------------------------------------
-  for (sub in c("france", "inter", "fiches", "tableaux_comptes")) {
+  for (sub in c("france", "inter", "fiches", "tableaux_comptes", "data_pays")) {
     if (fs::dir_exists(fs::path(root, sub))) {
       add_diag(sprintf("dossier %s/", sub), "ok",
                sprintf("Sous-dossier `%s/` présent.", sub))
@@ -115,6 +122,51 @@ check_prev <- function(path = ".", verbose = TRUE) {
     } else {
       add_diag(field, "error",
                sprintf("Champ `%s` absent de _quarto.yml.", field))
+    }
+  }
+
+  # ---- 5b. project.type: ofce-website ---------------------------------------
+  if (identical(yml$project$type, "ofce-website")) {
+    add_diag("project.type", "ok",
+             "`project.type: ofce-website` présent dans _quarto.yml.")
+  } else {
+    add_diag("project.type", "warning",
+             sprintf("`project.type` vaut `%s` — attendu `ofce-website`. Lancer setup_prev().",
+                     yml$project$type %||% "(absent)"))
+  }
+
+  # ---- 5c. profile: default staging, group [staging, publish] (non bloquant)
+  prof_default <- yml$profile$default
+  prof_group   <- as.character(unlist(yml$profile$group))
+
+  if (is.null(prof_default)) {
+    add_diag("profile/default", "warning",
+             "`profile.default` absent de _quarto.yml — attendu `staging`.")
+  } else if (!identical(prof_default, "staging")) {
+    add_diag("profile/default", "warning",
+             sprintf("`profile.default` vaut `%s` (modifié) — attendu `staging`.", prof_default))
+  } else {
+    add_diag("profile/default", "ok",
+             "`profile.default: staging` présent dans _quarto.yml.")
+  }
+
+  missing_in_group <- setdiff(c("staging", "publish"), prof_group)
+  if (length(missing_in_group) > 0L) {
+    add_diag("profile/group", "warning",
+             sprintf("Profil(s) manquant(s) dans `profile.group` : %s — attendu [staging, publish].",
+                     paste(missing_in_group, collapse = ", ")))
+  } else {
+    add_diag("profile/group", "ok",
+             "`profile.group` contient bien `staging` et `publish`.")
+  }
+
+  # Pour chaque profil déclaré, vérifie que le fichier _quarto-{profil}.yml existe
+  for (pname in intersect(prof_group, c("staging", "publish"))) {
+    pfile <- fs::path(root, sprintf("_quarto-%s.yml", pname))
+    if (!fs::file_exists(pfile)) {
+      add_diag(sprintf("profile/%s/fichier", pname), "warning",
+               sprintf("`%s` déclaré dans `profile.group` mais `_quarto-%s.yml` introuvable.",
+                       pname, pname))
     }
   }
 
@@ -165,6 +217,26 @@ check_prev <- function(path = ".", verbose = TRUE) {
         add_diag("staging/encrypt_site", "warning",
                  "`encrypt_site: true` absent — le site staging ne sera pas chiffré en CI.")
       }
+
+      # comments.hypothesis: true
+      if (isTRUE(stg$comments$hypothesis)) {
+        add_diag("staging/comments", "ok",
+                 "`comments.hypothesis: true` présent dans _quarto-staging.yml.")
+      } else {
+        add_diag("staging/comments", "warning",
+                 "`comments.hypothesis: true` absent de _quarto-staging.yml.")
+      }
+
+      # project/output-dir: _site_staging
+      out_stg <- stg$project$`output-dir`
+      if (!is.null(out_stg) && out_stg == "_site_staging") {
+        add_diag("staging/output-dir", "ok",
+                 "`project.output-dir: _site_staging` présent dans _quarto-staging.yml.")
+      } else {
+        add_diag("staging/output-dir", "error",
+                 sprintf("`project.output-dir` vaut `%s` — attendu `_site_staging`.",
+                         out_stg %||% "(absent)"))
+      }
     }
   }
 
@@ -193,6 +265,37 @@ check_prev <- function(path = ".", verbose = TRUE) {
       } else {
         add_diag("publish/site-path", "ok",
                  sprintf("`site-path` publish `%s` bien formé.", sp_pub))
+      }
+
+      # encrypt_site: false
+      if (isFALSE(pub$encrypt_site)) {
+        add_diag("publish/encrypt_site", "ok",
+                 "`encrypt_site: false` présent dans _quarto-publish.yml.")
+      } else {
+        add_diag("publish/encrypt_site", "error",
+                 sprintf("`encrypt_site` vaut `%s` dans _quarto-publish.yml — doit être `false`.",
+                         pub$encrypt_site %||% "(absent)"))
+      }
+
+      # comments.hypothesis: false
+      if (isFALSE(pub$comments$hypothesis)) {
+        add_diag("publish/comments", "ok",
+                 "`comments.hypothesis: false` présent dans _quarto-publish.yml.")
+      } else {
+        add_diag("publish/comments", "warning",
+                 sprintf("`comments.hypothesis` vaut `%s` dans _quarto-publish.yml — attendu `false`.",
+                         pub$comments$hypothesis %||% "(absent)"))
+      }
+
+      # project/output-dir: _site_publish
+      out_pub <- pub$project$`output-dir`
+      if (!is.null(out_pub) && out_pub == "_site_publish") {
+        add_diag("publish/output-dir", "ok",
+                 "`project.output-dir: _site_publish` présent dans _quarto-publish.yml.")
+      } else {
+        add_diag("publish/output-dir", "error",
+                 sprintf("`project.output-dir` vaut `%s` — attendu `_site_publish`.",
+                         out_pub %||% "(absent)"))
       }
     }
   }
@@ -254,6 +357,16 @@ check_prev <- function(path = ".", verbose = TRUE) {
   } else {
     add_diag("ftp_deploy_publish.yml", "error",
              ".github/workflows/ftp_deploy_publish.yml absent. Lancer setup_prev() d'abord.")
+  }
+
+  # ---- 10b. .github/workflows/ftp_deploy_profile.yml ----------------------
+  wf_prof <- fs::path(root, ".github", "workflows", "ftp_deploy_profile.yml")
+  if (fs::file_exists(wf_prof)) {
+    add_diag("ftp_deploy_profile.yml", "ok",
+             "Workflow FTP profils personnalisés présent.")
+  } else {
+    add_diag("ftp_deploy_profile.yml", "warning",
+             ".github/workflows/ftp_deploy_profile.yml absent — les profils personnalisés ne pourront pas être déployés en CI. Lancer setup_prev() pour l'ajouter.")
   }
 
   # ---- 11. Variables GitHub FTP_STAGING_DIR et FTP_PUBLISH_DIR ------------

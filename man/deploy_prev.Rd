@@ -15,7 +15,9 @@ deploy_prev(
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
 
-\item{profile}{`"staging"` (défaut) ou `"publish"`.}
+\item{profile}{`"staging"` (défaut), `"publish"`, ou tout autre profil
+Quarto déclaré dans `_quarto.yml`. Les profils personnalisés sont déployés
+vers `staging/{repo}/{profile}/` sans numéro de version.}
 
 \item{progress}{Logique. Affichage de la progression. Défaut `TRUE`.}
 

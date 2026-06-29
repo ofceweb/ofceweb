@@ -19,7 +19,7 @@
 #' @param workers Entier. Nombre de workers parallèles. Défaut `8L`.
 #'
 #' @returns Invisible : sortie de [gert::git_status()].
-#' @seealso [setup_site()], [site2branch()], [render_blog()]
+#' @seealso [setup_site()], [stage_site()], [site2branch()], [render_blog()]
 #' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists dir_delete dir_ls file_delete
 #' @importFrom cli cli_h1 cli_h2 cli_abort cli_text cli_alert_warning
 #' @importFrom tictoc tic toc
@@ -27,7 +27,7 @@
 #' @importFrom future plan
 #' @importFrom future.mirai mirai_multisession
 #' @importFrom quarto quarto_render
-#' @importFrom gert git_status
+#' @importFrom gert git_status git_remote_list
 #' @section Site Users:
 #'
 #' @export
@@ -192,4 +192,49 @@ rewrite_absolute_hrefs <- function(root) {
   cli::cli_alert_success(
     "Liens locaux réécrits dans {n_patched} fichier{?s} HTML.")
   invisible(n_patched)
+}
+
+
+#' Rend et déploie un site OFCE générique
+#'
+#' Enchaîne [render_site()] (sans prévisualisation locale) puis [deploy_site()]
+#' pour construire et pousser le site en une seule commande.
+#'
+#' @param path Chemin vers la racine du dépôt. Défaut `"."`.
+#' @param check_repo Logique. Passé à [render_site()]. Défaut `TRUE`.
+#' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
+#' @param trigger Passé à [deploy_site()]. Défaut `TRUE`.
+#' @param full_deploy Passé à [deploy_site()]. Défaut `FALSE`.
+#' @param workers Entier. Nombre de workers parallèles pour le rendu. Défaut `8L`.
+#'
+#' @returns Invisible `NULL`.
+#' @seealso [render_site()], [deploy_site()], [setup_site()]
+#' @section Site Users:
+#'
+#' @export
+stage_site <- function(
+    path        = ".",
+    check_repo  = TRUE,
+    progress    = TRUE,
+    trigger     = TRUE,
+    full_deploy = FALSE,
+    workers     = 8L) {
+
+  render_site(
+    path        = path,
+    check_repo  = check_repo,
+    progress    = progress,
+    render_site = FALSE,
+    site2branch = FALSE,
+    workers     = workers
+  )
+
+  deploy_site(
+    path        = path,
+    progress    = progress,
+    trigger     = trigger,
+    full_deploy = full_deploy
+  )
+
+  invisible(NULL)
 }

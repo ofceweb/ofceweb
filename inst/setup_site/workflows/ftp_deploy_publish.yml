@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout site-publish branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: site-publish
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -23,7 +23,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: FTP deploy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server:   ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}

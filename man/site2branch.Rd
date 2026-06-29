@@ -11,7 +11,8 @@ site2branch(
   progress = TRUE,
   trigger = TRUE,
   workflow = "ftp_deploy.yml",
-  full_deploy = FALSE
+  full_deploy = FALSE,
+  inputs = list()
 )
 }
 \arguments{
@@ -42,6 +43,11 @@ forward from the remote branch so the FTP upload remains incremental.
 Set to `TRUE` to zero out every hash in the state file before pushing,
 which causes ftp-deploy to re-upload every file without deleting anything
 unrelated on the FTP server.}
+
+\item{inputs}{`[list()]`\cr
+Named list of workflow inputs forwarded to [trigger_action()] and passed
+as `workflow_dispatch` inputs (e.g. `list(profile = "review")`).
+Defaults to an empty list.}
 }
 \value{
 Invisibly returns `NULL`. Called for its side effects.

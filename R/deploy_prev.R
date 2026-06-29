@@ -5,7 +5,9 @@
 #' `site-staging` ; pour publish, pousse `_site_publish/` vers `site-publish`.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
-#' @param profile `"staging"` (défaut) ou `"publish"`.
+#' @param profile `"staging"` (défaut), `"publish"`, ou tout autre profil
+#'   Quarto déclaré dans `_quarto.yml`. Les profils personnalisés sont déployés
+#'   vers `staging/{repo}/{profile}/` sans numéro de version.
 #' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
 #' @param trigger Logique. Déclenche le workflow GitHub Actions FTP après le
 #'   push. Défaut `TRUE`.
@@ -25,8 +27,6 @@ deploy_prev <- function(
     trigger     = TRUE,
     full_deploy = FALSE) {
 
-  profile <- match.arg(profile, c("staging", "publish"))
-
   root <- path |>
     fs::path_expand() |>
     fs::path_abs() |>
@@ -44,7 +44,7 @@ deploy_prev <- function(
       trigger     = trigger,
       full_deploy = full_deploy
     )
-  } else {
+  } else if (profile == "publish") {
     site_dir <- fs::path(root, "_site_publish")
     if (!fs::dir_exists(site_dir))
       cli::cli_abort(
@@ -56,9 +56,65 @@ deploy_prev <- function(
       trigger     = trigger,
       full_deploy = full_deploy
     )
+  } else {
+    site_dir <- fs::path(root, paste0("_site_", profile))
+    if (!fs::dir_exists(site_dir))
+      cli::cli_abort(
+        "Pas de dossier {.path _site_{profile}} — lancer \\
+         {.run ofceweb::render_prev(profile = '{profile}')} d'abord.")
+    site2profile(
+      path        = root,
+      profile     = profile,
+      progress    = progress,
+      trigger     = trigger,
+      full_deploy = full_deploy
+    )
   }
 
   invisible(NULL)
+}
+
+
+#' Déploie un profil personnalisé vers staging/{repo}/{profile}/
+#'
+#' Wrapper de [site2branch()] pour les profils Quarto qui ne sont ni
+#' `"staging"` ni `"publish"`. Pousse `_site_{profile}/` vers la branche
+#' `site-{profile}` et déclenche le workflow `ftp_deploy_profile.yml` en lui
+#' passant le nom du profil en entrée. Le FTP cible est
+#' `staging/{repo}/{profile}/` — sans numéro de version, le profil jouant ce
+#' rôle.
+#'
+#' @param path Chemin vers la racine du dépôt. Défaut `"."`.
+#' @param profile Nom du profil Quarto (doit correspondre à un fichier
+#'   `_quarto-{profile}.yml` dans le dépôt).
+#' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
+#' @param trigger Logique. Déclenche `ftp_deploy_profile.yml` après le push.
+#'   Défaut `TRUE`.
+#' @param full_deploy Logique. Si `TRUE`, force la ré-émission complète vers
+#'   le FTP. Défaut `FALSE`.
+#'
+#' @returns Invisible `NULL`.
+#' @seealso [deploy_prev()], [site2branch()], [site2staging()]
+#' @section Prévision Users:
+#'
+#' @export
+site2profile <- function(
+    path        = ".",
+    profile,
+    progress    = TRUE,
+    trigger     = TRUE,
+    full_deploy = FALSE) {
+
+  site2branch(
+    path        = path,
+    branch      = paste0("site-", profile),
+    source      = paste0("_site_", profile),
+    progress    = progress,
+    trigger     = trigger,
+    workflow    = "ftp_deploy_profile.yml",
+    inputs      = list(profile = profile),
+    full_deploy = full_deploy
+  )
 }
 
 

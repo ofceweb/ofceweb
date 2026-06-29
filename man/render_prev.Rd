@@ -16,9 +16,10 @@ render_prev(
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
 
-\item{profile}{`"staging"` (défaut) ou `"publish"`. Détermine le profil
-Quarto utilisé et le répertoire de sortie (`_site_staging` ou
-`_site_publish`).}
+\item{profile}{`"staging"` (défaut), `"publish"`, ou tout autre profil
+Quarto déclaré dans `_quarto.yml`. Détermine le répertoire de sortie
+(`_site_staging`, `_site_publish`, ou `_site_{profile}` pour tout autre
+profil).}
 
 \item{check_repo}{Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
 via [check_repo_status()].}

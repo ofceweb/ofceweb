@@ -1,3 +1,19 @@
+## ofceweb v0.5.4
+
+* `setup_site()` est aligné sur `setup_wp()` pour plus de cohérence
+* workflow `render-deploy` (peut être lancé sur un push)
+* redirection pour une url stable dans le cas de versions (staging/_site_/ renvoie vers staging/_site_/vx)
+
+## ofceweb v0.5.3
+
+* la fonction `preview_qmd` permet la prévisualisation du qmd actif. Pratique non ?
+
+## ofceweb v0.5.2
+
+* Corrections de bugs pour la prévision, nettoyage des paramètres (dont `profile`).
+* profils génériques (ie `review`) en plus de `publish`et `staging` déployés sur staging et cryptés avec ALT_STATICRYPT_PASSWORD u 
+* Documentation mise à jour pour la prévision, avec une vignette
+
 ## ofceweb v0.5.1
 
 * protection ajoutée à `setup_wp()` et `setup_prev()` pour ne pas faire le setup si le dossier est autre chose.

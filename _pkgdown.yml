@@ -20,10 +20,10 @@ reference:
 - title: Prévisions
   desc: >
     Suite complète pour les dépôts de prévision OFCE (`prev{YY}0{3|9}`).
-    Deux modes de déploiement : **staging** (versionné, chiffré en CI via
-    staticrypt) et **publish** (URL fixe, non chiffré). Le chiffrement du
-    site staging est appliqué par le workflow GitHub Actions
-    `ftp_deploy_staging.yml` — pas localement.
+    Trois modes de déploiement : **staging** (versionné, chiffré en CI via
+    staticrypt), **publish** (URL fixe, non chiffré), et **profils personnalisés**
+    (arbitrary Quarto profiles avec chiffrement). Le chiffrement des sites staging
+    et custom est appliqué par les workflows GitHub Actions — pas localement.
   contents:
   - setup_prev
   - check_prev
@@ -32,8 +32,10 @@ reference:
   - publish_prev
   - deploy_prev
   - site2staging
+  - site2profile
   - prev_version_up
   - render_prev_publish
+  - preview_qmd
 
 - title: Working papers
   desc: >
@@ -60,6 +62,7 @@ reference:
   - setup_site
   - render_site
   - deploy_site
+  - stage_site
   - rescan_site
   - site_version_up
   - encrypt_site
@@ -84,7 +87,7 @@ reference:
   desc: >
     Fonctions de bas niveau partagées entre les différents types de dépôts :
     push vers une branche de déploiement, déclenchement de workflows GitHub
-    Actions, téléchargement de fichiers depuis GitHub.
+    Actions avec inputs optionnels, téléchargement de fichiers depuis GitHub.
   contents:
   - site2branch
   - site2publish
@@ -98,6 +101,7 @@ articles:
   - prerequisites
   - working-papers
   - build-a-site
+  - previsions
 
 deploy:
   install_metadata: true

@@ -31,21 +31,20 @@ rescan_site <- function(path = ".", icon = "newspaper") {
   qmds <- qmds[!grepl("^_", fs::path_file(qmds))]
   qmds <- unname(as.character(qmds))
 
-  # base URL pour les hrefs : on construit une URL absolue afin que les liens
-  # other-links fonctionnent depuis n'importe quelle profondeur de page
-  # (Quarto ne réécrit pas les hrefs de la section other-links).
+  # chemin absolu (server-root-relative) pour les hrefs other-links :
+  # /site-path/ s'il existe, sinon /{repo}/, sinon /
+  # (Quarto ne réécrit pas les hrefs de la section other-links, mais un chemin
+  # absolu-serveur fonctionne depuis n'importe quelle profondeur de page sans
+  # dépendre du domaine.)
   yml_tmp <- yaml::read_yaml(dest_yaml)
-  site_url  <- yml_tmp$website$`site-url`
   site_path <- yml_tmp$website$`site-path`
-  base_url <- ""
-  if(!is.null(site_url) && nzchar(site_url)) {
-    base_url <- sub("/?$", "/", site_url)
-    if(!is.null(site_path) && nzchar(site_path))
-      base_url <- paste0(base_url, sub("^/", "", sub("/?$", "/", site_path)))
+  base_url <- if(!is.null(site_path) && nzchar(site_path)) {
+    paste0("/", sub("^/", "", sub("/?$", "/", site_path)))
   } else {
-    # fallback : déduire l'URL gh-pages depuis le remote origin
+    # fallback : déduire le nom du dépôt depuis le remote origin
     remotes <- tryCatch(gert::git_remote_list(repo = root),
                         error = function(e) NULL)
+    repo_name <- NULL
     if(!is.null(remotes) && nrow(remotes) > 0) {
       o <- remotes[remotes$name == "origin", , drop = FALSE]
       url <- if(nrow(o) > 0) o$url[[1]] else remotes$url[[1]]
@@ -54,11 +53,10 @@ rescan_site <- function(path = ".", icon = "newspaper") {
         regmatches(url2, regexec("git@[^:]+:([^/]+)/(.+)$", url2))[[1]]
       else
         regmatches(url2, regexec("https?://[^/]+/([^/]+)/(.+)$", url2))[[1]]
-      if(length(m) >= 3)
-        base_url <- sprintf("https://%s.github.io/%s/", m[[2]], m[[3]])
+      if(length(m) >= 3) repo_name <- m[[3]]
     }
+    if(!is.null(repo_name)) paste0("/", repo_name, "/") else "/"
   }
-  if(!nzchar(base_url)) base_url <- "/"
   cli::cli_alert_info("base URL : {.url {base_url}}")
 
   read_title <- function(p) {

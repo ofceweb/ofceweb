@@ -40,10 +40,32 @@ setup_site <- function(
     hypothesis = TRUE,
     versionning = TRUE) {
 
-  root <- getwd()
+  root <- fs::path_abs(path)
 
   if(!dir.exists(root))
     cli::cli_abort("Le dossier {.path {root}} n'existe pas.")
+
+  # ---- guard : refuser les dépôts WP / prévision ---------------------------
+  existing_yml <- fs::path(root, "_quarto.yml")
+  if(fs::file_exists(existing_yml)) {
+    yml_check <- tryCatch(yaml::read_yaml(existing_yml), error = function(e) NULL)
+    if(isTRUE(yml_check$ofce_wp))
+      cli::cli_abort(c(
+        "Ce dépôt est un {.strong document de travail} ({.code ofce_wp: true} dans {.file _quarto.yml}).",
+        "i" = "Utilisez {.run ofceweb::setup_wp()} pour les WP."
+      ))
+    if(isTRUE(yml_check$ofce_prev))
+      cli::cli_abort(c(
+        "Ce dépôt est une {.strong prévision} ({.code ofce_prev: true} dans {.file _quarto.yml}).",
+        "i" = "Utilisez {.run ofceweb::setup_prev()} pour les prévisions."
+      ))
+  }
+
+  if(dir.exists(fs::path(root, "posts")))
+    cli::cli_abort(c(
+      "Ce dépôt semble être un {.strong blog} (dossier {.path posts/} détecté).",
+      "i" = "Utilisez {.run ofceweb::render_blog()} / {.run ofceweb::publish_blog()} pour le blog."
+    ))
 
   cli::cli_h1("setup_site dans {.path {fs::path_file(root)}}")
 
@@ -93,8 +115,12 @@ setup_site <- function(
   src_extensions <- fs::path(pkg_root, "_extensions")
 
   dest_yaml <- fs::path(root, "_quarto.yml")
-  fs::file_copy(src_yaml, dest_yaml, overwrite = TRUE)
-  cli::cli_alert_success("Copie de {.file _quarto.yml}")
+  if (!fs::file_exists(dest_yaml)) {
+    fs::file_copy(src_yaml, dest_yaml, overwrite = FALSE)
+    cli::cli_alert_success("Copie de {.file _quarto.yml} (gabarit)")
+  } else {
+    cli::cli_alert_info("{.file _quarto.yml} déjà présent — gabarit non écrasé")
+  }
 
   if(!has_index) {
     fs::file_copy(src_index, fs::path(root, "index.qmd"), overwrite = TRUE)
@@ -212,16 +238,36 @@ setup_site <- function(
       )
       ofce_server_location <- "staging"
     }
-    yml$website$`site-url` <- "https://www.ofce.fr/"
-    sp_val <- paste0(ofce_server_location, "/", website_path)
-    if(isTRUE(versionning)) sp_val <- paste0(sp_val, "/v0")
-    yml$website$`site-path` <- sp_val
+
+    # Guard: preserve existing site-url / site-path if already set
+    if(is.null(yml$website$`site-url`) || !nzchar(yml$website$`site-url` %||% "")) {
+      yml$website$`site-url` <- "https://www.ofce.fr/"
+    }
+
+    if(is.null(yml$website$`site-path`) || !nzchar(yml$website$`site-path` %||% "")) {
+      sp_val <- paste0(ofce_server_location, "/", website_path)
+      if(isTRUE(versionning)) sp_val <- paste0(sp_val, "/v0")
+      yml$website$`site-path` <- sp_val
+      cli::cli_alert_success("site-path défini : {.val {sp_val}}")
+    } else {
+      cli::cli_alert_info("site-path conservé : {.val {yml$website$`site-path`}}")
+    }
+
     patch_ftp_workflow_secrets(root, ofce_server_location)
-    server_dir <- website_path
-    if(isTRUE(versionning)) server_dir <- paste0(server_dir, "/v0")
-    set_gh_var(root, "FTP_SERVER_DIR", server_dir)
-    # Publish deploy (site-publish branch) — chemin sans versionnement
-    set_gh_var(root, "FTP_PUBLISH_SERVER_DIR", website_path)
+
+    # Derive FTP vars from the actual (possibly pre-existing) site-path
+    sp_actual <- yml$website$`site-path`
+    # Strip location prefix (e.g. "staging/") to get the FTP sub-path
+    server_dir <- sub(paste0("^", ofce_server_location, "/?"), "", sp_actual)
+    publish_dir <- sub("/v[0-9]+$", "", server_dir)   # strip version for publish
+    # ftp-deploy requires paths to end with /
+    if (!grepl("/$", server_dir))  server_dir  <- paste0(server_dir,  "/")
+    if (!grepl("/$", publish_dir)) publish_dir <- paste0(publish_dir, "/")
+    set_gh_var(root, "FTP_SERVER_DIR",         server_dir)
+    set_gh_var(root, "FTP_PUBLISH_SERVER_DIR", publish_dir)
+    if(grepl("/v[0-9]+", server_dir))
+      set_gh_var(root, "FTP_REDIRECT_DIR", publish_dir)
+
     cli::cli_alert_info(
       "Si votre dépôt n'est pas sur l'organisation OFCE, merci de voir avec Xavier T. ou Anissa pour la configuration de l'accès au serveur avant la publication du site."
     )
@@ -233,21 +279,22 @@ setup_site <- function(
   yml$website$title <- final_title
   yml$ofce_host <- isTRUE(ofce_host)
 
-  if(!is.na(gh$host) && !is.na(gh$repo))
+  if(!is.na(gh$host) && !is.na(gh$repo) &&
+     (is.null(yml$website$`repo-url`) || !nzchar(yml$website$`repo-url` %||% "")))
     yml$website$`repo-url` <- paste0("https://github.com/", gh$host, "/", gh$repo)
 
-  # base URL absolue pour les hrefs other-links (Quarto ne réécrit pas ces liens)
-  base_url <- ""
-  su <- yml$website$`site-url`
+  # chemin absolu (server-root-relative) pour les hrefs other-links :
+  # /site-path/ s'il existe, sinon /{repo}/, sinon /
+  # (Quarto ne réécrit pas les hrefs de la section other-links, mais un chemin
+  # absolu-serveur fonctionne depuis n'importe quelle profondeur de page sans
+  # dépendre du domaine.)
   sp <- yml$website$`site-path`
-  if(!is.null(su) && nzchar(su)) {
-    base_url <- sub("/?$", "/", su)
-    if(!is.null(sp) && nzchar(sp))
-      base_url <- paste0(base_url, sub("^/", "", sub("/?$", "/", sp)))
-  } else if(!is.na(gh$host) && !is.na(gh$repo)) {
-    base_url <- sprintf("https://%s.github.io/%s/", gh$host, gh$repo)
-  }
-  if(!nzchar(base_url)) base_url <- "/"
+  base_url <- if(!is.null(sp) && nzchar(sp))
+    paste0("/", sub("^/", "", sub("/?$", "/", sp)))
+  else if(!is.na(gh$repo))
+    paste0("/", gh$repo, "/")
+  else
+    "/"
 
   # other-links : une entrée par qmd, index en tête s'il existe
   is_index <- vapply(qmd_info,
@@ -304,18 +351,21 @@ setup_site <- function(
 # en fonction de l'emplacement OFCE (staging -> STAGING_*, wp -> WP_*,
 # threeme -> THREEME_*).
 patch_ftp_workflow_secrets <- function(root, ofce_server_location) {
-  wf <- fs::path(root, ".github", "workflows", "ftp_deploy.yml")
-  if(!fs::file_exists(wf)) return(invisible(NULL))
   prefix <- toupper(ofce_server_location)
-  lines <- readLines(wf)
-  lines <- gsub("secrets\\.FTP_USER",
-                paste0("secrets.", prefix, "_USER"), lines, fixed = FALSE)
-  lines <- gsub("secrets\\.FTP_PASSWORD",
-                paste0("secrets.", prefix, "_PASSWORD"), lines, fixed = FALSE)
-  writeLines(lines, wf)
-  cli::cli_alert_success(
-    "Mise à jour des secrets FTP dans {.file .github/workflows/ftp_deploy.yml} ({prefix}_USERNAME / {prefix}_PASSWORD)"
-  )
+  wfs <- c("ftp_deploy.yml", "ftp_redirect.yml")
+  for(wf_name in wfs) {
+    wf <- fs::path(root, ".github", "workflows", wf_name)
+    if(!fs::file_exists(wf)) next
+    lines <- readLines(wf)
+    lines <- gsub("secrets\\.FTP_USER",
+                  paste0("secrets.", prefix, "_USER"), lines, fixed = FALSE)
+    lines <- gsub("secrets\\.FTP_PASSWORD",
+                  paste0("secrets.", prefix, "_PASSWORD"), lines, fixed = FALSE)
+    writeLines(lines, wf)
+    cli::cli_alert_success(
+      "Mise à jour des secrets FTP dans {.file .github/workflows/{wf_name}} ({prefix}_USER / {prefix}_PASSWORD)"
+    )
+  }
   invisible(NULL)
 }
 

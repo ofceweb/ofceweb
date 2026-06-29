@@ -20,6 +20,9 @@
 #' @param branch `[character(1)]`\cr
 #'   Branch on which the workflow will be run. Defaults to `NULL`, which
 #'   auto-detects the repository's default branch via the GitHub API.
+#' @param inputs `[list()]`\cr
+#'   Named list of workflow inputs passed to the `workflow_dispatch` event
+#'   (e.g. `list(profile = "review")`). Defaults to an empty list (no inputs).
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
 #' @section Other:
@@ -33,7 +36,8 @@
 #' }
 trigger_action <- function(root     = ".",
                            workflow = "ftp_deploy.yml",
-                           branch   = NULL) {
+                           branch   = NULL,
+                           inputs   = list()) {
   # Resolve owner/repo from git remote
   remotes    <- gert::git_remote_list(repo = root)
   origin_url <- remotes$url[remotes$name == "origin"]
@@ -84,13 +88,16 @@ trigger_action <- function(root     = ".",
     "https://api.github.com/repos/%s/%s/actions/workflows/%s/dispatches",
     owner, repo, workflow
   )
+  body <- list(ref = branch)
+  if (length(inputs) > 0) body$inputs <- inputs
+
   resp <- httr2::request(url) |>
     httr2::req_auth_bearer_token(token) |>
     httr2::req_headers(
       "Accept"               = "application/vnd.github+json",
       "X-GitHub-Api-Version" = "2022-11-28"
     ) |>
-    httr2::req_body_json(list(ref = branch)) |>
+    httr2::req_body_json(body) |>
     httr2::req_error(is_error = \(r) FALSE) |>
     httr2::req_perform()
 

@@ -35,6 +35,10 @@
 #'   Set to `TRUE` to zero out every hash in the state file before pushing,
 #'   which causes ftp-deploy to re-upload every file without deleting anything
 #'   unrelated on the FTP server.
+#' @param inputs `[list()]`\cr
+#'   Named list of workflow inputs forwarded to [trigger_action()] and passed
+#'   as `workflow_dispatch` inputs (e.g. `list(profile = "review")`).
+#'   Defaults to an empty list.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effects.
 #' @section Site Users:
@@ -60,7 +64,8 @@ site2branch <- function(
     progress = TRUE,
     trigger = TRUE,
     workflow = "ftp_deploy.yml",
-    full_deploy = FALSE) {
+    full_deploy = FALSE,
+    inputs = list()) {
   root <- path
   site_dir   <- fs::path(root, source)
   state_file <- fs::path(root, ".ftp-deploy-sync-state.json")
@@ -172,7 +177,7 @@ site2branch <- function(
 
   if (trigger) {
     tryCatch(
-      trigger_action(root = root, workflow = workflow),
+      trigger_action(root = root, workflow = workflow, inputs = inputs),
       error = function(e) {
         cli::cli_warn("FTP dispatch \u00e9chou\u00e9 : {e$message}")
         cli::cli_warn("... relancer manuellement avec trigger_action() ou vérifier que la branche main a été poussée sur github.com.")

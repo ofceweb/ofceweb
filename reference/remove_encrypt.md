@@ -1,16 +1,14 @@
 # Désactive le chiffrement statique du site
 
-Annule les effets de \[encrypt_site()\] :
+\`r lifecycle::badge("deprecated")\`
 
-1.  Bascule la variable \`encrypt_site\` à \`false\` dans le
-    \`\_quarto.yml\`.
+Cette fonction est dépréciée. Le chiffrement étant désormais piloté
+\*\*exclusivement par le secret GitHub \`STATICRYPT_PASSWORD\`\*\*, pour
+désactiver le chiffrement il suffit de supprimer ce secret :
 
-2.  Retire le bloc \`env: STATICRYPT_PASSWORD\` du job
-    \`.github/workflows/ftp_deploy.yml\`.
+“\` gh secret delete STATICRYPT_PASSWORD –repo owner/repo “\`
 
-3.  Supprime le secret GitHub \`STATICRYPT_PASSWORD\` du dépôt via
-    \`gh\` (si \`gh\` est installé et que le dépôt a un remote
-    \`origin\`).
+Si le secret est absent, le déploiement s'effectue sans chiffrement.
 
 ## Usage
 
@@ -26,17 +24,11 @@ remove_encrypt(path = ".", delete_secret = TRUE)
 
 - delete_secret:
 
-  Logique. Si \`TRUE\` (défaut), tente de supprimer le secret GitHub
-  \`STATICRYPT_PASSWORD\` via \`gh secret delete\`.
+  Ignoré.
 
 ## Value
 
-Invisible \`NULL\`. Appelée pour ses effets de bord.
-
-## Details
-
-Toutes les étapes sont idempotentes : si un élément n'existe pas,
-l'étape est simplement ignorée.
+Invisible \`NULL\`.
 
 ## Site Users
 

@@ -77,6 +77,7 @@ Pages.
 - [`site_version_up()`](https://ofceweb.github.io/ofceweb/reference/site_version_up.md)
   : Incrémente la version dans le \`site-path\` du \`\_quarto.yml\`
 - [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
+  [`encrypt_wp()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
   : Active le chiffrement statique du site
 - [`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)
   : Désactive le chiffrement statique du site

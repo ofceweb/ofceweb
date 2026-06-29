@@ -13,9 +13,6 @@ optionnel, rendu, puis déploiement. Trois fonctions structurent ce cycle
   — publie le résultat.
 
 Les helpers
-[`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-/
-[`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md),
 [`rescan_site()`](https://ofceweb.github.io/ofceweb/reference/rescan_site.md)
 et
 [`site_version_up()`](https://ofceweb.github.io/ofceweb/reference/site_version_up.md)
@@ -58,10 +55,8 @@ configurer, juste une branche `gh-pages` que Quarto alimente.
   rendu.
 - **Privé hébergé GitHub Pages** : GitHub Pages sur dépôt privé exige un
   plan GitHub Enterprise / Pro. En pratique : soit rendre le dépôt
-  public, soit basculer sur l’hébergement OFCE, soit ajouter une couche
-  de chiffrement via
-  [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-  (voir §3).
+  public, soit basculer sur l’hébergement OFCE, soit activer le
+  chiffrement via le secret `STATICRYPT_PASSWORD` (voir §3).
 
 ## 2. Préparer un dépôt minimal
 
@@ -123,86 +118,56 @@ propre.
 
 ## 3. Chiffrer le site (optionnel)
 
-Utile principalement pour les sites publiés sur GitHub Pages depuis un
-dépôt public quand le contenu doit rester confidentiel (rapports
-embargo, brouillons, etc.). À sauter si le site est destiné à être
-public.
+Le chiffrement est géré **exclusivement en CI** (GitHub Actions), juste
+avant le transfert FTP. Aucune manipulation locale n’est requise.
 
-``` r
+**Principe :** si le secret `STATICRYPT_PASSWORD` est défini sur le
+dépôt GitHub, le workflow de déploiement chiffre automatiquement tous
+les fichiers HTML avec
+[staticrypt](https://github.com/robinmoisson/staticrypt) avant l’envoi
+au serveur. Si le secret est absent, le déploiement se fait sans
+chiffrement.
 
-ofceweb::encrypt_site()           # demande un mot de passe
-# ou
-ofceweb::encrypt_site(password = "…")
+Pour activer le chiffrement, définir le secret une fois sur le dépôt :
+
+``` sh
+gh secret set STATICRYPT_PASSWORD --repo owner/mon-depot
+```
+
+`gh` demandera le mot de passe de manière interactive (masqué). Vous
+pouvez aussi le passer en argument :
+
+``` sh
+echo "mon-mot-de-passe" | gh secret set STATICRYPT_PASSWORD --repo owner/mon-depot
 ```
 
 Pré-requis : `gh` (GitHub CLI) installé et authentifié
 (`gh auth login`), avec droits admin sur le dépôt. Voir
-[*Pré-requis*](https://ofceweb.github.io/ofceweb/articles/prerequisites.html#installer-gh-github-cli)
-pour l’installation et `gh auth login`.
+[*Pré-requis*](https://ofceweb.github.io/ofceweb/articles/prerequisites.html#installer-gh-github-cli).
 
-Ce que fait
-[`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-:
+### Comment fonctionne le chiffrement CI
 
-1.  Ajoute `encrypt_site: true` dans `_quarto.yml` (idempotent).
-2.  Injecte un bloc
-    `env: STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}` dans
-    `.github/workflows/ftp_deploy.yml`.
-3.  Crée le secret GitHub `STATICRYPT_PASSWORD` via `gh secret set`.
-4.  Écrit `STATICRYPT_PASSWORD=…` dans un `.Renviron` local (et l’ajoute
-    au `.gitignore`) pour que les rendus locaux disposent du mot de
-    passe sans configuration shell.
+Lors du déploiement FTP, le workflow `ftp_deploy.yml` :
 
-Le chiffrement lui-même n’est **pas** exécuté ici — il l’est par
-[`render_site()`](https://ofceweb.github.io/ofceweb/reference/render_site.md)
-(via
-[`staticryptR::staticryptr()`](https://rdrr.io/pkg/staticryptR/man/staticryptr.html))
-chaque fois qu’il détecte `encrypt_site: true` dans le `_quarto.yml`.
-Redémarrer la session R après
-[`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-pour que `.Renviron` soit chargé.
+1.  Lit le secret `STATICRYPT_PASSWORD` (vide → aucune action).
+2.  Si défini, installe staticrypt (`npm install -g staticrypt`) et
+    chiffre tous les fichiers HTML du répertoire checkout.
+3.  Lance le transfert FTP avec les fichiers chiffrés.
 
-### Cas OFCE vs GitHub Pages
+Le rendu local
+([`render_site()`](https://ofceweb.github.io/ofceweb/reference/render_site.md))
+produit toujours du HTML en clair — c’est le comportement attendu. La
+prévisualisation locale n’est donc pas protégée par mot de passe.
 
-Le mécanisme diffère sensiblement selon l’hébergement :
+### Désactiver le chiffrement
 
-- **OFCE** :
-  [`render_site()`](https://ofceweb.github.io/ofceweb/reference/render_site.md)
-  chiffre `_site/` localement, puis
-  [`deploy_site()`](https://ofceweb.github.io/ofceweb/reference/deploy_site.md)
-  pousse vers `site-deploy` et le workflow GitHub Actions
-  `ftp_deploy.yml` uploade en FTP. Le bloc `env: STATICRYPT_PASSWORD`
-  injecté dans `ftp_deploy.yml` et le secret GitHub correspondant
-  servent à fournir le mot de passe à un éventuel rendu déclenché côté
-  CI (intégration continue — i.e. GitHub Actions, par opposition à votre
-  machine). Tant que vous rendez en local, le secret n’est pas
-  strictement nécessaire mais ne coûte rien.
+Supprimer le secret du dépôt :
 
-- **GitHub Pages** :
-  [`deploy_site()`](https://ofceweb.github.io/ofceweb/reference/deploy_site.md)
-  lance `quarto publish gh-pages` **depuis votre machine**, qui publie
-  le `_site/` déjà chiffré par le render local. Le chiffrement
-  fonctionne donc, mais à deux conditions implicites :
+``` sh
+gh secret delete STATICRYPT_PASSWORD --repo owner/mon-depot
+```
 
-  1.  Vous devez avoir lancé
-      [`render_site()`](https://ofceweb.github.io/ofceweb/reference/render_site.md)
-      localement avant
-      [`deploy_site()`](https://ofceweb.github.io/ofceweb/reference/deploy_site.md)
-      — sinon `quarto publish gh-pages` rendra à la volée, sans passer
-      par la branche de chiffrement de
-      [`render_site()`](https://ofceweb.github.io/ofceweb/reference/render_site.md).
-  2.  Le patch de `ftp_deploy.yml` et le secret GitHub créés par
-      [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-      ne servent à rien dans ce cas : aucun workflow CI n’est utilisé
-      pour publier. Si vous ajoutez plus tard un workflow CI qui rend le
-      site sur GitHub Actions, il faudra y exposer `STATICRYPT_PASSWORD`
-      à la main —
-      [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-      ne patche que `ftp_deploy.yml`.
-
-Pour désactiver :
-[`ofceweb::remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)
-(idempotent, supprime le secret GitHub sauf si `delete_secret = FALSE`).
+Le prochain déploiement s’effectuera sans chiffrement.
 
 ## 4. Rendre le site
 
@@ -222,9 +187,6 @@ Pipeline :
 - Strippe les hash de contenu des fichiers `_site/site_libs/*` pour que
   la synchronisation FTP ne re-transfère pas l’identique à chaque rendu
   (`patch_sitelibs_hashes()`).
-- Si `encrypt_site: true` : applique
-  [`staticryptR::staticryptr()`](https://rdrr.io/pkg/staticryptR/man/staticryptr.html)
-  sur `_site/` avec `STATICRYPT_PASSWORD`.
 - Lance une prévisualisation locale via `servr::httw("_site")` (URLs
   absolues réécrites en relatif pour la navigation locale).
 
@@ -251,8 +213,9 @@ lit la clé `ofce_host` du `_quarto.yml` et choisit :
   [`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
   : copie `_site/` dans un dépôt temporaire, fait un commit unique,
   force-push vers `origin/site-deploy`, puis déclenche le workflow
-  GitHub Actions `ftp_deploy.yml` (qui pousse en FTP). Les credentials
-  sont lus dans `DEPLOY_PAT` (à défaut, le keystore OS) — voir
+  GitHub Actions `ftp_deploy.yml` (qui chiffre si `STATICRYPT_PASSWORD`
+  est défini, puis pousse en FTP). Les credentials sont lus dans
+  `DEPLOY_PAT` (à défaut, le keystore OS) — voir
   [*Pré-requis*](https://ofceweb.github.io/ofceweb/articles/prerequisites.html#stocker-github_pat-et-deploy_pat-dans-lenvironnement)
   pour la configuration de cette variable. `GITHUB_TOKEN` ne suffit pas
   car il ne peut pas dispatcher d’autres workflows.
@@ -280,8 +243,8 @@ ofceweb::setup_site(
   website_title = "Mon site"
 )
 
-# 2. (optionnel) chiffrement
-ofceweb::encrypt_site()                # redémarrer la session R après
+# 2. (optionnel) activer le chiffrement — une seule fois par dépôt
+# gh secret set STATICRYPT_PASSWORD --repo owner/mon-depot
 
 # 3. rendu
 ofceweb::render_site()
@@ -298,5 +261,3 @@ ofceweb::deploy_site()
 - [`site_version_up()`](https://ofceweb.github.io/ofceweb/reference/site_version_up.md)
   — incrémente le segment de version du `site-path` (`v0` → `v1`, `v3_4`
   → `v3_5`, etc.). OFCE uniquement.
-- [`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)
-  — désactive le chiffrement.

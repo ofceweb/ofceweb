@@ -166,9 +166,10 @@ moment : les fichiers <code>.qmd</code> existants et les scripts
 <p>Après <code><a href="../reference/setup_prev.html">setup_prev()</a></code>, commiter et pousser avant de rendre
 le site. Définir le secret <code>STATICRYPT_PASSWORD</code> si ce n’est
 pas encore fait :</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">gh</span> secret set STATICRYPT_PASSWORD</span></code></pre></div>
-<p>Pour les profils qui ne sont pas <code>staging</code>, le motde passe
-ÀLT_STATICRYPT_PASSWORD` doit être défini par la même procédure.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">gh</span> secret set STATICRYPT_PASSWORD <span class="at">--repo</span> owner/mon-depot</span></code></pre></div>
+<p>Ce secret unique s’applique à tous les profils (staging et profils
+personnalisés). Si le secret est absent, le déploiement s’effectue sans
+chiffrement.</p>
 </div>
 <div class="section level2">
 <h2 id="vérifier-la-configuration">3. Vérifier la configuration<a class="anchor" aria-label="anchor" href="#v%C3%A9rifier-la-configuration"></a>
@@ -334,7 +335,7 @@ séparément pour chaque profil (branche <code>site-review</code>).</p>
 <tr class="even">
 <td>Chiffrement</td>
 <td>Oui (<code>STATICRYPT_PASSWORD</code>) / Non (publish)</td>
-<td>Oui (<code>ALT_STATICRYPT_PASSWORD</code>)</td>
+<td>Oui (<code>STATICRYPT_PASSWORD</code>)</td>
 </tr>
 <tr class="odd">
 <td>Credentials FTP</td>

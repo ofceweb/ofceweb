@@ -1,7 +1,9 @@
 # Active le chiffrement statique d'un document de travail
 
-Wrapper autour de \[encrypt_site()\] pour les dépôts WP. Le comportement
-est identique.
+\`r lifecycle::badge("deprecated")\`
+
+Cette fonction est dépréciée. Voir \[encrypt_site()\] pour plus de
+détails.
 
 ## Usage
 
@@ -17,5 +19,4 @@ encrypt_wp(path = ".", password = NULL)
 
 - password:
 
-  Chaîne ou \`NULL\` (défaut). Si \`NULL\`, l'utilisateur est invité à
-  saisir le mot de passe (masqué si \`askpass\` est disponible).
+  Ignoré.

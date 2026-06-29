@@ -11,9 +11,8 @@ Vue d’ensemble :
 - un **PAT** (Personal Access Token) GitHub stocké comme variable
   d’environnement pour que R / git / gh puissent agir en votre nom ;
 - l’outil en ligne de commande **`gh`** (GitHub CLI) authentifié via
-  `gh auth login`, utilisé notamment par
-  [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-  pour créer les secrets de dépôt.
+  `gh auth login`, utilisé pour créer et supprimer les secrets de dépôt
+  (notamment `STATICRYPT_PASSWORD` pour le chiffrement).
 
 ## 1. Qu’est-ce qu’un PAT GitHub ?
 
@@ -64,10 +63,8 @@ la même valeur dans `GITHUB_PAT` et `DEPLOY_PAT`.
       `gh-pages`).
     - *Actions* : **Read and write** (dispatcher `ftp_deploy.yml`).
     - *Metadata* : **Read-only** (coché automatiquement).
-    - *Secrets* : **Read and write** (uniquement si vous comptez
-      utiliser
-      [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-      ; sinon laisser à *No access*).
+    - *Secrets* : **Read and write** (si vous souhaitez gérer le secret
+      `STATICRYPT_PASSWORD` via `gh secret set` avec ce token).
 8.  *Generate token*.
 9.  **Copier la valeur affichée** : elle ne sera plus jamais visible.
 
@@ -117,10 +114,7 @@ nchar(Sys.getenv("DEPLOY_PAT"))
 
 Ne **jamais** commiter un `.Renviron` qui contient des tokens. Le
 `.Renviron` utilisateur (`~/.Renviron`) est hors de tout dépôt, donc
-sûr. Un `.Renviron` de projet doit être listé dans `.gitignore` — c’est
-ce que fait
-[`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-automatiquement quand il y écrit `STATICRYPT_PASSWORD`.
+sûr.
 
 ### Alternative : keystore OS via `gitcreds`
 
@@ -150,10 +144,10 @@ Quand le token expire :
 
 ## 4. Installer `gh` (GitHub CLI)
 
-`gh` est utilisé par
-[`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-pour créer le secret `STATICRYPT_PASSWORD` sur le dépôt. C’est un
-binaire indépendant de R.
+`gh` est le CLI officiel de GitHub. Il est utilisé pour gérer les
+secrets de dépôt (`gh secret set` / `gh secret delete`), notamment pour
+activer ou désactiver le chiffrement staticrypt via le secret
+`STATICRYPT_PASSWORD`. C’est un binaire indépendant de R.
 
 ### macOS
 
@@ -242,10 +236,8 @@ Doit afficher quelque chose comme :
       ✓ Git operations for github.com configured to use https protocol.
       ✓ Token: gho_************************
 
-À ce stade,
-[`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-peut créer des secrets GitHub via `gh secret set`, et toute la chaîne
-`ofceweb` est opérationnelle.
+À ce stade, vous pouvez gérer les secrets de dépôt via `gh secret set`
+et toute la chaîne `ofceweb` est opérationnelle.
 
 ## Récapitulatif
 

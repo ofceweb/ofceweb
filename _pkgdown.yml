@@ -41,7 +41,8 @@ reference:
   desc: >
     Fonctions pour les dépôts de documents de travail OFCE (WP). Un WP peut
     être en mode brouillon (déployé sur GitHub Pages) ou publié (déployé via
-    FTP sur `www.ofce.fr/wp/{annee}/{N}/`).
+    FTP sur `www.ofce.fr/wp/{annee}/{N}/`). Le chiffrement éventuel est
+    appliqué par le workflow GitHub Actions — pas localement.
   contents:
   - setup_wp
   - check_wp
@@ -50,22 +51,32 @@ reference:
   - deploy_wp
   - rescan_wp
   - wp_version_up
-  - encrypt_wp
-  - remove_encrypt
 
 - title: Sites génériques
   desc: >
     Fonctions pour les sites Quarto génériques hébergés sur `www.ofce.fr`.
     Supporte l'hébergement OFCE (FTP via branche de déploiement) et GitHub
-    Pages.
+    Pages. Le chiffrement staticrypt est appliqué **en CI**, juste avant le
+    transfert FTP, via le secret `STATICRYPT_PASSWORD` — aucune manipulation
+    locale n'est requise.
   contents:
   - setup_site
   - render_site
   - deploy_site
   - stage_site
+  - push_site_redirect
   - rescan_site
   - site_version_up
+
+- title: Fonctions dépréciées
+  desc: >
+    Ces fonctions géraient autrefois le chiffrement localement. Le chiffrement
+    est désormais piloté **exclusivement en CI** via le secret GitHub
+    `STATICRYPT_PASSWORD`. Utiliser `gh secret set` / `gh secret delete`
+    directement.
+  contents:
   - encrypt_site
+  - encrypt_wp
   - remove_encrypt
 
 - title: Blog

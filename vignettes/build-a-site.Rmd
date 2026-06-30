@@ -138,11 +138,13 @@ Pré-requis : `gh` (GitHub CLI) installé et authentifié
 
 ### Comment fonctionne le chiffrement CI
 
-Lors du déploiement FTP, le workflow `ftp_deploy.yml` :
+Lors du déploiement FTP, chaque workflow de déploiement (`ftp_deploy.yml`,
+`render_and_stage.yml`, `render_and_publish.yml`) :
 
 1. Lit le secret `STATICRYPT_PASSWORD` (vide → aucune action).
-2. Si défini, installe staticrypt (`npm install -g staticrypt`) et
-   chiffre tous les fichiers HTML du répertoire checkout.
+2. Si défini, installe staticrypt (`npm install -g staticrypt`), chiffre
+   tous les fichiers HTML dans un répertoire temporaire, puis les recopie
+   sur place avant le transfert.
 3. Lance le transfert FTP avec les fichiers chiffrés.
 
 Le rendu local (`render_site()`) produit toujours du HTML en clair —
@@ -243,3 +245,8 @@ ofceweb::deploy_site()
   pages.
 - `site_version_up()` — incrémente le segment de version du `site-path`
   (`v0` → `v1`, `v3_4` → `v3_5`, etc.). OFCE uniquement.
+- `push_site_redirect()` — génère et pousse une page `index.html` de
+  redirection vers la version courante (si le `site-path` contient un
+  segment `/v\d+`). Appelée automatiquement par `stage_site()` et
+  `site_version_up()` ; utile à appeler manuellement après une correction
+  d'urgence sans changement de version.

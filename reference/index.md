@@ -37,7 +37,8 @@ GitHub Actions — pas localement.
 
 Fonctions pour les dépôts de documents de travail OFCE (WP). Un WP peut
 être en mode brouillon (déployé sur GitHub Pages) ou publié (déployé via
-FTP sur `www.ofce.fr/wp/{annee}/{N}/`).
+FTP sur `www.ofce.fr/wp/{annee}/{N}/`). Le chiffrement éventuel est
+appliqué par le workflow GitHub Actions — pas localement.
 
 - [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
   : Initialise un dépôt de document de travail (WP) OFCE
@@ -53,16 +54,14 @@ FTP sur `www.ofce.fr/wp/{annee}/{N}/`).
   : Rescanne les pages d'un document de travail
 - [`wp_version_up()`](https://ofceweb.github.io/ofceweb/reference/wp_version_up.md)
   : Incrémente la version d'un document de travail OFCE publié
-- [`encrypt_wp()`](https://ofceweb.github.io/ofceweb/reference/encrypt_wp.md)
-  : Active le chiffrement statique d'un document de travail
-- [`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)
-  : Désactive le chiffrement statique du site
 
 ## Sites génériques
 
 Fonctions pour les sites Quarto génériques hébergés sur `www.ofce.fr`.
 Supporte l’hébergement OFCE (FTP via branche de déploiement) et GitHub
-Pages.
+Pages. Le chiffrement staticrypt est appliqué **en CI**, juste avant le
+transfert FTP, via le secret `STATICRYPT_PASSWORD` — aucune manipulation
+locale n’est requise.
 
 - [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
   : Initialise un site OFCE dans le dépôt courant
@@ -72,13 +71,26 @@ Pages.
   : Déploie le site selon l'hébergement déclaré dans \`\_quarto.yml\`
 - [`stage_site()`](https://ofceweb.github.io/ofceweb/reference/stage_site.md)
   : Rend et déploie un site OFCE générique
+- [`push_site_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_site_redirect.md)
+  : Pousse la page de redirection vers la version courante d'un site
+  OFCE
 - [`rescan_site()`](https://ofceweb.github.io/ofceweb/reference/rescan_site.md)
   : Rescanne les pages et met à jour la section \`other-links\`
 - [`site_version_up()`](https://ofceweb.github.io/ofceweb/reference/site_version_up.md)
   : Incrémente la version dans le \`site-path\` du \`\_quarto.yml\`
+
+## Fonctions dépréciées
+
+Ces fonctions géraient autrefois le chiffrement localement. Le
+chiffrement est désormais piloté **exclusivement en CI** via le secret
+GitHub `STATICRYPT_PASSWORD`. Utiliser `gh secret set` /
+`gh secret delete` directement.
+
 - [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
   [`encrypt_wp()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
   : Active le chiffrement statique du site
+- [`encrypt_wp()`](https://ofceweb.github.io/ofceweb/reference/encrypt_wp.md)
+  : Active le chiffrement statique d'un document de travail
 - [`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)
   : Désactive le chiffrement statique du site
 

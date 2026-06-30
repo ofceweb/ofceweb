@@ -1,5 +1,15 @@
 # Changelog
 
+## ofceweb v0.5.5
+
+- Nouvelle stratégie commune pour l’encryption : l’encryption est faite
+  pour le staging uniquement, à condition que le secret
+  STATICRYPT_PASSWORD soit défini. L’encryption est faite par
+  github.com (CI) juste avant d’envoyer en FTP.
+- Cette stratégie sera la même pour tous les types de documents.
+- La redirection éventuelle est aussi ajoutée à la fin du process de
+  rendu (que ce soit en local ou sur la CI).
+
 ## ofceweb v0.5.4
 
 - [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)

@@ -160,7 +160,31 @@ deploy_wp()
 
 ------------------------------------------------------------------------
 
-## 6. Incrémenter la version après une révision
+## 6. Chiffrement (optionnel)
+
+Le chiffrement est géré **exclusivement en CI** (GitHub Actions), juste
+avant le transfert FTP. Aucune manipulation locale n’est requise.
+
+Si le secret `STATICRYPT_PASSWORD` est défini sur le dépôt, le workflow
+`ftp_deploy.yml` chiffre automatiquement tous les fichiers HTML avant
+l’envoi au serveur. Si le secret est absent, le déploiement s’effectue
+sans chiffrement.
+
+``` sh
+# Activer le chiffrement
+gh secret set STATICRYPT_PASSWORD --repo owner/mon-wp
+
+# Désactiver le chiffrement
+gh secret delete STATICRYPT_PASSWORD --repo owner/mon-wp
+```
+
+Le rendu local
+([`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md))
+produit toujours du HTML en clair.
+
+------------------------------------------------------------------------
+
+## 7. Incrémenter la version après une révision
 
 ``` r
 
@@ -187,7 +211,7 @@ deploy_wp()
 
 ------------------------------------------------------------------------
 
-## 7. Manifeste JSON
+## 8. Manifeste JSON
 
 [`wp_manifest()`](https://ofceweb.github.io/ofceweb/reference/wp_manifest.md)
 (appelée automatiquement par

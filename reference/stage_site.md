@@ -2,7 +2,9 @@
 
 Enchaîne \[render_site()\] (sans prévisualisation locale) puis
 \[deploy_site()\] pour construire et pousser le site en une seule
-commande.
+commande. Si le \`site-path\` du \`\_quarto.yml\` contient un segment de
+version (\`/v+\`), appelle automatiquement \[push_site_redirect()\] pour
+maintenir l'URL stable à jour.
 
 ## Usage
 
@@ -33,7 +35,8 @@ stage_site(
 
 - trigger:
 
-  Passé à \[deploy_site()\]. Défaut \`TRUE\`.
+  Passé à \[deploy_site()\] et \[push_site_redirect()\]. Défaut
+  \`TRUE\`.
 
 - full_deploy:
 
@@ -51,4 +54,5 @@ Invisible \`NULL\`.
 
 ## See also
 
-\[render_site()\], \[deploy_site()\], \[setup_site()\]
+\[render_site()\], \[deploy_site()\], \[push_site_redirect()\],
+\[setup_site()\]

@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -285,14 +285,16 @@ fait sans chiffrement.</p>
 <div class="section level3">
 <h3 id="comment-fonctionne-le-chiffrement-ci">Comment fonctionne le chiffrement CI<a class="anchor" aria-label="anchor" href="#comment-fonctionne-le-chiffrement-ci"></a>
 </h3>
-<p>Lors du déploiement FTP, le workflow <code>ftp_deploy.yml</code>
-:</p>
+<p>Lors du déploiement FTP, chaque workflow de déploiement
+(<code>ftp_deploy.yml</code>, <code>render_and_stage.yml</code>,
+<code>render_and_publish.yml</code>) :</p>
 <ol style="list-style-type: decimal">
 <li>Lit le secret <code>STATICRYPT_PASSWORD</code> (vide → aucune
 action).</li>
 <li>Si défini, installe staticrypt
-(<code>npm install -g staticrypt</code>) et chiffre tous les fichiers
-HTML du répertoire checkout.</li>
+(<code>npm install -g staticrypt</code>), chiffre tous les fichiers HTML
+dans un répertoire temporaire, puis les recopie sur place avant le
+transfert.</li>
 <li>Lance le transfert FTP avec les fichiers chiffrés.</li>
 </ol>
 <p>Le rendu local (<code><a href="../reference/render_site.html">render_site()</a></code>) produit toujours du HTML
@@ -430,6 +432,13 @@ réécrit la section <code>other-links</code> du <code>_quarto.yml</code>.
 <code><a href="../reference/site_version_up.html">site_version_up()</a></code> — incrémente le segment de version du
 <code>site-path</code> (<code>v0</code> → <code>v1</code>,
 <code>v3_4</code> → <code>v3_5</code>, etc.). OFCE uniquement.</li>
+<li>
+<code><a href="../reference/push_site_redirect.html">push_site_redirect()</a></code> — génère et pousse une page
+<code>index.html</code> de redirection vers la version courante (si le
+<code>site-path</code> contient un segment <code>/v\d+</code>). Appelée
+automatiquement par <code><a href="../reference/stage_site.html">stage_site()</a></code> et
+<code><a href="../reference/site_version_up.html">site_version_up()</a></code> ; utile à appeler manuellement après une
+correction d’urgence sans changement de version.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

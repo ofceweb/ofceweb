@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -120,7 +120,7 @@
       </dl></div><div class="section level2">
       <h2 id="working-papers">Working papers<a class="anchor" aria-label="anchor" href="#working-papers"></a></h2>
 
-      <div class="section-desc"><p>Fonctions pour les dépôts de documents de travail OFCE (WP). Un WP peut être en mode brouillon (déployé sur GitHub Pages) ou publié (déployé via FTP sur <code>www.ofce.fr/wp/{annee}/{N}/</code>).</p></div>
+      <div class="section-desc"><p>Fonctions pour les dépôts de documents de travail OFCE (WP). Un WP peut être en mode brouillon (déployé sur GitHub Pages) ou publié (déployé via FTP sur <code>www.ofce.fr/wp/{annee}/{N}/</code>). Le chiffrement éventuel est appliqué par le workflow GitHub Actions — pas localement.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -175,24 +175,10 @@
 
         </dt>
         <dd>Incrémente la version d'un document de travail OFCE publié</dd>
-
-        <dt>
-
-          <code><a href="encrypt_wp.html">encrypt_wp()</a></code>
-
-        </dt>
-        <dd>Active le chiffrement statique d'un document de travail</dd>
-
-        <dt>
-
-          <code><a href="remove_encrypt.html">remove_encrypt()</a></code>
-
-        </dt>
-        <dd>Désactive le chiffrement statique du site</dd>
       </dl></div><div class="section level2">
       <h2 id="sites-g-n-riques">Sites génériques<a class="anchor" aria-label="anchor" href="#sites-g-n-riques"></a></h2>
 
-      <div class="section-desc"><p>Fonctions pour les sites Quarto génériques hébergés sur <code>www.ofce.fr</code>. Supporte l’hébergement OFCE (FTP via branche de déploiement) et GitHub Pages.</p></div>
+      <div class="section-desc"><p>Fonctions pour les sites Quarto génériques hébergés sur <code>www.ofce.fr</code>. Supporte l’hébergement OFCE (FTP via branche de déploiement) et GitHub Pages. Le chiffrement staticrypt est appliqué <strong>en CI</strong>, juste avant le transfert FTP, via le secret <code>STATICRYPT_PASSWORD</code> — aucune manipulation locale n’est requise.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -229,6 +215,13 @@
 
         <dt>
 
+          <code><a href="push_site_redirect.html">push_site_redirect()</a></code>
+
+        </dt>
+        <dd>Pousse la page de redirection vers la version courante d'un site OFCE</dd>
+
+        <dt>
+
           <code><a href="rescan_site.html">rescan_site()</a></code>
 
         </dt>
@@ -240,13 +233,29 @@
 
         </dt>
         <dd>Incrémente la version dans le `site-path` du `_quarto.yml`</dd>
+      </dl></div><div class="section level2">
+      <h2 id="fonctions-d-pr-ci-es">Fonctions dépréciées<a class="anchor" aria-label="anchor" href="#fonctions-d-pr-ci-es"></a></h2>
 
-        <dt>
+      <div class="section-desc"><p>Ces fonctions géraient autrefois le chiffrement localement. Le chiffrement est désormais piloté <strong>exclusivement en CI</strong> via le secret GitHub <code>STATICRYPT_PASSWORD</code>. Utiliser <code>gh secret set</code> / <code>gh secret delete</code> directement.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="encrypt_site.html">encrypt_site()</a></code> <code><a href="encrypt_site.html">encrypt_wp()</a></code>
 
         </dt>
         <dd>Active le chiffrement statique du site</dd>
+
+        <dt>
+
+          <code><a href="encrypt_wp.html">encrypt_wp()</a></code>
+
+        </dt>
+        <dd>Active le chiffrement statique d'un document de travail</dd>
 
         <dt>
 

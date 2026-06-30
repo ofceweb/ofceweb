@@ -322,14 +322,23 @@ setup_site <- function(
   )
   cli::cli_alert_success("Mise à jour de {.file _quarto.yml}")
 
-  # ---- 7. .gitignore : ajoute _site -------------------------------------
+  # ---- 7. .gitignore : ajoute _site et état FTP -------------------------
   gi_path <- fs::path(root, ".gitignore")
   gi_lines <- if(fs::file_exists(gi_path)) readLines(gi_path) else character()
+  changed <- FALSE
   if(!any(trimws(gi_lines) == "_site" | trimws(gi_lines) == "/_site" |
           trimws(gi_lines) == "_site/")) {
     gi_lines <- c(gi_lines, "_site")
+    changed <- TRUE
+  }
+  ftp_state <- ".ftp-deploy-sync-state.json"
+  if(!any(trimws(gi_lines) == ftp_state)) {
+    gi_lines <- c(gi_lines, ftp_state)
+    changed <- TRUE
+  }
+  if(changed) {
     writeLines(gi_lines, gi_path)
-    cli::cli_alert_success("Ajout de {.file _site} dans {.file .gitignore}")
+    cli::cli_alert_success("Mise à jour de {.file .gitignore}")
   }
 
   cli::cli_h2("Résumé")

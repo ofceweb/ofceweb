@@ -59,6 +59,9 @@ _site
 .DS_Store
 .crossrefs
 
+# FTP differential deploy state (main branch only — committed on deploy branches)
+.ftp-deploy-sync-state.json
+
 /.luarc.json
 
 *.pdf

@@ -53,9 +53,10 @@ jobs:
             echo "STATICRYPT_PASSWORD absent — déploiement sans chiffrement."
           else
             npm install -g staticrypt
+            mkdir -p /tmp/staticrypt_out
             staticrypt ./ \
               --recursive \
-              --directory ./ \
+              --directory /tmp/staticrypt_out/ \
               --password "$STATICRYPT_PASSWORD" \
               --short \
               --remember 0 \
@@ -64,6 +65,7 @@ jobs:
               --template-title "Accès restreint" \
               --template-instructions "Entrez le mot de passe ou contactez un responsable de la page que vous souhaitez atteindre." \
               --template-button "Accès"
+            cp -r /tmp/staticrypt_out/. ./
           fi
 
       - name: FTP deploy (profil ${{ steps.vars.outputs.profile }})

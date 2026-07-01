@@ -33,7 +33,8 @@ Invisible \`NULL\`. Appelée pour ses effets de bord.
 ## Details
 
 Sans effet (sortie silencieuse) si \`site-path\` ne contient pas de
-segment de version (\`/v+\`) ou si \`ofce_host\` n'est pas \`true\`.
+segment de version (\`/v\[0-9\]+\`) ou si \`ofce_host\` n'est pas
+\`true\`.
 
 Appelée automatiquement par \[site_version_up()\] lors d'un incrément de
 version, et par \[stage_site()\] à chaque déploiement staging.

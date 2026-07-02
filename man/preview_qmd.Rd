@@ -49,6 +49,13 @@ Le répertoire servi et le chemin initial sont déduits automatiquement via
     pointe sur le dossier du `.qmd` lui-même.
 }
 }
+\section{Functions}{
+\itemize{
+\item \code{preview_qmd_staging()}: Raccourci pour `preview_qmd(profile = "staging")`.
+Lance la prévisualisation du document `.qmd` actif avec le profil Quarto
+`"staging"`, sans autre paramètre à préciser.
+
+}}
 \section{Prévision Users}{
 
 }

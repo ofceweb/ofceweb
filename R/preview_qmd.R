@@ -128,7 +128,9 @@ preview_qmd <- function(profile = NULL,
 }
 
 
-#' @rdname preview_qmd
+#' @describeIn preview_qmd Raccourci pour `preview_qmd(profile = "staging")`.
+#'   Lance la prévisualisation du document `.qmd` actif avec le profil Quarto
+#'   `"staging"`, sans autre paramètre à préciser.
 #' @export
 preview_qmd_staging <- function(daemon = TRUE, ...) {
   preview_qmd(profile = "staging", daemon = daemon, ...)

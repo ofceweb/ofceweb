@@ -45,7 +45,12 @@ preview_qmd <- function(profile = NULL,
       "{.fn preview_qmd} requiert RStudio (rstudioapi non disponible).")
 
   ctx  <- rstudioapi::getSourceEditorContext()
-  path <- ctx$path
+
+  project <- rstudioapi::getActiveProject() |> fs::path_file()
+  if(is.null(project))
+    cli::cli_abort("{.fn preview_qmd} requiet un project RStudio ouvert")
+
+  path <- ctx$path |> stringr::str_extract(".+/{project}/(.+)" |> glue::glue(), group = 1)
 
   if (!nzchar(path))
     cli::cli_abort(
@@ -78,9 +83,10 @@ preview_qmd <- function(profile = NULL,
       NULL
     }
   )
+
   if (!is.null(inspect) && !is.null(inspect$project)) {
-    root           <- inspect$dir
-    output_dir_rel <- inspect$config$project[["output-dir"]]
+    root           <- inspect$project$dir |> fs::path_norm()
+    output_dir_rel <- inspect$project$config$project[["output-dir"]] |> fs::path_norm()
     if (!is.null(output_dir_rel))
       output_dir <- fs::path_join(c(root, output_dir_rel)) |> as.character()
   } else {
@@ -99,7 +105,7 @@ preview_qmd <- function(profile = NULL,
     render_dir <- output_dir
     # Chemin HTML relatif à output_dir = chemin du .qmd relatif à la racine,
     # avec l'extension .html
-    qmd_rel  <- fs::path_rel(qmd_abs, root) |> as.character()
+    qmd_rel  <- fs::path_rel(qmd_abs |> fs::path_expand(), root) |> as.character()
     html_rel <- fs::path_ext_set(qmd_rel, "html") |> as.character()
     cli::cli_alert_info(
       "Projet Quarto détecté ({.path {fs::path_file(root)}}), \\

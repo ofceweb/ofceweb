@@ -40,6 +40,10 @@ preview_qmd <- function(profile = NULL,
                         use_freezer = FALSE,
                         as_job = FALSE,
                         ...) {
+
+  oldwd <- getwd()
+  on.exit(setwd(oldwd))
+
   if (!rstudioapi::isAvailable())
     cli::cli_abort(
       "{.fn preview_qmd} requiert RStudio (rstudioapi non disponible).")
@@ -47,6 +51,8 @@ preview_qmd <- function(profile = NULL,
   ctx  <- rstudioapi::getSourceEditorContext()
 
   project <- rstudioapi::getActiveProject() |> fs::path_file()
+  setwd(project)
+
   if(is.null(project))
     cli::cli_abort("{.fn preview_qmd} requiet un project RStudio ouvert")
 

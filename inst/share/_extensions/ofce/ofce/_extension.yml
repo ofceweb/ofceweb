@@ -8,6 +8,7 @@ contributes:
       toc: true
       lang: fr
       french: true
+      authors-title: "Autrices, auteurs & résumé"
       language:
         fr:
           section-title-references: "Bibliograhie"
@@ -73,6 +74,7 @@ contributes:
       title-block-style: default
       template-partials:
         - html_template/title-metadata.html
+        - html_template/title-block.html
       include-in-header:
         - blog-nav-active.html
       include-after-body:

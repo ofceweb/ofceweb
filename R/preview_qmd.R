@@ -78,15 +78,19 @@ preview_qmd <- function(profile = NULL,
       NULL
     }
   )
-
-  if (!is.null(inspect) && !is.null(inspect$config$project)) {
+  if (!is.null(inspect) && !is.null(inspect$project)) {
     root           <- inspect$dir
     output_dir_rel <- inspect$config$project[["output-dir"]]
     if (!is.null(output_dir_rel))
       output_dir <- fs::path_join(c(root, output_dir_rel)) |> as.character()
   } else {
     # Repli : remontée de l'arborescence + lecture manuelle des YAML
-    root <-  (qmd_abs)
+    root <- tryCatch(
+      rprojroot::find_root(rprojroot::is_quarto_project),
+      error = function(e) {
+        cli::cli_abort("ce n'est pas un projet quarto ({conditionMessage(e)}).")
+      }
+    )
     if (!is.null(root))
       output_dir <- .detect_output_dir(root, profile)
   }

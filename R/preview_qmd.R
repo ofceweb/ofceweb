@@ -79,14 +79,14 @@ preview_qmd <- function(profile = NULL,
     }
   )
 
-  if (!is.null(inspect) && !is.null(inspect$project)) {
-    root           <- inspect$project$dir
-    output_dir_rel <- inspect$project$config$project[["output-dir"]]
+  if (!is.null(inspect) && !is.null(inspect$config$project)) {
+    root           <- inspect$dir
+    output_dir_rel <- inspect$config$project[["output-dir"]]
     if (!is.null(output_dir_rel))
-      output_dir <- fs::path_norm(fs::path(root, output_dir_rel)) |> as.character()
+      output_dir <- fs::path_join(c(root, output_dir_rel)) |> as.character()
   } else {
     # Repli : remontée de l'arborescence + lecture manuelle des YAML
-    root <- .find_quarto_root(qmd_abs)
+    root <-  (qmd_abs)
     if (!is.null(root))
       output_dir <- .detect_output_dir(root, profile)
   }

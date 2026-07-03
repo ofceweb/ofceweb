@@ -119,7 +119,7 @@ preview_qmd <- function(profile = NULL,
   # ---- Prévisualisation -----------------------------------------------------
   cli::cli_h2("Prévisualisation locale")
   servr::daemon_stop()
-  servr::httd(render_dir, initpath = html_rel, daemon = daemon)
+  servr::httd(output_dir, initpath = html_rel, daemon = daemon)
 
   cli::cli_alert_success(
     "Serveur lancé \u2192 {.path {fs::path_file(render_dir)}/{html_rel}}")

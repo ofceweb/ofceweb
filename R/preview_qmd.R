@@ -48,10 +48,9 @@ preview_qmd <- function(profile = NULL,
     cli::cli_abort(
       "{.fn preview_qmd} requiert RStudio (rstudioapi non disponible).")
 
-  ctx  <- rstudioapi::getSourceEditorContext()
+  ctx <- rstudioapi::getSourceEditorContext()
 
   project <- rstudioapi::getActiveProject() |> fs::path_file()
-  setwd(project)
 
   if(is.null(project))
     cli::cli_abort("{.fn preview_qmd} requiet un project RStudio ouvert")
@@ -106,7 +105,7 @@ preview_qmd <- function(profile = NULL,
     if (!is.null(root))
       output_dir <- .detect_output_dir(root, profile)
   }
-
+  setwd(root)
   if (!is.null(output_dir)) {
     render_dir <- output_dir
     # Chemin HTML relatif à output_dir = chemin du .qmd relatif à la racine,

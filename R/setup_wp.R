@@ -66,7 +66,9 @@ setup_wp <- function(
   # Vérifier si les arguments ne sont pas dans un yml
   dest_yaml <- fs::path(root, "_quarto.yml")
   dest_index <- fs::path(root, "index.qmd")
-  yml <- yaml::read_yaml(dest_yaml)
+  yml <- if (fs::file_exists(dest_yaml))
+    tryCatch(yaml::read_yaml(dest_yaml), error = function(e) list())
+  else list()
 
   if (isTRUE(yml[["ofce_prev"]])) {
     cli::cli_abort(c(

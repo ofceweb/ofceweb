@@ -1,63 +1,63 @@
 # Navbar centralisée des sites OFCE (source unique de vérité).
 #
 # Structure identique à la section `website.navbar` de Quarto (référence :
-# webhome). Toutes les URLs sont en chemins absolus racine (valides depuis
-# n'importe quel mini-site) et les liens externes en https://.
-# « Prévision France & Monde » pointe vers l'URL stable /prev/derniere/
-# (redirigée vers la dernière prévision publiée).
+# webhome). Toutes les URLs sont absolues avec domaine (https://www.ofce.fr/...) :
+# « Prévision France & Monde » pointe vers l'URL stable
+# https://www.ofce.fr/prev/derniere/ (redirigée vers la dernière prévision
+# publiée).
 #
 # Propagée dans les `_quarto.yml` des sites par `ofceweb::update_navbar()`.
 left:
   - text: Accueil
-    href: /
+    href: https://www.ofce.fr/
   - text: Blog
-    href: /blog2024/
+    href: https://www.ofce.fr/blog2024/
   - text: L'OFCE
     menu:
       - text: À propos
-        href: /ofce/ofce.html
+        href: https://www.ofce.fr/ofce/ofce.html
       - text: L'équipe
         href: '#'
       - text: Réseaux scientifiques
-        href: /ofce/reseaux.html
+        href: https://www.ofce.fr/ofce/reseaux.html
       - text: Rapport d'activité
-        href: /ofce/rapports.html
+        href: https://www.ofce.fr/ofce/rapports.html
       - text: Plaquette de présentation
-        href: /ofce/plaquette.pdf
+        href: https://www.ofce.fr/ofce/plaquette.pdf
       - text: Abonnements
-        href: /publications/abonnement.html
+        href: https://www.ofce.fr/publications/abonnement.html
       - text: Nous rejoindre
-        href: /ofce/recrute.html
+        href: https://www.ofce.fr/ofce/recrute.html
       - text: Contact
-        href: /ofce/contact.html
+        href: https://www.ofce.fr/ofce/contact.html
       - text: Médias
         href: '#'
       - text: Mentions légales
-        href: /legal/mentions_legales.html
+        href: https://www.ofce.fr/legal/mentions_legales.html
       - text: Conditions générales
-        href: /legal/conditions_generales.html
+        href: https://www.ofce.fr/legal/conditions_generales.html
       - text: Politique des cookies
-        href: /legal/cookies.html
+        href: https://www.ofce.fr/legal/cookies.html
   - text: Événements
     href: '#'
   - text: Prévisions
     menu:
       - text: Nowcast
-        href: /nowcast/
+        href: https://www.ofce.fr/nowcast/
       - text: Prévision France & Monde
-        href: /prev/derniere/
+        href: https://www.ofce.fr/prev/derniere/
       - text: Anciennes prévisions
-        href: /indic_prev/prevision.html
+        href: https://www.ofce.fr/indic_prev/prevision.html
   - text: Publications
     menu:
       - text: Policy Briefs
-        href: /publications/policy.html
+        href: https://www.ofce.fr/publications/policy.html
       - text: Working Papers
-        href: /publications/working_papers.html
+        href: https://www.ofce.fr/publications/working_papers.html
       - text: Etudes & Rapports
-        href: /publications/rapports.html
+        href: https://www.ofce.fr/publications/rapports.html
       - text: Revue
-        href: /publications/revue.html
+        href: https://www.ofce.fr/publications/revue.html
   - text: Recherche
     href: '#'
   - text: Outils & Ressources
@@ -65,9 +65,9 @@ left:
       - text: DEBTWATCH
         href: https://ofce.shinyapps.io/debtwatchr/
       - text: Modèle ThreeME
-        href: /recherche/threeme.html
+        href: https://www.ofce.fr/recherche/threeme.html
       - text: Evamodi
-        href: /recherche/evamodi.html
+        href: https://www.ofce.fr/recherche/evamodi.html
 right:
   - text: EN
     href: '#'

@@ -34,6 +34,7 @@ reference:
   - site2staging
   - site2profile
   - prev_version_up
+  - push_prev_redirect
   - render_prev_publish
   - preview_qmd
   - preview_qmd_staging
@@ -106,6 +107,7 @@ reference:
   - trigger_action
   - download_gh_dir
   - download_gh_file
+  - update_navbar
 
 articles:
 - title: Articles

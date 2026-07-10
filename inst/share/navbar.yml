@@ -1,0 +1,82 @@
+# Navbar centralisée des sites OFCE (source unique de vérité).
+#
+# Structure identique à la section `website.navbar` de Quarto (référence :
+# webhome). Toutes les URLs sont absolues avec domaine (https://www.ofce.fr/...) :
+# « Prévision France & Monde » pointe vers l'URL stable
+# https://www.ofce.fr/prev/derniere/ (redirigée vers la dernière prévision
+# publiée).
+#
+# Propagée dans les `_quarto.yml` des sites par `ofceweb::update_navbar()`.
+left:
+  - text: Accueil
+    href: https://www.ofce.fr/
+  - text: Blog
+    href: https://www.ofce.fr/blog2024/
+  - text: L'OFCE
+    menu:
+      - text: À propos
+        href: https://www.ofce.fr/ofce/ofce.html
+      - text: L'équipe
+        href: '#'
+      - text: Réseaux scientifiques
+        href: https://www.ofce.fr/ofce/reseaux.html
+      - text: Rapport d'activité
+        href: https://www.ofce.fr/ofce/rapports.html
+      - text: Plaquette de présentation
+        href: https://www.ofce.fr/ofce/plaquette.pdf
+      - text: Abonnements
+        href: https://www.ofce.fr/publications/abonnement.html
+      - text: Nous rejoindre
+        href: https://www.ofce.fr/ofce/recrute.html
+      - text: Contact
+        href: https://www.ofce.fr/ofce/contact.html
+      - text: Médias
+        href: '#'
+      - text: Mentions légales
+        href: https://www.ofce.fr/legal/mentions_legales.html
+      - text: Conditions générales
+        href: https://www.ofce.fr/legal/conditions_generales.html
+      - text: Politique des cookies
+        href: https://www.ofce.fr/legal/cookies.html
+  - text: Événements
+    href: '#'
+  - text: Prévisions
+    menu:
+      - text: Nowcast
+        href: https://www.ofce.fr/nowcast/
+      - text: Prévision France & Monde
+        href: https://www.ofce.fr/prev/derniere/
+      - text: Anciennes prévisions
+        href: https://www.ofce.fr/indic_prev/prevision.html
+  - text: Publications
+    menu:
+      - text: Policy Briefs
+        href: https://www.ofce.fr/publications/policy.html
+      - text: Working Papers
+        href: https://www.ofce.fr/publications/working_papers.html
+      - text: Etudes & Rapports
+        href: https://www.ofce.fr/publications/rapports.html
+      - text: Revue
+        href: https://www.ofce.fr/publications/revue.html
+  - text: Recherche
+    href: '#'
+  - text: Outils & Ressources
+    menu:
+      - text: DEBTWATCH
+        href: https://ofce.shinyapps.io/debtwatchr/
+      - text: Modèle ThreeME
+        href: https://www.ofce.fr/recherche/threeme.html
+      - text: Evamodi
+        href: https://www.ofce.fr/recherche/evamodi.html
+right:
+  - text: EN
+    href: '#'
+tools:
+  - icon: envelope
+    href: '#'
+  - icon: bluesky
+    href: https://bsky.app/profile/ofce.bsky.social
+  - icon: linkedin
+    href: https://www.linkedin.com/company/ofce/posts/
+  - icon: facebook
+    href: https://www.facebook.com/ofcesciencespo/

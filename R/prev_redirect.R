@@ -1,32 +1,38 @@
-#' Pousse la page de redirection vers la version courante d'un site OFCE
+#' Pousse la page de redirection stable /prev/derniere/ d'une prévision OFCE
 #'
-#' Génère un `index.html` de redirection pointant vers la version courante du
-#' site (lue depuis le `site-path` du `_quarto.yml`) et le pousse sur la
-#' branche `site-redirect`, puis déclenche le workflow `ftp_redirect.yml` pour
-#' publier la page sur le serveur FTP.
+#' Génère un `index.html` de redirection pointant vers la prévision publiée
+#' courante (`/prev/prevYYMM/`, lue depuis le `site-path` de
+#' `_quarto-publish.yml`), le pousse sur la branche `site-redirect` du dépôt
+#' de prévision, puis déclenche le workflow `ftp_redirect.yml` pour publier
+#' la page à l'URL stable `www.ofce.fr/prev/derniere/`.
 #'
-#' Sans effet (sortie silencieuse) si `site-path` ne contient pas de segment
-#' de version (`/v[0-9]+`) ou si `ofce_host` n'est pas `true`.
+#' Met à jour la variable GitHub Actions `FTP_REDIRECT_DIR` avec `derniere/`
+#' (chemin relatif au répertoire `/prev/` du compte FTP `PREV_USER`, même
+#' convention que `FTP_PUBLISH_DIR`).
 #'
-#' Appelée automatiquement par [site_version_up()] lors d'un incrément de
-#' version, et par [stage_site()] à chaque déploiement staging.
+#' **Non appelée automatiquement** : la publication d'une prévision
+#' ([publish_prev()] ou [deploy_prev()]`(profile = "publish")`) peut aussi
+#' servir à corriger une prévision ancienne, auquel cas `/prev/derniere/` ne
+#' doit **pas** être re-pointée. Appeler cette fonction manuellement, depuis
+#' la racine du dépôt de la prévision qui devient la prévision courante,
+#' juste après sa première publication.
 #'
-#' @param path Chemin vers la racine du dépôt. Défaut `"."`.
-#' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
+#' @param path Chemin vers la racine du dépôt de prévision. Défaut `"."`.
+#' @param progress Logique. Affichage de la progression git. Défaut `TRUE`.
 #' @param trigger Logique. Si `TRUE` (défaut), déclenche `ftp_redirect.yml`
 #'   après le push via [trigger_action()].
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
-#' @seealso [site_version_up()], [stage_site()], [deploy_site()]
+#' @seealso [publish_prev()], [deploy_prev()], [push_site_redirect()]
 #' @importFrom fs path_expand path_abs path_norm path file_exists dir_create dir_delete
-#' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_info cli_abort cli_warn
+#' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_abort cli_warn
 #' @importFrom yaml read_yaml
 #' @importFrom gert git_remote_list git_fetch git_init git_add git_commit git_signature_default git_remote_add git_remote_set_url
 #' @importFrom glue glue
-#' @section Site Users:
+#' @section Prévision Users:
 #'
 #' @export
-push_site_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
+push_prev_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
 
   root <- path |>
     fs::path_expand() |>
@@ -38,48 +44,43 @@ push_site_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
     cli::cli_abort("Pas de {.file _quarto.yml} dans {.path {root}}.")
 
   yml <- yaml::read_yaml(yml_path)
-
-  if (!isTRUE(yml$ofce_host))
+  if (!isTRUE(yml$ofce_prev))
     cli::cli_abort(
-      "{.fn push_site_redirect} ne fonctionne que si {.code ofce_host: true} \\
-       est défini dans le {.file _quarto.yml}.")
+      "{.fn push_prev_redirect} ne fonctionne que sur un dépôt de prévision \\
+       ({.code ofce_prev: true} absent du {.file _quarto.yml}).")
 
-  site_path <- yml$website$`site-path`
+  pub_path <- fs::path(root, "_quarto-publish.yml")
+  if (!fs::file_exists(pub_path))
+    cli::cli_abort(
+      "Pas de {.file _quarto-publish.yml} dans {.path {root}}. \\
+       Lancer {.run ofceweb::setup_prev()} d'abord.")
+
+  pub <- yaml::read_yaml(pub_path)
+
+  site_path <- pub$website$`site-path`
   if (is.null(site_path) || !nzchar(site_path)) {
     cli::cli_alert_warning(
-      "{.code site-path} absent du {.file _quarto.yml} — redirection ignorée.")
+      "{.code site-path} absent de {.file _quarto-publish.yml} \\
+       — redirection ignorée.")
     return(invisible(NULL))
   }
 
-  if (!grepl("/v\\d+", site_path)) {
-    cli::cli_alert_info(
-      "{.code site-path} sans segment de version — redirection non nécessaire.")
-    return(invisible(NULL))
-  }
-
-  # Version = dernier segment du site-path (ex. "v0")
+  # ex. "prev/prev2603" -> cible "/prev/prev2603/", id "prev2603"
   segments <- strsplit(site_path, "/", fixed = TRUE)[[1]]
-  version  <- segments[length(segments)]
-
-  # redirect_dir (chemin FTP) = site-path sans préfixe de localisation ni version
-  # ex. "staging/mysite/v0" → segments sans premier et dernier → "mysite"
-  ftp_segments <- segments[-c(1L, length(segments))]
-  redirect_dir <- paste(ftp_segments, collapse = "/")
-  if (!grepl("/$", redirect_dir)) redirect_dir <- paste0(redirect_dir, "/")
+  prev_id  <- segments[length(segments)]
+  target   <- paste0("/", sub("/?$", "/", site_path))
 
   # ---- Variable GitHub FTP_REDIRECT_DIR -------------------------------------
+  # Chemin relatif au répertoire /prev/ du compte FTP (même convention que
+  # FTP_PUBLISH_DIR, cf. setup_prev()).
+  redirect_dir <- "derniere/"
   set_gh_var(root, "FTP_REDIRECT_DIR", redirect_dir)
 
   # ---- Génération du HTML de redirection ------------------------------------
-  site_title <- if (!is.null(yml$website$title) && nzchar(yml$website$title))
-    yml$website$title else ""
-  # URL cible : chemin absolu-serveur vers la version courante
-  target <- paste0("/", sub("/?$", "/", site_path))
-
   redirect_html <- build_redirect_html(
     target     = target,
-    title      = glue::glue("{site_title} \u2014 redirection"),
-    link_label = glue::glue("la derni\u00e8re version ({version})")
+    title      = glue::glue("Prévision OFCE — redirection"),
+    link_label = glue::glue("la dernière prévision ({prev_id})")
   )
 
   # ---- Push vers site-redirect ----------------------------------------------
@@ -118,7 +119,7 @@ push_site_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
   gert::git_init(path = tmp)
   gert::git_add(".", repo = tmp)
   gert::git_commit(
-    message = glue::glue("redirect {version} ({maintenant})"),
+    message = glue::glue("redirect {prev_id} ({maintenant})"),
     repo    = tmp,
     author  = gert::git_signature_default(repo = root)
   )
@@ -169,7 +170,7 @@ push_site_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
   }
 
   cli::cli_alert_success(
-    "Redirection {.val {version}} poussée vers la branche {.emph {branch}}.")
+    "Redirection {.val {prev_id}} poussée vers la branche {.emph {branch}}.")
 
   if (trigger) {
     tryCatch(
@@ -180,4 +181,36 @@ push_site_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
   }
 
   invisible(NULL)
+}
+
+
+#' Génère le HTML d'une page de redirection meta-refresh + canonical
+#'
+#' Helper commun à [push_site_redirect()] et [push_prev_redirect()].
+#'
+#' @param target URL cible de la redirection (chemin absolu-serveur, avec `/`
+#'   final).
+#' @param title Contenu de la balise `<title>`.
+#' @param link_label Texte du lien affiché dans le corps de la page.
+#' @param lang Attribut `lang` du document. Défaut `"fr"`.
+#'
+#' @returns Chaîne de caractères : le document HTML complet.
+#' @noRd
+build_redirect_html <- function(target, title, link_label, lang = "fr") {
+  sprintf(
+'<!DOCTYPE html>
+<html lang="%s">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0; url=%s">
+  <link rel="canonical" href="%s">
+  <title>%s</title>
+</head>
+<body>
+  <p>Redirection vers <a href="%s">%s</a>\u2026</p>
+  <script>window.location.replace("%s");</script>
+</body>
+</html>',
+    lang, target, target, title, target, link_label, target
+  )
 }

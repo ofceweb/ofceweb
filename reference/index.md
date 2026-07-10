@@ -27,6 +27,9 @@ GitHub Actions — pas localement.
   : Déploie un profil personnalisé vers staging/repo/profile/
 - [`prev_version_up()`](https://ofceweb.github.io/ofceweb/reference/prev_version_up.md)
   : Incrémente la version staging d'une prévision OFCE
+- [`push_prev_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_redirect.md)
+  : Pousse la page de redirection stable /prev/derniere/ d'une prévision
+  OFCE
 - [`render_prev_publish()`](https://ofceweb.github.io/ofceweb/reference/render_prev_publish.md)
   : Génère le site de la prévision (déprécié)
 - [`preview_qmd()`](https://ofceweb.github.io/ofceweb/reference/preview_qmd.md)
@@ -132,3 +135,6 @@ GitHub.
   : Download a directory from a GitHub repository
 - [`download_gh_file()`](https://ofceweb.github.io/ofceweb/reference/download_gh_file.md)
   : Download a single file from a GitHub repository
+- [`update_navbar()`](https://ofceweb.github.io/ofceweb/reference/update_navbar.md)
+  : Met à jour la navbar du \`\_quarto.yml\` depuis la source
+  centralisée

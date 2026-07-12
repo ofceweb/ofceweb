@@ -10,7 +10,6 @@
 logo: /www/logo.png
 logo-alt: "logo de l'OFCE"
 logo-href: https://www.ofce.fr/
-background: white
 
 left:
   - text: Accueil

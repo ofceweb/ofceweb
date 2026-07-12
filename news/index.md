@@ -1,5 +1,12 @@
 # Changelog
 
+## ofceweb v0.6.0
+
+- restructuration des \_extensions
+- navbar commune et fonction
+  [`update_navbar()`](https://ofceweb.github.io/ofceweb/reference/update_navbar.md)
+  (@CharlesBordet)
+
 ## ofceweb v0.5.6
 
 - Ajout d’une CI qui fait le rendu et qui envoie sur le FTP de l’OFCE

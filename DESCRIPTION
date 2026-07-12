@@ -1,7 +1,7 @@
 Package: ofceweb
 Type: Package
 Title: Tous les outils pour le fonctionnement du web OFCE
-Version: 0.5.6
+Version: 0.6.0
 Authors@R: c(
     person(
       "Xavier", "Timbeau",
@@ -19,8 +19,8 @@ Authors@R: c(
       role = "aut"
     ) ,
     person(
-      "Paul", "Malliet",
-      email = "paul.malliet@sciencespo.fr",
+      "Charles", "Bordet",
+      email = "charles@datachamp.fr",
       role = "aut"
     )
   )

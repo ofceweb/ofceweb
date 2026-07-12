@@ -7,7 +7,7 @@
 # publiée).
 #
 # Propagée dans les `_quarto.yml` des sites par `ofceweb::update_navbar()`.
-logo: /www/logo.png
+logo: /www/ofce.png
 logo-alt: "logo de l'OFCE"
 logo-href: https://www.ofce.fr/
 

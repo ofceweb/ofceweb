@@ -68,9 +68,6 @@ left:
         href: https://www.ofce.fr/recherche/threeme.html
       - text: Evamodi
         href: https://www.ofce.fr/recherche/evamodi.html
-right:
-  - text: EN
-    href: '#'
 tools:
   - icon: envelope
     href: '#'

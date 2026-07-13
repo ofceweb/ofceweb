@@ -49,7 +49,7 @@ update_navbar <- function(root = ".") {
   }
 
   old_navbar <- yml$website$navbar
-  for (key in c("left", "right", "tools")) {
+  for (key in c("left", "tools")) {
     yml$website$navbar[[key]] <- navbar[[key]]
   }
 
@@ -61,7 +61,7 @@ update_navbar <- function(root = ".") {
   )
 
   cli::cli_alert_success("Navbar mise à jour dans {.file {yml_path}}.")
-  for (key in c("left", "right", "tools")) {
+  for (key in c("left", "tools")) {
     cli::cli_alert_info(
       "{.code {key}} : {count_items(old_navbar[[key]])} -> \\
        {count_items(navbar[[key]])} item{?s}.")

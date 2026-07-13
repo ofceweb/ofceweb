@@ -1,3 +1,13 @@
+## ofceweb v0.6.0
+
+* restructuration des _extensions
+* navbar commune et fonction `update_navbar()` (@CharlesBordet)
+
+## ofceweb v0.5.6
+
+* Ajout d'une CI qui fait le rendu et qui envoie sur le FTP de l'OFCE
+* Appliquée aux WP et aux sites
+
 ## ofceweb v0.5.5
 
 * Nouvelle stratégie commune pour l'encryption : l'encryption est faite pour le staging uniquement, à condition que le secret STATICRYPT_PASSWORD soit défini. 

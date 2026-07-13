@@ -184,6 +184,15 @@ check_wp <- function(path = ".", verbose = TRUE) {
              ".github/workflows/ absent — lancer setup_wp() d'abord.")
   }
 
+  # ---- renv.lock (warning — requis pour le rendu CI) ----------------------
+  if (fs::file_exists(fs::path(root, "renv.lock"))) {
+    add_diag("renv.lock", "ok",
+             "renv.lock présent — rendu CI (render_and_deploy.yml) opérationnel.")
+  } else {
+    add_diag("renv.lock", "warning",
+             "renv.lock absent — le rendu en CI (render_and_deploy.yml) échouera sans renv. Initialiser avec renv::init().")
+  }
+
   # ---- Contrôles spécifiques WP publié -------------------------------------
   if (!is.null(yml$wp)) {
     # annee : validation plus stricte pour WP publié

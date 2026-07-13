@@ -12,7 +12,7 @@ contributes:
     website:
       title: "OFCE - Observatoire français des conjonctures économiques"
       favicon: "img/favicon.ico"
-      cookie-consent:
+      cookie-consent: 
         type: implied
         style: simple
         palette: light
@@ -29,8 +29,10 @@ contributes:
       title-block-banner: true
       template-partials:
         - title-block.html
+      # include-in-header:
+      #   - analytics.html
       lang: fr
-      theme:
+      theme: 
         - bootstrap
         - sass/default.scss
         - sass/rules.scss

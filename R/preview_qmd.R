@@ -40,12 +40,22 @@ preview_qmd <- function(profile = NULL,
                         use_freezer = FALSE,
                         as_job = FALSE,
                         ...) {
+
+  oldwd <- getwd()
+  on.exit(setwd(oldwd))
+
   if (!rstudioapi::isAvailable())
     cli::cli_abort(
       "{.fn preview_qmd} requiert RStudio (rstudioapi non disponible).")
 
-  ctx  <- rstudioapi::getSourceEditorContext()
-  path <- ctx$path
+  ctx <- rstudioapi::getSourceEditorContext()
+
+  project <- rstudioapi::getActiveProject() |> fs::path_file()
+
+  if(is.null(project))
+    cli::cli_abort("{.fn preview_qmd} requiet un project RStudio ouvert")
+
+  path <- ctx$path |> stringr::str_extract(".+/{project}/(.+)" |> glue::glue(), group = 1)
 
   if (!nzchar(path))
     cli::cli_abort(
@@ -80,22 +90,27 @@ preview_qmd <- function(profile = NULL,
   )
 
   if (!is.null(inspect) && !is.null(inspect$project)) {
-    root           <- inspect$project$dir
-    output_dir_rel <- inspect$project$config$project[["output-dir"]]
+    root           <- inspect$project$dir |> fs::path_norm()
+    output_dir_rel <- inspect$project$config$project[["output-dir"]] |> fs::path_norm()
     if (!is.null(output_dir_rel))
-      output_dir <- fs::path_norm(fs::path(root, output_dir_rel)) |> as.character()
+      output_dir <- fs::path_join(c(root, output_dir_rel)) |> as.character()
   } else {
     # Repli : remontée de l'arborescence + lecture manuelle des YAML
-    root <- .find_quarto_root(qmd_abs)
+    root <- tryCatch(
+      rprojroot::find_root(rprojroot::is_quarto_project),
+      error = function(e) {
+        cli::cli_abort("ce n'est pas un projet quarto ({conditionMessage(e)}).")
+      }
+    )
     if (!is.null(root))
       output_dir <- .detect_output_dir(root, profile)
   }
-
+  setwd(root)
   if (!is.null(output_dir)) {
     render_dir <- output_dir
     # Chemin HTML relatif à output_dir = chemin du .qmd relatif à la racine,
     # avec l'extension .html
-    qmd_rel  <- fs::path_rel(qmd_abs, root) |> as.character()
+    qmd_rel  <- fs::path_rel(qmd_abs |> fs::path_expand(), root) |> as.character()
     html_rel <- fs::path_ext_set(qmd_rel, "html") |> as.character()
     cli::cli_alert_info(
       "Projet Quarto détecté ({.path {fs::path_file(root)}}), \\
@@ -119,7 +134,7 @@ preview_qmd <- function(profile = NULL,
   # ---- Prévisualisation -----------------------------------------------------
   cli::cli_h2("Prévisualisation locale")
   servr::daemon_stop()
-  servr::httd(render_dir, initpath = html_rel, daemon = daemon)
+  servr::httd(output_dir, initpath = html_rel, daemon = daemon)
 
   cli::cli_alert_success(
     "Serveur lancé \u2192 {.path {fs::path_file(render_dir)}/{html_rel}}")
@@ -128,7 +143,9 @@ preview_qmd <- function(profile = NULL,
 }
 
 
-#' @rdname preview_qmd
+#' @describeIn preview_qmd Raccourci pour `preview_qmd(profile = "staging")`.
+#'   Lance la prévisualisation du document `.qmd` actif avec le profil Quarto
+#'   `"staging"`, sans autre paramètre à préciser.
 #' @export
 preview_qmd_staging <- function(daemon = TRUE, ...) {
   preview_qmd(profile = "staging", daemon = daemon, ...)

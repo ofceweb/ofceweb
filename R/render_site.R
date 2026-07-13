@@ -171,7 +171,7 @@ rewrite_absolute_hrefs <- function(root) {
 #'
 #' Enchaîne [render_site()] (sans prévisualisation locale) puis [deploy_site()]
 #' pour construire et pousser le site en une seule commande. Si le `site-path`
-#' du `_quarto.yml` contient un segment de version (`/v\d+`), appelle
+#' du `_quarto.yml` contient un segment de version (`/v[0-9]+`), appelle
 #' automatiquement [push_site_redirect()] pour maintenir l'URL stable à jour.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.

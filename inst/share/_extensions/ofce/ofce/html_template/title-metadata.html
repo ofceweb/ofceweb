@@ -9,8 +9,8 @@ $if(categories)$
 $endif$
 
 $if(author)$
-  <details class="details-box" open>
-    <summary class ="quarto-title-meta-heading"><b>Autrices, auteurs & résumé</b></summary>
+  <details class="details-box">
+    <summary class ="quarto-title-meta-heading"><b>$authors-title$</b></summary>
 
     $if(by-affiliation/first)$
     <div class="quarto-title-meta-author">
@@ -116,11 +116,19 @@ $if(author)$
     $if(abstract)$
       <div>
         <div class="abstract">
-          <div class="quarto-title-meta-heading onec">$abstract-title$</div>
-          $abstract$
+            <div class="quarto-title-meta-heading">$abstract-title$</div>
+            $abstract$
+          </div>
+        </div>
+    $endif$
+
+    $if(thanks)$
+      <div class="quarto-title">
+        <div class="abstract">
+          <div class="quarto-title-meta-heading">$thanks-title$</div>
+          <em>$thanks$</em>
         </div>
       </div>
     $endif$
-
   </details>
 $endif$

@@ -12,65 +12,53 @@ logo-alt: "logo de l'OFCE"
 logo-href: https://www.ofce.fr/
 
 left:
-  - text: Accueil
-    href: https://www.ofce.fr/
-  - text: Blog
-    href: https://www.ofce.fr/blog2024/
   - text: L'OFCE
     menu:
       - text: À propos
         href: https://www.ofce.fr/ofce/ofce.html
-      - text: L'équipe
-        href: '#'
-      - text: Réseaux scientifiques
-        href: https://www.ofce.fr/ofce/reseaux.html
       - text: Rapport d'activité
         href: https://www.ofce.fr/ofce/rapports.html
-      - text: Plaquette de présentation
-        href: https://www.ofce.fr/ofce/plaquette.pdf
-      - text: Abonnements
-        href: https://www.ofce.fr/publications/abonnement.html
+      - text: Réseaux de recherche
+        href: https://www.ofce.fr/ofce/reseaux.html
       - text: Nous rejoindre
         href: https://www.ofce.fr/ofce/recrute.html
+      # Liens temporaires, à déplacer dans le footer commun
       - text: Contact
         href: https://www.ofce.fr/ofce/contact.html
-      - text: Médias
-        href: '#'
       - text: Mentions légales
         href: https://www.ofce.fr/legal/mentions_legales.html
       - text: Conditions générales
         href: https://www.ofce.fr/legal/conditions_generales.html
       - text: Politique des cookies
         href: https://www.ofce.fr/legal/cookies.html
-  - text: Événements
-    href: '#'
-  - text: Prévisions
-    menu:
-      - text: Nowcast
-        href: https://www.ofce.fr/nowcast/
-      - text: Prévision France & Monde
-        href: https://www.ofce.fr/prev/derniere/
-      - text: Anciennes prévisions
-        href: https://www.ofce.fr/indic_prev/prevision.html
+  - text: Blog
+    href: https://www.ofce.fr/blog2024/
   - text: Publications
     menu:
       - text: Policy Briefs
         href: https://www.ofce.fr/publications/policy.html
-      - text: Working Papers
+      - text: Documents de travail
         href: https://www.ofce.fr/publications/working_papers.html
       - text: Etudes & Rapports
         href: https://www.ofce.fr/publications/rapports.html
-      - text: Revue
+      - text: Revue de l'OFCE
         href: https://www.ofce.fr/publications/revue.html
-  - text: Recherche
-    href: '#'
+  - text: Prévisions
+    menu:
+      # À séparer en deux liens France / International
+      - text: Prévision France & Monde
+        href: https://www.ofce.fr/prev/derniere/
+      - text: Nowcast
+        href: https://www.ofce.fr/nowcast/
+      - text: Anciennes prévisions
+        href: https://www.ofce.fr/indic_prev/prevision.html
   - text: Outils & Ressources
     menu:
       - text: DEBTWATCH
         href: https://ofce.shinyapps.io/debtwatchr/
       - text: Modèle ThreeME
         href: https://www.ofce.fr/recherche/threeme.html
-      - text: Evamodi
+      - text: Modèle Evamodi
         href: https://www.ofce.fr/recherche/evamodi.html
 tools:
   - icon: envelope

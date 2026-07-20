@@ -1,6 +1,6 @@
 title: Format OFCE
 author: Anissa Saumtally et Xavier Timbeau
-version: 0.3.0
+version: 0.5.0
 quarto-required: ">=1.9.38"
 contributes:
   formats:
@@ -23,7 +23,6 @@ contributes:
           title-block-author-plural: "Authors"
           title-block-published: "Published on"
           title-block-modified: "Modified on"
-          launch-dev-container-title: "OFCE working paper"
           callout-tip-title: "Box"
           toc-title: "On this page"
       fig-asp: 0.61
@@ -41,48 +40,54 @@ contributes:
         tbl-title: "**Tableau**"
         lof-title: Graphiques
         lot-title: Tableaux
-      logo: ofce.png
+        fr:
+          title-delim: "**.**"
+        en:
+          title-delim: "**.**"
+      logo: ../ofce-website/img/logo.png
       filters:
-        - nameref
-        - fr-nbsp
         - quotes
         - collapse-callout
+        - nbsp
+        - quarto
       collapse-callout:
         tip: true
       shortcodes:
         - fontawesome
-        - downloadthis
       csl: csl/revue-francaise-de-gestion.csl
+      license: CC BY
+
     html:
       theme:
         - bootstrap
-        - /_extensions/ofce-website/sass/default.scss
-        - /_extensions/ofce-website/sass/rules.scss
+        - sass/default.scss
+        - sass/rules.scss
         - ofce.scss
+      include-in-header: 
+        - html/url-nav-active.html
+        - html/encadre.js
+      lightbox: true
+      link-external-icon: true
       mainfont: Open Sans
       toc-location: left
       toc-title: Sur cette page
-      number-sections: true
       number-depth: 3
       html-math-method: katex
       fig-dpi: 1200
       fig-format: svg
       reference-location: margin
-      logo: ofce_m.png
+      fig-width: 6
       callout-icon: false
-      lightbox: true
       title-block-style: default
+      image-lazy-loading: true
+      number-sections: false
+      hide-description: true
       template-partials:
-        - html_template/title-metadata.html
-      include-in-header:
-        - blog-nav-active.html
-      include-after-body:
-        - encadre.js
-
+        - html/title-metadata.html
     pdf:
       documentclass: scrartcl
       toc-depth: 1
-      pdffont: OpenSans
+      pdffont: Open Sans
       number-sections: true
       number-depth: 3
       classoption:
@@ -93,15 +98,7 @@ contributes:
       fig-dpi: 1200
       fig-width: 5
       fig-format: svg
-      logo: ofce_m.png
-      logo2: sciencespo.png
+      logo2: ../ofce-website/img/sciencespo.png
       template-partials:
-        - pdf_template/title.tex
-        - pdf_template/before-body.tex
-    dashboard:
-      theme:
-        - cosmo
-        - ofce.scss
-      mainfont: Open Sans
-      logo: "none"
-    typst: default
+        - pdf/title.tex
+        - pdf/before-body.tex

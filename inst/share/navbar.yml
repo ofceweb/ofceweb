@@ -60,6 +60,11 @@ left:
         href: https://www.ofce.fr/recherche/threeme.html
       - text: Modèle Evamodi
         href: https://www.ofce.fr/recherche/evamodi.html
+# Il faudra mettre les menus dans les _quarto.fr.yml, _quarto.en.yml pointant vers "index.html" ou "index.en.html"
+# sur le modèle de ce qui est fait dans le blog
+# right:
+#   - text: EN
+#     href: '#'
 tools:
   - icon: envelope
     href: '#'

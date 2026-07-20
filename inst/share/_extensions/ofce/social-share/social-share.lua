@@ -10,7 +10,7 @@ local function ensureHtmlDeps()
         version = '0.5.0',
         stylesheets = {
             'social-share.css',
-            '_extensions/quarto-ext/fontawesome/assets/css/all.css'
+            'all.css'
         }
     })
 end

@@ -223,7 +223,7 @@ patch_sitelibs_hashes <- function(cached, root = ".", progress = TRUE) {
       stringr::str_replace_all("\\\\", "/")
     base        <- sub("-[a-f0-9]{32}.*$", "", filename)   # e.g. "bootstrap"
     suffix      <- sub("^.*-[a-f0-9]{32}", "", filename)   # e.g. ".min.css"
-    stable_name <- paste0(base, suffix)                    # e.g. "bootstrap.min.css"
+    stable_name <- paste0(base, ".hashed", suffix)                    # e.g. "bootstrap.min.css"
     esc_suffix  <- stringr::str_replace_all(suffix, "\\.", "\\\\.")
     list(
       hashed_file = hf,

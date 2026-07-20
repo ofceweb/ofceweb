@@ -153,8 +153,8 @@ copy_post <- function(posts, lang = "fr",
 
       # Determine format based on whether this is a GoW post
       is_gow_post <- isTRUE(yaml$gow)
-      html_fmt <- if(is_gow_post) "ofce-gow-html" else "ofce-blog-html"
-      typst_fmt <- if(is_gow_post) "ofce-gow-typst" else "ofce-blog-typst"
+      html_fmt <- if(is_gow_post) "gow-html" else "blog-html"
+      typst_fmt <- if(is_gow_post) "gow-typst" else "blog-typst"
 
       # Clear any existing format specifications
       yaml[["format"]] <- list()

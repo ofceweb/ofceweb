@@ -15,6 +15,11 @@
 #' `navbar.yml` : exécuter `update_navbar()` à la racine du site, relire le
 #' diff, committer.
 #'
+#' @section Reformatage YAML :
+#' La réécriture via [yaml::write_yaml()] normalise l'ensemble du fichier :
+#' les commentaires sont supprimés et l'indentation peut changer. C'est un
+#' comportement normal — relire le diff avant de committer.
+#'
 #' @param root Chemin vers la racine du dépôt du site. Défaut `"."`.
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
@@ -61,6 +66,11 @@ update_navbar <- function(root = ".") {
   )
 
   cli::cli_alert_success("Navbar mise à jour dans {.file {yml_path}}.")
+  cli::cli_alert_warning(
+    "Le fichier a été reformaté par {.pkg yaml} : les commentaires sont \\
+     supprimés et l'indentation peut avoir changé. Relisez le diff avant \\
+     de committer."
+  )
   for (key in c("left", "tools", "logo", "logo-href", "logo-alt")) {
     cli::cli_alert_info(
       "{.code {key}} : {count_items(old_navbar[[key]])} -> \\

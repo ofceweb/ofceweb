@@ -48,6 +48,40 @@ package (`inst/setup_site/`) à la racine du dépôt, puis adapte le
 `_quarto.yml` en fonction des arguments (hébergement OFCE ou GitHub Pages,
 titre, code de site, commentaires hypothesis, etc.).
 }
+\section{Clés du `_quarto.yml` modifiées vs. préservées }{
+
+
+Si un `_quarto.yml` existe déjà, la fonction le lit et ne modifie que
+certaines clés. Les autres sont conservées.
+
+**Toujours écrasées** (sans garde) :
+
+| Clé | Valeur imposée |
+|-----|----------------|
+| `website.title` | Titre calculé depuis `index.qmd` ou le nom du dépôt |
+| `ofce_host` | Valeur de l'argument `ofce_host` |
+| `website.other-links` | Liste reconstruite par scan des `.qmd` |
+| `website.comments` | `{hypothesis: true}` ou supprimé selon `hypothesis` |
+
+**Préservées si déjà renseignées** (non écrasées) :
+
+| Clé | Condition |
+|-----|-----------|
+| `website.site-url` | Non `NULL` et non vide |
+| `website.site-path` | Non `NULL` et non vide |
+| `website.repo-url` | Non `NULL` et non vide |
+
+Toutes les autres clés (`format`, `execute`, `website.navbar`, etc.) sont
+lues et réécrites telles quelles.
+}
+
+\section{Reformatage YAML }{
+
+La réécriture via [yaml::write_yaml()] normalise l'ensemble du fichier :
+les commentaires sont supprimés et l'indentation peut changer. C'est un
+comportement normal — relire le diff avant de committer.
+}
+
 \section{Home Users}{
 
 }

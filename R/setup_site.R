@@ -23,6 +23,36 @@
 #' @param versionning Logique. Si `TRUE` (défaut) et `ofce_host = TRUE`, ajoute
 #'   un segment `/v0` au `site-path`. Voir [site_version_up()] pour incrémenter.
 #'
+#' @section Clés du `_quarto.yml` modifiées vs. préservées :
+#'
+#' Si un `_quarto.yml` existe déjà, la fonction le lit et ne modifie que
+#' certaines clés. Les autres sont conservées.
+#'
+#' **Toujours écrasées** (sans garde) :
+#'
+#' | Clé | Valeur imposée |
+#' |-----|----------------|
+#' | `website.title` | Titre calculé depuis `index.qmd` ou le nom du dépôt |
+#' | `ofce_host` | Valeur de l'argument `ofce_host` |
+#' | `website.other-links` | Liste reconstruite par scan des `.qmd` |
+#' | `website.comments` | `{hypothesis: true}` ou supprimé selon `hypothesis` |
+#'
+#' **Préservées si déjà renseignées** (non écrasées) :
+#'
+#' | Clé | Condition |
+#' |-----|-----------|
+#' | `website.site-url` | Non `NULL` et non vide |
+#' | `website.site-path` | Non `NULL` et non vide |
+#' | `website.repo-url` | Non `NULL` et non vide |
+#'
+#' Toutes les autres clés (`format`, `execute`, `website.navbar`, etc.) sont
+#' lues et réécrites telles quelles.
+#'
+#' @section Reformatage YAML :
+#' La réécriture via [yaml::write_yaml()] normalise l'ensemble du fichier :
+#' les commentaires sont supprimés et l'indentation peut changer. C'est un
+#' comportement normal — relire le diff avant de committer.
+#'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @importFrom fs path_expand path_abs path_norm path_file path path_rel path_ext_set path_ext_remove path_ext file_exists dir_exists file_copy dir_copy dir_create dir_ls
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_danger cli_alert_info cli_text
@@ -321,6 +351,11 @@ setup_site <- function(
     handlers = list(logical = yaml::verbatim_logical)
   )
   cli::cli_alert_success("Mise à jour de {.file _quarto.yml}")
+  cli::cli_alert_warning(
+    "Le fichier a été reformaté par {.pkg yaml} : les commentaires sont \\
+     supprimés et l'indentation peut avoir changé. Relisez le diff avant \\
+     de committer."
+  )
 
   # ---- 7. .gitignore : ajoute _site et état FTP -------------------------
   gi_path <- fs::path(root, ".gitignore")

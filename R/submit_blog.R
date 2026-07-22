@@ -244,14 +244,9 @@ check_blog <- function(path = ".", verbose = TRUE) {
 #'
 #' @return Invisible : URL de la PR créée, ou `NULL` si `open_pr = FALSE`.
 #' @seealso [check_blog()], [scan_qmd_deps()]
-#' @importFrom fs path_norm path_abs path_expand path_dir path_file path_ext
-#'   path_ext_remove path is_file is_dir dir_exists file_exists dir_create
-#'   dir_delete file_copy path_rel dir_ls
-#' @importFrom cli cli_h1 cli_h2 cli_abort cli_alert_info cli_alert_success
-#'   cli_alert_warning cli_alert_danger
-#' @importFrom gert git_branch git_branch_list git_branch_checkout
-#'   git_branch_create git_branch_delete git_fetch git_pull git_status
-#'   git_add git_commit git_push git_remote_list
+#' @importFrom fs path_norm path_abs path_expand path_dir path_file path_ext path_ext_remove path is_file is_dir dir_exists file_exists dir_create dir_delete file_copy path_rel dir_ls
+#' @importFrom cli cli_h1 cli_h2 cli_abort cli_alert_info cli_alert_success cli_alert_warning cli_alert_danger
+#' @importFrom gert git_branch git_branch_list git_branch_checkout git_branch_create git_branch_delete git_fetch git_pull git_status git_add git_commit git_push git_remote_list
 #' @importFrom gh gh
 #' @importFrom stringr str_match_all
 #' @section Blog Users:

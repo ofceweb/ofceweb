@@ -43,7 +43,7 @@
 #'   staging à `"v0"`.
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
-#' @seealso [check_prev()], [render_prev()], [prev_version_up()]
+#' @seealso [check_prev()], [render_prev()], [prev_version_up()], [update_navbar()]
 #' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists file_copy dir_copy dir_create dir_ls path_rel path_dir
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_info cli_bullets
 #' @importFrom yaml read_yaml write_yaml verbatim_logical
@@ -269,6 +269,13 @@ setup_prev <- function(
                    indent.mapping.sequence = TRUE,
                    handlers = list(logical = yaml::verbatim_logical))
   cli::cli_alert_success("Mise à jour de {.file _quarto.yml}")
+
+  # ---- 8b. navbar (source centralisée du package) --------------------------
+  tryCatch(
+    update_navbar(root),
+    error = function(e)
+      cli::cli_alert_warning("update_navbar() a échoué : {conditionMessage(e)}")
+  )
 
   # ---- 9. _quarto-staging.yml ----------------------------------------------
   if (!fs::file_exists(dest_stg)) {

@@ -53,7 +53,13 @@
 #' les commentaires sont supprimés et l'indentation peut changer. C'est un
 #' comportement normal — relire le diff avant de committer.
 #'
+#' @section Navbar :
+#' La navbar du `_quarto.yml` est synchronisée depuis la source centralisée
+#' du package via [update_navbar()], appelé automatiquement en fin de
+#' configuration.
+#'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
+#' @seealso [update_navbar()]
 #' @importFrom fs path_expand path_abs path_norm path_file path path_rel path_ext_set path_ext_remove path_ext file_exists dir_exists file_copy dir_copy dir_create dir_ls
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_danger cli_alert_info cli_text
 #' @importFrom yaml read_yaml write_yaml verbatim_logical
@@ -355,6 +361,13 @@ setup_site <- function(
     "Le fichier a été reformaté par {.pkg yaml} : les commentaires sont \\
      supprimés et l'indentation peut avoir changé. Relisez le diff avant \\
      de committer."
+  )
+
+  # ---- 6b. navbar (source centralisée du package) ------------------------
+  tryCatch(
+    update_navbar(root),
+    error = function(e)
+      cli::cli_alert_warning("update_navbar() a échoué : {conditionMessage(e)}")
   )
 
   # ---- 7. .gitignore : ajoute _site et état FTP -------------------------

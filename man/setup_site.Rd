@@ -82,7 +82,17 @@ les commentaires sont supprimés et l'indentation peut changer. C'est un
 comportement normal — relire le diff avant de committer.
 }
 
+\section{Navbar }{
+
+La navbar du `_quarto.yml` est synchronisée depuis la source centralisée
+du package via [update_navbar()], appelé automatiquement en fin de
+configuration.
+}
+
 \section{Home Users}{
 
 }
 
+\seealso{
+[update_navbar()]
+}

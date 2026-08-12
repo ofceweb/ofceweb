@@ -66,5 +66,5 @@ revanche, `_extensions/`, `www/` et les **workflows GitHub Actions** sont
 }
 
 \seealso{
-[check_prev()], [render_prev()], [prev_version_up()]
+[check_prev()], [render_prev()], [prev_version_up()], [update_navbar()]
 }

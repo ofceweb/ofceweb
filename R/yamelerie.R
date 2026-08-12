@@ -37,25 +37,9 @@ put_yaml <- function(yaml, path, insert = NULL, pure = FALSE) {
   new_yaml <- yaml::as.yaml(yaml,
                             indent.mapping.sequence = TRUE,
                             handlers = list(logical = yaml::verbatim_logical))
-  new_lines <- character()
-  if(!pure)
-    new_lines[1] <- "---"
-  else
-    new_lines[1] <- ""
-  new_lines[2] <- new_yaml
-  if(!pure)
-    new_lines[3] <- "---"
-  else
-    new_lines[3] <- ""
-  if(!is.null(insert)) {
-    for( i in 1:length(insert) ) {
-      new_lines[3+i] <- insert[i]
-    }
-    new_lines[4+length(insert)] <- ""
-    new_lines[(5+length(insert)):(5+length(insert)+length(non_yaml_lines)-1)] <- non_yaml_lines
-  } else {
-    new_lines[4:(3+length(non_yaml_lines))] <- non_yaml_lines
-  }
+  delimiter <- if (pure) "" else "---"
+  blank_after_insert <- if (is.null(insert)) NULL else ""
+  new_lines <- c(delimiter, new_yaml, delimiter, insert, blank_after_insert, non_yaml_lines)
   writeLines(new_lines, path)
   return(invisible(path))
 }

@@ -28,7 +28,7 @@
 #'   ajoute `/v0` au `site-path`.
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
-#' @seealso [render_wp()], [deploy_wp()], [wp_version_up()]
+#' @seealso [render_wp()], [deploy_wp()], [wp_version_up()], [update_navbar()]
 #' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists file_copy dir_copy dir_create dir_ls path_ext path_ext_remove
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_info
 #' @importFrom yaml read_yaml write_yaml verbatim_logical
@@ -400,6 +400,13 @@ setup_wp <- function(
       cli::cli_alert_warning("Impossible de patcher index.qmd : {conditionMessage(e)}")
     })
   }
+
+  # ---- 11b. navbar (source centralisée du package) --------------------------
+  tryCatch(
+    update_navbar(root),
+    error = function(e)
+      cli::cli_alert_warning("update_navbar() a échoué : {conditionMessage(e)}")
+  )
 
   # ---- 12. server-dir dans le workflow FTP ----------------------------------
   # yml$wp est la valeur effective : argument fourni (mis à jour en section 11)

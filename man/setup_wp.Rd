@@ -58,5 +58,5 @@ aussi migré automatiquement si `server-dir` y est encore codé en dur.
 }
 
 \seealso{
-[render_wp()], [deploy_wp()], [wp_version_up()]
+[render_wp()], [deploy_wp()], [wp_version_up()], [update_navbar()]
 }

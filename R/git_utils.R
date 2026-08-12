@@ -161,16 +161,20 @@ download_gh_dir <- function(owner, repo, path, destdir = path, ref = "HEAD",
 #' @export
 download_gh_file <- function(path, dest = path, owner="ofceweb", repo = "webblog", ref="site-deploy") {
 
-  contents <- gh::gh(
-    "GET /repos/{owner}/{repo}/contents/.",
-    owner = owner, repo = repo, path = fs::path_dir(path), ref = ref
-  ) |>
-    purrr::keep(~.x[["name"]] == fs::path_file(path))
+  contents <- tryCatch(
+    gh::gh(
+      "GET /repos/{owner}/{repo}/contents/{path}",
+      owner = owner, repo = repo, path = path, ref = ref
+    ),
+    error = function(e) NULL
+  )
 
-  if(length(contents)!=1)
+  # A file path returns a single object; a directory path (or a 404 wrapped
+  # by tryCatch) would not carry a download_url, and is treated as "not found".
+  if(is.null(contents) || is.null(contents[["download_url"]]))
     return(NULL)
 
-  url  <- contents[[1]] [["download_url"]]
+  url  <- contents[["download_url"]]
 
   token <- tryCatch(gh::gh_token(), error = function(e) "")
 

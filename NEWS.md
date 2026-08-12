@@ -1,3 +1,9 @@
+## ofceweb v0.6.1
+
+* divers mini bugs réduits (@claude)
+* ajouts de tests (@claude)
+# `setup_*` maintenant exécute `update_navbar()`
+
 ## ofceweb v0.6.0
 
 * restructuration des _extensions

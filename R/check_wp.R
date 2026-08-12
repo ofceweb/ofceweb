@@ -45,8 +45,6 @@ check_wp <- function(path = ".", verbose = TRUE) {
 
   add_diag <- function(field, status, message) {
     n <- length(diags) + 1L
-    if(as.character(message) |> is.null())
-      browser()
     diags[[n]] <<- list(
       field   = as.character(field),
       status  = as.character(status),

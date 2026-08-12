@@ -18,7 +18,7 @@ site2branch(
 \arguments{
 \item{path}{`[character(1)]`\cr
 Path to the root of the local Git repository.
-Defaults to [here::here()].}
+Defaults to ".".}
 
 \item{branch}{`[character(1)]`\cr
 name of the branch targeted ("site-deploy")}

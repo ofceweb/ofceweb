@@ -20,11 +20,13 @@
 #' @seealso [encrypt_site()]
 #' @section Site Users:
 #'
+#' @importFrom lifecycle deprecate_soft
 #' @export
 remove_encrypt <- function(path = ".", delete_secret = TRUE) {
-  .Deprecated(
-    msg = paste0(
-      "`remove_encrypt()` est dépréciée. ",
+  lifecycle::deprecate_soft(
+    when    = "0.5.5",
+    what    = "remove_encrypt()",
+    details = paste0(
       "Pour désactiver le chiffrement, supprimer le secret GitHub : ",
       "`gh secret delete STATICRYPT_PASSWORD --repo owner/repo`."
     )

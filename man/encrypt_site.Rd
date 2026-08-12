@@ -2,12 +2,9 @@
 % Please edit documentation in R/encrypt_site.R
 \name{encrypt_site}
 \alias{encrypt_site}
-\alias{encrypt_wp}
 \title{Active le chiffrement statique du site}
 \usage{
 encrypt_site(path = ".", password = NULL)
-
-encrypt_wp(path = ".", password = NULL)
 }
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}

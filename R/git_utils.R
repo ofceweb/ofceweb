@@ -321,7 +321,7 @@ check_repo_status <- function(repo = ".", prompt = TRUE) {
       answer <- readline("Are you sure you want to proceed? [y/N] ")
       if (!tolower(answer) %in% c("y", "yes")) {
         message("Aborted.")
-        stop("Your blog repo is behind origin")
+        stop("Your repo is behind origin")
       }
     }
   }

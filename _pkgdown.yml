@@ -86,9 +86,11 @@ reference:
     Fonctions pour le blog OFCE bilingue (FR/EN). Gère le cache des posts,
     la construction du sitemap et le déploiement incrémental.
   contents:
+  - check_blog
   - render_blog
   - publish_blog
   - create_blog_version
+  - submit_blog
 
 - title: Page d'accueil
   desc: Fonctions pour le site d'accueil OFCE.
@@ -108,6 +110,7 @@ reference:
   - download_gh_dir
   - download_gh_file
   - update_navbar
+  - scan_qmd_deps
 
 articles:
 - title: Articles

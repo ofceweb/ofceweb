@@ -9,7 +9,7 @@ site2publish(path = ".", progress = TRUE, trigger = TRUE, full_deploy = FALSE)
 \arguments{
 \item{path}{`[character(1)]`\cr
 Path to the root of the local Git repository.
-Defaults to [here::here()].}
+Defaults to ".".}
 
 \item{progress}{`[logical(1)]`\cr
 If `TRUE` (default), git output is forwarded to the console.}

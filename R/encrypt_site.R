@@ -24,11 +24,13 @@
 #' @seealso [remove_encrypt()]
 #' @section Site Users:
 #'
+#' @importFrom lifecycle deprecate_soft
 #' @export
 encrypt_site <- function(path = ".", password = NULL) {
-  .Deprecated(
-    msg = paste0(
-      "`encrypt_site()` est dépréciée. ",
+  lifecycle::deprecate_soft(
+    when    = "0.5.5",
+    what    = "encrypt_site()",
+    details = paste0(
       "Le chiffrement est désormais géré en CI via le secret GitHub ",
       "`STATICRYPT_PASSWORD`. ",
       "Utilisez `gh secret set STATICRYPT_PASSWORD --repo owner/repo` directement."
@@ -36,7 +38,3 @@ encrypt_site <- function(path = ".", password = NULL) {
   )
   invisible(NULL)
 }
-
-#' @rdname encrypt_site
-#' @export
-encrypt_wp <- encrypt_site

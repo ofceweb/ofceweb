@@ -16,7 +16,7 @@
 #'
 #' @param path `[character(1)]`\cr
 #'   Path to the root of the local Git repository.
-#'   Defaults to [here::here()].
+#'   Defaults to ".".
 #' @param branch `[character(1)]`\cr
 #'   name of the branch targeted ("site-deploy")
 #' @param source `[character(1)]`\cr
@@ -204,7 +204,7 @@ site2branch <- function(
 #'
 #' @param path `[character(1)]`\cr
 #'   Path to the root of the local Git repository.
-#'   Defaults to [here::here()].
+#'   Defaults to ".".
 #' @param progress `[logical(1)]`\cr
 #'   If `TRUE` (default), git output is forwarded to the console.
 #' @param trigger `[logical(1)]`\cr

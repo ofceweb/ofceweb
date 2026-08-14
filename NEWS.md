@@ -1,3 +1,8 @@
+## ofceweb v0.7.0
+
+* aide et messages en français
+* setup_* utilise setup_quarto comme source de vérité pour les extensions
+
 ## ofceweb v0.6.1
 
 * divers mini bugs réduits (@claude)

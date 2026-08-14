@@ -36,10 +36,6 @@ les commentaires sont supprimés et l'indentation peut changer. C'est un
 comportement normal — relire le diff avant de committer.
 }
 
-\section{Site Users}{
-
-}
-
 \seealso{
 [site_version_up()], [setup_site()]
 }

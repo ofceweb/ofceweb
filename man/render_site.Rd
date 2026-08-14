@@ -43,10 +43,6 @@ site simple non bilingue : nettoyage de `_site`, rendu Quarto, reconstruction
 du sitemap, patch des hash de `site_libs/`, déploiement optionnel et
 prévisualisation locale.
 }
-\section{Site Users}{
-
-}
-
 \seealso{
 [setup_site()], [stage_site()], [site2branch()], [render_blog()]
 }

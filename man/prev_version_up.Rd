@@ -22,10 +22,6 @@ Lit le champ `version` dans `_quarto-staging.yml`, l'incrémente
 (champ `version` et dernier segment de `site-path`), puis synchronise la
 variable GitHub Actions `FTP_STAGING_DIR`.
 }
-\section{Prévision Users}{
-
-}
-
 \seealso{
 [setup_prev()], [check_prev()]
 }

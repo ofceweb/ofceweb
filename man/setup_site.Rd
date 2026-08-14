@@ -89,8 +89,14 @@ du package via [update_navbar()], appelé automatiquement en fin de
 configuration.
 }
 
-\section{Home Users}{
+\section{Extensions Quarto }{
 
+Les extensions OFCE (`_extensions/`) sont installées/mises à jour via
+[ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
+`OFCE/ofce-quarto-extensions` — un accès réseau est donc nécessaire.
+D'éventuelles extensions périmées (installées par une version antérieure
+du package) sont signalées par un avertissement, jamais supprimées
+automatiquement.
 }
 
 \seealso{

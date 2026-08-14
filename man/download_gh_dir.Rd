@@ -2,7 +2,7 @@
 % Please edit documentation in R/git_utils.R
 \name{download_gh_dir}
 \alias{download_gh_dir}
-\title{Download a directory from a GitHub repository}
+\title{Télécharge un répertoire depuis un dépôt GitHub}
 \usage{
 download_gh_dir(
   owner,
@@ -15,38 +15,35 @@ download_gh_dir(
 )
 }
 \arguments{
-\item{owner}{GitHub user or organisation name.}
+\item{owner}{Nom de l'utilisateur ou de l'organisation GitHub.}
 
-\item{repo}{Repository name.}
+\item{repo}{Nom du dépôt.}
 
-\item{path}{Path inside the repository to download (e.g. `"posts"`).}
+\item{path}{Chemin du répertoire à télécharger dans le dépôt (ex.
+`"posts"`).}
 
-\item{destdir}{Local directory to write files into.  Defaults to `path`.}
+\item{destdir}{Répertoire local où écrire les fichiers. Défaut `path`.}
 
-\item{ref}{Git ref (branch, tag, or SHA).  Defaults to `"HEAD"`.}
+\item{ref}{Référence Git (branche, tag ou SHA). Défaut `"HEAD"`.}
 
-\item{ext}{If non-`NULL`, only files ending with this string are
-downloaded (e.g. `".qmd"`).}
+\item{ext}{Si non `NULL`, seuls les fichiers se terminant par cette
+chaîne sont téléchargés (ex. `".qmd"`).}
 
-\item{max_depth}{Maximum directory recursion depth.  Defaults to `3`.}
+\item{max_depth}{Profondeur maximale de récursion. Défaut `3`.}
 }
 \value{
-`invisible(NULL)`, called for its side-effect of writing files to
-  `destdir`.
+`invisible(NULL)`, appelée pour son effet de bord d'écriture des
+  fichiers dans `destdir`.
 }
 \description{
-Recursively walks a GitHub repository directory, collects all matching
-files in parallel with [fast_collect_gh_files()], then downloads them
-locally using `curl`, adding a Bearer token header when a GitHub PAT is
-available (required for private repositories).
+Parcourt récursivement un répertoire de dépôt GitHub, collecte tous les
+fichiers correspondants en parallèle avec [fast_collect_gh_files()], puis
+les télécharge localement via `curl`, en ajoutant un en-tête Bearer token
+quand un PAT GitHub est disponible (nécessaire pour les dépôts privés).
 }
-\section{Other}{
-
-}
-
 \examples{
 \dontrun{
-# Download only .qmd files from the posts/ directory
+# Ne télécharger que les fichiers .qmd du répertoire posts/
 download_gh_dir("OFCE", "Blog_OFCE", "posts", ext = ".qmd", max_depth = 3)
 }
 

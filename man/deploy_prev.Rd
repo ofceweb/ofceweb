@@ -35,10 +35,6 @@ Pousse le répertoire de sortie déjà rendu vers la branche git appropriée
 sans relancer le rendu Quarto. Pour staging, pousse `_site_staging/` vers
 `site-staging` ; pour publish, pousse `_site_publish/` vers `site-publish`.
 }
-\section{Prévision Users}{
-
-}
-
 \seealso{
 [stage_prev()], [publish_prev()], [site2staging()]
 }

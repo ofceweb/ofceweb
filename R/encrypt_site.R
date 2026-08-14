@@ -22,8 +22,6 @@
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [remove_encrypt()]
-#' @section Site Users:
-#'
 #' @importFrom lifecycle deprecate_soft
 #' @export
 encrypt_site <- function(path = ".", password = NULL) {

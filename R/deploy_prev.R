@@ -17,8 +17,6 @@
 #' @returns Invisible `NULL`.
 #' @seealso [stage_prev()], [publish_prev()], [site2staging()]
 #' @importFrom cli cli_abort
-#' @section Prévision Users:
-#'
 #' @export
 deploy_prev <- function(
     path        = ".",
@@ -95,8 +93,6 @@ deploy_prev <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [deploy_prev()], [site2branch()], [site2staging()]
-#' @section Prévision Users:
-#'
 #' @export
 site2profile <- function(
     path        = ".",
@@ -133,8 +129,6 @@ site2profile <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [deploy_prev()], [stage_prev()], [site2branch()]
-#' @section Prévision Users:
-#'
 #' @export
 site2staging <- function(
     path        = ".",

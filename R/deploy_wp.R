@@ -21,8 +21,6 @@
 #' @importFrom fs path_expand path_abs path_norm path file_exists dir_exists
 #' @importFrom cli cli_h2 cli_abort cli_alert_success cli_alert_warning cli_text
 #' @importFrom yaml read_yaml
-#' @section Working Paper (WP) Users:
-#'
 #' @export
 deploy_wp <- function(
     path = ".",
@@ -48,10 +46,10 @@ deploy_wp <- function(
   version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
 
   # URL finale pour le message de succès
-  stable_url <- sprintf("https://www.ofce.fr/wp/%d/%03d", annee, wp)
+  stable_url <- sprintf("https://www.ofce.fr/wp/%d/%d", annee, wp)
   final_url <- if (!is.null(wp) && !is.null(annee)) {
     ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
-    sprintf("https://www.ofce.fr/wp/%d/%03d/%sindex.html", annee, wp, ver_seg)
+    sprintf("https://www.ofce.fr/wp/%d/%d/%sindex.html", annee, wp, ver_seg)
   } else {
     su <- yml$website$`site-url`
     if (!is.null(su) && nzchar(su)) paste0(sub("/?$", "/", su), "index.html") else NULL

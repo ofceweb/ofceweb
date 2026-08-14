@@ -56,7 +56,3 @@ Lance la prévisualisation du document `.qmd` actif avec le profil Quarto
 `"staging"`, sans autre paramètre à préciser.
 
 }}
-\section{Prévision Users}{
-
-}
-

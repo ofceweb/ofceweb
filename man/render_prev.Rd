@@ -40,10 +40,6 @@ Nettoie le répertoire de sortie avant le rendu. Le chiffrement n'a **pas**
 lieu en local — il est appliqué en CI par le workflow `ftp_deploy_staging.yml`
 avant le transfert FTP.
 }
-\section{Prévision Users}{
-
-}
-
 \seealso{
 [stage_prev()], [publish_prev()], [setup_prev()], [check_prev()]
 }

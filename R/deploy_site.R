@@ -13,8 +13,6 @@
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [site2branch()], [setup_site()]
-#' @section Site Users:
-#'
 #' @export
 deploy_site <- function(
     path = ".",

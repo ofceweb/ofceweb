@@ -37,10 +37,6 @@ passant le nom du profil en entrée. Le FTP cible est
 `staging/{repo}/{profile}/` — sans numéro de version, le profil jouant ce
 rôle.
 }
-\section{Prévision Users}{
-
-}
-
 \seealso{
 [deploy_prev()], [site2branch()], [site2staging()]
 }

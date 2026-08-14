@@ -15,8 +15,6 @@
 #' @importFrom yaml read_yaml
 #' @importFrom jsonlite toJSON
 #' @importFrom cli cli_alert_success cli_alert_warning
-#' @section Working Paper (WP) Users:
-#'
 #' @keywords internal
 wp_manifest <- function(path = ".") {
 
@@ -68,7 +66,7 @@ wp_manifest <- function(path = ".") {
   # URL de déploiement
   url <- if (!is.null(wp) && !is.null(annee)) {
     ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
-    sprintf("https://www.ofce.fr/wp/%d/%03d/%s", annee, wp, ver_seg)
+    sprintf("https://www.ofce.fr/wp/%d/%d/%s", annee, wp, ver_seg)
   } else {
     # brouillon : GitHub Pages
     su <- yml$website$`site-url`

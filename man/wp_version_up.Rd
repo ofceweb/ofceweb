@@ -25,10 +25,6 @@ dernier segment de `site-path`), met à jour la variable GitHub Actions
 \details{
 Ne fonctionne que pour un WP publié (`wp` non nul dans `_quarto.yml`).
 }
-\section{Working Paper (WP) Users}{
-
-}
-
 \seealso{
 [setup_wp()], [site_version_up()]
 }

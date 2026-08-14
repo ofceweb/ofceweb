@@ -18,8 +18,6 @@
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [encrypt_site()]
-#' @section Site Users:
-#'
 #' @importFrom lifecycle deprecate_soft
 #' @export
 remove_encrypt <- function(path = ".", delete_secret = TRUE) {

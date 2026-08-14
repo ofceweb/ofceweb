@@ -1,48 +1,52 @@
-#' Render the bilingual blog
+#' Rend le blog bilingue
 #'
-#' Orchestrates a full build of the Quarto blog in both French and English.
-#' It rebuilds the posts database, renders each language version in parallel,
-#' updates the Algolia search index and sitemap, patches Bootstrap CSS hashes,
-#' commits cache changes to git, and optionally deploys the site or launches a
-#' local preview server.
+#' Orchestre un build complet du blog Quarto en français et en anglais.
+#' Reconstruit la base des posts, rend chaque version de langue en parallèle,
+#' met à jour l'index de recherche Algolia et le sitemap, patche les hash CSS
+#' Bootstrap, commite les changements de cache dans git et, en option,
+#' déploie le site ou lance un serveur de prévisualisation local.
 #'
-#' The function must be run from within an RStudio project that contains a
-#' `posts/` directory. It also expects the project to live under a directory
-#' named `webblog` and will prompt for confirmation otherwise.
+#' La fonction doit être exécutée depuis un projet RStudio contenant un
+#' répertoire `posts/`. Elle s'attend aussi à ce que le projet se trouve dans
+#' un répertoire nommé `webblog` et demande confirmation dans le cas
+#' contraire.
 #'
-#' Two variables are read from the calling environment (not function arguments):
-#' - `typst`: passed to [copy_post()] to control Typst PDF rendering.
-#' - `push_site_deploy`: if `TRUE`, calls [site2branch()] to push `_site` to the
-#'   deployment branch; otherwise prints instructions for doing so manually.
+#' Deux variables sont lues depuis l'environnement appelant (pas des
+#' arguments de la fonction) :
+#' - `typst` : transmise à [copy_post()] pour contrôler le rendu PDF Typst.
+#' - `push_site_deploy` : si `TRUE`, appelle [site2branch()] pour pousser
+#'   `_site` vers la branche de déploiement ; sinon affiche les instructions
+#'   pour le faire manuellement.
 #'
-#' @param path Character path to the blog folder, default to ".".
-#' @param force_freeze Logical. If `TRUE` (default), posts are re-rendered even
-#'   when a cached version exists. Set to `FALSE` to reuse the cache wherever
-#'   possible.
-#' @param workers Integer. Number of parallel workers passed to
-#'   [future.mirai::mirai_multisession()]. Defaults to `8L`.
-#' @param check_repo Logical. If `TRUE` (default), calls [check_repo_status()]
-#'   before rendering to ensure the git repository is in a clean state.
-#' @param progress Logical. If `TRUE` (default), progress bars are displayed
-#'   during long-running steps.
-#' @param render_site Logical. If `TRUE` (default), starts a local HTTP daemon
-#'   via [servr::httw()] to preview `_site` after the build completes.
-#' @param check_freeze Logical. If `TRUE`, the function aborts when any post is
-#'   missing from the cache (strict freeze mode). Defaults to `FALSE`.
-#' @param site2branch Logical. Reserved parameter (currently unused inside the
-#'   function body; deployment is controlled by the `push_site_deploy`
-#'   environment variable). Defaults to `FALSE`.
-#' @param trigger Logical. Passed to [site2branch()] to optionally trigger a
-#'   GitHub Actions workflow after deploying. Defaults to `FALSE`.
-#' @param freeze Logical. If `TRUE` (default), passed to [copy_files()] to
-#'   enable Quarto freeze mode when copying project scaffolding.
+#' @param path Chemin vers le dossier du blog. Défaut `"."`.
+#' @param force_freeze Logique. Si `TRUE` (défaut), les posts sont re-rendus
+#'   même si une version en cache existe. Mettre `FALSE` pour réutiliser le
+#'   cache autant que possible.
+#' @param workers Entier. Nombre de workers parallèles transmis à
+#'   [future.mirai::mirai_multisession()]. Défaut `8L`.
+#' @param check_repo Logique. Si `TRUE` (défaut), appelle
+#'   [check_repo_status()] avant le rendu pour s'assurer que le dépôt git est
+#'   dans un état propre.
+#' @param progress Logique. Si `TRUE` (défaut), des barres de progression
+#'   sont affichées pendant les étapes longues.
+#' @param render_site Logique. Si `TRUE` (défaut), démarre un démon HTTP
+#'   local via [servr::httw()] pour prévisualiser `_site` une fois le build
+#'   terminé.
+#' @param check_freeze Logique. Si `TRUE`, la fonction s'arrête dès qu'un post
+#'   est absent du cache (mode freeze strict). Défaut `FALSE`.
+#' @param site2branch Logique. Paramètre réservé (actuellement inutilisé dans
+#'   le corps de la fonction ; le déploiement est contrôlé par la variable
+#'   d'environnement `push_site_deploy`). Défaut `FALSE`.
+#' @param trigger Logique. Transmis à [site2branch()] pour déclencher en
+#'   option un workflow GitHub Actions après le déploiement. Défaut `FALSE`.
+#' @param freeze Logique. Si `TRUE` (défaut), transmis à [copy_files()] pour
+#'   activer le mode freeze de Quarto lors de la copie de l'ossature du
+#'   projet.
 #'
-#' @return A data frame of staged git changes (output of [gert::git_status()]),
-#'   returned invisibly.
+#' @return Un data frame des changements git préparés (sortie de
+#'   [gert::git_status()]), renvoyé invisiblement.
 #'
 #' @seealso [site2branch()]
-#' @section Webblog Users:
-#'
 #' @export
 #'
 #' @examples
@@ -211,16 +215,14 @@ render_blog <- function(
   return(invisible(status))
 }
 
-#' Publish the bilingual blog
+#' Publie le blog bilingue
 #'
-#' A convenience wrapper around [render_blog()] that sets `site2branch = TRUE`
-#' to deploy `_site` to the deployment branch after rendering.
+#' Enveloppe pratique autour de [render_blog()] qui fixe `site2branch = TRUE`
+#' pour déployer `_site` vers la branche de déploiement après le rendu.
 #'
 #' @inheritParams render_blog
-#' @return A data frame of staged git changes, returned invisibly.
+#' @return Un data frame des changements git préparés, renvoyé invisiblement.
 #' @seealso [render_blog()], [site2branch()]
-#' @section Webblog Users:
-#'
 #' @export
 #'
 #' @examples

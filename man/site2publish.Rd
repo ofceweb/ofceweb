@@ -2,54 +2,54 @@
 % Please edit documentation in R/site2branch.R
 \name{site2publish}
 \alias{site2publish}
-\title{Push a rendered site folder to a Git branch, set for publish}
+\title{Pousse un dossier de site rendu vers une branche Git, pour publication}
 \usage{
 site2publish(path = ".", progress = TRUE, trigger = TRUE, full_deploy = FALSE)
 }
 \arguments{
 \item{path}{`[character(1)]`\cr
-Path to the root of the local Git repository.
-Defaults to ".".}
+Chemin vers la racine du dépôt Git local.
+Défaut ".".}
 
 \item{progress}{`[logical(1)]`\cr
-If `TRUE` (default), git output is forwarded to the console.}
+Si `TRUE` (défaut), la sortie git est transmise à la console.}
 
 \item{trigger}{`[logical(1)]`\cr
-If `TRUE` (default to `FALSE`), calls [trigger_ftp_deploy()] after a successful push
-to dispatch the FTP deploy workflow.  Failures are caught and reported as
-warnings so the overall push is not rolled back. Usually, a push on site-deploy is going to trigger the deploy.}
+Si `TRUE` (défaut `FALSE`), appelle [trigger_ftp_deploy()] après un push
+réussi pour déclencher le workflow de déploiement FTP. Les échecs sont
+capturés et signalés comme des avertissements sans annuler le push.
+Généralement, un push sur site-deploy va déclencher le déploiement.}
 
 \item{full_deploy}{`[logical(1)]`\cr
-Passed to [site2branch()]. Set to `TRUE` to force a complete re-upload.}
+Transmis à [site2branch()]. Mettre `TRUE` pour forcer un re-upload
+complet.}
 }
 \value{
-Invisibly returns `NULL`. Called for its side effects.
+Renvoie invisiblement `NULL`. Appelée pour ses effets de bord.
 }
 \description{
-Commits the contents of `_site_publish/` into an orphan-style commit and force-pushes it to the
-`site-publish` branch of the `origin` remote.  Triggers a
-downstream GitHub Actions workflow (e.g. an FTP deploy) via the
-`workflow_dispatch` API (the default branch is auto-detected).
+Commite le contenu de `_site_publish/` dans un commit de type orphelin et
+le force-pousse vers la branche `site-publish` du remote `origin`.
+Déclenche un workflow GitHub Actions en aval (ex. un déploiement FTP) via
+l'API `workflow_dispatch` (la branche par défaut est détectée
+automatiquement).
 }
 \details{
-Credentials are resolved in the following order:
-1. The `DEPLOY_PAT` environment variable (recommended on CI).
-2. The OS credential store (macOS Keychain, Windows GCM, Linux libsecret)
-   via the \pkg{credentials} package — suitable for interactive local use.
+Les identifiants sont résolus dans l'ordre suivant :
+1. La variable d'environnement `DEPLOY_PAT` (recommandé en CI).
+2. Le gestionnaire d'identifiants du système (Keychain macOS, GCM Windows,
+   libsecret Linux) via le paquet \pkg{credentials} — adapté à un usage
+   interactif local.
 
-SSH remote URLs are automatically converted to HTTPS before pushing because
-libgit2 cannot use the system SSH agent.
+Les URL de remote en SSH sont automatiquement converties en HTTPS avant le
+push car libgit2 ne peut pas utiliser l'agent SSH du système.
 }
-\section{Site Users}{
-
-}
-
 \examples{
 \dontrun{
-# Push _site/ and trigger the FTP workflow
+# Pousser _site/ et déclencher le workflow FTP
 site2branch()
 
-# Push only, without triggering the downstream workflow
+# Pousser seulement, sans déclencher le workflow en aval
 site2branch(trigger = FALSE)
 }
 

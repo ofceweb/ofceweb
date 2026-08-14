@@ -11,8 +11,6 @@
 #' @param icon Icône bootstrap utilisée pour chaque entrée. Défaut `"newspaper"`.
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
-#' @section Home Users:
-#'
 #' @export
 rescan_site <- function(path = ".", icon = "newspaper") {
 

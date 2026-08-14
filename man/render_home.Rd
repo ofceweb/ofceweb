@@ -41,7 +41,3 @@ exécution des scripts pre/post-render définis dans ce fichier, appel à
 [quarto::quarto_render()], puis optionnellement déploiement du répertoire
 `_site` vers une branche git et/ou prévisualisation locale via un serveur HTTP.
 }
-\section{Home Users}{
-
-}
-

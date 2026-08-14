@@ -218,6 +218,35 @@ test_that("check_wp() errors when the WP-number segment of site-path is inconsis
   expect_equal(diag_status(df, "site-path/wp"), "error")
 })
 
+test_that("check_wp() accepts an unpadded single-digit WP number in site-path", {
+  dir <- withr::local_tempdir()
+  build_valid_wp_repo(dir)
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  yml$wp <- 7L
+  yml$website$`site-path` <- "2024/7/v1"
+  write_quarto_yml(dir, yml)
+
+  df <- check_wp(dir, verbose = FALSE)
+
+  expect_equal(diag_status(df, "site-path"), character(0))
+  expect_equal(diag_status(df, "site-path/wp"), "ok")
+})
+
+test_that("check_wp() still accepts a legacy zero-padded WP number in site-path", {
+  # Repos published before the padding was dropped keep `2024/007`; the segment
+  # is compared numerically, so it must continue to validate.
+  dir <- withr::local_tempdir()
+  build_valid_wp_repo(dir)
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  yml$wp <- 7L
+  yml$website$`site-path` <- "2024/007/v1"
+  write_quarto_yml(dir, yml)
+
+  df <- check_wp(dir, verbose = FALSE)
+
+  expect_equal(diag_status(df, "site-path/wp"), "ok")
+})
+
 test_that("check_wp() errors when the version segment of site-path is inconsistent with version", {
   dir <- withr::local_tempdir()
   build_valid_wp_repo(dir)

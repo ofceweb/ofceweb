@@ -32,10 +32,6 @@ Lit la clé `ofce_host` du `_quarto.yml` à la racine du dépôt. Si `TRUE`,
 délègue à [site2branch()] (push de `_site` vers la branche de déploiement
 FTP). Si `FALSE`, lance `quarto publish gh-pages`.
 }
-\section{Site Users}{
-
-}
-
 \seealso{
 [site2branch()], [setup_site()]
 }

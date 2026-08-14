@@ -27,8 +27,6 @@
 #' @importFrom future.mirai mirai_multisession
 #' @importFrom quarto quarto_render
 #' @importFrom yaml read_yaml
-#' @section Prévision Users:
-#'
 #' @export
 render_prev <- function(
     path     = ".",
@@ -116,8 +114,6 @@ render_prev <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [render_prev()], [deploy_prev()], [publish_prev()]
-#' @section Prévision Users:
-#'
 #' @export
 stage_prev <- function(
     path        = ".",
@@ -164,8 +160,6 @@ stage_prev <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [render_prev()], [deploy_prev()], [stage_prev()]
-#' @section Prévision Users:
-#'
 #' @export
 publish_prev <- function(
     path        = ".",
@@ -216,8 +210,6 @@ publish_prev <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [publish_prev()]
-#' @section Prévision Users:
-#'
 #' @export
 render_prev_publish <- function(
     path        = ".",

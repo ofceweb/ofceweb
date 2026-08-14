@@ -32,8 +32,6 @@
 #' @importFrom quarto quarto_render quarto_inspect
 #' @importFrom servr daemon_stop httd
 #' @importFrom yaml read_yaml
-#' @section Prévision Users:
-#'
 #' @export
 preview_qmd <- function(profile = NULL,
                         daemon = TRUE,

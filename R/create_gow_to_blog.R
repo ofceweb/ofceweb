@@ -20,8 +20,6 @@
 #' @importFrom dplyr mutate filter group_by ungroup lag
 #' @importFrom purrr map
 #'
-#' @section Webblog Users:
-#'
 #' @export
 create_blog_version <- function(issue = 9 , year = 2026){
 

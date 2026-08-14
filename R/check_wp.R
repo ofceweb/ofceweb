@@ -31,8 +31,6 @@
 #' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_danger cli_rule cli_alert_info
 #' @importFrom yaml read_yaml
 #' @importFrom glue glue
-#' @section Working Paper (WP) Users:
-#'
 #' @export
 check_wp <- function(path = ".", verbose = TRUE) {
 
@@ -205,7 +203,7 @@ check_wp <- function(path = ".", verbose = TRUE) {
       }
     }
 
-    # site-path : présence et cohérence structurelle (wp/YYYY/NNN[/vX])
+    # site-path : présence et cohérence structurelle (wp/YYYY/N[/vX])
     sp      <- yml$website$`site-path`
     version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
 
@@ -216,13 +214,13 @@ check_wp <- function(path = ".", verbose = TRUE) {
       segs <- strsplit(sp, "/", fixed = TRUE)[[1]]
       n    <- length(segs)
 
-      # Structure attendue : YYYY/NNN  ou  YYYY/NNN/vX
+      # Structure attendue : YYYY/N  ou  YYYY/N/vX
       struct_ok <- n %in% c(2L, 3L)
 
       if (!struct_ok) {
         add_diag("site-path", "error",
                  sprintf(
-                   "site-path `%s` mal formé — attendu : `YYYY/NNN` ou `YYYY/NNN/vX`.",
+                   "site-path `%s` mal formé — attendu : `YYYY/N` ou `YYYY/N/vX`.",
                    sp))
       } else {
         # Segment YYYY
@@ -238,7 +236,7 @@ check_wp <- function(path = ".", verbose = TRUE) {
                      segs[1L], yml$annee))
         }
 
-        # Segment NNN
+        # Segment N (numéro WP, non zéro-padé)
         wp_seg <- suppressWarnings(as.integer(segs[2L]))
         wp_yml <- suppressWarnings(as.integer(yml$wp))
         if (!is.na(wp_seg) && !is.na(wp_yml) && wp_seg == wp_yml) {

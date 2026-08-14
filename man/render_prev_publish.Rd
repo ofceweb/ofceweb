@@ -35,10 +35,6 @@ Invisible `NULL`.
 
 Cette fonction est remplacée par [publish_prev()].
 }
-\section{Prévision Users}{
-
-}
-
 \seealso{
 [publish_prev()]
 }

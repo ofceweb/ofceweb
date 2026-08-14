@@ -44,10 +44,6 @@ Enchaîne [render_prev()] avec le profil `"staging"` puis pousse
 [site2staging()]. Le chiffrement est appliqué **en CI** par le workflow
 `ftp_deploy_staging.yml` avant le transfert FTP.
 }
-\section{Prévision Users}{
-
-}
-
 \seealso{
 [render_prev()], [deploy_prev()], [publish_prev()]
 }

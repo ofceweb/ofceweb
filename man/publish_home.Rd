@@ -36,10 +36,6 @@ Wrapper de convenance autour de [render_home()] qui positionne
 `site2branch = TRUE` pour déployer automatiquement `_site` vers la branche
 git après le rendu.
 }
-\section{Home Users}{
-
-}
-
 \examples{
 \dontrun{
 publish_home()

@@ -22,8 +22,6 @@
 #' @importFrom yaml read_yaml
 #' @importFrom gert git_remote_list git_fetch git_init git_add git_commit git_signature_default git_remote_add git_remote_set_url git_remote_list
 #' @importFrom glue glue
-#' @section Working Paper (WP) Users:
-#'
 #' @keywords internal
 push_wp_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
 

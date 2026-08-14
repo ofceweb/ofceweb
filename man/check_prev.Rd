@@ -53,10 +53,6 @@ Contrôles effectués :
     échouera)
 }
 }
-\section{Prévision Users}{
-
-}
-
 \seealso{
 [setup_prev()], [render_prev()]
 }

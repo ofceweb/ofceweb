@@ -10,13 +10,20 @@
 #' revanche, `_extensions/`, `www/` et les **workflows GitHub Actions** sont
 #' **toujours mis à jour** depuis la version de référence du package.
 #'
+#' Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour
+#' via [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
+#' `OFCE/ofce-quarto-extensions` — un accès réseau est donc nécessaire.
+#' D'éventuelles extensions périmées (installées par une version antérieure
+#' du package) sont signalées par un avertissement, jamais supprimées
+#' automatiquement.
+#'
 #' @section Structure créée :
 #' ```
 #' <root>/
 #' ├── _quarto.yml              # base commune (ofce_prev, prev, annee, mois)
 #' ├── _quarto-staging.yml      # profil staging (site-path, version, encrypt_site)
 #' ├── _quarto-publish.yml      # profil publish (site-path, pas de chiffrement)
-#' ├── _extensions/             # extensions Quarto OFCE (toujours mis à jour)
+#' ├── _extensions/             # extensions Quarto OFCE (via ofce::setup_quarto())
 #' ├── www/                     # assets statiques (logos, CSS — toujours mis à jour)
 #' ├── france/data/             # données France (.gitkeep)
 #' ├── inter/data/              # données International (.gitkeep)
@@ -48,8 +55,6 @@
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_info cli_bullets
 #' @importFrom yaml read_yaml write_yaml verbatim_logical
 #' @importFrom gert git_remote_list
-#' @section Prévision Users:
-#'
 #' @export
 setup_prev <- function(
     path        = ".",
@@ -142,31 +147,19 @@ setup_prev <- function(
     tryCatch(yaml::read_yaml(dest_pub), error = function(e) list())
   else list()
 
-  # ---- 4. Extensions et www (depuis inst/share/ — toujours mis à jour) -----
-  # Les extensions prev spécifiques : ofce/ofce (ofce-html), ofce-website,
-  # crossref-listings, social-share, mcanouil/iconify, pandoc-ext.
-  # Toutes vivent dans inst/share/_extensions/ pour une mise à jour centralisée.
+  # ---- 4. Extensions Quarto OFCE (source de vérité : ofce::setup_quarto()) --
+  tryCatch({
+    ofce::setup_quarto(root, quiet = TRUE)
+    cli::cli_alert_success(
+      "Extensions Quarto OFCE install\u00e9es/mises \u00e0 jour ({.fn ofce::setup_quarto})."
+    )
+  }, error = function(e) {
+    cli::cli_alert_warning("{.fn ofce::setup_quarto} a \u00e9chou\u00e9 : {conditionMessage(e)}")
+  })
+  check_stray_ofce_extensions(root)
+
+  # ---- 4b. www/ (depuis inst/share/ — toujours mis à jour) -----------------
   if (fs::dir_exists(pkg_share)) {
-    dest_ext <- fs::path(root, "_extensions")
-    fs::dir_create(dest_ext, recurse = TRUE)
-
-    for (ext_rel in c(
-      "ofce-website",
-      file.path("ofce", "ofce"),
-      file.path("ofce", "social-share"),
-      "crossref-listings",
-      file.path("mcanouil", "iconify"),
-      "social-share",
-      file.path("pandoc-ext", "section-bibliographies")
-    )) {
-      src_e <- fs::path(pkg_share, "_extensions", ext_rel)
-      if (fs::dir_exists(src_e)) {
-        fs::dir_create(fs::path(dest_ext, fs::path_dir(ext_rel)), recurse = TRUE)
-        fs::dir_copy(src_e, fs::path(dest_ext, ext_rel), overwrite = TRUE)
-      }
-    }
-    cli::cli_alert_success("Mise à jour de {.path _extensions/} (depuis share)")
-
     src_www <- fs::path(pkg_share, "www")
     if (fs::dir_exists(src_www)) {
       dest_www <- fs::path(root, "www")

@@ -31,10 +31,6 @@ gh secret set STATICRYPT_PASSWORD --repo owner/repo
 
 Si le secret est absent, le déploiement s'effectue sans chiffrement.
 }
-\section{Site Users}{
-
-}
-
 \seealso{
 [remove_encrypt()]
 }

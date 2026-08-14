@@ -27,7 +27,7 @@
     error = function(e) NULL
   )
   if (is.null(post)) {
-    warning("Could not parse YAML: ", qmd_path)
+    warning("Impossible de parser le YAML : ", qmd_path)
     return(NULL)
   }
 
@@ -96,7 +96,7 @@ augment_search <- function(root = ".", progress = TRUE) {
   en_qmds <- fs::dir_ls("posts", recurse = TRUE, type = "file", regexp = "\\.en\\.qmd$") |>
     purrr::discard(~stringr::str_detect(fs::path_file(.x), "^_"))
 
-  cli::cli_alert_info("Parsing {length(fr_qmds)} fr and {length(en_qmds)} en source QMDs...")
+  cli::cli_alert_info("Analyse de {length(fr_qmds)} QMD source fr et {length(en_qmds)} en...")
 
   fr_meta <- purrr::map(fr_qmds, .parse_qmd, lang = "fr", .progress=progress) |>
     futurize::futurize() |>
@@ -117,7 +117,7 @@ augment_search <- function(root = ".", progress = TRUE) {
   jsonlite::write_json(posts_meta, out_path, auto_unbox = FALSE, pretty = TRUE)
 
   cli::cli_alert_success(
-    "Wrote {nrow(posts_meta)} entries ({sum(posts_meta$lang=='fr')} fr, {sum(posts_meta$lang=='en')} en) to {out_path}"
+    "{nrow(posts_meta)} entrées écrites ({sum(posts_meta$lang=='fr')} fr, {sum(posts_meta$lang=='en')} en) dans {out_path}"
   )
   # ── Upload to Algolia ────────────────────────────────────────────────────────
   # Requires three environment variables (set in ~/.Renviron or CI secrets):
@@ -135,8 +135,8 @@ augment_search <- function(root = ".", progress = TRUE) {
 
   if (is.na(algolia_app_id) || is.na(algolia_api_key)) {
     cli::cli_alert_info(c(
-      "Algolia upload skipped — env vars not set. ",
-      "Set ALGOLIA_APP_ID and ALGOLIA_API_KEY to enable."
+      "Upload Algolia ignoré — variables d'environnement non définies. ",
+      "Définir ALGOLIA_APP_ID et ALGOLIA_API_KEY pour l'activer."
     ))
     return(invisible(posts_meta))
   }
@@ -150,8 +150,8 @@ augment_search <- function(root = ".", progress = TRUE) {
   )
 
   cli::cli_alert_info(
-    "Uploading {length(records)} record{?s} to Algolia index \\
-    '{algolia_index}' in {length(chunks)} batch{?es}..."
+    "Envoi de {length(records)} enregistrement{?s} vers l'index Algolia \\
+    '{algolia_index}' en {length(chunks)} lot{?s}..."
   )
 
   for (i in seq_along(chunks)) {
@@ -169,14 +169,14 @@ augment_search <- function(root = ".", progress = TRUE) {
 
     if (httr2::resp_is_error(resp)) {
       cli::cli_warn(
-        "Batch {i}/{length(chunks)} failed (HTTP {httr2::resp_status(resp)}): \\
+        "Lot {i}/{length(chunks)} échoué (HTTP {httr2::resp_status(resp)}) : \\
         {httr2::resp_body_string(resp)}"
       )
     } else {
-      cli::cli_alert_success("Batch {i}/{length(chunks)} OK.")
+      cli::cli_alert_success("Lot {i}/{length(chunks)} OK.")
     }
   }
 
-  cli::cli_alert_success("Algolia upload complete.")
+  cli::cli_alert_success("Upload Algolia terminé.")
   invisible(posts_meta)
 }

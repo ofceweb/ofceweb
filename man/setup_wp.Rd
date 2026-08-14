@@ -52,11 +52,14 @@ Pour les WPs publiés (`wp` non nul), la fonction met à jour la variable
 GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
 à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
 aussi migré automatiquement si `server-dir` y est encore codé en dur.
-}
-\section{Working Paper (WP) Users}{
 
+Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour
+via [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
+`OFCE/ofce-quarto-extensions` — la fonction nécessite donc un accès
+réseau. D'éventuelles extensions périmées (installées par une version
+antérieure du package) sont signalées par un avertissement, jamais
+supprimées automatiquement.
 }
-
 \seealso{
 [render_wp()], [deploy_wp()], [wp_version_up()], [update_navbar()]
 }

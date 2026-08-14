@@ -42,10 +42,6 @@ Invisible `NULL`.
 Enchaîne [render_prev()] avec le profil `"publish"` puis pousse
 `_site_publish/` vers la branche `site-publish` via [site2publish()].
 }
-\section{Prévision Users}{
-
-}
-
 \seealso{
 [render_prev()], [deploy_prev()], [stage_prev()]
 }

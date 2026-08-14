@@ -25,10 +25,6 @@ Wrapper de [site2branch()] configuré pour le déploiement staging de la
 prévision. Le contenu est poussé **en clair** ; le chiffrement est appliqué
 en CI par `ftp_deploy_staging.yml` avant le transfert FTP.
 }
-\section{Prévision Users}{
-
-}
-
 \seealso{
 [deploy_prev()], [stage_prev()], [site2branch()]
 }

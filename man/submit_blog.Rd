@@ -51,10 +51,6 @@ Orchestre la soumission d'un post de blog Quarto :
 En cas d'échec de la compilation, la branche et les fichiers copiés sont
 supprimés — `blog_relecture` n'est pas modifié.
 }
-\section{Blog Users}{
-
-}
-
 \seealso{
 [check_blog()], [scan_qmd_deps()]
 }

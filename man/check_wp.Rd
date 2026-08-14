@@ -38,10 +38,6 @@ Contrôles effectués :
   \item Unicité des `output-file` PDF à travers tous les `.qmd` (erreur)
 }
 }
-\section{Working Paper (WP) Users}{
-
-}
-
 \seealso{
 [render_wp()], [setup_wp()]
 }

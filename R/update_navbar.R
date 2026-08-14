@@ -24,8 +24,6 @@
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @seealso [site_version_up()], [setup_site()]
-#' @section Site Users:
-#'
 #' @export
 update_navbar <- function(root = ".") {
   root <- root |>

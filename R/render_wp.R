@@ -31,8 +31,6 @@
 #' @importFrom future.mirai mirai_multisession
 #' @importFrom quarto quarto_render
 #' @importFrom gert git_status
-#' @section Working Paper (WP) Users:
-#'
 #' @export
 render_wp <- function(
     path = ".",
@@ -174,8 +172,6 @@ render_wp <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [render_wp()], [deploy_wp()], [push_wp_redirect()], [setup_wp()]
-#' @section Working Paper (WP) Users:
-#'
 #' @export
 publish_wp <- function(
     path        = ".",

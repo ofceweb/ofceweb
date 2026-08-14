@@ -45,8 +45,6 @@
 #' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists
 #' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_danger cli_rule
 #' @importFrom yaml read_yaml
-#' @section Prévision Users:
-#'
 #' @export
 check_prev <- function(path = ".", verbose = TRUE) {
 

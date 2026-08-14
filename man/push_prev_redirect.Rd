@@ -36,10 +36,6 @@ doit **pas** être re-pointée. Appeler cette fonction manuellement, depuis
 la racine du dépôt de la prévision qui devient la prévision courante,
 juste après sa première publication.
 }
-\section{Prévision Users}{
-
-}
-
 \seealso{
 [publish_prev()], [deploy_prev()], [push_site_redirect()]
 }

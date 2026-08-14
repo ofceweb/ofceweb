@@ -6,8 +6,6 @@ mois: 9             # 3 ou 9
 project:
   type: ofce-website
   execute-dir: file
-  post-render:
-    - _extensions/crossref-listings/concatenate.ts
 
 execute:
   eval: true
@@ -19,7 +17,7 @@ execute:
 website:
   title: "Prévisions de l'OFCE"
   site-url: "https://www.ofce.fr/"
-  favicon: _extensions/ofce-website/img/favicon.ico
+  favicon: www/favicon.ico
   draft-mode: gone
 
   page-navigation: true
@@ -40,7 +38,7 @@ website:
     right: "propulsé par ![](/www/quarto.png){height='16'}"
 
   navbar:
-    logo: _extensions/ofce-website/img/logo.png
+    logo: www/logo.png
     logo-alt: "logo de l'OFCE"
     logo-href: https://www.ofce.fr/
     background: white
@@ -189,6 +187,5 @@ language:
 
 filters:
   - quarto
-  - crossref-listings
 
 citeproc: true

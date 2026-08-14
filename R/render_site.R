@@ -28,8 +28,6 @@
 #' @importFrom future.mirai mirai_multisession
 #' @importFrom quarto quarto_render
 #' @importFrom gert git_status git_remote_list
-#' @section Site Users:
-#'
 #' @export
 render_site <- function(
     path = ".",
@@ -183,8 +181,6 @@ rewrite_absolute_hrefs <- function(root) {
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [render_site()], [deploy_site()], [push_site_redirect()], [setup_site()]
-#' @section Site Users:
-#'
 #' @export
 stage_site <- function(
     path        = ".",

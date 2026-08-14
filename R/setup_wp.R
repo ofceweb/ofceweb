@@ -16,6 +16,13 @@
 #' à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
 #' aussi migré automatiquement si `server-dir` y est encore codé en dur.
 #'
+#' Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour
+#' via [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
+#' `OFCE/ofce-quarto-extensions` — la fonction nécessite donc un accès
+#' réseau. D'éventuelles extensions périmées (installées par une version
+#' antérieure du package) sont signalées par un avertissement, jamais
+#' supprimées automatiquement.
+#'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param website_title Chaîne ou `NULL`. Titre du WP. Si `NULL`, utilise le
 #'   nom du dépôt GitHub.
@@ -33,8 +40,6 @@
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_info
 #' @importFrom yaml read_yaml write_yaml verbatim_logical
 #' @importFrom gert git_remote_list
-#' @section Working Paper (WP) Users:
-#'
 #' @export
 setup_wp <- function(
     path = ".",
@@ -237,15 +242,16 @@ setup_wp <- function(
     cli::cli_alert_success("Copie du dossier {.path www/}")
   }
 
-  # ---- 9. copie _extensions/wp/ depuis setup_site/ -------------------------
-  src_ext_wp <- fs::path(pkg_share, "_extensions", "wp")
-  if (fs::dir_exists(src_ext_wp)) {
-    dest_ext <- fs::path(root, "_extensions")
-    dest_ext_wp <- fs::path(dest_ext, "wp")
-    fs::dir_create(dest_ext)
-    fs::dir_copy(src_ext_wp, dest_ext_wp, overwrite = TRUE)
-    cli::cli_alert_success("Copie de {.path _extensions/wp/}")
-  }
+  # ---- 9. extensions Quarto OFCE (source de vérité : ofce::setup_quarto()) --
+  tryCatch({
+    ofce::setup_quarto(root, quiet = TRUE)
+    cli::cli_alert_success(
+      "Extensions Quarto OFCE install\u00e9es/mises \u00e0 jour ({.fn ofce::setup_quarto})."
+    )
+  }, error = function(e) {
+    cli::cli_alert_warning("{.fn ofce::setup_quarto} a \u00e9chou\u00e9 : {conditionMessage(e)}")
+  })
+  check_stray_ofce_extensions(root)
 
   # ---- 10. copie des workflows (seulement si absents) -----------------------
   src_wf  <- fs::path(pkg_setup_wp, "workflows")
@@ -319,12 +325,28 @@ setup_wp <- function(
       effective_annee_sp <- suppressWarnings(as.integer(yml$annee %||% annee))
       if (is.na(effective_annee_sp)) effective_annee_sp <- annee
       yml$website$`site-url`  <- "https://www.ofce.fr/"
-      site_path_base <- sprintf("%d/%03d", effective_annee_sp, wp)
+      site_path_base <- sprintf("%d/%d", effective_annee_sp, wp)
       if (isTRUE(versionning))
         site_path <- paste0(site_path_base, "/", version)
       else
         site_path <- site_path_base
       yml$version <- version
+
+      # Les WPs créés avant l'abandon du zéro-padding portent un site-path de
+      # la forme `2026/007` : la valeur recalculée l'écrase. Le déploiement
+      # changera donc de répertoire — le signaler explicitement.
+      old_site_path <- as.character(yml$website$`site-path` %||% "")
+      if (nzchar(old_site_path) && !identical(old_site_path, site_path)) {
+        cli::cli_alert_warning(
+          "site-path modifié : {.val {old_site_path}} \u2192 {.val {site_path}} \\
+           \u2014 le prochain déploiement ira sur une {.strong URL différente}."
+        )
+        cli::cli_alert_info(
+          "L'ancien répertoire {.val {old_site_path}} reste en place sur le \\
+           serveur : le supprimer ou y poser une redirection si nécessaire."
+        )
+      }
+
       yml$website$`site-path` <- site_path
     } else {
       yml$version <- NULL

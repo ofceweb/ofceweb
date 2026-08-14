@@ -58,14 +58,20 @@
 #' du package via [update_navbar()], appelé automatiquement en fin de
 #' configuration.
 #'
+#' @section Extensions Quarto :
+#' Les extensions OFCE (`_extensions/`) sont installées/mises à jour via
+#' [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
+#' `OFCE/ofce-quarto-extensions` — un accès réseau est donc nécessaire.
+#' D'éventuelles extensions périmées (installées par une version antérieure
+#' du package) sont signalées par un avertissement, jamais supprimées
+#' automatiquement.
+#'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @seealso [update_navbar()]
 #' @importFrom fs path_expand path_abs path_norm path_file path path_rel path_ext_set path_ext_remove path_ext file_exists dir_exists file_copy dir_copy dir_create dir_ls
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_danger cli_alert_info cli_text
 #' @importFrom yaml read_yaml write_yaml verbatim_logical
 #' @importFrom gert git_remote_list
-#' @section Home Users:
-#'
 #' @export
 setup_site <- function(
     path = ".",
@@ -148,7 +154,6 @@ setup_site <- function(
   src_index      <- fs::path(pkg_root, "index.qmd")
   src_www        <- fs::path(pkg_root, "www")
   src_workflows  <- fs::path(pkg_root, "workflows")
-  src_extensions <- fs::path(pkg_root, "_extensions")
 
   dest_yaml <- fs::path(root, "_quarto.yml")
   if (!fs::file_exists(dest_yaml)) {
@@ -184,21 +189,16 @@ setup_site <- function(
     cli::cli_alert_success("Copie du dossier {.path www/}")
   }
 
-  if(fs::dir_exists(src_extensions)) {
-    dest_extensions <- fs::path(root, "_extensions")
-    fs::dir_create(dest_extensions)
-    src_ext_files <- fs::dir_ls(src_extensions, recurse = FALSE)
-    for(f in src_ext_files) {
-      if(fs::dir_exists(f)) {
-        fs::dir_copy(f, fs::path(dest_extensions, fs::path_file(f)),
-                     overwrite = TRUE)
-      } else {
-        fs::file_copy(f, fs::path(dest_extensions, fs::path_file(f)),
-                      overwrite = TRUE)
-      }
-    }
-    cli::cli_alert_success("Copie du dossier {.path _extensions/}")
-  }
+  # ---- 2b. extensions Quarto OFCE (source de vérité : ofce::setup_quarto()) -
+  tryCatch({
+    ofce::setup_quarto(root, quiet = TRUE)
+    cli::cli_alert_success(
+      "Extensions Quarto OFCE install\u00e9es/mises \u00e0 jour ({.fn ofce::setup_quarto})."
+    )
+  }, error = function(e) {
+    cli::cli_alert_warning("{.fn ofce::setup_quarto} a \u00e9chou\u00e9 : {conditionMessage(e)}")
+  })
+  check_stray_ofce_extensions(root)
 
   if(fs::dir_exists(src_workflows)) {
     dest_workflows <- fs::path(root, ".github", "workflows")

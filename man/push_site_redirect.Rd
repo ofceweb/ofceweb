@@ -30,10 +30,6 @@ de version (`/v[0-9]+`) ou si `ofce_host` n'est pas `true`.
 Appelée automatiquement par [site_version_up()] lors d'un incrément de
 version, et par [stage_site()] à chaque déploiement staging.
 }
-\section{Site Users}{
-
-}
-
 \seealso{
 [site_version_up()], [stage_site()], [deploy_site()]
 }

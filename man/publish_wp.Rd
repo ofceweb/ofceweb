@@ -42,10 +42,6 @@ Enchaîne [render_wp()] puis [deploy_wp()] : rend le WP, pousse `_site/`
 vers la branche de déploiement FTP, et met à jour la page de redirection
 vers l'URL stable (via [push_wp_redirect()]).
 }
-\section{Working Paper (WP) Users}{
-
-}
-
 \seealso{
 [render_wp()], [deploy_wp()], [push_wp_redirect()], [setup_wp()]
 }

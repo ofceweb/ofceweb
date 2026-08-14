@@ -2,7 +2,7 @@
 % Please edit documentation in R/site2branch.R
 \name{site2branch}
 \alias{site2branch}
-\title{Push a rendered site folder to a Git branch}
+\title{Pousse un dossier de site rendu vers une branche Git}
 \usage{
 site2branch(
   path = ".",
@@ -17,70 +17,69 @@ site2branch(
 }
 \arguments{
 \item{path}{`[character(1)]`\cr
-Path to the root of the local Git repository.
-Defaults to ".".}
+Chemin vers la racine du dépôt Git local.
+Défaut ".".}
 
 \item{branch}{`[character(1)]`\cr
-name of the branch targeted ("site-deploy")}
+nom de la branche ciblée ("site-deploy")}
 
 \item{source}{`[character(1)]`\cr
-path to the folder to deploy ("_site")}
+chemin du dossier à déployer ("_site")}
 
 \item{progress}{`[logical(1)]`\cr
-If `TRUE` (default), git output is forwarded to the console.}
+Si `TRUE` (défaut), la sortie git est transmise à la console.}
 
 \item{trigger}{`[logical(1)]`\cr
-If `TRUE` (default to `TRUE`), calls [trigger_ftp_deploy()] after a successful push
-to dispatch the FTP deploy workflow.  Failures are caught and reported as
-warnings so the overall push is not rolled back. Usually, a push on site-deploy is going to trigger the deploy.}
+Si `TRUE` (défaut `TRUE`), appelle [trigger_ftp_deploy()] après un push
+réussi pour déclencher le workflow de déploiement FTP. Les échecs sont
+capturés et signalés comme des avertissements sans annuler le push.
+Généralement, un push sur site-deploy va déclencher le déploiement.}
 
 \item{workflow}{`[character(1)]`\cr
-name of the workflow to trigger}
+nom du workflow à déclencher}
 
 \item{full_deploy}{`[logical(1)]`\cr
-If `FALSE` (default), the `.ftp-deploy-sync-state.json` file is carried
-forward from the remote branch so the FTP upload remains incremental.
-Set to `TRUE` to zero out every hash in the state file before pushing,
-which causes ftp-deploy to re-upload every file without deleting anything
-unrelated on the FTP server.}
+Si `FALSE` (défaut), le fichier `.ftp-deploy-sync-state.json` est
+reporté depuis la branche distante afin que l'upload FTP reste
+incrémental. Mettre `TRUE` pour remettre à zéro chaque hash du fichier
+d'état avant le push, ce qui pousse ftp-deploy à re-uploader tous les
+fichiers sans rien supprimer d'autre sur le serveur FTP.}
 
 \item{inputs}{`[list()]`\cr
-Named list of workflow inputs forwarded to [trigger_action()] and passed
-as `workflow_dispatch` inputs (e.g. `list(profile = "review")`).
-Defaults to an empty list.}
+Liste nommée d'entrées de workflow transmises à [trigger_action()] en
+tant qu'entrées `workflow_dispatch` (ex. `list(profile = "review")`).
+Défaut une liste vide.}
 }
 \value{
-Invisibly returns `NULL`. Called for its side effects.
+Renvoie invisiblement `NULL`. Appelée pour ses effets de bord.
 }
 \description{
-Commits the contents of `_site/` (or another folder produced by a static
-site generator) into an orphan-style commit and force-pushes it to the
-`site-deploy` branch (or what is spefiied in `branch`) of the `origin` remote.  Optionally triggers a
-downstream GitHub Actions workflow (e.g. an FTP deploy) via the
-`workflow_dispatch` API (the default branch is auto-detected).
+Commite le contenu de `_site/` (ou un autre dossier produit par un
+générateur de site statique) dans un commit de type orphelin et le
+force-pousse vers la branche `site-deploy` (ou celle indiquée dans
+`branch`) du remote `origin`. Déclenche en option un workflow GitHub
+Actions en aval (ex. un déploiement FTP) via l'API `workflow_dispatch` (la
+branche par défaut est détectée automatiquement).
 }
 \details{
-Credentials are resolved in the following order:
-1. The `DEPLOY_PAT` environment variable (recommended on CI).
-2. The OS credential store (macOS Keychain, Windows GCM, Linux libsecret)
-   via the \pkg{credentials} package — suitable for interactive local use.
+Les identifiants sont résolus dans l'ordre suivant :
+1. La variable d'environnement `DEPLOY_PAT` (recommandé en CI).
+2. Le gestionnaire d'identifiants du système (Keychain macOS, GCM Windows,
+   libsecret Linux) via le paquet \pkg{credentials} — adapté à un usage
+   interactif local.
 
-SSH remote URLs are automatically converted to HTTPS before pushing because
-libgit2 cannot use the system SSH agent.
+Les URL de remote en SSH sont automatiquement converties en HTTPS avant le
+push car libgit2 ne peut pas utiliser l'agent SSH du système.
 }
-\section{Site Users}{
-
-}
-
 \examples{
 \dontrun{
-# Push _site/ and trigger the FTP workflow
+# Pousser _site/ et déclencher le workflow FTP
 site2branch()
 
-# Push only, without triggering the downstream workflow
+# Pousser seulement, sans déclencher le workflow en aval
 site2branch(trigger = FALSE)
 
-# Force a full re-upload (ignore incremental state)
+# Forcer un re-upload complet (ignorer l'état incrémental)
 site2branch(full_deploy = TRUE)
 }
 

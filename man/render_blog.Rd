@@ -2,7 +2,7 @@
 % Please edit documentation in R/render_blog.R
 \name{render_blog}
 \alias{render_blog}
-\title{Render the bilingual blog}
+\title{Rend le blog bilingue}
 \usage{
 render_blog(
   path = ".",
@@ -18,62 +18,64 @@ render_blog(
 )
 }
 \arguments{
-\item{path}{Character path to the blog folder, default to ".".}
+\item{path}{Chemin vers le dossier du blog. Défaut `"."`.}
 
-\item{force_freeze}{Logical. If `TRUE` (default), posts are re-rendered even
-when a cached version exists. Set to `FALSE` to reuse the cache wherever
-possible.}
+\item{force_freeze}{Logique. Si `TRUE` (défaut), les posts sont re-rendus
+même si une version en cache existe. Mettre `FALSE` pour réutiliser le
+cache autant que possible.}
 
-\item{workers}{Integer. Number of parallel workers passed to
-[future.mirai::mirai_multisession()]. Defaults to `8L`.}
+\item{workers}{Entier. Nombre de workers parallèles transmis à
+[future.mirai::mirai_multisession()]. Défaut `8L`.}
 
-\item{check_repo}{Logical. If `TRUE` (default), calls [check_repo_status()]
-before rendering to ensure the git repository is in a clean state.}
+\item{check_repo}{Logique. Si `TRUE` (défaut), appelle
+[check_repo_status()] avant le rendu pour s'assurer que le dépôt git est
+dans un état propre.}
 
-\item{progress}{Logical. If `TRUE` (default), progress bars are displayed
-during long-running steps.}
+\item{progress}{Logique. Si `TRUE` (défaut), des barres de progression
+sont affichées pendant les étapes longues.}
 
-\item{render_site}{Logical. If `TRUE` (default), starts a local HTTP daemon
-via [servr::httw()] to preview `_site` after the build completes.}
+\item{render_site}{Logique. Si `TRUE` (défaut), démarre un démon HTTP
+local via [servr::httw()] pour prévisualiser `_site` une fois le build
+terminé.}
 
-\item{check_freeze}{Logical. If `TRUE`, the function aborts when any post is
-missing from the cache (strict freeze mode). Defaults to `FALSE`.}
+\item{check_freeze}{Logique. Si `TRUE`, la fonction s'arrête dès qu'un post
+est absent du cache (mode freeze strict). Défaut `FALSE`.}
 
-\item{site2branch}{Logical. Reserved parameter (currently unused inside the
-function body; deployment is controlled by the `push_site_deploy`
-environment variable). Defaults to `FALSE`.}
+\item{site2branch}{Logique. Paramètre réservé (actuellement inutilisé dans
+le corps de la fonction ; le déploiement est contrôlé par la variable
+d'environnement `push_site_deploy`). Défaut `FALSE`.}
 
-\item{trigger}{Logical. Passed to [site2branch()] to optionally trigger a
-GitHub Actions workflow after deploying. Defaults to `FALSE`.}
+\item{trigger}{Logique. Transmis à [site2branch()] pour déclencher en
+option un workflow GitHub Actions après le déploiement. Défaut `FALSE`.}
 
-\item{freeze}{Logical. If `TRUE` (default), passed to [copy_files()] to
-enable Quarto freeze mode when copying project scaffolding.}
+\item{freeze}{Logique. Si `TRUE` (défaut), transmis à [copy_files()] pour
+activer le mode freeze de Quarto lors de la copie de l'ossature du
+projet.}
 }
 \value{
-A data frame of staged git changes (output of [gert::git_status()]),
-  returned invisibly.
+Un data frame des changements git préparés (sortie de
+  [gert::git_status()]), renvoyé invisiblement.
 }
 \description{
-Orchestrates a full build of the Quarto blog in both French and English.
-It rebuilds the posts database, renders each language version in parallel,
-updates the Algolia search index and sitemap, patches Bootstrap CSS hashes,
-commits cache changes to git, and optionally deploys the site or launches a
-local preview server.
+Orchestre un build complet du blog Quarto en français et en anglais.
+Reconstruit la base des posts, rend chaque version de langue en parallèle,
+met à jour l'index de recherche Algolia et le sitemap, patche les hash CSS
+Bootstrap, commite les changements de cache dans git et, en option,
+déploie le site ou lance un serveur de prévisualisation local.
 }
 \details{
-The function must be run from within an RStudio project that contains a
-`posts/` directory. It also expects the project to live under a directory
-named `webblog` and will prompt for confirmation otherwise.
+La fonction doit être exécutée depuis un projet RStudio contenant un
+répertoire `posts/`. Elle s'attend aussi à ce que le projet se trouve dans
+un répertoire nommé `webblog` et demande confirmation dans le cas
+contraire.
 
-Two variables are read from the calling environment (not function arguments):
-- `typst`: passed to [copy_post()] to control Typst PDF rendering.
-- `push_site_deploy`: if `TRUE`, calls [site2branch()] to push `_site` to the
-  deployment branch; otherwise prints instructions for doing so manually.
+Deux variables sont lues depuis l'environnement appelant (pas des
+arguments de la fonction) :
+- `typst` : transmise à [copy_post()] pour contrôler le rendu PDF Typst.
+- `push_site_deploy` : si `TRUE`, appelle [site2branch()] pour pousser
+  `_site` vers la branche de déploiement ; sinon affiche les instructions
+  pour le faire manuellement.
 }
-\section{Webblog Users}{
-
-}
-
 \examples{
 \dontrun{
 render_blog()

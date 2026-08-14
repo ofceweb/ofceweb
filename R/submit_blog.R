@@ -67,7 +67,6 @@
 #' @return Vecteur de caractères : chemins relatifs depuis le dossier du `.qmd`.
 #' @importFrom fs path_norm path_abs path_expand
 #' @importFrom stringr str_match_all
-#' @section Blog Users:
 #' @export
 scan_qmd_deps <- function(qmd_path) {
   qmd_path <- qmd_path |>
@@ -127,7 +126,6 @@ scan_qmd_deps <- function(qmd_path) {
 #' @importFrom fs path_dir path_file path file_exists
 #' @importFrom cli cli_h1 cli_rule cli_alert_success cli_alert_warning cli_alert_danger
 #' @importFrom purrr transpose
-#' @section Blog Users:
 #' @export
 check_blog <- function(path = ".", verbose = TRUE) {
 
@@ -249,7 +247,6 @@ check_blog <- function(path = ".", verbose = TRUE) {
 #' @importFrom gert git_branch git_branch_list git_branch_checkout git_branch_create git_branch_delete git_fetch git_pull git_status git_add git_commit git_push git_remote_list
 #' @importFrom gh gh
 #' @importFrom stringr str_match_all
-#' @section Blog Users:
 #' @export
 submit_blog <- function(
     path                = ".",

@@ -37,10 +37,6 @@ Route le déploiement selon l'état du WP :
     `www.ofce.fr/wp/{annee}/{N}/{version}/`.
 }
 }
-\section{Working Paper (WP) Users}{
-
-}
-
 \seealso{
 [render_wp()], [site2branch()], [wp_version_up()]
 }

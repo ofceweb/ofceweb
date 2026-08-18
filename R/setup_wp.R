@@ -16,6 +16,11 @@
 #' à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
 #' aussi migré automatiquement si `server-dir` y est encore codé en dur.
 #'
+#' Toujours pour les WPs publiés, `citation.issue` (`"{année}-{wp}"`, sans
+#' zéro de remplissage) et `citation.url` (URL stable, sans le segment de
+#' version) sont recalculés à chaque appel — ce sont des valeurs dérivées de
+#' `annee`/`wp`/`site-path`, jamais éditées manuellement.
+#'
 #' Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour
 #' via [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
 #' `OFCE/ofce-quarto-extensions` — la fonction nécessite donc un accès
@@ -38,7 +43,7 @@
 #' @seealso [render_wp()], [deploy_wp()], [wp_version_up()], [update_navbar()]
 #' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists file_copy dir_copy dir_create dir_ls path_ext path_ext_remove
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_info
-#' @importFrom yaml read_yaml write_yaml verbatim_logical
+#' @importFrom yaml read_yaml
 #' @importFrom gert git_remote_list
 #' @export
 setup_wp <- function(
@@ -86,7 +91,6 @@ setup_wp <- function(
   if(file.exists(dest_index))
     index_yml <- get_yaml(dest_index) else
       index_yml <- list()
-  yml_before <- yml  # snapshot pour détecter les changements réels
 
   if(!is.null(yml[["wp"]])&&!wp_provided) {
     wp <- yml[["wp"]]
@@ -296,41 +300,55 @@ setup_wp <- function(
   }
 
   # ---- 11. édition du _quarto.yml ------------------------------------------
+  # Patch textuel : ne touche que les lignes des clés modifiées ci-dessous,
+  # préservant commentaires, indentation et mise en page du reste du
+  # fichier. `lines` est lu ICI (après la copie éventuelle du gabarit en
+  # section 5) pour patcher le contenu réel sur disque, et non un `yml`
+  # capturé avant que le gabarit n'existe.
+  lines_before <- readLines(dest_yaml, warn = FALSE)
+  lines <- lines_before
 
   # Champs-arguments : écrire UNIQUEMENT si l'argument a été fourni explicitement.
   # Pour un nouveau WP, le gabarit contient déjà les valeurs par défaut.
   # Pour un WP existant, l'absence d'un champ est intentionnelle.
-  if (wp_provided)    yml$wp    <- wp
-  if (annee_provided) yml$annee <- annee
-  if (lang_provided)  yml$lang  <- lang
-  if (title_provided) yml[["website"]][["title"]] <- final_title
-  if (hypothesis_provided) yml[["comments"]][["hypothesis"]] <- hypothesis
+  if (wp_provided)    { yml$wp    <- wp;    lines <- yaml_patch_scalar_or_delete(lines, "wp", wp) }
+  if (annee_provided) { yml$annee <- annee; lines <- yaml_patch_scalar(lines, "annee", annee) }
+  if (lang_provided)  { yml$lang  <- lang;  lines <- yaml_patch_scalar(lines, "lang", lang) }
+  if (title_provided) {
+    yml[["website"]][["title"]] <- final_title
+    lines <- yaml_patch_scalar(lines, "website.title", final_title)
+  }
   # version : le gabarit le fournit pour les nouveaux WPs — jamais injecté
   # dans un fichier existant.
 
   # ofce_wp : marqueur de dépôt WP OFCE — toujours positionné
   yml$ofce_wp <- TRUE
+  lines <- yaml_patch_scalar(lines, "ofce_wp", TRUE)
 
   # repo-url : toujours calculé depuis le remote git (valeur dérivée, sans
   # ambiguïté et sans risque pour l'utilisateur)
   if (!is.na(gh$owner) && !is.na(gh$repo)) {
-    yml$website$`repo-url` <- sprintf("https://github.com/%s/%s/", gh$owner, gh$repo)
+    repo_url <- sprintf("https://github.com/%s/%s/", gh$owner, gh$repo)
+    yml$website$`repo-url` <- repo_url
+    lines <- yaml_patch_scalar(lines, "website.repo-url", repo_url)
   }
 
   # site-url / site-path : uniquement si wp a été fourni explicitement
   if (wp_provided) {
     if (!is.null(wp)) {
-      # Année effective : yml$annee est déjà à jour (mis à jour ligne 233 si
+      # Année effective : yml$annee est déjà à jour (mis à jour plus haut si
       # annee_provided, sinon valeur existante du YAML, sinon argument par défaut).
       effective_annee_sp <- suppressWarnings(as.integer(yml$annee %||% annee))
       if (is.na(effective_annee_sp)) effective_annee_sp <- annee
       yml$website$`site-url`  <- "https://www.ofce.fr/"
+      lines <- yaml_patch_scalar(lines, "website.site-url", "https://www.ofce.fr/")
       site_path_base <- sprintf("%d/%d", effective_annee_sp, wp)
       if (isTRUE(versionning))
         site_path <- paste0(site_path_base, "/", version)
       else
         site_path <- site_path_base
       yml$version <- version
+      lines <- yaml_patch_scalar_or_delete(lines, "version", version)
 
       # Les WPs créés avant l'abandon du zéro-padding portent un site-path de
       # la forme `2026/007` : la valeur recalculée l'écrase. Le déploiement
@@ -348,16 +366,24 @@ setup_wp <- function(
       }
 
       yml$website$`site-path` <- site_path
+      lines <- yaml_patch_scalar(lines, "website.site-path", site_path)
     } else {
       yml$version <- NULL
-      yml$website$`site-url`  <- sprintf("https://%s.github.io/%s/", gh_org, repo_name)
+      lines <- yaml_patch_delete(lines, "version")
+      github_site_url <- sprintf("https://%s.github.io/%s/", gh_org, repo_name)
+      yml$website$`site-url`  <- github_site_url
+      lines <- yaml_patch_scalar(lines, "website.site-url", github_site_url)
       yml$website$`site-path` <- NULL
+      lines <- yaml_patch_delete(lines, "website.site-path")
     }
   }
 
-  # citation.url : URL stable (sans version) — valeur dérivée, toujours mise
-  # à jour pour les WPs publiés afin que les citations ne se brisent pas lors
-  # des mises à jour de version.
+  # citation.url / citation.issue : valeurs dérivées, toujours mises à jour
+  # pour les WPs publiés afin que les citations ne se brisent pas lors des
+  # mises à jour de version ou de numéro.
+  # - citation.url  : URL stable (sans le segment de version).
+  # - citation.issue: "{année}-{wp}" (le wp étant un entier, jamais de zéro
+  #   de remplissage superflu, contrairement à l'ancien site-path zero-padded).
   if (!is.null(yml$wp)) {
     sp <- yml$website$`site-path`
     su <- yml$website$`site-url` %||% ""
@@ -368,12 +394,23 @@ setup_wp <- function(
       stable_url <- paste0(su, stable_path, "/")
       if (is.null(yml$citation)) yml$citation <- list()
       yml$citation$url <- stable_url
+      lines <- yaml_patch_scalar(lines, "citation.url", stable_url)
+    }
+
+    citation_annee <- suppressWarnings(as.integer(yml$annee))
+    citation_wp    <- suppressWarnings(as.integer(yml$wp))
+    if (!is.na(citation_annee) && !is.na(citation_wp)) {
+      issue <- sprintf("%d-%d", citation_annee, citation_wp)
+      if (is.null(yml$citation)) yml$citation <- list()
+      yml$citation$issue <- issue
+      lines <- yaml_patch_scalar(lines, "citation.issue", issue)
     }
   }
 
   # hypothesis : uniquement si fourni explicitement
   if (hypothesis_provided) {
     yml$comments <- list(hypothesis = isTRUE(hypothesis))
+    lines <- yaml_patch_scalar(lines, "comments.hypothesis", isTRUE(hypothesis))
   }
 
   # output-file PDF : uniquement si wp ou annee fournis explicitement ET si le
@@ -389,39 +426,28 @@ setup_wp <- function(
     } else {
       "OFCEWP-draft.pdf"
     }
-    target_fmt <- if (is.list(index_yml$format$`wp-pdf`)) "wp-pdf" else "wp-typst"
-    index_yml$format[[target_fmt]]$`output-file` <- pdf_output
   } else {
     pdf_output <- index_yml$format$`wp-pdf`$`output-file` %||%
       index_yml$format$`wp-typst`$`output-file` %||% NA_character_
   }
 
-  # N'écrire le fichier que si le YAML a réellement changé — évite le
-  # reformatage parasite (dates, order des clés, etc.)
-  if (!identical(yml_before, yml)) {
-    yaml::write_yaml(
-      yml, dest_yaml,
-      indent.mapping.sequence = TRUE,
-      handlers = list(logical = yaml::verbatim_logical)
-    )
+  # N'écrire le fichier que si le contenu a réellement changé — évite le
+  # bruit dans git diff quand rien n'a bougé.
+  if (!identical(lines_before, lines)) {
+    writeLines(lines, dest_yaml)
     cli::cli_alert_success("Mise à jour de {.file _quarto.yml}")
   } else {
     cli::cli_alert_info("{.file _quarto.yml} — aucun changement nécessaire.")
   }
 
-  # Met aussi à jour l'output-file dans index.qmd
-  if (TRUE) {
-    tryCatch({
-      if (is.null(index_yml)) index_yml <- list()
-      if (is.null(index_yml$format)) index_yml$format <- list()
-      if (is.null(index_yml$format$`wp-pdf`)) index_yml$format$`wp-pdf` <- list()
-      index_yml$format$`wp-pdf`$`output-file` <- pdf_output
-      put_yaml(index_yml, dest_index)
-      cli::cli_alert_success("output-file mis à jour dans {.file index.qmd}")
-    }, error = function(e) {
-      cli::cli_alert_warning("Impossible de patcher index.qmd : {conditionMessage(e)}")
-    })
-  }
+  # Met aussi à jour l'output-file dans index.qmd (patch ciblé, préserve le
+  # reste du frontmatter et le corps du document)
+  tryCatch({
+    yaml_patch_frontmatter_scalar(dest_index, "format.wp-pdf.output-file", pdf_output)
+    cli::cli_alert_success("output-file mis à jour dans {.file index.qmd}")
+  }, error = function(e) {
+    cli::cli_alert_warning("Impossible de patcher index.qmd : {conditionMessage(e)}")
+  })
 
   # ---- 11b. navbar (source centralisée du package) --------------------------
   tryCatch(
@@ -479,6 +505,8 @@ setup_wp <- function(
   cli::cli_li("site-url    : {yml$website$`site-url`}")
   if (!is.null(yml$website$`site-path`))
     cli::cli_li("site-path   : {yml$website$`site-path`}")
+  if (!is.null(yml$citation$issue))
+    cli::cli_li("citation issue: {yml$citation$issue}")
   if (!is.null(yml$citation$url))
     cli::cli_li("citation url: {yml$citation$url}")
   cli::cli_li("hypothesis  : {isTRUE(yml$comments$hypothesis)}")

@@ -48,10 +48,13 @@
 #' Toutes les autres clés (`format`, `execute`, `website.navbar`, etc.) sont
 #' lues et réécrites telles quelles.
 #'
-#' @section Reformatage YAML :
-#' La réécriture via [yaml::write_yaml()] normalise l'ensemble du fichier :
-#' les commentaires sont supprimés et l'indentation peut changer. C'est un
-#' comportement normal — relire le diff avant de committer.
+#' @section Édition du YAML :
+#' La mise à jour patche uniquement les clés listées ci-dessus dans le texte
+#' du fichier : commentaires, indentation et mise en page du reste du
+#' `_quarto.yml` sont préservés. Les blocs `website.other-links` et
+#' `website.comments` sont entièrement régénérés (ce sont des sections
+#' gérées par le package), donc d'éventuels commentaires à l'intérieur de
+#' ces deux blocs précis ne survivent pas.
 #'
 #' @section Navbar :
 #' La navbar du `_quarto.yml` est synchronisée depuis la source centralisée
@@ -70,7 +73,7 @@
 #' @seealso [update_navbar()]
 #' @importFrom fs path_expand path_abs path_norm path_file path path_rel path_ext_set path_ext_remove path_ext file_exists dir_exists file_copy dir_copy dir_create dir_ls
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_danger cli_alert_info cli_text
-#' @importFrom yaml read_yaml write_yaml verbatim_logical
+#' @importFrom yaml read_yaml
 #' @importFrom gert git_remote_list
 #' @export
 setup_site <- function(
@@ -265,7 +268,12 @@ setup_site <- function(
                  else repo_name
 
   # ---- 6. édition du _quarto.yml -----------------------------------------
-  yml <- yaml::read_yaml(dest_yaml)
+  # Patch textuel : préserve commentaires, indentation et mise en page du
+  # reste du fichier. `yml` reste lu via yaml::read_yaml() pour la prise de
+  # décision (valeurs déjà présentes, etc.) ; seule l'écriture change.
+  yml   <- yaml::read_yaml(dest_yaml)
+  lines_before <- readLines(dest_yaml, warn = FALSE)
+  lines <- lines_before
 
   if(isTRUE(ofce_host)) {
     if(!ofce_server_location %in% c("staging", "wp", "threeme")) {
@@ -278,12 +286,14 @@ setup_site <- function(
     # Guard: preserve existing site-url / site-path if already set
     if(is.null(yml$website$`site-url`) || !nzchar(yml$website$`site-url` %||% "")) {
       yml$website$`site-url` <- "https://www.ofce.fr/"
+      lines <- yaml_patch_scalar(lines, "website.site-url", "https://www.ofce.fr/")
     }
 
     if(is.null(yml$website$`site-path`) || !nzchar(yml$website$`site-path` %||% "")) {
       sp_val <- paste0(ofce_server_location, "/", website_path)
       if(isTRUE(versionning)) sp_val <- paste0(sp_val, "/v0")
       yml$website$`site-path` <- sp_val
+      lines <- yaml_patch_scalar(lines, "website.site-path", sp_val)
       cli::cli_alert_success("site-path défini : {.val {sp_val}}")
     } else {
       cli::cli_alert_info("site-path conservé : {.val {yml$website$`site-path`}}")
@@ -309,15 +319,22 @@ setup_site <- function(
     )
   } else {
     yml$website$`site-url` <- NULL
+    lines <- yaml_patch_delete(lines, "website.site-url")
     yml$website$`site-path` <- NULL
+    lines <- yaml_patch_delete(lines, "website.site-path")
   }
 
   yml$website$title <- final_title
+  lines <- yaml_patch_scalar(lines, "website.title", final_title)
   yml$ofce_host <- isTRUE(ofce_host)
+  lines <- yaml_patch_scalar(lines, "ofce_host", isTRUE(ofce_host))
 
   if(!is.na(gh$host) && !is.na(gh$repo) &&
-     (is.null(yml$website$`repo-url`) || !nzchar(yml$website$`repo-url` %||% "")))
-    yml$website$`repo-url` <- paste0("https://github.com/", gh$host, "/", gh$repo)
+     (is.null(yml$website$`repo-url`) || !nzchar(yml$website$`repo-url` %||% ""))) {
+    repo_url <- paste0("https://github.com/", gh$host, "/", gh$repo)
+    yml$website$`repo-url` <- repo_url
+    lines <- yaml_patch_scalar(lines, "website.repo-url", repo_url)
+  }
 
   # chemin absolu (server-root-relative) pour les hrefs other-links :
   # /site-path/ s'il existe, sinon /{repo}/, sinon /
@@ -344,24 +361,22 @@ setup_site <- function(
   )
   if(length(other) > 0) yml$website$`other-links` <- other
   else yml$website$`other-links` <- NULL
+  lines <- yaml_patch_block(lines, "website.other-links", if (length(other) > 0) other else NULL)
 
   if(isTRUE(hypothesis)) {
     yml$website$comments <- list(hypothesis = TRUE)
+    lines <- yaml_patch_block(lines, "website.comments", list(hypothesis = TRUE))
   } else {
     yml$website$comments <- NULL
+    lines <- yaml_patch_delete(lines, "website.comments")
   }
 
-  yaml::write_yaml(
-    yml, dest_yaml,
-    indent.mapping.sequence = TRUE,
-    handlers = list(logical = yaml::verbatim_logical)
-  )
-  cli::cli_alert_success("Mise à jour de {.file _quarto.yml}")
-  cli::cli_alert_warning(
-    "Le fichier a été reformaté par {.pkg yaml} : les commentaires sont \\
-     supprimés et l'indentation peut avoir changé. Relisez le diff avant \\
-     de committer."
-  )
+  if (!identical(lines_before, lines)) {
+    writeLines(lines, dest_yaml)
+    cli::cli_alert_success("Mise à jour de {.file _quarto.yml}")
+  } else {
+    cli::cli_alert_info("{.file _quarto.yml} — aucun changement nécessaire.")
+  }
 
   # ---- 6b. navbar (source centralisée du package) ------------------------
   tryCatch(

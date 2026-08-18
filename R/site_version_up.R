@@ -62,14 +62,12 @@ site_version_up <- function(path = ".", custom_version = NULL) {
 
   segments[length(segments)] <- new_version
   new_sp <- paste(segments, collapse = "/")
-  yml$website$`site-path` <- new_sp
 
-  yaml::write_yaml(
-    yml,
-    yml_path,
-    indent.mapping.sequence = TRUE,
-    handlers = list(logical = yaml::verbatim_logical)
-  )
+  # Patch textuel préservant commentaires et mise en page (yaml::read_yaml()/
+  # write_yaml() ne fait pas de round-trip fidèle du fichier).
+  lines <- readLines(yml_path, warn = FALSE)
+  lines <- yaml_patch_scalar(lines, "website.site-path", new_sp)
+  writeLines(lines, yml_path)
 
   if (length(segments) >= 2) {
     server_dir <- paste(

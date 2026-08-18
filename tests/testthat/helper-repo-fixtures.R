@@ -53,3 +53,38 @@ build_valid_wp_repo <- function(dir) {
 diag_status <- function(df, field) {
   df$status[df$field == field]
 }
+
+# setup_wp() touches git, the GitHub API, and (via ofce::setup_quarto())
+# the network; those calls are stubbed so the tests exercise only the
+# _quarto.yml editing logic.
+local_stub_wp_side_effects <- function(env = parent.frame()) {
+  local_mocked_bindings(
+    init_gh_pages_branch = function(...) invisible(NULL),
+    set_gh_var           = function(...) invisible(NULL),
+    .env = env
+  )
+  local_mocked_bindings(
+    git_remote_list = function(...) data.frame(name = character(), url = character()),
+    .package = "gert",
+    .env = env
+  )
+  local_mocked_bindings(
+    setup_quarto = function(...) invisible(NULL),
+    .package = "ofce",
+    .env = env
+  )
+}
+
+# prev_version_up(), wp_version_up() and site_version_up() touch the GitHub
+# API (FTP server-dir variables) and, for wp_version_up()/site_version_up(),
+# regenerate the manifest / rescan the site / push a redirect — all stubbed
+# so the tests exercise only the YAML editing logic.
+local_stub_version_up_side_effects <- function(env = parent.frame()) {
+  local_mocked_bindings(
+    set_gh_var         = function(...) invisible(NULL),
+    wp_manifest        = function(...) invisible(NULL),
+    rescan_site        = function(...) invisible(NULL),
+    push_site_redirect = function(...) invisible(NULL),
+    .env = env
+  )
+}

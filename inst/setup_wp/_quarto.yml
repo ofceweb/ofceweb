@@ -1,10 +1,9 @@
-wp: ~
-annee: 2026
-version: v0
-
+# Ces champs sont obligatoires et doivent être remplis
 title: "Titre du document de travail"
 date: "YYYY-MM-DD"
-date-modified: last-modified
+wp: 10
+annee: 2026
+version: v0
 
 author:
   - name: "Prénom Nom"
@@ -14,10 +13,14 @@ author:
 
 lang: fr
 
-citation:
-  type: article-journal
-  container-title: "Document de travail de l'OFCE"
+date-modified: last-modified
 
+
+# Activer pour les commentaires
+comments:
+  hypothesis: false
+
+# Ce qui suit ne doit pas être modifié manuellement
 project:
   type: website
 
@@ -55,5 +58,10 @@ format:
   wp-html: default
 
 ofce_wp: true
-comments:
-  hypothesis: false
+
+citation:
+  type: article-journal
+  container-title: "Document de travail de l'OFCE"
+  # issue et url sont calculés automatiquement par setup_wp() une fois `wp`
+  # renseigné (ex. issue: "2026-12", url: "https://www.ofce.fr/2026/12/") —
+  # ne pas les renseigner manuellement.

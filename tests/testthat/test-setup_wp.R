@@ -1,23 +1,5 @@
-# setup_wp() touches git, the GitHub API, and (via ofce::setup_quarto())
-# the network; those calls are stubbed so the tests exercise only the
-# _quarto.yml editing logic.
-local_stub_wp_side_effects <- function(env = parent.frame()) {
-  local_mocked_bindings(
-    init_gh_pages_branch = function(...) invisible(NULL),
-    set_gh_var           = function(...) invisible(NULL),
-    .env = env
-  )
-  local_mocked_bindings(
-    git_remote_list = function(...) data.frame(name = character(), url = character()),
-    .package = "gert",
-    .env = env
-  )
-  local_mocked_bindings(
-    setup_quarto = function(...) invisible(NULL),
-    .package = "ofce",
-    .env = env
-  )
-}
+# local_stub_wp_side_effects() lives in helper-repo-fixtures.R (shared with
+# test-version_up.R).
 
 # Minimal published-WP repo carrying a legacy zero-padded site-path.
 build_legacy_padded_wp_repo <- function(dir, wp = 7L, annee = 2026L) {
@@ -48,6 +30,60 @@ test_that("setup_wp() rewrites a legacy zero-padded site-path to the unpadded fo
   expect_equal(yml$website$`site-path`, "2026/7/v0")
   # citation.url is derived from site-path and must follow it.
   expect_equal(yml$citation$url, "https://www.ofce.fr/2026/7/")
+  # citation.issue is "{annee}-{wp}" with wp as a plain integer — no
+  # zero-padding, even though the legacy site-path was zero-padded.
+  expect_equal(yml$citation$issue, "2026-7")
+})
+
+test_that("setup_wp() computes citation.issue and citation.url for a published WP", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  build_legacy_padded_wp_repo(dir, wp = 12L, annee = 2027L)
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  yml$website$`site-path` <- "2027/12/v0"
+  write_quarto_yml(dir, yml)
+
+  suppressMessages(setup_wp(dir))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$citation$issue, "2027-12")
+  expect_equal(yml$citation$url, "https://www.ofce.fr/2027/12/")
+})
+
+test_that("setup_wp() updates citation.issue when the WP number changes", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  build_legacy_padded_wp_repo(dir, wp = 5L, annee = 2026L)
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  yml$website$`site-path` <- "2026/5/v0"
+  write_quarto_yml(dir, yml)
+
+  suppressMessages(setup_wp(dir, wp = 8L))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$wp, 8L)
+  expect_equal(yml$citation$issue, "2026-8")
+  expect_equal(yml$citation$url, "https://www.ofce.fr/2026/8/")
+})
+
+test_that("setup_wp() does not set citation.issue/url for a draft (wp = NULL)", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = NULL,
+    annee   = 2026L,
+    lang    = "fr",
+    website = list(title = "Un brouillon")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = "title: Un brouillon")
+
+  suppressMessages(setup_wp(dir))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_null(yml$wp)
+  expect_null(yml$citation$issue)
+  expect_null(yml$citation$url)
 })
 
 test_that("setup_wp() warns that the deployment URL changes when the site-path is rewritten", {

@@ -75,11 +75,14 @@ Toutes les autres clés (`format`, `execute`, `website.navbar`, etc.) sont
 lues et réécrites telles quelles.
 }
 
-\section{Reformatage YAML }{
+\section{Édition du YAML }{
 
-La réécriture via [yaml::write_yaml()] normalise l'ensemble du fichier :
-les commentaires sont supprimés et l'indentation peut changer. C'est un
-comportement normal — relire le diff avant de committer.
+La mise à jour patche uniquement les clés listées ci-dessus dans le texte
+du fichier : commentaires, indentation et mise en page du reste du
+`_quarto.yml` sont préservés. Les blocs `website.other-links` et
+`website.comments` sont entièrement régénérés (ce sont des sections
+gérées par le package), donc d'éventuels commentaires à l'intérieur de
+ces deux blocs précis ne survivent pas.
 }
 
 \section{Navbar }{

@@ -14,7 +14,7 @@
 #' @seealso [setup_prev()], [check_prev()]
 #' @importFrom fs path_abs path_expand path file_exists
 #' @importFrom cli cli_abort cli_alert_success cli_alert_info cli_alert_warning
-#' @importFrom yaml read_yaml write_yaml verbatim_logical
+#' @importFrom yaml read_yaml
 #' @export
 prev_version_up <- function(path = ".", custom_version = NULL) {
 
@@ -46,32 +46,32 @@ prev_version_up <- function(path = ".", custom_version = NULL) {
 
   new_version <- increment_version_str(current_version, custom = custom_version)
 
-  # Mise à jour de _quarto-staging.yml
-  stg$version <- new_version
+  # Mise à jour de _quarto-staging.yml : patch textuel préservant commentaires
+  # et mise en page (yaml::read_yaml()/write_yaml() ne fait pas de round-trip
+  # fidèle du fichier).
+  stg_lines <- readLines(stg_path, warn = FALSE)
+  stg_lines <- yaml_patch_scalar(stg_lines, "version", new_version)
 
   sp <- as.character(stg$website$`site-path` %||% "")
+  new_sp <- NULL
   if (nzchar(sp)) {
     segs         <- strsplit(sp, "/", fixed = TRUE)[[1]]
     segs[length(segs)] <- new_version
-    stg$website$`site-path` <- paste(segs, collapse = "/")
+    new_sp <- paste(segs, collapse = "/")
+    stg_lines <- yaml_patch_scalar(stg_lines, "website.site-path", new_sp)
   } else {
     cli::cli_alert_warning(
       "site-path absent de {.file _quarto-staging.yml} — non mis à jour.")
   }
 
-  yaml::write_yaml(
-    stg, stg_path,
-    indent.mapping.sequence = TRUE,
-    handlers = list(logical = yaml::verbatim_logical)
-  )
+  writeLines(stg_lines, stg_path)
 
   cli::cli_alert_success(
     "Version staging : {.val {current_version}} \u2192 {.val {new_version}}")
   cli::cli_alert_info(
-    "Nouveau site-path staging : {.val {stg$website$`site-path`}}")
+    "Nouveau site-path staging : {.val {new_sp}}")
 
   # Mise à jour de la variable GitHub FTP_STAGING_DIR
-  new_sp <- stg$website$`site-path`
   if (!is.null(new_sp) && nzchar(new_sp)) {
     staging_dir <- if (grepl("/$", new_sp)) new_sp else paste0(new_sp, "/")
     staging_dir <- stringr::str_remove(staging_dir, "^staging/")

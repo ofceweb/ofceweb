@@ -53,6 +53,11 @@ GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
 à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
 aussi migré automatiquement si `server-dir` y est encore codé en dur.
 
+Toujours pour les WPs publiés, `citation.issue` (`"{année}-{wp}"`, sans
+zéro de remplissage) et `citation.url` (URL stable, sans le segment de
+version) sont recalculés à chaque appel — ce sont des valeurs dérivées de
+`annee`/`wp`/`site-path`, jamais éditées manuellement.
+
 Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour
 via [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
 `OFCE/ofce-quarto-extensions` — la fonction nécessite donc un accès

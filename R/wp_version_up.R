@@ -16,7 +16,7 @@
 #' @seealso [setup_wp()], [site_version_up()]
 #' @importFrom fs path_abs path_expand path file_exists
 #' @importFrom cli cli_abort cli_alert_success cli_alert_info cli_alert_warning
-#' @importFrom yaml read_yaml write_yaml verbatim_logical
+#' @importFrom yaml read_yaml
 #' @export
 wp_version_up <- function(path = ".", custom_version = NULL) {
   root <- fs::path_abs(fs::path_expand(path))
@@ -61,35 +61,34 @@ wp_version_up <- function(path = ".", custom_version = NULL) {
     )
   }
 
-  # Mise à jour de _quarto.yml
-  yml$version <- new_version
+  # Mise à jour de _quarto.yml : patch textuel préservant commentaires et
+  # mise en page (yaml::read_yaml()/write_yaml() ne fait pas de round-trip
+  # fidèle du fichier).
+  lines <- readLines(yml_path, warn = FALSE)
+  lines <- yaml_patch_scalar(lines, "version", new_version)
 
   # Mise à jour du dernier segment de site-path
   sp <- yml$website$`site-path` |> as.character()
+  new_site_path <- NULL
   if (!is.null(sp) && nzchar(sp)) {
     segs <- strsplit(sp, "/", fixed = TRUE)[[1]]
     segs[length(segs)] <- new_version
-    yml$website$`site-path` <- paste(segs, collapse = "/")
+    new_site_path <- paste(segs, collapse = "/")
+    lines <- yaml_patch_scalar(lines, "website.site-path", new_site_path)
   } else {
     cli::cli_alert_warning(
       "site-path absent ou vide dans {.file _quarto.yml} — non mis à jour."
     )
   }
 
-  yaml::write_yaml(
-    yml,
-    yml_path,
-    indent.mapping.sequence = TRUE,
-    handlers = list(logical = yaml::verbatim_logical)
-  )
+  writeLines(lines, yml_path)
   cli::cli_alert_success(
     "version mise à jour : {.val {current_version}} → {.val {new_version}}"
   )
-  cli::cli_alert_info("Nouveau site-path : {.val {yml$website$`site-path`}}")
+  cli::cli_alert_info("Nouveau site-path : {.val {new_site_path}}")
 
   # Mise à jour des variables GitHub FTP_SERVER_DIR et FTP_REDIRECT_DIR
   if (!is.null(sp) && nzchar(sp)) {
-    new_site_path <- yml$website$`site-path`
     tryCatch(
       {
         server_dir <- if (grepl("/$", new_site_path)) {

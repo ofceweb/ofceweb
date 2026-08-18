@@ -29,11 +29,12 @@ La navbar doit être réécrite dans chaque site à chaque évolution de
 `navbar.yml` : exécuter `update_navbar()` à la racine du site, relire le
 diff, committer.
 }
-\section{Reformatage YAML }{
+\section{Édition du YAML }{
 
-La réécriture via [yaml::write_yaml()] normalise l'ensemble du fichier :
-les commentaires sont supprimés et l'indentation peut changer. C'est un
-comportement normal — relire le diff avant de committer.
+La mise à jour patche uniquement les clés `website.navbar.left`,
+`.tools`, `.logo`, `.logo-href` et `.logo-alt` dans le texte du fichier :
+commentaires, indentation et mise en page du reste du `_quarto.yml` sont
+préservés.
 }
 
 \seealso{

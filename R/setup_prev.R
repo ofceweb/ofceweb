@@ -53,7 +53,7 @@
 #' @seealso [check_prev()], [render_prev()], [prev_version_up()], [update_navbar()]
 #' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists file_copy dir_copy dir_create dir_ls path_rel path_dir
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_info cli_bullets
-#' @importFrom yaml read_yaml write_yaml verbatim_logical
+#' @importFrom yaml read_yaml
 #' @importFrom gert git_remote_list
 #' @export
 setup_prev <- function(
@@ -226,11 +226,18 @@ setup_prev <- function(
     cli::cli_alert_info("{.file _quarto.yml} déjà présent \u2014 mise à jour partielle.")
   }
 
+  # Patch textuel : préserve commentaires, indentation et mise en page du
+  # reste du fichier.
+  lines_before <- readLines(dest_yaml, warn = FALSE)
+  lines <- lines_before
+
   yml$ofce_prev <- TRUE
-  if (!is.null(prev))  yml$prev  <- prev
-  if (!is.na(annee))   yml$annee <- annee
-  if (!is.null(mois))  yml$mois  <- mois
+  lines <- yaml_patch_scalar(lines, "ofce_prev", TRUE)
+  if (!is.null(prev))  { yml$prev  <- prev;  lines <- yaml_patch_scalar(lines, "prev", prev) }
+  if (!is.na(annee))   { yml$annee <- annee; lines <- yaml_patch_scalar(lines, "annee", annee) }
+  if (!is.null(mois))  { yml$mois  <- mois;  lines <- yaml_patch_scalar(lines, "mois", mois) }
   yml$website$`site-url` <- "https://www.ofce.fr/"
+  lines <- yaml_patch_scalar(lines, "website.site-url", "https://www.ofce.fr/")
 
   # repo-url : calculé depuis le remote git ; sinon construit depuis prev id
   remotes <- tryCatch(gert::git_remote_list(repo = root), error = function(e) NULL)
@@ -248,20 +255,26 @@ setup_prev <- function(
   if (!is.null(prev)) {
     yml$website$`repo-url` <- sprintf("https://github.com/ofce/prev%s/", prev)
   }
+  if (!is.null(yml$website$`repo-url`))
+    lines <- yaml_patch_scalar(lines, "website.repo-url", yml$website$`repo-url`)
 
   # Migre project.type: website → ofce-website
   if (!is.null(yml$project$type) && yml$project$type == "website") {
     yml$project$type <- "ofce-website"
+    lines <- yaml_patch_scalar(lines, "project.type", "ofce-website")
     cli::cli_alert_success(
       "{.file _quarto.yml} : {.code project.type} migré vers {.val ofce-website}")
   } else if (is.null(yml$project$type)) {
     yml$project$type <- "ofce-website"
+    lines <- yaml_patch_scalar(lines, "project.type", "ofce-website")
   }
 
-  yaml::write_yaml(yml, dest_yaml,
-                   indent.mapping.sequence = TRUE,
-                   handlers = list(logical = yaml::verbatim_logical))
-  cli::cli_alert_success("Mise à jour de {.file _quarto.yml}")
+  if (!identical(lines_before, lines)) {
+    writeLines(lines, dest_yaml)
+    cli::cli_alert_success("Mise à jour de {.file _quarto.yml}")
+  } else {
+    cli::cli_alert_info("{.file _quarto.yml} — aucun changement nécessaire.")
+  }
 
   # ---- 8b. navbar (source centralisée du package) --------------------------
   tryCatch(
@@ -285,10 +298,20 @@ setup_prev <- function(
   stg$encrypt_site        <- isTRUE(encrypt)
   stg$project             <- list(`output-dir` = "_site_staging")
 
-  yaml::write_yaml(stg, dest_stg,
-                   indent.mapping.sequence = TRUE,
-                   handlers = list(logical = yaml::verbatim_logical))
-  cli::cli_alert_success("Mise à jour de {.file _quarto-staging.yml}")
+  stg_lines_before <- readLines(dest_stg, warn = FALSE)
+  stg_lines <- stg_lines_before
+  stg_lines <- yaml_patch_scalar(stg_lines, "website.site-path", staging_sitepath)
+  stg_lines <- yaml_patch_scalar(stg_lines, "version", staging_version)
+  stg_lines <- yaml_patch_block(stg_lines, "comments", list(hypothesis = TRUE))
+  stg_lines <- yaml_patch_scalar(stg_lines, "encrypt_site", isTRUE(encrypt))
+  stg_lines <- yaml_patch_block(stg_lines, "project", list(`output-dir` = "_site_staging"))
+
+  if (!identical(stg_lines_before, stg_lines)) {
+    writeLines(stg_lines, dest_stg)
+    cli::cli_alert_success("Mise à jour de {.file _quarto-staging.yml}")
+  } else {
+    cli::cli_alert_info("{.file _quarto-staging.yml} — aucun changement nécessaire.")
+  }
 
   # ---- 10. _quarto-publish.yml ---------------------------------------------
   if (!fs::file_exists(dest_pub)) {
@@ -304,10 +327,19 @@ setup_prev <- function(
   pub$encrypt_site        <- FALSE
   pub$project             <- list(`output-dir` = "_site_publish")
 
-  yaml::write_yaml(pub, dest_pub,
-                   indent.mapping.sequence = TRUE,
-                   handlers = list(logical = yaml::verbatim_logical))
-  cli::cli_alert_success("Mise à jour de {.file _quarto-publish.yml}")
+  pub_lines_before <- readLines(dest_pub, warn = FALSE)
+  pub_lines <- pub_lines_before
+  pub_lines <- yaml_patch_scalar(pub_lines, "website.site-path", publish_sitepath)
+  pub_lines <- yaml_patch_block(pub_lines, "comments", list(hypothesis = FALSE))
+  pub_lines <- yaml_patch_scalar(pub_lines, "encrypt_site", FALSE)
+  pub_lines <- yaml_patch_block(pub_lines, "project", list(`output-dir` = "_site_publish"))
+
+  if (!identical(pub_lines_before, pub_lines)) {
+    writeLines(pub_lines, dest_pub)
+    cli::cli_alert_success("Mise à jour de {.file _quarto-publish.yml}")
+  } else {
+    cli::cli_alert_info("{.file _quarto-publish.yml} — aucun changement nécessaire.")
+  }
 
   # ---- 11. Workflows (toujours mis à jour depuis le package) ---------------
   src_wf  <- fs::path(pkg_setup_prev, "workflows")

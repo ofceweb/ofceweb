@@ -15,10 +15,11 @@
 #' `navbar.yml` : exécuter `update_navbar()` à la racine du site, relire le
 #' diff, committer.
 #'
-#' @section Reformatage YAML :
-#' La réécriture via [yaml::write_yaml()] normalise l'ensemble du fichier :
-#' les commentaires sont supprimés et l'indentation peut changer. C'est un
-#' comportement normal — relire le diff avant de committer.
+#' @section Édition du YAML :
+#' La mise à jour patche uniquement les clés `website.navbar.left`,
+#' `.tools`, `.logo`, `.logo-href` et `.logo-alt` dans le texte du fichier :
+#' commentaires, indentation et mise en page du reste du `_quarto.yml` sont
+#' préservés.
 #'
 #' @param root Chemin vers la racine du dépôt du site. Défaut `"."`.
 #'
@@ -41,7 +42,7 @@ update_navbar <- function(root = ".") {
       "{.file share/navbar.yml} introuvable dans le package {.pkg ofceweb}.")
 
   navbar <- yaml::read_yaml(navbar_path)
-  yml <- yaml::read_yaml(yml_path)
+  yml    <- yaml::read_yaml(yml_path)
 
   if (is.null(yml$website))
     cli::cli_abort(
@@ -52,24 +53,16 @@ update_navbar <- function(root = ".") {
   }
 
   old_navbar <- yml$website$navbar
-  for (key in c("left", "tools", "logo", "logo-href", "logo-alt")) {
-    yml$website$navbar[[key]] <- navbar[[key]]
-  }
+  navbar_keys <- c("left", "tools", "logo", "logo-href", "logo-alt")
 
-  yaml::write_yaml(
-    yml,
-    yml_path,
-    indent.mapping.sequence = TRUE,
-    handlers = list(logical = yaml::verbatim_logical)
-  )
+  lines <- readLines(yml_path, warn = FALSE)
+  for (key in navbar_keys) {
+    lines <- yaml_patch_block(lines, paste0("website.navbar.", key), navbar[[key]])
+  }
+  writeLines(lines, yml_path)
 
   cli::cli_alert_success("Navbar mise à jour dans {.file {yml_path}}.")
-  cli::cli_alert_warning(
-    "Le fichier a été reformaté par {.pkg yaml} : les commentaires sont \\
-     supprimés et l'indentation peut avoir changé. Relisez le diff avant \\
-     de committer."
-  )
-  for (key in c("left", "tools", "logo", "logo-href", "logo-alt")) {
+  for (key in navbar_keys) {
     cli::cli_alert_info(
       "{.code {key}} : {count_items(old_navbar[[key]])} -> \\
        {count_items(navbar[[key]])} item{?s}.")

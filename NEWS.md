@@ -1,7 +1,5 @@
-## ofceweb v0.7.0
+## ofceweb v0.8.0
 
-* aide et messages en français
-* setup_* utilise setup_quarto comme source de vérité pour les extensions
 * nouvelle fonction `render()` : détecte automatiquement le type de dépôt
   (WP, prévision, blog, site générique) via `detect_repo_type()` et appelle
   `render_wp()`/`render_prev()`/`render_blog()`/`render_site()` en
@@ -10,6 +8,26 @@
 * nouvelle fonction `publish()` : même détection que `render()`, mais
   appelle `publish_wp()`/`publish_prev()`/`publish_blog()`/`stage_site()`
   (ce dernier en l'absence de `publish_site()` dédié).
+* nouvelles primitives internes `yaml_patch_scalar()`, `yaml_patch_block()`,
+  `yaml_patch_delete()`, `yaml_patch_scalar_or_delete()` et
+  `yaml_patch_frontmatter_scalar()` : édition ligne à ligne des fichiers
+  YAML qui préserve les commentaires, lignes vides et l'ordre des clés.
+* `prev_version_up()`, `wp_version_up()` et `site_version_up()` utilisent
+  désormais ces primitives au lieu de `yaml::write_yaml()`, qui écrasait
+  silencieusement les commentaires des fichiers `_quarto*.yml`.
+* `setup_wp()` déduit et met à jour automatiquement `citation.issue` et
+  `citation.url` à partir des autres champs YAML (`annee`, `wp`,
+  `site-path`, etc.) à chaque appel ; ces champs ne sont plus à éditer
+  à la main.
+* gabarits `_quarto.yml` (`setup_wp`, `setup_site`, `setup_prev`) :
+  favicon unifiée sur `www/fofce.png`.
+* `_pkgdown.yml` : nouvelle section « Dispatch automatique » pour
+  `render()` et `publish()`.
+
+## ofceweb v0.7.0
+
+* aide et messages en français
+* setup_* utilise setup_quarto comme source de vérité pour les extensions
 
 ## ofceweb v0.6.1
 

@@ -2,6 +2,14 @@
 
 * aide et messages en français
 * setup_* utilise setup_quarto comme source de vérité pour les extensions
+* nouvelle fonction `render()` : détecte automatiquement le type de dépôt
+  (WP, prévision, blog, site générique) via `detect_repo_type()` et appelle
+  `render_wp()`/`render_prev()`/`render_blog()`/`render_site()` en
+  conséquence. Si rien n'est reconnu, invite à lancer `setup_wp()` ou
+  `setup_site()`.
+* nouvelle fonction `publish()` : même détection que `render()`, mais
+  appelle `publish_wp()`/`publish_prev()`/`publish_blog()`/`stage_site()`
+  (ce dernier en l'absence de `publish_site()` dédié).
 
 ## ofceweb v0.6.1
 

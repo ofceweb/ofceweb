@@ -17,6 +17,15 @@ navbar:
       href: https://github.com/ofceweb/ofceweb
 
 reference:
+- title: Dispatch automatique
+  desc: >
+    Points d'entrée uniques qui détectent le type de dépôt (WP, prévision,
+    blog ou site générique) et appellent automatiquement la fonction de
+    rendu ou de publication correspondante.
+  contents:
+  - render
+  - publish
+
 - title: Prévisions
   desc: >
     Suite complète pour les dépôts de prévision OFCE (`prev{YY}0{3|9}`).

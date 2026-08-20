@@ -17,9 +17,8 @@ execute:
 website:
   title: "Prévisions de l'OFCE"
   site-url: "https://www.ofce.fr/"
-  favicon: www/favicon.ico
   draft-mode: gone
-
+  favicon: www/fofce.png
   page-navigation: true
   twitter-card:
     image: www/ofce_banner_alt2.png

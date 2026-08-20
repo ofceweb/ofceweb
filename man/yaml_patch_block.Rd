@@ -25,3 +25,4 @@ whole thing is regenerated); comments elsewhere in the file are
 untouched. `value = NULL` deletes the key instead (see
 [yaml_patch_delete()]).
 }
+\keyword{internal}

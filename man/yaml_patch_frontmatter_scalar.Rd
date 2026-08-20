@@ -22,3 +22,4 @@ frontmatter block of a file on disk: the document body, and any
 comments/layout in the frontmatter outside the patched key, are left
 untouched.
 }
+\keyword{internal}

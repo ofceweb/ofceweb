@@ -183,6 +183,7 @@ yaml_scalar_repr <- function(value) {
 #' @param path Dotted path to the key, e.g. `"wp"` or `"website.site-path"`.
 #' @param value Length-1 character, numeric, or logical scalar.
 #' @returns The updated character vector of lines.
+#' @keywords internal
 yaml_patch_scalar <- function(lines, path, value) {
   segments <- strsplit(path, ".", fixed = TRUE)[[1L]]
   key      <- segments[[length(segments)]]
@@ -209,6 +210,7 @@ yaml_patch_scalar <- function(lines, path, value) {
 #' @param value Length-1 character, numeric, or logical scalar, or `NULL`
 #'   to delete the key.
 #' @returns The updated character vector of lines.
+#' @keywords internal
 yaml_patch_scalar_or_delete <- function(lines, path, value) {
   if (is.null(value)) yaml_patch_delete(lines, path) else yaml_patch_scalar(lines, path, value)
 }
@@ -222,6 +224,7 @@ yaml_patch_scalar_or_delete <- function(lines, path, value) {
 #' @param lines Character vector of file lines.
 #' @param path Dotted path to the key.
 #' @returns The updated character vector of lines.
+#' @keywords internal
 yaml_patch_delete <- function(lines, path) {
   loc <- yaml_locate(lines, path)
   if (!isTRUE(loc$found)) return(lines)
@@ -242,6 +245,7 @@ yaml_patch_delete <- function(lines, path) {
 #' @param value An R list/vector to serialize as the new value, or `NULL`
 #'   to delete the key.
 #' @returns The updated character vector of lines.
+#' @keywords internal
 yaml_patch_block <- function(lines, path, value) {
   if (is.null(value)) return(yaml_patch_delete(lines, path))
 
@@ -305,6 +309,7 @@ yaml_patch_block <- function(lines, path, value) {
 #' @param key_path Dotted path to the key within the frontmatter.
 #' @param value Length-1 character, numeric, or logical scalar.
 #' @returns Invisibly, `path`.
+#' @keywords internal
 yaml_patch_frontmatter_scalar <- function(path, key_path, value) {
   lines <- readLines(path, warn = FALSE)
   delimiters <- grep("^---\\s*$", lines)

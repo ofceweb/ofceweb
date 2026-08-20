@@ -23,3 +23,4 @@ key's own line. Missing intermediate mapping keys are created as needed,
 appended at the end of the relevant parent block (or end of file for a
 brand-new top-level key).
 }
+\keyword{internal}

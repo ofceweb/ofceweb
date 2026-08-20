@@ -22,3 +22,4 @@ Convenience wrapper around [yaml_patch_scalar()] / [yaml_patch_delete()]
 for call sites where the target value is sometimes absent by design
 (e.g. a WP's `wp:` key is `NULL` for drafts).
 }
+\keyword{internal}

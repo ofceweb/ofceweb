@@ -19,3 +19,4 @@ No-op if the path doesn't exist. Only the key's own line range is
 removed; blank lines or comments immediately adjacent to it are left
 untouched.
 }
+\keyword{internal}

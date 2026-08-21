@@ -329,6 +329,11 @@ setup_site <- function(
   yml$ofce_host <- isTRUE(ofce_host)
   lines <- yaml_patch_scalar(lines, "ofce_host", isTRUE(ofce_host))
 
+  # favicon : asset géré par le package — toujours resynchronisé, même sur
+  # un _quarto.yml existant.
+  yml$website$favicon <- "www/fofce.png"
+  lines <- yaml_patch_scalar(lines, "website.favicon", "www/fofce.png")
+
   if(!is.na(gh$host) && !is.na(gh$repo) &&
      (is.null(yml$website$`repo-url`) || !nzchar(yml$website$`repo-url` %||% ""))) {
     repo_url <- paste0("https://github.com/", gh$host, "/", gh$repo)

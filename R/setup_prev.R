@@ -233,6 +233,11 @@ setup_prev <- function(
 
   yml$ofce_prev <- TRUE
   lines <- yaml_patch_scalar(lines, "ofce_prev", TRUE)
+
+  # favicon : asset géré par le package — toujours resynchronisé, même sur
+  # un _quarto.yml existant.
+  yml$website$favicon <- "www/fofce.png"
+  lines <- yaml_patch_scalar(lines, "website.favicon", "www/fofce.png")
   if (!is.null(prev))  { yml$prev  <- prev;  lines <- yaml_patch_scalar(lines, "prev", prev) }
   if (!is.na(annee))   { yml$annee <- annee; lines <- yaml_patch_scalar(lines, "annee", annee) }
   if (!is.null(mois))  { yml$mois  <- mois;  lines <- yaml_patch_scalar(lines, "mois", mois) }

@@ -20,7 +20,11 @@
   `site-path`, etc.) à chaque appel ; ces champs ne sont plus à éditer
   à la main.
 * gabarits `_quarto.yml` (`setup_wp`, `setup_site`, `setup_prev`) :
-  favicon unifiée sur `www/fofce.png`.
+  favicon unifiée sur `www/fofce.png` (le logo "ofce"), désormais fourni
+  dans `inst/share/www/` et `inst/setup_site/www/`. `setup_wp` utilise sa
+  propre variante `www/fofce-wp.png` (même logo, badge "WP" ajouté) pour
+  distinguer les onglets de navigateur des WP de ceux des autres dépôts ;
+  `setup_prev`/`setup_site` gardent le favicon générique pour l'instant.
 * `_pkgdown.yml` : nouvelle section « Dispatch automatique » pour
   `render()` et `publish()`.
 

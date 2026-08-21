@@ -32,7 +32,7 @@ website:
   repo-url: "https://github.com/ofce/REPO/"
   page-navigation: true
   bread-crumbs: true
-  favicon: www/fofce.png
+  favicon: www/fofce-wp.png
   navbar:
     title: false
     search: true

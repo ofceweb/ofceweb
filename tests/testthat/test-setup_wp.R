@@ -36,6 +36,27 @@ test_that("setup_wp() rewrites a legacy zero-padded site-path to the unpadded fo
   expect_equal(yml$citation$issue, "2026-7")
 })
 
+test_that("setup_wp() computes a missing site-path from an existing wp/annee, without re-passing wp", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 4L,
+    annee   = 2026L,
+    lang    = "fr",
+    website = list(title = "Sans site-path")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = "title: Sans site-path")
+
+  # No `wp =` argument passed — site-path must still be derived from the
+  # wp/annee already present in _quarto.yml.
+  suppressMessages(setup_wp(dir))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$website$`site-path`, "2026/4")
+  expect_equal(yml$website$`site-url`, "https://www.ofce.fr/")
+})
+
 test_that("setup_wp() computes citation.issue and citation.url for a published WP", {
   local_stub_wp_side_effects()
   dir <- withr::local_tempdir()

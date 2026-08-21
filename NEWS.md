@@ -1,5 +1,11 @@
 ## ofceweb v0.8.1
 
+* `setup_wp()` calcule désormais systématiquement `website.site-path` /
+  `website.site-url` dès que `wp` est non nul (fourni explicitement ou déjà
+  présent dans `_quarto.yml`), plutôt que seulement lors de l'appel qui a
+  défini `wp`. Un `site-path` manquant (fichier édité à la main, ou WP créé
+  avant cette fonctionnalité) est désormais toujours recalculé.
+
 * sécurité de la publication des WP — vérification anti-collision :
   `wp_manifest()` ajoute désormais un champ `source-repo` (`"owner/repo"`,
   résolu depuis le remote `origin`) au `manifest.json`. Le workflow

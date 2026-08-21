@@ -8,8 +8,13 @@
 #' La fonction est **non-destructive** : sur un dépôt existant, les fichiers
 #' gabarits (dont `_quarto.yml`) ne sont pas écrasés, et les champs YAML ne
 #' sont mis à jour que si l'argument correspondant a été fourni explicitement.
-#' Les champs déjà absents ne sont pas injectés. Seuls `repo-url` et
-#' `ofce_wp: true` sont toujours positionnés (valeurs dérivées sans ambiguïté).
+#' Les champs déjà absents ne sont pas injectés. `repo-url`, `favicon` et
+#' `ofce_wp: true` sont toujours positionnés (valeurs dérivées sans
+#' ambiguïté). `website.site-url`/`website.site-path` sont eux aussi
+#' toujours (re)calculés dès que `wp` est non nul — que ce soit via
+#' l'argument `wp` ou une valeur déjà présente dans `_quarto.yml` — pour
+#' qu'un `site-path` manquant (fichier édité à la main, ou créé avant cette
+#' fonctionnalité) soit toujours réparé.
 #'
 #' Pour les WPs publiés (`wp` non nul), la fonction met à jour la variable
 #' GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
@@ -368,49 +373,54 @@ setup_wp <- function(
     lines <- yaml_patch_scalar(lines, "website.repo-url", repo_url)
   }
 
-  # site-url / site-path : uniquement si wp a été fourni explicitement
-  if (wp_provided) {
-    if (!is.null(wp)) {
-      # Année effective : yml$annee est déjà à jour (mis à jour plus haut si
-      # annee_provided, sinon valeur existante du YAML, sinon argument par défaut).
-      effective_annee_sp <- suppressWarnings(as.integer(yml$annee %||% annee))
-      if (is.na(effective_annee_sp)) effective_annee_sp <- annee
-      yml$website$`site-url`  <- "https://www.ofce.fr/"
-      lines <- yaml_patch_scalar(lines, "website.site-url", "https://www.ofce.fr/")
-      site_path_base <- sprintf("%d/%d", effective_annee_sp, wp)
-      if (isTRUE(versionning))
-        site_path <- paste0(site_path_base, "/", version)
-      else
-        site_path <- site_path_base
-      yml$version <- version
-      lines <- yaml_patch_scalar_or_delete(lines, "version", version)
+  # site-url / site-path : champs dérivés de annee/wp — toujours recalculés
+  # dès que wp est non nul (fourni explicitement à cet appel, ou déjà
+  # présent dans _quarto.yml), pas seulement lors de l'appel qui l'a défini.
+  # Ceci garantit qu'un site-path manquant (WP créé avant cette
+  # fonctionnalité, ou édité à la main) est toujours (re)calculé.
+  if (!is.null(wp)) {
+    # Année effective : yml$annee est déjà à jour (mis à jour plus haut si
+    # annee_provided, sinon valeur existante du YAML, sinon argument par défaut).
+    effective_annee_sp <- suppressWarnings(as.integer(yml$annee %||% annee))
+    if (is.na(effective_annee_sp)) effective_annee_sp <- annee
+    yml$website$`site-url`  <- "https://www.ofce.fr/"
+    lines <- yaml_patch_scalar(lines, "website.site-url", "https://www.ofce.fr/")
+    site_path_base <- sprintf("%d/%d", effective_annee_sp, wp)
+    if (isTRUE(versionning))
+      site_path <- paste0(site_path_base, "/", version)
+    else
+      site_path <- site_path_base
+    yml$version <- version
+    lines <- yaml_patch_scalar_or_delete(lines, "version", version)
 
-      # Les WPs créés avant l'abandon du zéro-padding portent un site-path de
-      # la forme `2026/007` : la valeur recalculée l'écrase. Le déploiement
-      # changera donc de répertoire — le signaler explicitement.
-      old_site_path <- as.character(yml$website$`site-path` %||% "")
-      if (nzchar(old_site_path) && !identical(old_site_path, site_path)) {
-        cli::cli_alert_warning(
-          "site-path modifié : {.val {old_site_path}} \u2192 {.val {site_path}} \\
-           \u2014 le prochain déploiement ira sur une {.strong URL différente}."
-        )
-        cli::cli_alert_info(
-          "L'ancien répertoire {.val {old_site_path}} reste en place sur le \\
-           serveur : le supprimer ou y poser une redirection si nécessaire."
-        )
-      }
-
-      yml$website$`site-path` <- site_path
-      lines <- yaml_patch_scalar(lines, "website.site-path", site_path)
-    } else {
-      yml$version <- NULL
-      lines <- yaml_patch_delete(lines, "version")
-      github_site_url <- sprintf("https://%s.github.io/%s/", gh_org, repo_name)
-      yml$website$`site-url`  <- github_site_url
-      lines <- yaml_patch_scalar(lines, "website.site-url", github_site_url)
-      yml$website$`site-path` <- NULL
-      lines <- yaml_patch_delete(lines, "website.site-path")
+    # Les WPs créés avant l'abandon du zéro-padding portent un site-path de
+    # la forme `2026/007` : la valeur recalculée l'écrase. Le déploiement
+    # changera donc de répertoire — le signaler explicitement.
+    old_site_path <- as.character(yml$website$`site-path` %||% "")
+    if (nzchar(old_site_path) && !identical(old_site_path, site_path)) {
+      cli::cli_alert_warning(
+        "site-path modifié : {.val {old_site_path}} \u2192 {.val {site_path}} \\
+         \u2014 le prochain déploiement ira sur une {.strong URL différente}."
+      )
+      cli::cli_alert_info(
+        "L'ancien répertoire {.val {old_site_path}} reste en place sur le \\
+         serveur : le supprimer ou y poser une redirection si nécessaire."
+      )
     }
+
+    yml$website$`site-path` <- site_path
+    lines <- yaml_patch_scalar(lines, "website.site-path", site_path)
+  } else if (wp_provided) {
+    # wp explicitement remis à NULL à cet appel : repasse en brouillon
+    # (GitHub Pages). Ne se déclenche pas pour un brouillon qui n'a jamais
+    # eu de wp — seulement sur une transition explicite publié → brouillon.
+    yml$version <- NULL
+    lines <- yaml_patch_delete(lines, "version")
+    github_site_url <- sprintf("https://%s.github.io/%s/", gh_org, repo_name)
+    yml$website$`site-url`  <- github_site_url
+    lines <- yaml_patch_scalar(lines, "website.site-url", github_site_url)
+    yml$website$`site-path` <- NULL
+    lines <- yaml_patch_delete(lines, "website.site-path")
   }
 
   # citation.url / citation.issue : valeurs dérivées, toujours mises à jour

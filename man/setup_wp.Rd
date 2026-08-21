@@ -45,8 +45,13 @@ langue, URLs).
 La fonction est **non-destructive** : sur un dépôt existant, les fichiers
 gabarits (dont `_quarto.yml`) ne sont pas écrasés, et les champs YAML ne
 sont mis à jour que si l'argument correspondant a été fourni explicitement.
-Les champs déjà absents ne sont pas injectés. Seuls `repo-url` et
-`ofce_wp: true` sont toujours positionnés (valeurs dérivées sans ambiguïté).
+Les champs déjà absents ne sont pas injectés. `repo-url`, `favicon` et
+`ofce_wp: true` sont toujours positionnés (valeurs dérivées sans
+ambiguïté). `website.site-url`/`website.site-path` sont eux aussi
+toujours (re)calculés dès que `wp` est non nul — que ce soit via
+l'argument `wp` ou une valeur déjà présente dans `_quarto.yml` — pour
+qu'un `site-path` manquant (fichier édité à la main, ou créé avant cette
+fonctionnalité) soit toujours réparé.
 
 Pour les WPs publiés (`wp` non nul), la fonction met à jour la variable
 GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)

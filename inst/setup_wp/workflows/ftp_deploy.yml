@@ -25,6 +25,29 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Vérification anti-collision (numéro de WP déjà publié par un autre dépôt)
+        run: |
+          if [ -z "${{ vars.FTP_SERVER_DIR }}" ]; then
+            echo "FTP_SERVER_DIR non défini — vérification ignorée."
+            exit 0
+          fi
+          TARGET_URL="https://www.ofce.fr/wp/${{ vars.FTP_SERVER_DIR }}manifest.json"
+          REMOTE_JSON=$(curl -fsSL "$TARGET_URL" || true)
+          if [ -z "$REMOTE_JSON" ]; then
+            echo "Aucun manifest.json existant à $TARGET_URL — premier déploiement à cet emplacement, ok."
+            exit 0
+          fi
+          REMOTE_REPO=$(echo "$REMOTE_JSON" | jq -r '."source-repo" // empty')
+          if [ -z "$REMOTE_REPO" ]; then
+            echo "manifest.json existant sans champ source-repo (déploiement antérieur à ce contrôle) — vérification ignorée."
+            exit 0
+          fi
+          if [ "$REMOTE_REPO" != "${{ github.repository }}" ]; then
+            echo "::error::$TARGET_URL appartient déjà au dépôt '$REMOTE_REPO' — attendu '${{ github.repository }}'. Déploiement annulé pour éviter d'écraser un WP existant."
+            exit 1
+          fi
+          echo "Propriété confirmée pour ${{ github.repository }}."
+
       - name: Chiffrement staticrypt (si STATICRYPT_PASSWORD défini)
         run: |
           if [ -z "$STATICRYPT_PASSWORD" ]; then

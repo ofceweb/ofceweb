@@ -1,5 +1,15 @@
 ## ofceweb v0.8.1
 
+* sécurité de la publication des WP — vérification anti-collision :
+  `wp_manifest()` ajoute désormais un champ `source-repo` (`"owner/repo"`,
+  résolu depuis le remote `origin`) au `manifest.json`. Le workflow
+  `ftp_deploy.yml` télécharge le `manifest.json` déjà déployé à l'emplacement
+  cible avant l'upload FTP et **annule le déploiement** si son `source-repo`
+  ne correspond pas au dépôt courant — ceci empêche qu'un dépôt différent
+  réutilisant le même `{annee, wp}` écrase un WP déjà publié. `setup_wp()`
+  migre automatiquement cette étape dans un `ftp_deploy.yml` existant qui ne
+  l'a pas encore.
+
 * correction de `setup_wp()` : `citation.url` était calculée à partir de
   `website.site-url` + `website.site-path`, ce qui omettait le segment
   `wp/` de l'URL publique réelle (`www.ofce.fr/wp/{annee}/{wp}/`, tel que

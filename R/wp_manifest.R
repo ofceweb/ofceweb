@@ -7,6 +7,11 @@
 #' Le manifeste est collecté par `webhome` via la GitHub API pour construire
 #' l'index des documents de travail OFCE.
 #'
+#' Inclut un champ `source-repo` (`"owner/repo"`, résolu depuis le remote
+#' `origin` local) utilisé par le workflow `ftp_deploy.yml` pour détecter
+#' qu'un autre dépôt tente de publier sous le même numéro de WP (même
+#' `annee`/`wp`) et bloquer ce déploiement avant d'écraser le WP existant.
+#'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #'
 #' @returns La liste du manifeste (invisible).
@@ -76,6 +81,13 @@ wp_manifest <- function(path = ".") {
   # URL du dépôt
   repo_url <- yml$website$`repo-url`
 
+  # Dépôt source (owner/repo) — utilisé par ftp_deploy.yml pour vérifier
+  # qu'un déploiement ne s'apprête pas à écraser un WP publié par un autre
+  # dépôt réutilisant le même numéro. Même format que le contexte
+  # `github.repository` des workflows GitHub Actions.
+  source_repo <- gh_slug_from_remote(root)
+  if (is.na(source_repo)) source_repo <- NULL
+
   # Fichier PDF (cherche wp-pdf puis wp-typst)
   pdf_file <- NULL
   for (fmt in c("wp-pdf", "wp-typst")) {
@@ -104,7 +116,8 @@ wp_manifest <- function(path = ".") {
     url           = url,
     pdf           = pdf_file,
     repo          = repo_url,
-    lang          = lang
+    lang          = lang,
+    `source-repo` = source_repo
   )
 
   json_str <- jsonlite::toJSON(

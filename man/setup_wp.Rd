@@ -51,12 +51,15 @@ Les champs déjà absents ne sont pas injectés. Seuls `repo-url` et
 Pour les WPs publiés (`wp` non nul), la fonction met à jour la variable
 GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
 à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
-aussi migré automatiquement si `server-dir` y est encore codé en dur.
+aussi migré automatiquement si `server-dir` y est encore codé en dur, et si
+l'étape de vérification anti-collision (voir [wp_manifest()]) y est
+absente.
 
 Toujours pour les WPs publiés, `citation.issue` (`"{année}-{wp}"`, sans
-zéro de remplissage) et `citation.url` (URL stable, sans le segment de
-version) sont recalculés à chaque appel — ce sont des valeurs dérivées de
-`annee`/`wp`/`site-path`, jamais éditées manuellement.
+zéro de remplissage) et `citation.url`
+(`https://www.ofce.fr/wp/{année}/{wp}/`, l'URL publique stable, sans
+segment de version) sont recalculés à chaque appel à partir de
+`annee`/`wp` — ce sont des valeurs dérivées, jamais éditées manuellement.
 
 Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour
 via [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub

@@ -14,7 +14,9 @@
 #' Pour les WPs publiés (`wp` non nul), la fonction met à jour la variable
 #' GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
 #' à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
-#' aussi migré automatiquement si `server-dir` y est encore codé en dur.
+#' aussi migré automatiquement si `server-dir` y est encore codé en dur, et si
+#' l'étape de vérification anti-collision (voir [wp_manifest()]) y est
+#' absente.
 #'
 #' Toujours pour les WPs publiés, `citation.issue` (`"{année}-{wp}"`, sans
 #' zéro de remplissage) et `citation.url`
@@ -297,6 +299,32 @@ setup_wp <- function(
       cli::cli_alert_success(
         "{.file .github/workflows/ftp_deploy.yml} migré vers {.code {{vars.FTP_SERVER_DIR}}}"
       )
+    }
+  }
+
+  # ---- 10c. migration : ajout de la vérification anti-collision ------------
+  # Idempotent : injecte l'étape de vérification de propriété (manifest.json
+  # distant vs. github.repository) dans un ftp_deploy.yml existant qui ne
+  # l'a pas encore, en la recopiant depuis le gabarit du package.
+  if (fs::file_exists(ftp_wf)) {
+    wf_lines <- readLines(ftp_wf, warn = FALSE)
+    collision_step_name <- "Vérification anti-collision"
+    if (!any(grepl(collision_step_name, wf_lines, fixed = TRUE))) {
+      src_ftp_wf <- fs::path(src_wf, "ftp_deploy.yml")
+      if (fs::file_exists(src_ftp_wf)) {
+        tpl_lines <- readLines(src_ftp_wf, warn = FALSE)
+        step_start <- which(grepl(collision_step_name, tpl_lines, fixed = TRUE)) - 1L
+        step_end   <- which(grepl("Chiffrement staticrypt", tpl_lines, fixed = TRUE)) - 1L
+        anchor <- which(grepl("Chiffrement staticrypt", wf_lines, fixed = TRUE))
+        if (length(step_start) == 1L && length(step_end) == 1L && length(anchor) == 1L) {
+          collision_step <- tpl_lines[step_start:step_end]
+          wf_lines <- append(wf_lines, collision_step, after = anchor - 1L)
+          writeLines(wf_lines, ftp_wf)
+          cli::cli_alert_success(
+            "{.file .github/workflows/ftp_deploy.yml} : ajout de la v\u00e9rification anti-collision."
+          )
+        }
+      }
     }
   }
 

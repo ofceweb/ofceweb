@@ -325,6 +325,12 @@ setup_wp <- function(
   yml$ofce_wp <- TRUE
   lines <- yaml_patch_scalar(lines, "ofce_wp", TRUE)
 
+  # favicon : asset géré par le package — toujours resynchronisé, même sur
+  # un _quarto.yml existant (le fichier www/fofce-wp.png est lui-même
+  # réécrit à l'étape 8, quelle que soit la valeur historique de la clé).
+  yml$website$favicon <- "www/fofce-wp.png"
+  lines <- yaml_patch_scalar(lines, "website.favicon", "www/fofce-wp.png")
+
   # repo-url : toujours calculé depuis le remote git (valeur dérivée, sans
   # ambiguïté et sans risque pour l'utilisateur)
   if (!is.na(gh$owner) && !is.na(gh$repo)) {

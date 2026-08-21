@@ -1,6 +1,10 @@
 ## ofceweb v0.8.1
 
 * favicon spécifique aux documents de travail
+* `setup_wp()` resynchronise désormais systématiquement `website.favicon`
+  vers `www/fofce-wp.png`, y compris sur un `_quarto.yml` déjà existant
+  (auparavant seul un fichier nouvellement créé recevait cette valeur ;
+  un dépôt existant conservait sa clé `favicon` d'origine).
 
 ## ofceweb v0.8.0
 

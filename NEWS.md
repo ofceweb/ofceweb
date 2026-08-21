@@ -1,5 +1,12 @@
 ## ofceweb v0.8.1
 
+* correction de `setup_wp()` : `citation.url` était calculée à partir de
+  `website.site-url` + `website.site-path`, ce qui omettait le segment
+  `wp/` de l'URL publique réelle (`www.ofce.fr/wp/{annee}/{wp}/`, tel que
+  calculé indépendamment par `deploy_wp()`). `citation.url` est désormais
+  construite directement depuis `annee`/`wp`, cohérente avec l'URL de
+  déploiement effective.
+
 * favicon spécifique aux documents de travail
 * `setup_wp()`, `setup_prev()` et `setup_site()` resynchronisent désormais
   systématiquement la clé `website.favicon` (`www/fofce-wp.png` pour les WP,

@@ -28,8 +28,9 @@ test_that("setup_wp() rewrites a legacy zero-padded site-path to the unpadded fo
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
 
   expect_equal(yml$website$`site-path`, "2026/7/v0")
-  # citation.url is derived from site-path and must follow it.
-  expect_equal(yml$citation$url, "https://www.ofce.fr/2026/7/")
+  # citation.url is derived from annee/wp directly (not site-path) and must
+  # match the real public URL, which includes the /wp/ segment.
+  expect_equal(yml$citation$url, "https://www.ofce.fr/wp/2026/7/")
   # citation.issue is "{annee}-{wp}" with wp as a plain integer — no
   # zero-padding, even though the legacy site-path was zero-padded.
   expect_equal(yml$citation$issue, "2026-7")
@@ -47,7 +48,7 @@ test_that("setup_wp() computes citation.issue and citation.url for a published W
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
 
   expect_equal(yml$citation$issue, "2027-12")
-  expect_equal(yml$citation$url, "https://www.ofce.fr/2027/12/")
+  expect_equal(yml$citation$url, "https://www.ofce.fr/wp/2027/12/")
 })
 
 test_that("setup_wp() updates citation.issue when the WP number changes", {
@@ -63,7 +64,7 @@ test_that("setup_wp() updates citation.issue when the WP number changes", {
 
   expect_equal(yml$wp, 8L)
   expect_equal(yml$citation$issue, "2026-8")
-  expect_equal(yml$citation$url, "https://www.ofce.fr/2026/8/")
+  expect_equal(yml$citation$url, "https://www.ofce.fr/wp/2026/8/")
 })
 
 test_that("setup_wp() does not set citation.issue/url for a draft (wp = NULL)", {

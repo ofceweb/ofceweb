@@ -17,9 +17,10 @@
 #' aussi migré automatiquement si `server-dir` y est encore codé en dur.
 #'
 #' Toujours pour les WPs publiés, `citation.issue` (`"{année}-{wp}"`, sans
-#' zéro de remplissage) et `citation.url` (URL stable, sans le segment de
-#' version) sont recalculés à chaque appel — ce sont des valeurs dérivées de
-#' `annee`/`wp`/`site-path`, jamais éditées manuellement.
+#' zéro de remplissage) et `citation.url`
+#' (`https://www.ofce.fr/wp/{année}/{wp}/`, l'URL publique stable, sans
+#' segment de version) sont recalculés à chaque appel à partir de
+#' `annee`/`wp` — ce sont des valeurs dérivées, jamais éditées manuellement.
 #'
 #' Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour
 #' via [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
@@ -387,27 +388,22 @@ setup_wp <- function(
   # citation.url / citation.issue : valeurs dérivées, toujours mises à jour
   # pour les WPs publiés afin que les citations ne se brisent pas lors des
   # mises à jour de version ou de numéro.
-  # - citation.url  : URL stable (sans le segment de version).
+  # - citation.url  : URL stable (sans le segment de version), calculée
+  #   directement depuis annee/wp — indépendamment de site-path — pour
+  #   toujours pointer vers `www.ofce.fr/wp/{annee}/{wp}/`, l'URL publique
+  #   réelle (cf. deploy_wp()'s stable_url).
   # - citation.issue: "{année}-{wp}" (le wp étant un entier, jamais de zéro
   #   de remplissage superflu, contrairement à l'ancien site-path zero-padded).
   if (!is.null(yml$wp)) {
-    sp <- yml$website$`site-path`
-    su <- yml$website$`site-url` %||% ""
-    if (!is.null(sp) && nzchar(sp)) {
-      # Strip version segment only if present (e.g. /v0, /v1)
-      stable_path <- if (grepl("/v\\d+$", sp)) sub("/v\\d+$", "", sp) else sp
-      if (!grepl("/$", su)) su <- paste0(su, "/")
-      stable_url <- paste0(su, stable_path, "/")
-      if (is.null(yml$citation)) yml$citation <- list()
-      yml$citation$url <- stable_url
-      lines <- yaml_patch_scalar(lines, "citation.url", stable_url)
-    }
-
     citation_annee <- suppressWarnings(as.integer(yml$annee))
     citation_wp    <- suppressWarnings(as.integer(yml$wp))
     if (!is.na(citation_annee) && !is.na(citation_wp)) {
-      issue <- sprintf("%d-%d", citation_annee, citation_wp)
+      stable_url <- sprintf("https://www.ofce.fr/wp/%d/%d/", citation_annee, citation_wp)
       if (is.null(yml$citation)) yml$citation <- list()
+      yml$citation$url <- stable_url
+      lines <- yaml_patch_scalar(lines, "citation.url", stable_url)
+
+      issue <- sprintf("%d-%d", citation_annee, citation_wp)
       yml$citation$issue <- issue
       lines <- yaml_patch_scalar(lines, "citation.issue", issue)
     }

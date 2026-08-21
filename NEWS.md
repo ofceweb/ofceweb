@@ -1,3 +1,7 @@
+## ofceweb v0.8.1
+
+* favicon spécifique aux documents de travail
+
 ## ofceweb v0.8.0
 
 * nouvelle fonction `render()` : détecte automatiquement le type de dépôt

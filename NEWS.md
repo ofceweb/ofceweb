@@ -1,3 +1,5 @@
+## ofceweb v0.8.2
+
 ## ofceweb v0.8.1
 
 * `setup_wp()` calcule désormais systématiquement `website.site-path` /

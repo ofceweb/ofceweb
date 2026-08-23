@@ -1,8 +1,9 @@
-# Trigger a GitHub Actions workflow via \`workflow_dispatch\`
+# Déclenche un workflow GitHub Actions via \`workflow_dispatch\`
 
-Sends a \`workflow_dispatch\` event to the GitHub Actions API to
-manually start a workflow (typically an FTP deploy job). This is called
-automatically by \[site2branch()\] unless \`trigger = FALSE\`.
+Envoie un événement \`workflow_dispatch\` à l'API GitHub Actions pour
+démarrer manuellement un workflow (typiquement un job de déploiement
+FTP). Ceci est appelé automatiquement par \[site2branch()\] sauf si
+\`trigger = FALSE\`.
 
 ## Usage
 
@@ -20,41 +21,41 @@ trigger_action(
 - root:
 
   \`\[character(1)\]\`  
-  Path to the local Git repository used to resolve the GitHub owner and
-  repository name from the \`origin\` remote URL. Defaults to
+  Chemin vers le dépôt Git local utilisé pour résoudre le propriétaire
+  et le nom du dépôt GitHub depuis l'URL du remote \`origin\`. Défaut
   \[here::here()\].
 
 - workflow:
 
   \`\[character(1)\]\`  
-  File name of the workflow to dispatch (e.g. \`"ftp_deploy.yml"\`).
+  Nom du fichier de workflow à déclencher (ex. \`"ftp_deploy.yml"\`).
 
 - branch:
 
   \`\[character(1)\]\`  
-  Branch on which the workflow will be run. Defaults to \`NULL\`, which
-  auto-detects the repository's default branch via the GitHub API.
+  Branche sur laquelle le workflow sera exécuté. Défaut \`NULL\`, ce qui
+  détecte automatiquement la branche par défaut du dépôt via l'API
+  GitHub.
 
 - inputs:
 
   \`\[list()\]\`  
-  Named list of workflow inputs passed to the \`workflow_dispatch\`
-  event (e.g. \`list(profile = "review")\`). Defaults to an empty list
-  (no inputs).
+  Liste nommée d'entrées de workflow transmises à l'événement
+  \`workflow_dispatch\` (ex. \`list(profile = "review")\`). Défaut une
+  liste vide (pas d'entrée).
 
 ## Value
 
-Invisibly returns \`NULL\`. Called for its side effects.
+Renvoie invisiblement \`NULL\`. Appelée pour ses effets de bord.
 
 ## Details
 
-The GitHub token is resolved in the following order: 1. The
-\`DEPLOY_PAT\` environment variable — \*\*required on CI\*\* because the
-built-in \`GITHUB_TOKEN\` cannot dispatch other workflows (GitHub blocks
-it to prevent recursive runs). 2. The OS credential store via gitcreds —
-suitable for interactive local use.
-
-## Other
+Le token GitHub est résolu dans l'ordre suivant : 1. La variable
+d'environnement \`DEPLOY_PAT\` — \*\*requise en CI\*\* car le
+\`GITHUB_TOKEN\` intégré ne peut pas déclencher d'autres workflows
+(GitHub le bloque pour empêcher les exécutions récursives). 2. Le
+gestionnaire d'identifiants du système via gitcreds — adapté à un usage
+interactif local.
 
 ## Examples
 

@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -192,10 +192,13 @@ détectés et listés dans <code>other-links</code>.</p>
 <code>index.qmd</code> à la racine (uniquement s’il n’en existe pas
 déjà un),</li>
 <li>le dossier <code>www/</code> (assets : logos, CSS, …),</li>
-<li>le dossier <code>_extensions/</code>,</li>
 <li>les workflows GitHub vers <code>.github/workflows/</code>.</li>
 </ul>
 </li>
+<li>Installe/met à jour les extensions Quarto OFCE
+(<code>_extensions/</code>) via <code>ofce::setup_quarto()</code>, qui
+les récupère depuis le dépôt GitHub
+<code>OFCE/ofce-quarto-extensions</code> (accès réseau nécessaire).</li>
 <li>Renseigne le <code>_quarto.yml</code> : <code>title</code>,
 <code>site-url</code>, <code>site-path</code>, <code>repo-url</code>, la
 section <code>other-links</code> (une entrée par <code>qmd</code>,

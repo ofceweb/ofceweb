@@ -18,8 +18,6 @@ Si le secret est absent, le déploiement s'effectue sans chiffrement.
 
 ``` r
 encrypt_site(path = ".", password = NULL)
-
-encrypt_wp(path = ".", password = NULL)
 ```
 
 ## Arguments
@@ -35,8 +33,6 @@ encrypt_wp(path = ".", password = NULL)
 ## Value
 
 Invisible \`NULL\`.
-
-## Site Users
 
 ## See also
 

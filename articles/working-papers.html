@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -140,8 +140,9 @@ révisions</strong> (<code>news.qmd</code>).</p>
 <li>Copie les gabarits (<code>_quarto.yml</code>,
 <code>index.qmd</code>, <code>annexes.qmd</code>,
 <code>news.qmd</code>)</li>
-<li>Copie les assets OFCE (<code>www/</code>) et l’extension Quarto
-(<code>_extensions/wp/</code>)</li>
+<li>Copie les assets OFCE (<code>www/</code>) et installe/met à jour les
+extensions Quarto OFCE (<code>_extensions/</code>) via
+<code>ofce::setup_quarto()</code> (accès réseau nécessaire)</li>
 <li>Copie les workflows GitHub Actions
 (<code>.github/workflows/</code>)</li>
 <li>Adapte <code>_quarto.yml</code> avec le titre, l’URL, le numéro WP,

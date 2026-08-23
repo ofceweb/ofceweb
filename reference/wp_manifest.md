@@ -26,7 +26,11 @@ La liste du manifeste (invisible).
 Le manifeste est collecté par \`webhome\` via la GitHub API pour
 construire l'index des documents de travail OFCE.
 
-## Working Paper (WP) Users
+Inclut un champ \`source-repo\` (\`"owner/repo"\`, résolu depuis le
+remote \`origin\` local) utilisé par le workflow \`ftp_deploy.yml\` pour
+détecter qu'un autre dépôt tente de publier sous le même numéro de WP
+(même \`annee\`/\`wp\`) et bloquer ce déploiement avant d'écraser le WP
+existant.
 
 ## See also
 

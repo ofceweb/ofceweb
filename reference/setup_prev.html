@@ -13,7 +13,7 @@ fichiers de configuration Quarto (`_quarto.yml`, `_quarto-staging.yml`,
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -95,6 +95,12 @@ Déduit du nom du dossier si `prev` est aussi déduit.</p></dd>
 scripts `data_pays/`) : ils ne sont copiés que s'ils sont absents. En
 revanche, `_extensions/`, `www/` et les **workflows GitHub Actions** sont
 **toujours mis à jour** depuis la version de référence du package.</p>
+<p>Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour
+via [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
+`OFCE/ofce-quarto-extensions` — un accès réseau est donc nécessaire.
+D'éventuelles extensions périmées (installées par une version antérieure
+du package) sont signalées par un avertissement, jamais supprimées
+automatiquement.</p>
     </div>
     <div class="section level2">
     <h2 id="structure-cr-e-">Structure créée <a class="anchor" aria-label="anchor" href="#structure-cr-e-"></a></h2>
@@ -105,7 +111,7 @@ revanche, `_extensions/`, `www/` et les **workflows GitHub Actions** sont
 ├── _quarto.yml              # base commune (ofce_prev, prev, annee, mois)
 ├── _quarto-staging.yml      # profil staging (site-path, version, encrypt_site)
 ├── _quarto-publish.yml      # profil publish (site-path, pas de chiffrement)
-├── _extensions/             # extensions Quarto OFCE (toujours mis à jour)
+├── _extensions/             # extensions Quarto OFCE (via ofce::setup_quarto())
 ├── www/                     # assets statiques (logos, CSS — toujours mis à jour)
 ├── france/data/             # données France (.gitkeep)
 ├── inter/data/              # données International (.gitkeep)
@@ -119,14 +125,8 @@ revanche, `_extensions/`, `www/` et les **workflows GitHub Actions** sont
 “`</p>
     </div>
     <div class="section level2">
-    <h2 id="pr-vision-users">Prévision Users<a class="anchor" aria-label="anchor" href="#pr-vision-users"></a></h2>
-
-
-
-    </div>
-    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p>[check_prev()], [render_prev()], [prev_version_up()]</p></div>
+    <div class="dont-index"><p>[check_prev()], [render_prev()], [prev_version_up()], [update_navbar()]</p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

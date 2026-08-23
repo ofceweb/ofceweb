@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,29 @@
     </div>
 
     <div class="section level2">
+      <h2 id="dispatch-automatique">Dispatch automatique<a class="anchor" aria-label="anchor" href="#dispatch-automatique"></a></h2>
+
+      <div class="section-desc"><p>Points d’entrée uniques qui détectent le type de dépôt (WP, prévision, blog ou site générique) et appellent automatiquement la fonction de rendu ou de publication correspondante.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="render.html">render()</a></code>
+
+        </dt>
+        <dd>Détecte le type d'un dépôt et lance le bon rendu</dd>
+
+        <dt>
+
+          <code><a href="publish.html">publish()</a></code>
+
+        </dt>
+        <dd>Détecte le type d'un dépôt et lance la bonne publication</dd>
+      </dl></div><div class="section level2">
       <h2 id="pr-visions">Prévisions<a class="anchor" aria-label="anchor" href="#pr-visions"></a></h2>
 
       <div class="section-desc"><p>Suite complète pour les dépôts de prévision OFCE (<code>prev{YY}0{3|9}</code>). Trois modes de déploiement : <strong>staging</strong> (versionné, chiffré en CI via staticrypt), <strong>publish</strong> (URL fixe, non chiffré), et <strong>profils personnalisés</strong> (arbitrary Quarto profiles avec chiffrement). Le chiffrement des sites staging et custom est appliqué par les workflows GitHub Actions — pas localement.</p></div>
@@ -252,7 +275,7 @@
 
       <dl><dt>
 
-          <code><a href="encrypt_site.html">encrypt_site()</a></code> <code><a href="encrypt_site.html">encrypt_wp()</a></code>
+          <code><a href="encrypt_site.html">encrypt_site()</a></code>
 
         </dt>
         <dd>Active le chiffrement statique du site</dd>
@@ -282,17 +305,24 @@
 
       <dl><dt>
 
+          <code><a href="check_blog.html">check_blog()</a></code>
+
+        </dt>
+        <dd>Vérifie la structure d'un post de blog avant soumission</dd>
+
+        <dt>
+
           <code><a href="render_blog.html">render_blog()</a></code>
 
         </dt>
-        <dd>Render the bilingual blog</dd>
+        <dd>Rend le blog bilingue</dd>
 
         <dt>
 
           <code><a href="publish_blog.html">publish_blog()</a></code>
 
         </dt>
-        <dd>Publish the bilingual blog</dd>
+        <dd>Publie le blog bilingue</dd>
 
         <dt>
 
@@ -300,6 +330,13 @@
 
         </dt>
         <dd>Créer une version blog d'un article EcoGaphe</dd>
+
+        <dt>
+
+          <code><a href="submit_blog.html">submit_blog()</a></code>
+
+        </dt>
+        <dd>Soumet un post de blog pour relecture dans ofce/Blog_relecture</dd>
       </dl></div><div class="section level2">
       <h2 id="page-d-accueil">Page d’accueil<a class="anchor" aria-label="anchor" href="#page-d-accueil"></a></h2>
 
@@ -338,35 +375,35 @@
           <code><a href="site2branch.html">site2branch()</a></code>
 
         </dt>
-        <dd>Push a rendered site folder to a Git branch</dd>
+        <dd>Pousse un dossier de site rendu vers une branche Git</dd>
 
         <dt>
 
           <code><a href="site2publish.html">site2publish()</a></code>
 
         </dt>
-        <dd>Push a rendered site folder to a Git branch, set for publish</dd>
+        <dd>Pousse un dossier de site rendu vers une branche Git, pour publication</dd>
 
         <dt>
 
           <code><a href="trigger_action.html">trigger_action()</a></code>
 
         </dt>
-        <dd>Trigger a GitHub Actions workflow via `workflow_dispatch`</dd>
+        <dd>Déclenche un workflow GitHub Actions via `workflow_dispatch`</dd>
 
         <dt>
 
           <code><a href="download_gh_dir.html">download_gh_dir()</a></code>
 
         </dt>
-        <dd>Download a directory from a GitHub repository</dd>
+        <dd>Télécharge un répertoire depuis un dépôt GitHub</dd>
 
         <dt>
 
           <code><a href="download_gh_file.html">download_gh_file()</a></code>
 
         </dt>
-        <dd>Download a single file from a GitHub repository</dd>
+        <dd>Télécharge un seul fichier depuis un dépôt GitHub</dd>
 
         <dt>
 
@@ -374,6 +411,34 @@
 
         </dt>
         <dd>Met à jour la navbar du `_quarto.yml` depuis la source centralisée</dd>
+
+        <dt>
+
+          <code><a href="scan_qmd_deps.html">scan_qmd_deps()</a></code>
+
+        </dt>
+        <dd>Scanne un .qmd pour identifier tous les fichiers nécessaires à sa compilation</dd>
+
+        <dt>
+
+          <code><a href="check_fonts.html">check_fonts()</a></code>
+
+        </dt>
+        <dd>Vérifie (et installe) les polices Google utilisées par les thèmes OFCE</dd>
+
+        <dt>
+
+          <code><a href="font_installed.html">font_installed()</a></code>
+
+        </dt>
+        <dd>Teste la présence de familles de polices sur le système</dd>
+
+        <dt>
+
+          <code><a href="install_fonts.html">install_fonts()</a></code>
+
+        </dt>
+        <dd>Installe des polices Google</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

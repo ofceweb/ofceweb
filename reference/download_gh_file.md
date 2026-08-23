@@ -1,9 +1,9 @@
-# Download a single file from a GitHub repository
+# Télécharge un seul fichier depuis un dépôt GitHub
 
-Looks up a file by path in the GitHub Contents API and downloads it to a
-local destination using \`curl\`. A Bearer token is attached
-automatically when a GitHub PAT is configured (needed for private
-repositories).
+Recherche un fichier par son chemin via l'API Contents de GitHub et le
+télécharge vers une destination locale via \`curl\`. Un Bearer token est
+attaché automatiquement quand un PAT GitHub est configuré (nécessaire
+pour les dépôts privés).
 
 ## Usage
 
@@ -21,31 +21,30 @@ download_gh_file(
 
 - path:
 
-  Path to the file inside the repository (e.g.
+  Chemin du fichier dans le dépôt (ex.
   \`"posts/2024-01-01/index.qmd"\`).
 
 - dest:
 
-  Local path to write the file to. Defaults to \`path\`.
+  Chemin local où écrire le fichier. Défaut \`path\`.
 
 - owner:
 
-  GitHub user or organisation name. Defaults to \`"ofceweb"\`.
+  Nom de l'utilisateur ou de l'organisation GitHub. Défaut
+  \`"ofceweb"\`.
 
 - repo:
 
-  Repository name. Defaults to \`"webblog"\`.
+  Nom du dépôt. Défaut \`"webblog"\`.
 
 - ref:
 
-  Git ref (branch, tag, or SHA). Defaults to \`"site-deploy"\`.
+  Référence Git (branche, tag ou SHA). Défaut \`"site-deploy"\`.
 
 ## Value
 
-The local path \`dest\` on success, or \`NULL\` if the file was not
-found in the repository.
-
-## Other
+Le chemin local \`dest\` en cas de succès, ou \`NULL\` si le fichier n'a
+pas été trouvé dans le dépôt.
 
 ## Examples
 

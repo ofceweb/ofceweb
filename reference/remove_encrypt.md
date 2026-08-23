@@ -30,8 +30,6 @@ remove_encrypt(path = ".", delete_secret = TRUE)
 
 Invisible \`NULL\`.
 
-## Site Users
-
 ## See also
 
 \[encrypt_site()\]

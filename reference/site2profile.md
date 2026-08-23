@@ -48,8 +48,6 @@ site2profile(
 
 Invisible \`NULL\`.
 
-## Prévision Users
-
 ## See also
 
 \[deploy_prev()\], \[site2branch()\], \[site2staging()\]

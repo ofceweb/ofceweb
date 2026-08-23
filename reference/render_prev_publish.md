@@ -48,8 +48,6 @@ render_prev_publish(
 
 Invisible \`NULL\`.
 
-## Prévision Users
-
 ## See also
 
 \[publish_prev()\]

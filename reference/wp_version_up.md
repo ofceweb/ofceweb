@@ -33,8 +33,6 @@ Invisible \`NULL\`. Appelée pour ses effets de bord.
 Ne fonctionne que pour un WP publié (\`wp\` non nul dans
 \`\_quarto.yml\`).
 
-## Working Paper (WP) Users
-
 ## See also
 
 \[setup_wp()\], \[site_version_up()\]

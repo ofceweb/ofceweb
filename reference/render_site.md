@@ -58,8 +58,6 @@ render_site(
 
 Invisible : sortie de \[gert::git_status()\].
 
-## Site Users
-
 ## See also
 
 \[setup_site()\], \[stage_site()\], \[site2branch()\], \[render_blog()\]

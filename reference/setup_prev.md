@@ -56,22 +56,28 @@ absents. En revanche, \`\_extensions/\`, \`www/\` et les \*\*workflows
 GitHub Actions\*\* sont \*\*toujours mis à jour\*\* depuis la version de
 référence du package.
 
+Les extensions Quarto OFCE (\`\_extensions/\`) sont installées/mises à
+jour via \[ofce::setup_quarto()\], qui les récupère depuis le dépôt
+GitHub \`OFCE/ofce-quarto-extensions\` — un accès réseau est donc
+nécessaire. D'éventuelles extensions périmées (installées par une
+version antérieure du package) sont signalées par un avertissement,
+jamais supprimées automatiquement.
+
 ## Structure créée
 
 “\` \<root\>/ ├── \_quarto.yml \# base commune (ofce_prev, prev, annee,
 mois) ├── \_quarto-staging.yml \# profil staging (site-path, version,
 encrypt_site) ├── \_quarto-publish.yml \# profil publish (site-path, pas
-de chiffrement) ├── \_extensions/ \# extensions Quarto OFCE (toujours
-mis à jour) ├── www/ \# assets statiques (logos, CSS — toujours mis à
-jour) ├── france/data/ \# données France (.gitkeep) ├── inter/data/ \#
-données International (.gitkeep) ├── fiches/data/ \# données Analyses
-Pays (.gitkeep) ├── tableaux_comptes/ \# tableaux de comptes nationaux
-├── data_pays/ \# scripts de données agrégées (non-destructif) └──
-.github/workflows/ ├── ftp_deploy_staging.yml ├── ftp_deploy_publish.yml
-└── ftp_deploy_profile.yml “\`
-
-## Prévision Users
+de chiffrement) ├── \_extensions/ \# extensions Quarto OFCE (via
+ofce::setup_quarto()) ├── www/ \# assets statiques (logos, CSS —
+toujours mis à jour) ├── france/data/ \# données France (.gitkeep) ├──
+inter/data/ \# données International (.gitkeep) ├── fiches/data/ \#
+données Analyses Pays (.gitkeep) ├── tableaux_comptes/ \# tableaux de
+comptes nationaux ├── data_pays/ \# scripts de données agrégées
+(non-destructif) └── .github/workflows/ ├── ftp_deploy_staging.yml ├──
+ftp_deploy_publish.yml └── ftp_deploy_profile.yml “\`
 
 ## See also
 
-\[check_prev()\], \[render_prev()\], \[prev_version_up()\]
+\[check_prev()\], \[render_prev()\], \[prev_version_up()\],
+\[update_navbar()\]

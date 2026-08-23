@@ -63,17 +63,36 @@ La fonction est \*\*non-destructive\*\* : sur un dépôt existant, les
 fichiers gabarits (dont \`\_quarto.yml\`) ne sont pas écrasés, et les
 champs YAML ne sont mis à jour que si l'argument correspondant a été
 fourni explicitement. Les champs déjà absents ne sont pas injectés.
-Seuls \`repo-url\` et \`ofce_wp: true\` sont toujours positionnés
+\`repo-url\`, \`favicon\` et \`ofce_wp: true\` sont toujours positionnés
 (valeurs dérivées sans ambiguïté).
+\`website.site-url\`/\`website.site-path\` sont eux aussi toujours
+(re)calculés dès que \`wp\` est non nul — que ce soit via l'argument
+\`wp\` ou une valeur déjà présente dans \`\_quarto.yml\` — pour qu'un
+\`site-path\` manquant (fichier édité à la main, ou créé avant cette
+fonctionnalité) soit toujours réparé.
 
 Pour les WPs publiés (\`wp\` non nul), la fonction met à jour la
 variable GitHub Actions \`FTP_SERVER_DIR\` (publique, visible dans
 Settings → Variables) à partir du \`site-path\` du \`\_quarto.yml\`. Le
 workflow \`ftp_deploy.yml\` est aussi migré automatiquement si
-\`server-dir\` y est encore codé en dur.
+\`server-dir\` y est encore codé en dur, et si l'étape de vérification
+anti-collision (voir \[wp_manifest()\]) y est absente.
 
-## Working Paper (WP) Users
+Toujours pour les WPs publiés, \`citation.issue\` (\`"année-wp"\`, sans
+zéro de remplissage) et \`citation.url\`
+(\`https://www.ofce.fr/wp/année/wp/\`, l'URL publique stable, sans
+segment de version) sont recalculés à chaque appel à partir de
+\`annee\`/\`wp\` — ce sont des valeurs dérivées, jamais éditées
+manuellement.
+
+Les extensions Quarto OFCE (\`\_extensions/\`) sont installées/mises à
+jour via \[ofce::setup_quarto()\], qui les récupère depuis le dépôt
+GitHub \`OFCE/ofce-quarto-extensions\` — la fonction nécessite donc un
+accès réseau. D'éventuelles extensions périmées (installées par une
+version antérieure du package) sont signalées par un avertissement,
+jamais supprimées automatiquement.
 
 ## See also
 
-\[render_wp()\], \[deploy_wp()\], \[wp_version_up()\]
+\[render_wp()\], \[deploy_wp()\], \[wp_version_up()\],
+\[update_navbar()\]

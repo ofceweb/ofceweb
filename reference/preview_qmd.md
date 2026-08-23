@@ -64,5 +64,3 @@ via \[quarto::quarto_inspect()\] :
 - `preview_qmd_staging()`: Raccourci pour \`preview_qmd(profile =
   "staging")\`. Lance la prévisualisation du document \`.qmd\` actif
   avec le profil Quarto \`"staging"\`, sans autre paramètre à préciser.
-
-## Prévision Users

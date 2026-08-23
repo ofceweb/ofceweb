@@ -47,8 +47,6 @@ deploy_prev(
 
 Invisible \`NULL\`.
 
-## Prévision Users
-
 ## See also
 
 \[stage_prev()\], \[publish_prev()\], \[site2staging()\]

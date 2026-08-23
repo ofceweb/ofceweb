@@ -39,8 +39,6 @@ segment de version (\`/v\[0-9\]+\`) ou si \`ofce_host\` n'est pas
 Appelée automatiquement par \[site_version_up()\] lors d'un incrément de
 version, et par \[stage_site()\] à chaque déploiement staging.
 
-## Site Users
-
 ## See also
 
 \[site_version_up()\], \[stage_site()\], \[deploy_site()\]

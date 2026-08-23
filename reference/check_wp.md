@@ -51,8 +51,6 @@ Contrôles effectués :
 
 - Unicité des \`output-file\` PDF à travers tous les \`.qmd\` (erreur)
 
-## Working Paper (WP) Users
-
 ## See also
 
 \[render_wp()\], \[setup_wp()\]

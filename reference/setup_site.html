@@ -13,7 +13,7 @@ titre, code de site, commentaires hypothesis, etc.)."><meta property="og:image" 
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -106,10 +106,61 @@ un segment `/v0` au `site-path`. Voir [site_version_up()] pour incrémenter.</p>
     <p>Invisible `NULL`. Appelée pour ses effets de bord.</p>
     </div>
     <div class="section level2">
-    <h2 id="home-users">Home Users<a class="anchor" aria-label="anchor" href="#home-users"></a></h2>
+    <h2 id="cl-s-du-quarto-yml-modifi-es-vs-pr-serv-es-">Clés du `_quarto.yml` modifiées vs. préservées <a class="anchor" aria-label="anchor" href="#cl-s-du-quarto-yml-modifi-es-vs-pr-serv-es-"></a></h2>
 
 
 
+<p>Si un `_quarto.yml` existe déjà, la fonction le lit et ne modifie que
+certaines clés. Les autres sont conservées.</p>
+<p>**Toujours écrasées** (sans garde) :</p>
+<p>| Clé | Valeur imposée |
+|—–|—————-|
+| `website.title` | Titre calculé depuis `index.qmd` ou le nom du dépôt |
+| `ofce_host` | Valeur de l'argument `ofce_host` |
+| `website.other-links` | Liste reconstruite par scan des `.qmd` |
+| `website.comments` | `hypothesis: true` ou supprimé selon `hypothesis` |</p>
+<p>**Préservées si déjà renseignées** (non écrasées) :</p>
+<p>| Clé | Condition |
+|—–|———–|
+| `website.site-url` | Non `NULL` et non vide |
+| `website.site-path` | Non `NULL` et non vide |
+| `website.repo-url` | Non `NULL` et non vide |</p>
+<p>Toutes les autres clés (`format`, `execute`, `website.navbar`, etc.) sont
+lues et réécrites telles quelles.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="-dition-du-yaml-">Édition du YAML <a class="anchor" aria-label="anchor" href="#-dition-du-yaml-"></a></h2>
+
+
+<p>La mise à jour patche uniquement les clés listées ci-dessus dans le texte
+du fichier : commentaires, indentation et mise en page du reste du
+`_quarto.yml` sont préservés. Les blocs `website.other-links` et
+`website.comments` sont entièrement régénérés (ce sont des sections
+gérées par le package), donc d'éventuels commentaires à l'intérieur de
+ces deux blocs précis ne survivent pas.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="navbar-">Navbar <a class="anchor" aria-label="anchor" href="#navbar-"></a></h2>
+
+
+<p>La navbar du `_quarto.yml` est synchronisée depuis la source centralisée
+du package via [update_navbar()], appelé automatiquement en fin de
+configuration.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="extensions-quarto-">Extensions Quarto <a class="anchor" aria-label="anchor" href="#extensions-quarto-"></a></h2>
+
+
+<p>Les extensions OFCE (`_extensions/`) sont installées/mises à jour via
+[ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
+`OFCE/ofce-quarto-extensions` — un accès réseau est donc nécessaire.
+D'éventuelles extensions périmées (installées par une version antérieure
+du package) sont signalées par un avertissement, jamais supprimées
+automatiquement.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>[update_navbar()]</p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

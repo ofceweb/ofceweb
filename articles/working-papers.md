@@ -45,8 +45,9 @@ setup_wp(
     Pages)
 2.  Copie les gabarits (`_quarto.yml`, `index.qmd`, `annexes.qmd`,
     `news.qmd`)
-3.  Copie les assets OFCE (`www/`) et l’extension Quarto
-    (`_extensions/wp/`)
+3.  Copie les assets OFCE (`www/`) et installe/met à jour les extensions
+    Quarto OFCE (`_extensions/`) via `ofce::setup_quarto()` (accès
+    réseau nécessaire)
 4.  Copie les workflows GitHub Actions (`.github/workflows/`)
 5.  Adapte `_quarto.yml` avec le titre, l’URL, le numéro WP, l’année, la
     langue

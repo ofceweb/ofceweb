@@ -90,8 +90,10 @@ Ce que fait
   - `_quarto.yml` à la racine,
   - `index.qmd` à la racine (uniquement s’il n’en existe pas déjà un),
   - le dossier `www/` (assets : logos, CSS, …),
-  - le dossier `_extensions/`,
   - les workflows GitHub vers `.github/workflows/`.
+- Installe/met à jour les extensions Quarto OFCE (`_extensions/`) via
+  `ofce::setup_quarto()`, qui les récupère depuis le dépôt GitHub
+  `OFCE/ofce-quarto-extensions` (accès réseau nécessaire).
 - Renseigne le `_quarto.yml` : `title`, `site-url`, `site-path`,
   `repo-url`, la section `other-links` (une entrée par `qmd`,
   `index.qmd` en tête), et les commentaires `hypothesis` si demandé.

@@ -55,5 +55,3 @@ render_home(
 ## Value
 
 Appelée pour ses effets de bord. Retourne invisiblement \`NULL\`.
-
-## Home Users

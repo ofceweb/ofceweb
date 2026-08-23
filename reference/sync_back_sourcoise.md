@@ -1,10 +1,11 @@
-# Sync back \`.sourcoise/\` directories from rendered copies to source posts
+# Resynchronise les répertoires \`.sourcoise/\` des copies rendues vers les posts source
 
-After rendering a language pass, any \`.sourcoise/\` directory that
-appeared (or was populated) inside the ephemeral copy folder is mirrored
-back to the original \`posts/\` tree. Only files \*\*not already
-present\*\* in the target \`.sourcoise/\` are copied, which naturally
-deduplicates across the FR and EN passes without extra bookkeeping.
+Après le rendu d'une passe de langue, tout répertoire \`.sourcoise/\`
+apparu (ou peuplé) dans le dossier de copie éphémère est reporté vers
+l'arborescence \`posts/\` d'origine. Seuls les fichiers \*\*pas déjà
+présents\*\* dans le \`.sourcoise/\` cible sont copiés, ce qui
+déduplique naturellement entre les passes FR et EN sans comptabilité
+supplémentaire.
 
 ## Usage
 
@@ -16,15 +17,16 @@ sync_back_sourcoise(cached, lang, max_size_mb = 50)
 
 - cached:
 
-  Data frame returned by \[get_from_cache()\]. Must contain at least the
-  columns \`from_cache\`, \`origin\` (path to the rendered copy), and
-  \`source\` (path to the original post folder under \`posts/\`).
+  Data frame renvoyé par \[get_from_cache()\]. Doit contenir au moins
+  les colonnes \`from_cache\`, \`origin\` (chemin de la copie rendue) et
+  \`source\` (chemin du dossier de post d'origine sous \`posts/\`).
 
 - lang:
 
-  Character. Language label used for cli messages (\`"fr"\` or
-  \`"en"\`).
+  Chaîne. Étiquette de langue utilisée pour les messages cli (\`"fr"\`
+  ou \`"en"\`).
 
 ## Value
 
-Invisibly, the total number of files synced back across all posts.
+Invisiblement, le nombre total de fichiers resynchronisés pour
+l'ensemble des posts.

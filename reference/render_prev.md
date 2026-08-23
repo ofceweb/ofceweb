@@ -54,8 +54,6 @@ render_prev(
 
 Invisible \`NULL\`. Appelée pour ses effets de bord.
 
-## Prévision Users
-
 ## See also
 
 \[stage_prev()\], \[publish_prev()\], \[setup_prev()\], \[check_prev()\]

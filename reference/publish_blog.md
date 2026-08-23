@@ -1,7 +1,8 @@
-# Publish the bilingual blog
+# Publie le blog bilingue
 
-A convenience wrapper around \[render_blog()\] that sets \`site2branch =
-TRUE\` to deploy \`\_site\` to the deployment branch after rendering.
+Enveloppe pratique autour de \[render_blog()\] qui fixe \`site2branch =
+TRUE\` pour déployer \`\_site\` vers la branche de déploiement après le
+rendu.
 
 ## Usage
 
@@ -23,54 +24,54 @@ publish_blog(
 
 - path:
 
-  Character path to the blog folder, default to ".".
+  Chemin vers le dossier du blog. Défaut \`"."\`.
 
 - force_freeze:
 
-  Logical. If \`TRUE\` (default), posts are re-rendered even when a
-  cached version exists. Set to \`FALSE\` to reuse the cache wherever
-  possible.
+  Logique. Si \`TRUE\` (défaut), les posts sont re-rendus même si une
+  version en cache existe. Mettre \`FALSE\` pour réutiliser le cache
+  autant que possible.
 
 - workers:
 
-  Integer. Number of parallel workers passed to
-  \[future.mirai::mirai_multisession()\]. Defaults to \`8L\`.
+  Entier. Nombre de workers parallèles transmis à
+  \[future.mirai::mirai_multisession()\]. Défaut \`8L\`.
 
 - check_repo:
 
-  Logical. If \`TRUE\` (default), calls \[check_repo_status()\] before
-  rendering to ensure the git repository is in a clean state.
+  Logique. Si \`TRUE\` (défaut), appelle \[check_repo_status()\] avant
+  le rendu pour s'assurer que le dépôt git est dans un état propre.
 
 - progress:
 
-  Logical. If \`TRUE\` (default), progress bars are displayed during
-  long-running steps.
+  Logique. Si \`TRUE\` (défaut), des barres de progression sont
+  affichées pendant les étapes longues.
 
 - render_site:
 
-  Logical. If \`TRUE\` (default), starts a local HTTP daemon via
-  \[servr::httw()\] to preview \`\_site\` after the build completes.
+  Logique. Si \`TRUE\` (défaut), démarre un démon HTTP local via
+  \[servr::httw()\] pour prévisualiser \`\_site\` une fois le build
+  terminé.
 
 - check_freeze:
 
-  Logical. If \`TRUE\`, the function aborts when any post is missing
-  from the cache (strict freeze mode). Defaults to \`FALSE\`.
+  Logique. Si \`TRUE\`, la fonction s'arrête dès qu'un post est absent
+  du cache (mode freeze strict). Défaut \`FALSE\`.
 
 - trigger:
 
-  Logical. Passed to \[site2branch()\] to optionally trigger a GitHub
-  Actions workflow after deploying. Defaults to \`FALSE\`.
+  Logique. Transmis à \[site2branch()\] pour déclencher en option un
+  workflow GitHub Actions après le déploiement. Défaut \`FALSE\`.
 
 - freeze:
 
-  Logical. If \`TRUE\` (default), passed to \[copy_files()\] to enable
-  Quarto freeze mode when copying project scaffolding.
+  Logique. Si \`TRUE\` (défaut), transmis à \[copy_files()\] pour
+  activer le mode freeze de Quarto lors de la copie de l'ossature du
+  projet.
 
 ## Value
 
-A data frame of staged git changes, returned invisibly.
-
-## Webblog Users
+Un data frame des changements git préparés, renvoyé invisiblement.
 
 ## See also
 

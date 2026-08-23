@@ -28,8 +28,6 @@ prev_version_up(path = ".", custom_version = NULL)
 
 Invisible \`NULL\`. Appelée pour ses effets de bord.
 
-## Prévision Users
-
 ## See also
 
 \[setup_prev()\], \[check_prev()\]

@@ -34,8 +34,6 @@ site2staging(path = ".", progress = TRUE, trigger = TRUE, full_deploy = FALSE)
 
 Invisible \`NULL\`.
 
-## Prévision Users
-
 ## See also
 
 \[deploy_prev()\], \[stage_prev()\], \[site2branch()\]

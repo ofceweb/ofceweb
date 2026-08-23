@@ -33,5 +33,3 @@ Le fichier source doit se trouver dans \`relecture/\` et suivre la
 convention de nommage \`year_issue\_\*.qmd\`. Le thumbnail correspondant
 doit être dans \`relecture/thumbnails/\` et les données éventuelles dans
 \`relecture/data/\`.
-
-## Webblog Users

@@ -44,8 +44,6 @@ aussi servir à corriger une prévision ancienne, auquel cas
 fonction manuellement, depuis la racine du dépôt de la prévision qui
 devient la prévision courante, juste après sa première publication.
 
-## Prévision Users
-
 ## See also
 
 \[publish_prev()\], \[deploy_prev()\], \[push_site_redirect()\]

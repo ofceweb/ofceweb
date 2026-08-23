@@ -155,6 +155,17 @@ est en cours de développement
 
 # Package index
 
+## Dispatch automatique
+
+Points d’entrée uniques qui détectent le type de dépôt (WP, prévision,
+blog ou site générique) et appellent automatiquement la fonction de
+rendu ou de publication correspondante.
+
+- [`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) :
+  Détecte le type d'un dépôt et lance le bon rendu
+- [`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)
+  : Détecte le type d'un dépôt et lance la bonne publication
+
 ## Prévisions
 
 Suite complète pour les dépôts de prévision OFCE (`prev{YY}0{3|9}`).
@@ -245,7 +256,6 @@ GitHub `STATICRYPT_PASSWORD`. Utiliser `gh secret set` /
 `gh secret delete` directement.
 
 - [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-  [`encrypt_wp()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
   : Active le chiffrement statique du site
 - [`encrypt_wp()`](https://ofceweb.github.io/ofceweb/reference/encrypt_wp.md)
   : Active le chiffrement statique d'un document de travail
@@ -257,12 +267,16 @@ GitHub `STATICRYPT_PASSWORD`. Utiliser `gh secret set` /
 Fonctions pour le blog OFCE bilingue (FR/EN). Gère le cache des posts,
 la construction du sitemap et le déploiement incrémental.
 
+- [`check_blog()`](https://ofceweb.github.io/ofceweb/reference/check_blog.md)
+  : Vérifie la structure d'un post de blog avant soumission
 - [`render_blog()`](https://ofceweb.github.io/ofceweb/reference/render_blog.md)
-  : Render the bilingual blog
+  : Rend le blog bilingue
 - [`publish_blog()`](https://ofceweb.github.io/ofceweb/reference/publish_blog.md)
-  : Publish the bilingual blog
+  : Publie le blog bilingue
 - [`create_blog_version()`](https://ofceweb.github.io/ofceweb/reference/create_blog_version.md)
   : Créer une version blog d'un article EcoGaphe
+- [`submit_blog()`](https://ofceweb.github.io/ofceweb/reference/submit_blog.md)
+  : Soumet un post de blog pour relecture dans ofce/Blog_relecture
 
 ## Page d’accueil
 
@@ -281,18 +295,29 @@ Actions avec inputs optionnels, téléchargement de fichiers depuis
 GitHub.
 
 - [`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
-  : Push a rendered site folder to a Git branch
+  : Pousse un dossier de site rendu vers une branche Git
 - [`site2publish()`](https://ofceweb.github.io/ofceweb/reference/site2publish.md)
-  : Push a rendered site folder to a Git branch, set for publish
+  : Pousse un dossier de site rendu vers une branche Git, pour
+  publication
 - [`trigger_action()`](https://ofceweb.github.io/ofceweb/reference/trigger_action.md)
-  : Trigger a GitHub Actions workflow via \`workflow_dispatch\`
+  : Déclenche un workflow GitHub Actions via \`workflow_dispatch\`
 - [`download_gh_dir()`](https://ofceweb.github.io/ofceweb/reference/download_gh_dir.md)
-  : Download a directory from a GitHub repository
+  : Télécharge un répertoire depuis un dépôt GitHub
 - [`download_gh_file()`](https://ofceweb.github.io/ofceweb/reference/download_gh_file.md)
-  : Download a single file from a GitHub repository
+  : Télécharge un seul fichier depuis un dépôt GitHub
 - [`update_navbar()`](https://ofceweb.github.io/ofceweb/reference/update_navbar.md)
   : Met à jour la navbar du \`\_quarto.yml\` depuis la source
   centralisée
+- [`scan_qmd_deps()`](https://ofceweb.github.io/ofceweb/reference/scan_qmd_deps.md)
+  : Scanne un .qmd pour identifier tous les fichiers nécessaires à sa
+  compilation
+- [`check_fonts()`](https://ofceweb.github.io/ofceweb/reference/check_fonts.md)
+  : Vérifie (et installe) les polices Google utilisées par les thèmes
+  OFCE
+- [`font_installed()`](https://ofceweb.github.io/ofceweb/reference/font_installed.md)
+  : Teste la présence de familles de polices sur le système
+- [`install_fonts()`](https://ofceweb.github.io/ofceweb/reference/install_fonts.md)
+  : Installe des polices Google
 
 # Articles
 

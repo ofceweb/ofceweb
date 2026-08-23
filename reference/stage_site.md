@@ -50,8 +50,6 @@ stage_site(
 
 Invisible \`NULL\`.
 
-## Site Users
-
 ## See also
 
 \[render_site()\], \[deploy_site()\], \[push_site_redirect()\],

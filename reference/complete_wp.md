@@ -42,8 +42,6 @@ Champs complétés si absents :
 
 - \`ofce_wp\` : positionné à \`TRUE\` pour signaler un WP OFCE
 
-## Working Paper (WP) Users
-
 ## See also
 
 \[check_wp()\], \[setup_wp()\]

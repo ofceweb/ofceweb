@@ -74,8 +74,6 @@ Contrôles effectués :
     le rendu local fonctionne sans lui, mais le workflow CI staging
     échouera)
 
-## Prévision Users
-
 ## See also
 
 \[setup_prev()\], \[render_prev()\]

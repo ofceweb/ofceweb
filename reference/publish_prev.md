@@ -61,8 +61,6 @@ publish_prev(
 
 Invisible \`NULL\`.
 
-## Prévision Users
-
 ## See also
 
 \[render_prev()\], \[deploy_prev()\], \[stage_prev()\]

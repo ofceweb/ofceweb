@@ -37,8 +37,6 @@ Ne fonctionne que si \`ofce_host: true\` est présent dans le
 \`\_quarto.yml\`. Les versions doivent être alphanumériques avec des
 underscores uniquement.
 
-## Site Users
-
 ## See also
 
 \[setup_site()\]

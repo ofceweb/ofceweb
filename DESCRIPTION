@@ -42,7 +42,6 @@ Imports:
     curl,
     digest,
     dplyr,
-    ofce,
     fs,
     future,
     future.mirai,

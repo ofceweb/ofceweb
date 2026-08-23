@@ -120,6 +120,9 @@ reference:
   - download_gh_file
   - update_navbar
   - scan_qmd_deps
+  - check_fonts
+  - font_installed
+  - install_fonts
 
 articles:
 - title: Articles

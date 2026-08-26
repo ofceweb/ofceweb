@@ -1,6 +1,6 @@
 # Changelog
 
-## ofceweb v0.9.1
+## ofceweb v0.9.2
 
 ### Registre central WP (`ofceweb/wp-registry`) — nouveau
 

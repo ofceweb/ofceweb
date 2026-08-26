@@ -116,15 +116,17 @@ check_wp <- function(path = ".", verbose = TRUE) {
     }
   }
 
-  # annee : vérification basique d'abord
+  # annee : calculé par setup_wp() (année courante par défaut) — non bloquant
   if (is.null(yml$annee)) {
-    add_diag("annee", "error", "Champ `annee` absent de _quarto.yml.")
+    add_diag("annee", "warning",
+             "Champ `annee` absent de _quarto.yml — relancer setup_wp() pour le définir.")
   }
 
-  # wp : doit être fourni quand annee est fourni
+  # wp : attribué par le registre central, pas par l'auteur·e — absent en staging,
+  # c'est le cas normal avant fusion de la PR dans ofceweb/wp-registry.
   if (!is.null(yml$annee) && is.null(yml$wp)) {
-    add_diag("wp", "error",
-             "Champ `annee` renseigné mais `wp` absent de _quarto.yml — numéro du WP manquant ?")
+    add_diag("wp", "warning",
+             "Champ `wp` absent — normal en staging (numéro attribué par le registre après wp_registry_request()).")
   }
 
   if (is.null(yml$author) && is.null(yml$authors)) {

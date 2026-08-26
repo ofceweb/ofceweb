@@ -1,4 +1,4 @@
-## ofceweb v0.9.2
+## ofceweb v0.9.3
 
 ### Registre central WP (`ofceweb/wp-registry`) — nouveau
 
@@ -78,6 +78,11 @@ Cela ferme deux failles de sécurité de la Phase 1 (contournement via
   passent de `"error"` à `"warning"`. `site-path` est entièrement dérivé par
   `setup_wp()` à partir de `annee` et `wp` — toute incohérence se corrige en
   relançant `setup_wp()`, jamais en bloquant le rendu.
+* `check_wp()` — `annee` et `wp` absents passent de `"error"` à `"warning"`.
+  `annee` est calculé par `setup_wp()` (année courante par défaut) ; `wp` est
+  attribué par le registre central après `wp_registry_request()` — son absence
+  est le cas normal en phase de staging. Un WP sans numéro peut désormais se
+  rendre sans blocage.
 * `check_repo_status()` — nouveau paramètre `timeout` (défaut : 10 s). Le
   `git fetch` tourne désormais dans un sous-processus `callr` afin que le
   délai soit respecté sur toutes les plateformes (Windows inclus). Si GitHub

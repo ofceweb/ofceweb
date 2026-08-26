@@ -21,7 +21,7 @@
 #' @importFrom jsonlite toJSON
 #' @importFrom cli cli_alert_success cli_alert_warning
 #' @keywords internal
-wp_manifest <- function(path = ".") {
+wp_manifest <- function(path = ".", stage = NULL) {
 
   root <- path |>
     fs::path_expand() |>
@@ -69,11 +69,20 @@ wp_manifest <- function(path = ".") {
   if (!is.null(abstract)) abstract <- as.character(abstract)
 
   # URL de déploiement
-  url <- if (!is.null(wp) && !is.null(annee)) {
-    ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
+  ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
+  url <- if (isFALSE(stage) && !is.null(wp) && !is.null(annee)) {
+    # Publié : URL FTP production numérotée
+    sprintf("https://www.ofce.fr/wp/%d/%d/%s", annee, wp, ver_seg)
+  } else if (isTRUE(stage)) {
+    # Staging FTP : URL de pré-publication (avant enregistrement dans le registre)
+    repo_slug <- if (!is.null(source_repo) && !is.na(source_repo))
+      basename(source_repo) else fs::path_file(root)
+    sprintf("https://www.ofce.fr/stage/wp/%s/%s", repo_slug, ver_seg)
+  } else if (!is.null(wp) && !is.null(annee)) {
+    # Compatibilité : stage NULL mais wp renseigné (appels antérieurs sans stage)
     sprintf("https://www.ofce.fr/wp/%d/%d/%s", annee, wp, ver_seg)
   } else {
-    # brouillon : GitHub Pages
+    # Brouillon initial : GitHub Pages
     su <- yml$website$`site-url`
     if (!is.null(su) && nzchar(su)) su else NULL
   }
@@ -111,6 +120,7 @@ wp_manifest <- function(path = ".") {
     wp            = wp,
     annee         = annee,
     version       = version,
+    stage         = stage,
     date          = date_val,
     date_modified = date_mod,
     url           = url,

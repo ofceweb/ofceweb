@@ -98,11 +98,21 @@ check_wp <- function(path = ".", verbose = TRUE) {
 
   # Champs obligatoires dans _quarto.yml
   # (annee sera vérifié plus précisément si WP publié)
-  for (field in c("date", "citation")) {
-    if (is.null(yml[[field]])) {
-      add_diag(field, "error", sprintf("Champ `%s` absent de _quarto.yml.", field))
+  if (is.null(yml[["date"]])) {
+    add_diag("date", "error", "Champ `date` absent de _quarto.yml.")
+  } else {
+    add_diag("date", "ok", "Champ `date` présent.")
+  }
+
+  # citation : non requis en staging (pas de wp/annee définis) ;
+  # calculé automatiquement par setup_wp() quand wp/annee sont fournis,
+  # donc son absence n'est jamais un bloquant pour le rendu.
+  if (!is.null(yml$wp)) {
+    if (is.null(yml[["citation"]])) {
+      add_diag("citation", "warning",
+               "Champ `citation` absent — relancer setup_wp() pour le recalculer.")
     } else {
-      add_diag(field, "ok", sprintf("Champ `%s` présent.", field))
+      add_diag("citation", "ok", "Champ `citation` présent.")
     }
   }
 

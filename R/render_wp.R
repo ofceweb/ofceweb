@@ -1,11 +1,13 @@
 #' Rendu complet d'un document de travail (WP) OFCE
 #'
 #' Orchestre le build complet d'un WP Quarto : vérification du dépôt git,
-#' vérification de la structure WP, nettoyage de `_site/`, rendu Quarto
-#' (HTML + PDF), construction du sitemap, patch des hashes Bootstrap,
-#' écriture du manifeste, synchronisation de la variable GitHub Actions
-#' `FTP_SERVER_DIR` (WPs publiés uniquement), et optionnellement déploiement
-#' sur la branche de déploiement et prévisualisation locale.
+#' vérification de la structure WP, consultation du registre central
+#' (`ofceweb/wp-registry`) pour déterminer l'état `stage` (staging ou publié),
+#' nettoyage de `_site/`, rendu Quarto (HTML + PDF) avec `stage` injecté
+#' comme métadonnée Quarto, construction du sitemap, patch des hashes
+#' Bootstrap, écriture du manifeste (champ `stage` inclus), synchronisation
+#' de `FTP_SERVER_DIR` (WPs publiés confirmés uniquement), et optionnellement
+#' déploiement sur la branche de déploiement et prévisualisation locale.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param check_repo Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
@@ -31,6 +33,7 @@
 #' @importFrom future.mirai mirai_multisession
 #' @importFrom quarto quarto_render
 #' @importFrom gert git_status
+#' @importFrom jsonlite fromJSON
 #' @export
 render_wp <- function(
     path = ".",
@@ -83,6 +86,50 @@ render_wp <- function(
   servr::daemon_stop()
   future::plan(future.mirai::mirai_multisession, workers = workers)
 
+  # ---- 2.5. registre central (détermine stage avant le rendu) --------------
+  # Consulte ofceweb/wp-registry pour savoir si ce dépôt a une entrée
+  # confirmée (type "repo"). Résultat : stage = FALSE (publié), TRUE (staging).
+  # Le résultat est injecté comme métadonnée Quarto pour le banner "Version
+  # provisoire" et écrit dans manifest.json pour router deploy_wp().
+  cli::cli_h2("Registre central")
+  source_repo  <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
+  if (!is.na(source_repo)) {
+    repo_owner <- strsplit(source_repo, "/", fixed = TRUE)[[1L]][[1L]]
+    if (!identical(repo_owner, "ofce"))
+      cli::cli_alert_info(
+        "Dépôt sous {.strong {repo_owner}}, pas sous {.strong ofce} — ",
+        "le rendu fonctionne mais la publication FTP sera bloquée. ",
+        "Transférer via GitHub → Settings → Danger Zone → Transfer repository.")
+  }
+  registry_url <- "https://raw.githubusercontent.com/ofceweb/wp-registry/main/registry.json"
+  registry <- tryCatch(
+    jsonlite::fromJSON(registry_url, simplifyVector = FALSE),
+    error = function(e) {
+      cli::cli_alert_warning(
+        "Registre inaccessible ({conditionMessage(e)}) — staging par défaut.")
+      NULL
+    }
+  )
+  stage <- if (!is.null(registry) && !is.na(source_repo)) {
+    entries <- registry$wp
+    matched <- Filter(
+      function(e) identical(e$type, "repo") && identical(e[["source-repo"]], source_repo),
+      entries
+    )
+    if (length(matched) > 0L) {
+      cli::cli_alert_success(
+        "Dépôt {.val {source_repo}} enregistré — déploiement en production.")
+      FALSE
+    } else {
+      cli::cli_alert_warning(
+        "Dépôt {.val {source_repo}} absent du registre — staging. ",
+        "Lancer {.run ofceweb::wp_registry_request()} pour demander un numéro.")
+      TRUE
+    }
+  } else {
+    TRUE  # fallback sûr si réseau ou remote indisponible
+  }
+
   # ---- 3. vider _site/ -----------------------------------------------------
   if (fs::dir_exists("_site"))
     tryCatch(
@@ -92,7 +139,8 @@ render_wp <- function(
 
   # ---- 4. rendu Quarto (HTML + PDF) ----------------------------------------
   cli::cli_h2("Rendu Quarto (HTML + PDF)")
-  quarto::quarto_render(output_format = "all", as_job = FALSE)
+  quarto::quarto_render(output_format = "all", as_job = FALSE,
+                        metadata = list(stage = stage))
 
   # Nettoyer les DS_Store
   if (fs::dir_exists("_site"))
@@ -114,7 +162,7 @@ render_wp <- function(
 
   # ---- 7. manifeste --------------------------------------------------------
   cli::cli_h2("Écriture du manifest.json")
-  tryCatch(wp_manifest(root),
+  tryCatch(wp_manifest(root, stage = stage),
            error = function(e)
              cli::cli_alert_warning("manifest.json non généré : {conditionMessage(e)}"))
 
@@ -123,7 +171,7 @@ render_wp <- function(
   # workflow FTP. On synchronise ici pour que le déploiement soit toujours
   # cohérent, même si le workflow a été copié depuis le gabarit (placeholder)
   # ou si la version a été incrémentée depuis le dernier setup.
-  if (!is.null(yml_top) && !is.null(yml_top$wp)) {
+  if (!is.null(yml_top) && !is.null(yml_top$wp) && isFALSE(stage)) {
     server_dir <- yml_top$website$`site-path`
     if (!is.null(server_dir) && nzchar(server_dir)) {
       if (!grepl("/$", server_dir)) server_dir <- paste0(server_dir, "/")

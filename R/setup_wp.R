@@ -23,6 +23,13 @@
 #' l'étape de vérification anti-collision (voir [wp_manifest()]) y est
 #' absente.
 #'
+#' La variable `FTP_STAGING_DIR` est toujours positionnée (brouillon ou publié)
+#' à `stage/wp/{repo}/{version}/` — chemin utilisé par `ftp_stage.yml` pour
+#' déposer les versions de revue avant enregistrement dans le registre central
+#' (credentials chroot `stage/`, voir [wp_registry_request()]). Le workflow
+#' `ftp_stage.yml` est copié dans `.github/workflows/` au même titre que
+#' `ftp_deploy.yml` (section 10, seulement si absent).
+#'
 #' Toujours pour les WPs publiés, `citation.issue` (`"{année}-{wp}"`, sans
 #' zéro de remplissage) et `citation.url`
 #' (`https://www.ofce.fr/wp/{année}/{wp}/`, l'URL publique stable, sans
@@ -189,6 +196,18 @@ setup_wp <- function(
   gh     <- parse_remote_wp(origin_url)
   repo_name <- if (is.na(gh$repo)) fs::path_file(root) else gh$repo
   gh_org    <- if (is.na(gh$owner)) "ofce" else gh$owner
+
+  # Avertissement si le dépôt n'est pas dans l'organisation ofce.
+  # Le rendu local fonctionne, mais la publication FTP nécessite d'être dans
+  # `ofce` : les secrets FTP y sont stockés et l'accès au registre central
+  # (wp_registry_request()) est réservé aux dépôts de cette organisation.
+  if (!is.na(gh$owner) && !identical(gh_org, "ofce")) {
+    cli::cli_alert_info(
+      "Ce dépôt est sous {.strong {gh_org}}, pas sous {.strong ofce}. ",
+      "Le rendu fonctionne, mais la publication FTP ne sera pas possible ",
+      "avant un transfert de propriété vers l'organisation {.strong ofce} ",
+      "(GitHub → Settings → Danger Zone → Transfer repository).")
+  }
 
   # ---- 3. titre du WP -------------------------------------------------------
   final_title <- if (!is.null(website_title) && nzchar(website_title)) {
@@ -516,6 +535,17 @@ setup_wp <- function(
     }
   }
 
+  # ---- 12b. FTP_STAGING_DIR (toujours, indépendant du numéro WP) -----------
+  # Chemin FTP de staging : stage/wp/{repo}/{version}/
+  # Utilisé par ftp_stage.yml avec les credentials chroot stage/ pour déposer
+  # les versions de revue d'un WP en attente d'enregistrement dans le registre.
+  staging_slug    <- if (!is.na(gh$repo)) gh$repo else fs::path_file(root)
+  staging_version <- yml$version
+  staging_ver_seg <- if (!is.null(staging_version) && nzchar(as.character(staging_version)))
+    paste0(staging_version, "/") else ""
+  staging_dir <- sprintf("stage/wp/%s/%s", staging_slug, staging_ver_seg)
+  set_gh_var(root, "FTP_STAGING_DIR", staging_dir)
+
   # ---- 13. .gitignore -------------------------------------------------------
   gi_path      <- fs::path(root, ".gitignore")
   gi_lines     <- if (fs::file_exists(gi_path)) readLines(gi_path, warn = FALSE) else character()
@@ -545,6 +575,7 @@ setup_wp <- function(
   cli::cli_li("site-url    : {yml$website$`site-url`}")
   if (!is.null(yml$website$`site-path`))
     cli::cli_li("site-path   : {yml$website$`site-path`}")
+  cli::cli_li("FTP_STAGING_DIR : {staging_dir}")
   if (!is.null(yml$citation$issue))
     cli::cli_li("citation issue: {yml$citation$issue}")
   if (!is.null(yml$citation$url))

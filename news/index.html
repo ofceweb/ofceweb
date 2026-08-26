@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,45 +33,32 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.8.2" id="ofceweb-v082">ofceweb v0.8.2<a class="anchor" aria-label="anchor" href="#ofceweb-v082"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.9.0" id="ofceweb-v090">ofceweb v0.9.0<a class="anchor" aria-label="anchor" href="#ofceweb-v090"></a></h2>
+<div class="section level3">
+<h3 id="registre-central-wp-ofcewebwp-registry--nouveau-0-9-0">Registre central WP (<code>ofceweb/wp-registry</code>) — nouveau<a class="anchor" aria-label="anchor" href="#registre-central-wp-ofcewebwp-registry--nouveau-0-9-0"></a></h3>
+<p>Nouveau mécanisme d’autorisation de publication : un dépôt doit être enregistré dans le registre central avant de pouvoir publier sur le chemin FTP numéroté. Cela ferme deux failles de sécurité de la Phase 1 (contournement via <code>custom_version</code>, absence d’autorisation préalable).</p>
+<ul><li><p><code>wp_registry_request()</code> — nouvelle fonction exportée. Résout <code>{annee, wp, source-repo}</code> pour le dépôt local, vérifie l’organisation (<code>ofce</code> requis), auto-numérote le WP si <code>wp = NULL</code> (max existant + 1 pour l’année, tous types confondus), contrôle les collisions si <code>wp</code> est fourni explicitement, résout <code>contact</code> depuis <code>git config user.email</code>, clone <code>ofceweb/wp-registry</code>, pousse une branche <code>request/{annee}/{wp}</code> et ouvre une PR via l’API GitHub. Fire-and-forget : un·e admin fusionne la PR, puis <code><a href="../reference/render_wp.html">render_wp()</a></code> détecte automatiquement l’enregistrement. Paramètre <code>dry_run</code> pour inspecter l’entrée sans ouvrir de PR.</p></li>
+<li><p><code><a href="../reference/render_wp.html">render_wp()</a></code> — nouvelle étape 2.5 : consultation du registre central avant le rendu Quarto. Détermine <code>stage = TRUE</code> (dépôt non encore enregistré → staging FTP) ou <code>stage = FALSE</code> (enregistré → publication numérotée). Injecte <code>stage</code> comme métadonnée Quarto (pour le banner « Version provisoire » dans les extensions <code>ofce-quarto-extensions</code>). Passe <code>stage</code> à <code><a href="../reference/wp_manifest.html">wp_manifest()</a></code>. Synchronise <code>FTP_SERVER_DIR</code> uniquement si <code>stage = FALSE</code>. Affiche une notice si le dépôt n’est pas sous l’organisation <code>ofce</code>.</p></li>
+<li><p><code><a href="../reference/wp_manifest.html">wp_manifest()</a></code> — nouveau paramètre <code>stage</code> (défaut <code>NULL</code> pour la rétrocompatibilité). Écrit le champ <code>stage</code> dans <code>manifest.json</code>. Adapte le champ <code>url</code> : URL FTP production (<code>stage = FALSE</code>), URL FTP staging <code>stage/wp/{repo}/{version}/</code> (<code>stage = TRUE</code>), URL GitHub Pages (<code>stage = NULL</code> sans <code>wp</code>).</p></li>
+<li><p><code><a href="../reference/deploy_wp.html">deploy_wp()</a></code> — routage à trois branches basé sur <code>manifest$stage</code> : <code>FALSE</code> → FTP production (<code>ftp_deploy.yml</code>, branche <code>site-deploy</code>, inchangé) ; <code>TRUE</code> → FTP staging (<code>ftp_stage.yml</code>, branche <code>site-staging</code>, nouveau) ; <code>NULL</code> → GitHub Pages (<code>quarto publish gh-pages</code>, inchangé). Affiche une suggestion <code>wp_registry_request()</code> si le manifeste est présent mais sans champ <code>stage</code>.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="staging-ftp-versionnée-nouveau-0-9-0">Staging FTP versionnée (nouveau)<a class="anchor" aria-label="anchor" href="#staging-ftp-versionn%C3%A9e-nouveau-0-9-0"></a></h3>
+<ul><li><p><code>inst/setup_wp/workflows/ftp_stage.yml</code> — nouveau workflow copié par <code><a href="../reference/setup_wp.html">setup_wp()</a></code>. Déclenché sur push vers <code>site-staging</code> ou <code>workflow_dispatch</code>. Utilise les secrets <code>STAGING_USERNAME</code> / <code>STAGING_PASSWORD</code> (chroot <code>stage/</code> côté serveur FTP — aucun risque d’écriture sur les chemins de production) et la variable <code>FTP_STAGING_DIR</code>. Chiffrement staticrypt optionnel. Conserve l’état FTP incrémental sur la branche <code>site-staging</code>.</p></li>
+<li><p><code><a href="../reference/setup_wp.html">setup_wp()</a></code> — nouvelle section 12b : positionne toujours la variable GitHub <code>FTP_STAGING_DIR</code> à <code>stage/wp/{repo}/{version}/</code>, indépendamment du numéro WP. Affiche une notice informative si le dépôt n’est pas sous l’organisation <code>ofce</code> (le rendu fonctionne, mais la publication FTP sera bloquée).</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-9-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-9-0"></a></h3>
+<ul><li>La vignette <code>vignettes/working-papers.Rmd</code> doit être mise à jour pour décrire le nouveau flux de publication : <code>wp_registry_request()</code> → approbation admin → <code><a href="../reference/render_wp.html">render_wp()</a></code> (détecte l’enregistrement) → <code><a href="../reference/deploy_wp.html">deploy_wp()</a></code> (route automatiquement vers staging ou production). Le fonctionnement en deux temps (staging FTP avant numérotation définitive) et les URLs de staging (<code>stage/wp/{repo}/{version}/</code>) doivent y être documentés.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="contrôles-et-diagnostics-0-9-0">Contrôles et diagnostics<a class="anchor" aria-label="anchor" href="#contr%C3%B4les-et-diagnostics-0-9-0"></a></h3>
+<ul><li>
+<code><a href="../reference/check_wp.html">check_wp()</a></code> — suppression du contrôle d’appartenance à l’organisation <code>ofce</code> (redondant : l’enregistrement dans le registre implique une vérification admin, et l’absence des secrets FTP bloque naturellement la publication hors <code>ofce</code>).</li>
+<li>
+<code><a href="../reference/check_wp.html">check_wp()</a></code> — le champ <code>citation</code> n’est plus un bloquant. En mode staging (<code>wp</code> absent), le contrôle est ignoré entièrement. Quand <code>wp</code> est présent, l’absence de <code>citation</code> génère un avertissement (relancer <code><a href="../reference/setup_wp.html">setup_wp()</a></code>) mais ne bloque pas le rendu — <code>citation</code> est calculé automatiquement par <code><a href="../reference/setup_wp.html">setup_wp()</a></code> dès que <code>annee</code>/<code>wp</code> sont fournis.</li>
+</ul></div>
 </div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.8.1" id="ofceweb-v081">ofceweb v0.8.1<a class="anchor" aria-label="anchor" href="#ofceweb-v081"></a></h2>
-<ul><li><p><code><a href="../reference/setup_wp.html">setup_wp()</a></code> calcule désormais systématiquement <code>website.site-path</code> / <code>website.site-url</code> dès que <code>wp</code> est non nul (fourni explicitement ou déjà présent dans <code>_quarto.yml</code>), plutôt que seulement lors de l’appel qui a défini <code>wp</code>. Un <code>site-path</code> manquant (fichier édité à la main, ou WP créé avant cette fonctionnalité) est désormais toujours recalculé.</p></li>
-<li><p>sécurité de la publication des WP — vérification anti-collision : <code><a href="../reference/wp_manifest.html">wp_manifest()</a></code> ajoute désormais un champ <code>source-repo</code> (<code>"owner/repo"</code>, résolu depuis le remote <code>origin</code>) au <code>manifest.json</code>. Le workflow <code>ftp_deploy.yml</code> télécharge le <code>manifest.json</code> déjà déployé à l’emplacement cible avant l’upload FTP et <strong>annule le déploiement</strong> si son <code>source-repo</code> ne correspond pas au dépôt courant — ceci empêche qu’un dépôt différent réutilisant le même <code>{annee, wp}</code> écrase un WP déjà publié. <code><a href="../reference/setup_wp.html">setup_wp()</a></code> migre automatiquement cette étape dans un <code>ftp_deploy.yml</code> existant qui ne l’a pas encore.</p></li>
-<li><p>correction de <code><a href="../reference/setup_wp.html">setup_wp()</a></code> : <code>citation.url</code> était calculée à partir de <code>website.site-url</code> + <code>website.site-path</code>, ce qui omettait le segment <code>wp/</code> de l’URL publique réelle (<code>www.ofce.fr/wp/{annee}/{wp}/</code>, tel que calculé indépendamment par <code><a href="../reference/deploy_wp.html">deploy_wp()</a></code>). <code>citation.url</code> est désormais construite directement depuis <code>annee</code>/<code>wp</code>, cohérente avec l’URL de déploiement effective.</p></li>
-<li><p>favicon spécifique aux documents de travail</p></li>
-<li><p><code><a href="../reference/setup_wp.html">setup_wp()</a></code>, <code><a href="../reference/setup_prev.html">setup_prev()</a></code> et <code><a href="../reference/setup_site.html">setup_site()</a></code> resynchronisent désormais systématiquement la clé <code>website.favicon</code> (<code>www/fofce-wp.png</code> pour les WP, <code>www/fofce.png</code> pour les prévisions et sites génériques), y compris sur un <code>_quarto.yml</code> déjà existant (auparavant seul un fichier nouvellement créé recevait cette valeur ; un dépôt existant conservait sa clé <code>favicon</code> d’origine).</p></li>
-</ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.8.0" id="ofceweb-v080">ofceweb v0.8.0<a class="anchor" aria-label="anchor" href="#ofceweb-v080"></a></h2>
-<ul><li>nouvelle fonction <code><a href="../reference/render.html">render()</a></code> : détecte automatiquement le type de dépôt (WP, prévision, blog, site générique) via <code><a href="../reference/detect_repo_type.html">detect_repo_type()</a></code> et appelle <code><a href="../reference/render_wp.html">render_wp()</a></code>/<code><a href="../reference/render_prev.html">render_prev()</a></code>/<code><a href="../reference/render_blog.html">render_blog()</a></code>/<code><a href="../reference/render_site.html">render_site()</a></code> en conséquence. Si rien n’est reconnu, invite à lancer <code><a href="../reference/setup_wp.html">setup_wp()</a></code> ou <code><a href="../reference/setup_site.html">setup_site()</a></code>.</li>
-<li>nouvelle fonction <code><a href="../reference/publish.html">publish()</a></code> : même détection que <code><a href="../reference/render.html">render()</a></code>, mais appelle <code><a href="../reference/publish_wp.html">publish_wp()</a></code>/<code><a href="../reference/publish_prev.html">publish_prev()</a></code>/<code><a href="../reference/publish_blog.html">publish_blog()</a></code>/<code><a href="../reference/stage_site.html">stage_site()</a></code> (ce dernier en l’absence de <code>publish_site()</code> dédié).</li>
-<li>nouvelles primitives internes <code><a href="../reference/yaml_patch_scalar.html">yaml_patch_scalar()</a></code>, <code><a href="../reference/yaml_patch_block.html">yaml_patch_block()</a></code>, <code><a href="../reference/yaml_patch_delete.html">yaml_patch_delete()</a></code>, <code><a href="../reference/yaml_patch_scalar_or_delete.html">yaml_patch_scalar_or_delete()</a></code> et <code><a href="../reference/yaml_patch_frontmatter_scalar.html">yaml_patch_frontmatter_scalar()</a></code> : édition ligne à ligne des fichiers YAML qui préserve les commentaires, lignes vides et l’ordre des clés.</li>
-<li>
-<code><a href="../reference/prev_version_up.html">prev_version_up()</a></code>, <code><a href="../reference/wp_version_up.html">wp_version_up()</a></code> et <code><a href="../reference/site_version_up.html">site_version_up()</a></code> utilisent désormais ces primitives au lieu de <code><a href="https://yaml.r-lib.org/reference/write_yaml.html" class="external-link">yaml::write_yaml()</a></code>, qui écrasait silencieusement les commentaires des fichiers <code>_quarto*.yml</code>.</li>
-<li>
-<code><a href="../reference/setup_wp.html">setup_wp()</a></code> déduit et met à jour automatiquement <code>citation.issue</code> et <code>citation.url</code> à partir des autres champs YAML (<code>annee</code>, <code>wp</code>, <code>site-path</code>, etc.) à chaque appel ; ces champs ne sont plus à éditer à la main.</li>
-<li>gabarits <code>_quarto.yml</code> (<code>setup_wp</code>, <code>setup_site</code>, <code>setup_prev</code>) : favicon unifiée sur <code>www/fofce.png</code> (le logo “ofce”), désormais fourni dans <code>inst/share/www/</code> et <code>inst/setup_site/www/</code>. <code>setup_wp</code> utilise sa propre variante <code>www/fofce-wp.png</code> (même logo, badge “WP” ajouté) pour distinguer les onglets de navigateur des WP de ceux des autres dépôts ; <code>setup_prev</code>/<code>setup_site</code> gardent le favicon générique pour l’instant.</li>
-<li>
-<code>_pkgdown.yml</code> : nouvelle section « Dispatch automatique » pour <code><a href="../reference/render.html">render()</a></code> et <code><a href="../reference/publish.html">publish()</a></code>.</li>
-</ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.7.0" id="ofceweb-v070">ofceweb v0.7.0<a class="anchor" aria-label="anchor" href="#ofceweb-v070"></a></h2>
-<ul><li>aide et messages en français</li>
-<li>setup_* utilise setup_quarto comme source de vérité pour les extensions</li>
-</ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.6.1" id="ofceweb-v061">ofceweb v0.6.1<a class="anchor" aria-label="anchor" href="#ofceweb-v061"></a></h2>
-<ul><li>divers mini bugs réduits (@claude)</li>
-<li>ajouts de tests (@claude) # <code>setup_*</code> maintenant exécute <code><a href="../reference/update_navbar.html">update_navbar()</a></code>
-</li>
-</ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.6.0" id="ofceweb-v060">ofceweb v0.6.0<a class="anchor" aria-label="anchor" href="#ofceweb-v060"></a></h2>
-<ul><li>restructuration des _extensions</li>
-<li>navbar commune et fonction <code><a href="../reference/update_navbar.html">update_navbar()</a></code> (@CharlesBordet)</li>
-</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.6" id="ofceweb-v056">ofceweb v0.5.6<a class="anchor" aria-label="anchor" href="#ofceweb-v056"></a></h2>
 <ul><li>Ajout d’une CI qui fait le rendu et qui envoie sur le FTP de l’OFCE</li>

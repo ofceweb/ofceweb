@@ -340,3 +340,27 @@ check_repo_status <- function(repo = ".", prompt = TRUE, timeout = 10) {
   }
   invisible(ab)
 }
+
+#' Résout le slug GitHub `"owner/repo"` depuis le remote `origin`
+#'
+#' Fonctionne avec les URLs HTTPS et SSH. Retire le suffixe `.git` si présent.
+#'
+#' @param root Chemin vers la racine du dépôt Git local. Défaut `"."`.
+#' @return Chaîne `"owner/repo"`, ou `NA_character_` si le remote `origin`
+#'   est absent ou non reconnu.
+#' @keywords internal
+#' @noRd
+gh_slug_from_remote <- function(root = ".") {
+  remotes <- tryCatch(gert::git_remote_list(repo = root), error = function(e) NULL)
+  if (is.null(remotes) || nrow(remotes) == 0) return(NA_character_)
+  o   <- remotes[remotes$name == "origin", , drop = FALSE]
+  url <- if (nrow(o) > 0) o$url[[1]] else remotes$url[[1]]
+  url2 <- sub("\\.git$", "", url)
+  if (grepl("^git@", url2)) {
+    m <- regmatches(url2, regexec("git@[^:]+:([^/]+)/(.+)$", url2))[[1]]
+  } else {
+    m <- regmatches(url2, regexec("https?://[^/]+/([^/]+)/(.+)$", url2))[[1]]
+  }
+  if (length(m) < 3) return(NA_character_)
+  paste0(m[[2]], "/", m[[3]])
+}

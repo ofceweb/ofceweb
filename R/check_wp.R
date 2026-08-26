@@ -214,12 +214,14 @@ check_wp <- function(path = ".", verbose = TRUE) {
     }
 
     # site-path : présence et cohérence structurelle (wp/YYYY/N[/vX])
+    # site-path est entièrement calculé par setup_wp() — toute incohérence
+    # se résout en relançant setup_wp(). Jamais bloquant pour le rendu.
     sp      <- yml$website$`site-path`
     version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
 
     if (is.null(sp) || !nzchar(sp)) {
-      add_diag("site-path", "error",
-               "WP publié (wp non nul) mais site-path absent de _quarto.yml.")
+      add_diag("site-path", "warning",
+               "site-path absent de _quarto.yml — relancer setup_wp() pour le calculer.")
     } else {
       segs <- strsplit(sp, "/", fixed = TRUE)[[1]]
       n    <- length(segs)
@@ -228,9 +230,9 @@ check_wp <- function(path = ".", verbose = TRUE) {
       struct_ok <- n %in% c(2L, 3L)
 
       if (!struct_ok) {
-        add_diag("site-path", "error",
+        add_diag("site-path", "warning",
                  sprintf(
-                   "site-path `%s` mal formé — attendu : `YYYY/N` ou `YYYY/N/vX`.",
+                   "site-path `%s` mal formé (attendu : `YYYY/N` ou `YYYY/N/vX`) — relancer setup_wp().",
                    sp))
       } else {
         # Segment YYYY
@@ -240,9 +242,9 @@ check_wp <- function(path = ".", verbose = TRUE) {
           add_diag("site-path/annee", "ok",
                    sprintf("Segment année `%s` cohérent avec annee.", segs[1L]))
         } else {
-          add_diag("site-path/annee", "error",
+          add_diag("site-path/annee", "warning",
                    sprintf(
-                     "Segment année `%s` dans site-path incohérent avec annee = `%s`.",
+                     "Segment année `%s` dans site-path incohérent avec annee = `%s` — relancer setup_wp().",
                      segs[1L], yml$annee))
         }
 
@@ -253,9 +255,9 @@ check_wp <- function(path = ".", verbose = TRUE) {
           add_diag("site-path/wp", "ok",
                    sprintf("Segment numéro WP `%s` cohérent avec wp.", segs[2L]))
         } else {
-          add_diag("site-path/wp", "error",
+          add_diag("site-path/wp", "warning",
                    sprintf(
-                     "Segment numéro WP `%s` dans site-path incohérent avec wp = `%s`.",
+                     "Segment numéro WP `%s` dans site-path incohérent avec wp = `%s` — relancer setup_wp().",
                      segs[2L], yml$wp))
         }
 
@@ -266,16 +268,16 @@ check_wp <- function(path = ".", verbose = TRUE) {
               add_diag("site-path/version", "ok",
                        sprintf("Segment version `%s` cohérent avec version.", segs[3L]))
             } else {
-              add_diag("site-path/version", "error",
+              add_diag("site-path/version", "warning",
                        sprintf(
-                         "Segment version `%s` dans site-path incohérent avec version = `%s`.",
+                         "Segment version `%s` dans site-path incohérent avec version = `%s` — relancer setup_wp().",
                          segs[3L], version))
             }
           } else {
             # n == 2 : version définie dans le YAML mais absente du chemin
             add_diag("site-path/version", "warning",
                      sprintf(
-                       "version `%s` définie dans le YAML mais absente de site-path `%s`.",
+                       "version `%s` définie dans le YAML mais absente de site-path `%s` — relancer setup_wp().",
                        version, sp))
           }
         } else if (n == 3L) {

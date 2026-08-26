@@ -1,41 +1,50 @@
 #' Déploie un document de travail (WP) OFCE
 #'
-#' Route le déploiement selon le champ `stage` du manifeste
-#' (`manifest.json`, écrit par [render_wp()]) :
+#' Route le déploiement selon l'\u00e9tat du registre (`stage` dans
+#' `manifest.json`) et le param\u00e8tre `target` :
 #' \itemize{
-#'   \item **Brouillon initial** (pas de manifeste ou champ `stage` absent) :
-#'     publie sur GitHub Pages via `quarto publish gh-pages`.
-#'     État avant tout appel à [wp_registry_request()].
-#'   \item **Staged** (`stage: true`) : pousse vers la branche `site-staging`
-#'     et déclenche `ftp_stage.yml`, qui dépose dans
-#'     `stage/wp/{repo}/{version}/` avec les secrets de staging (chroot `stage/`).
-#'   \item **Publié** (`stage: false`) : pousse vers la branche `site-deploy`
-#'     et déclenche `ftp_deploy.yml` vers
-#'     `www.ofce.fr/wp/{annee}/{N}/{version}/`.
+#'   \item **Publi\u00e9** (`stage: false`) : toujours vers FTP production
+#'     (`ftp_deploy.yml`), quel que soit `target`.
+#'   \item **Non encore publi\u00e9** (`stage: true` ou `stage` absent) :
+#'     destination choisie par `target` :
+#'     \itemize{
+#'       \item `"auto"` (d\u00e9faut) : FTP staging si `stage = TRUE`
+#'         (demande de num\u00e9ro soumise), GitHub Pages sinon.
+#'       \item `"ftp"` : FTP staging (`ftp_stage.yml`, branche `site-staging`)
+#'         ind\u00e9pendamment de l'\u00e9tat du registre.
+#'       \item `"gh-pages"` : GitHub Pages (`quarto publish gh-pages`)
+#'         ind\u00e9pendamment de l'\u00e9tat du registre.
+#'     }
 #' }
 #'
-#' @param path Chemin vers la racine du dépôt. Défaut `"."`.
-#' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
-#' @param trigger Passé à [site2branch()] (WP staged ou publié uniquement).
-#'   Déclenche le workflow GitHub Actions FTP. Défaut `TRUE`.
-#' @param full_deploy Passé à [site2branch()]. Défaut `FALSE`.
-#' @param ... Arguments supplémentaires passés à [site2branch()].
+#' @param path Chemin vers la racine du d\u00e9p\u00f4t. D\u00e9faut `"."`.
+#' @param target Cha\u00eene. Destination pour les WPs non encore publi\u00e9s :
+#'   `"auto"` (d\u00e9faut), `"ftp"` ou `"gh-pages"`. Ignor\u00e9 si le WP
+#'   est confirm\u00e9 dans le registre (`stage = FALSE`).
+#' @param progress Logique. Affichage de la progression. D\u00e9faut `TRUE`.
+#' @param trigger Pass\u00e9 \u00e0 [site2branch()] (WP staged ou publi\u00e9 uniquement).
+#'   D\u00e9clenche le workflow GitHub Actions FTP. D\u00e9faut `TRUE`.
+#' @param full_deploy Pass\u00e9 \u00e0 [site2branch()]. D\u00e9faut `FALSE`.
+#' @param ... Arguments suppl\u00e9mentaires pass\u00e9s \u00e0 [site2branch()].
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [render_wp()], [site2branch()], [wp_version_up()], [wp_registry_request()]
 #' @importFrom fs path_expand path_abs path_norm path file_exists dir_exists path_file
-#' @importFrom cli cli_h2 cli_abort cli_alert_success cli_alert_warning cli_text
+#' @importFrom cli cli_h2 cli_abort cli_alert_success cli_alert_warning cli_text cli_alert_info
 #' @importFrom yaml read_yaml
 #' @importFrom jsonlite read_json
 #' @section Working Paper (WP) Users:
 #'
 #' @export
 deploy_wp <- function(
-    path = ".",
+    path        = ".",
+    target      = "auto",
     progress    = TRUE,
     trigger     = TRUE,
     full_deploy = FALSE,
     ...) {
+
+  target <- match.arg(target, c("auto", "ftp", "gh-pages"))
 
   root <- path |>
     fs::path_expand() |>
@@ -49,7 +58,7 @@ deploy_wp <- function(
 
   yml <- yaml::read_yaml(yml_path)
 
-  # Manifeste écrit par render_wp() — source de vérité pour l'état registry
+  # Manifeste \u00e9crit par render_wp() \u2014 source de v\u00e9rit\u00e9 pour l'\u00e9tat registry
   manifest_path <- fs::path(root, "manifest.json")
   manifest <- if (fs::file_exists(manifest_path)) {
     tryCatch(jsonlite::read_json(manifest_path), error = function(e) NULL)
@@ -57,17 +66,16 @@ deploy_wp <- function(
     NULL
   }
 
-  # stage: FALSE = publié, TRUE = staging FTP, NULL = brouillon initial (GitHub Pages)
   stage   <- manifest$stage
-  annee   <- manifest$annee   %||% yml$annee
-  wp      <- manifest$wp      %||% yml$wp
+  annee   <- manifest$annee %||% yml$annee
+  wp      <- manifest$wp    %||% yml$wp
   version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
 
   if (!fs::dir_exists(fs::path(root, "_site")))
     cli::cli_alert_warning(
-      "Pas de dossier {.path _site} — lancer {.run ofceweb::render_wp()} d'abord.")
+      "Pas de dossier {.path _site} \u2014 lancer {.run ofceweb::render_wp()} d'abord.")
 
-  # ---- Publié : FTP production ---------------------------------------------
+  # ---- Publi\u00e9 : FTP production (tou jours, target ignor\u00e9) -------------------
   if (isFALSE(stage)) {
     stable_url <- sprintf("https://www.ofce.fr/wp/%d/%03d", annee, wp)
     ver_seg    <- if (!is.null(version)) paste0(version, "/") else ""
@@ -97,9 +105,19 @@ deploy_wp <- function(
     return(invisible(res))
   }
 
-  # ---- Staged : FTP staging ------------------------------------------------
-  if (isTRUE(stage)) {
-    # Slug du dépôt : partie repo de source-repo (ex. "ofce/wp-2026-15-...") ou nom local
+  # ---- D\u00e9termination de la cible effective (non-publi\u00e9) ---------------------
+  effective_target <- if (target == "auto") {
+    if (isTRUE(stage)) "ftp" else "gh-pages"
+  } else {
+    target
+  }
+
+  if (target != "auto" && target != if (isTRUE(stage)) "ftp" else "gh-pages")
+    cli::cli_alert_info(
+      "Cible forc\u00e9e \u00e0 {.val {target}} (registre : {if (isTRUE(stage)) 'staging' else 'brouillon'}).")
+
+  # ---- FTP staging ----------------------------------------------------------
+  if (effective_target == "ftp") {
     source_repo <- manifest[["source-repo"]]
     repo_slug <- if (!is.null(source_repo) && nzchar(source_repo)) {
       basename(source_repo)
@@ -112,7 +130,8 @@ deploy_wp <- function(
 
     cli::cli_h2("D\u00e9ploiement WP staging (site2branch \u2192 FTP staging)")
     cli::cli_text(
-      "En attente d'enregistrement{if (!is.null(version)) paste0(' / ', version) else ''} \u2192 {.url {final_url}}")
+      "{if (isTRUE(stage)) 'En attente d\u2019enregistrement' else 'Brouillon'} \\
+       {if (!is.null(version)) paste0('/ ', version, ' ') else ''}\u2192 {.url {final_url}}")
 
     res <- site2branch(
       path        = root,
@@ -129,14 +148,13 @@ deploy_wp <- function(
     return(invisible(res))
   }
 
-  # ---- Brouillon initial : GitHub Pages ------------------------------------
-  # Aucun champ stage dans le manifeste = avant wp_registry_request()
-  cli::cli_h2("D\u00e9ploiement brouillon initial (quarto publish gh-pages)")
+  # ---- GitHub Pages ---------------------------------------------------------
+  cli::cli_h2("D\u00e9ploiement WP (quarto publish gh-pages)")
 
-  if (!is.null(manifest) && is.null(stage))
-    cli::cli_text(
-      "Manifeste pr\u00e9sent mais sans champ {.code stage} \u2014 ",
-      "lancer {.run ofceweb::wp_registry_request()} pour demander un num\u00e9ro.")
+  if (isTRUE(stage))
+    cli::cli_alert_info(
+      "D\u00e9p\u00f4t en attente d\u2019enregistrement \u2014 GitHub Pages forc\u00e9 par {.code target = \"gh-pages\"}. \\
+       Utiliser {.code target = \"ftp\"} pour d\u00e9poser sur le staging FTP.")
 
   oldwd <- getwd()
   on.exit(setwd(oldwd))
@@ -150,7 +168,7 @@ deploy_wp <- function(
   if (!identical(status, 0L))
     cli::cli_abort("\u00c9chec de {.code quarto publish gh-pages} (code {status}).")
 
-  cli::cli_alert_success("WP brouillon publi\u00e9 sur gh-pages.")
+  cli::cli_alert_success("WP publi\u00e9 sur gh-pages.")
 
   gh_url <- yml$website$`site-url`
   if (!is.null(gh_url) && nzchar(gh_url))

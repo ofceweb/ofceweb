@@ -1,4 +1,4 @@
-## ofceweb v0.9.0
+## ofceweb v0.9.1
 
 ### Registre central WP (`ofceweb/wp-registry`) — nouveau
 
@@ -73,6 +73,16 @@ Cela ferme deux failles de sécurité de la Phase 1 (contournement via
   l'absence de `citation` génère un avertissement (relancer `setup_wp()`) mais
   ne bloque pas le rendu — `citation` est calculé automatiquement par
   `setup_wp()` dès que `annee`/`wp` sont fournis.
+* `check_wp()` — tous les contrôles de `site-path` (absence, format incorrect,
+  incohérence avec `annee`, incohérence avec `wp`, incohérence avec `version`)
+  passent de `"error"` à `"warning"`. `site-path` est entièrement dérivé par
+  `setup_wp()` à partir de `annee` et `wp` — toute incohérence se corrige en
+  relançant `setup_wp()`, jamais en bloquant le rendu.
+* `check_repo_status()` — nouveau paramètre `timeout` (défaut : 10 s). Le
+  `git fetch` tourne désormais dans un sous-processus `callr` afin que le
+  délai soit respecté sur toutes les plateformes (Windows inclus). Si GitHub
+  ne répond pas dans le délai imparti, la vérification est silencieusement
+  ignorée avec un avertissement plutôt que de bloquer indéfiniment le rendu.
 
 ## ofceweb v0.5.6
 

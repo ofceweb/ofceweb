@@ -67,26 +67,41 @@ gérée automatiquement.
 ## Ce que fait l'auteur·e, étape par étape
 
 ```
-1. setup_wp()             Initialise le dépôt (une fois)
+1. setup_wp()                      Initialise le dépôt (une fois)
 2. [rédaction du WP]
-3. render_wp()            Rendu + prévisualisation locale
-4. deploy_wp()            → GitHub Pages (brouillon)
+3. render_wp()                     Rendu + prévisualisation locale
+4. deploy_wp()                     → GitHub Pages (par défaut)
+   deploy_wp(target = "ftp")       → FTP staging (si préféré)
 
         — quand le WP est prêt pour la numérotation —
 
-5. wp_registry_request()  Demande un numéro (ouvre une PR dans le registre)
-6. render_wp()            Rendu + dépôt en staging FTP
-7. deploy_wp()            → FTP staging (url versionnée)
+5. wp_registry_request()           Demande un numéro (ouvre une PR dans le registre)
+6. render_wp()                     Rendu
+7. deploy_wp()                     → FTP staging (par défaut après demande)
+   deploy_wp(target = "gh-pages")  → GitHub Pages (si préféré)
 
         — après approbation admin et fusion de la PR —
 
-8. render_wp()            Détecte automatiquement l'enregistrement
-9. deploy_wp()            → FTP production (url numérotée définitive)
+8. render_wp()                     Détecte automatiquement l'enregistrement
+9. deploy_wp()                     → FTP production (url numérotée définitive)
 ```
 
 Les étapes 6–7 peuvent être répétées autant de fois que nécessaire pendant la
 relecture (chaque `wp_version_up()` incrémente la version et crée une nouvelle
 URL de staging).
+
+**Le choix entre GitHub Pages et FTP staging est libre** à toutes les étapes
+avant publication. Le paramètre `target` de `deploy_wp()` accepte trois
+valeurs :
+
+| `target` | Comportement |
+|---|---|
+| `"auto"` (défaut) | FTP staging si une demande de numéro est en cours, GitHub Pages sinon |
+| `"ftp"` | FTP staging, quelle que soit l'étape |
+| `"gh-pages"` | GitHub Pages, quelle que soit l'étape |
+
+Une fois le WP confirmé dans le registre (`stage = FALSE`), `target` est ignoré
+et le déploiement va toujours vers FTP production.
 
 ---
 

@@ -1,23 +1,24 @@
 
-#' Collecte récursivement les fichiers d'un répertoire GitHub
+#' Recursively collect files from a GitHub directory
 #'
-#' Parcourt l'arborescence d'un répertoire de dépôt GitHub via l'API Contents
-#' et renvoie une liste de paires `(url, dest)` pour chaque fichier
-#' correspondant au filtre d'extension optionnel. Les répertoires sont
-#' parcourus récursivement jusqu'à `max_depth` niveaux.
+#' Traverses a GitHub repository directory tree via the Contents API and
+#' returns a list of `(url, dest)` pairs for every file that matches the
+#' optional extension filter.  Directories are recursed up to `max_depth`
+#' levels deep.
 #'
-#' @param owner Nom de l'utilisateur ou de l'organisation GitHub.
-#' @param repo  Nom du dépôt.
-#' @param path  Chemin de départ dans le dépôt (ex. `"posts"`).
-#' @param destdir Répertoire local de destination. Défaut `path`.
-#' @param ref   Référence Git (branche, tag ou SHA) à lire. Défaut `"HEAD"`.
-#' @param ext   Si non `NULL`, seuls les fichiers dont le nom se termine par
-#'   cette chaîne sont collectés (ex. `".qmd"`).
-#' @param max_depth Profondeur maximale de récursion. `Inf` signifie illimité.
-#' @param .depth Compteur interne de récursion — ne pas définir manuellement.
+#' @param owner GitHub user or organisation name.
+#' @param repo  Repository name.
+#' @param path  Path inside the repository to start from (e.g. `"posts"`).
+#' @param destdir Local destination directory.  Defaults to `path`.
+#' @param ref   Git ref (branch, tag, or SHA) to read from.  Defaults to
+#'   `"HEAD"`.
+#' @param ext   If non-`NULL`, only files whose names end with this string are
+#'   collected (e.g. `".qmd"`).
+#' @param max_depth Maximum recursion depth.  `Inf` means unlimited.
+#' @param .depth Internal recursion counter — do not set manually.
 #'
-#' @return Une liste de listes nommées, chacune avec les éléments `url` (l'URL
-#'   de téléchargement brute) et `dest` (le chemin local du fichier).
+#' @return A list of named lists, each with elements `url` (the raw download
+#'   URL) and `dest` (the local file path).
 #'
 #' @keywords internal
 #' @noRd
@@ -42,17 +43,16 @@ collect_gh_files <- function(owner, repo, path, destdir=path, ref = "HEAD", ext 
   files
 }
 
-#' Variante parallèle de \code{collect_gh_files}
+#' Parallel variant of \code{collect_gh_files}
 #'
-#' Liste les sous-répertoires de premier niveau de `path` et délègue chaque
-#' sous-arbre à [collect_gh_files()] en parallèle via `futurize::futurize()`,
-#' ce qui réduit le temps d'exécution pour les dépôts avec de nombreux
-#' répertoires de premier niveau.
+#' Lists the top-level subdirectories of `path` and delegates each subtree to
+#' [collect_gh_files()] concurrently via `futurize::futurize()`, reducing
+#' wall-clock time for repositories with many first-level directories.
 #'
 #' @inheritParams collect_gh_files
 #'
-#' @return Même structure que [collect_gh_files()] : une liste plate de
-#'   paires `list(url, dest)`.
+#' @return Same structure as [collect_gh_files()]: a flat list of
+#'   `list(url, dest)` pairs.
 #'
 #' @keywords internal
 #' @noRd
@@ -71,42 +71,43 @@ fast_collect_gh_files  <-  function(owner, repo, path, destdir=path, ref = "HEAD
 
 }
 
-#' Télécharge un répertoire depuis un dépôt GitHub
+#' Download a directory from a GitHub repository
 #'
-#' Parcourt récursivement un répertoire de dépôt GitHub, collecte tous les
-#' fichiers correspondants en parallèle avec [fast_collect_gh_files()], puis
-#' les télécharge localement via `curl`, en ajoutant un en-tête Bearer token
-#' quand un PAT GitHub est disponible (nécessaire pour les dépôts privés).
+#' Recursively walks a GitHub repository directory, collects all matching
+#' files in parallel with [fast_collect_gh_files()], then downloads them
+#' locally using `curl`, adding a Bearer token header when a GitHub PAT is
+#' available (required for private repositories).
 #'
-#' @param owner     Nom de l'utilisateur ou de l'organisation GitHub.
-#' @param repo      Nom du dépôt.
-#' @param path      Chemin du répertoire à télécharger dans le dépôt (ex.
-#'   `"posts"`).
-#' @param destdir   Répertoire local où écrire les fichiers. Défaut `path`.
-#' @param ref       Référence Git (branche, tag ou SHA). Défaut `"HEAD"`.
-#' @param ext       Si non `NULL`, seuls les fichiers se terminant par cette
-#'   chaîne sont téléchargés (ex. `".qmd"`).
-#' @param max_depth Profondeur maximale de récursion. Défaut `3`.
+#' @param owner     GitHub user or organisation name.
+#' @param repo      Repository name.
+#' @param path      Path inside the repository to download (e.g. `"posts"`).
+#' @param destdir   Local directory to write files into.  Defaults to `path`.
+#' @param ref       Git ref (branch, tag, or SHA).  Defaults to `"HEAD"`.
+#' @param ext       If non-`NULL`, only files ending with this string are
+#'   downloaded (e.g. `".qmd"`).
+#' @param max_depth Maximum directory recursion depth.  Defaults to `3`.
 #'
-#' @return `invisible(NULL)`, appelée pour son effet de bord d'écriture des
-#'   fichiers dans `destdir`.
+#' @return `invisible(NULL)`, called for its side-effect of writing files to
+#'   `destdir`.
 #'
 #' @examples
 #' \dontrun{
-#' # Ne télécharger que les fichiers .qmd du répertoire posts/
+#' # Download only .qmd files from the posts/ directory
 #' download_gh_dir("OFCE", "Blog_OFCE", "posts", ext = ".qmd", max_depth = 3)
 #' }
+#'
+#' @section Other:
 #'
 #' @export
 download_gh_dir <- function(owner, repo, path, destdir = path, ref = "HEAD",
                             ext = NULL, max_depth = 3) {
   dir.create(destdir, recursive = TRUE, showWarnings = FALSE)
 
-  message("Collecte de la liste des fichiers...")
+  message("Collecting file list...")
   files <- fast_collect_gh_files(owner, repo, path, destdir, ref, ext, max_depth)
 
   if (length(files) == 0) {
-    message("Aucun fichier correspondant trouvé.")
+    message("No matching files found.")
     return(invisible(NULL))
   }
 
@@ -120,7 +121,7 @@ download_gh_dir <- function(owner, repo, path, destdir = path, ref = "HEAD",
   # a token for private repos, so we use curl_download with a handle per file.
   token <- tryCatch(gh::gh_token(), error = function(e) "")
 
-  message("Téléchargement de ", length(urls), " fichier(s)...")
+  message("Downloading ", length(urls), " file(s)...")
   purrr::walk2(urls, dests, function(url, dest) {
     h <- curl::new_handle()
     if (nchar(token) > 0) {
@@ -130,50 +131,46 @@ download_gh_dir <- function(owner, repo, path, destdir = path, ref = "HEAD",
   }) |>
     futurize::futurize()
 
-  message("Terminé : ", length(urls), " fichier(s) téléchargé(s) dans ", destdir)
+  message("Done: ", length(urls), " file(s) downloaded to ", destdir)
   invisible(NULL)
 }
 
-#' Télécharge un seul fichier depuis un dépôt GitHub
+#' Download a single file from a GitHub repository
 #'
-#' Recherche un fichier par son chemin via l'API Contents de GitHub et le
-#' télécharge vers une destination locale via `curl`. Un Bearer token est
-#' attaché automatiquement quand un PAT GitHub est configuré (nécessaire pour
-#' les dépôts privés).
+#' Looks up a file by path in the GitHub Contents API and downloads it to a
+#' local destination using `curl`.  A Bearer token is attached automatically
+#' when a GitHub PAT is configured (needed for private repositories).
 #'
-#' @param path  Chemin du fichier dans le dépôt (ex.
+#' @param path  Path to the file inside the repository (e.g.
 #'   `"posts/2024-01-01/index.qmd"`).
-#' @param dest  Chemin local où écrire le fichier. Défaut `path`.
-#' @param owner Nom de l'utilisateur ou de l'organisation GitHub. Défaut
-#'   `"ofceweb"`.
-#' @param repo  Nom du dépôt. Défaut `"webblog"`.
-#' @param ref   Référence Git (branche, tag ou SHA). Défaut `"site-deploy"`.
+#' @param dest  Local path to write the file to.  Defaults to `path`.
+#' @param owner GitHub user or organisation name.  Defaults to `"ofceweb"`.
+#' @param repo  Repository name.  Defaults to `"webblog"`.
+#' @param ref   Git ref (branch, tag, or SHA).  Defaults to `"site-deploy"`.
 #'
-#' @return Le chemin local `dest` en cas de succès, ou `NULL` si le fichier
-#'   n'a pas été trouvé dans le dépôt.
+#' @return The local path `dest` on success, or `NULL` if the file was not
+#'   found in the repository.
 #'
 #' @examples
 #' \dontrun{
 #' download_gh_file("posts/my-post/index.qmd", dest = "local/index.qmd")
 #' }
 #'
+#' @section Other:
+#'
 #' @export
 download_gh_file <- function(path, dest = path, owner="ofceweb", repo = "webblog", ref="site-deploy") {
 
-  contents <- tryCatch(
-    gh::gh(
-      "GET /repos/{owner}/{repo}/contents/{path}",
-      owner = owner, repo = repo, path = path, ref = ref
-    ),
-    error = function(e) NULL
-  )
+  contents <- gh::gh(
+    "GET /repos/{owner}/{repo}/contents/.",
+    owner = owner, repo = repo, path = fs::path_dir(path), ref = ref
+  ) |>
+    purrr::keep(~.x[["name"]] == fs::path_file(path))
 
-  # A file path returns a single object; a directory path (or a 404 wrapped
-  # by tryCatch) would not carry a download_url, and is treated as "not found".
-  if(is.null(contents) || is.null(contents[["download_url"]]))
+  if(length(contents)!=1)
     return(NULL)
 
-  url  <- contents[["download_url"]]
+  url  <- contents[[1]] [["download_url"]]
 
   token <- tryCatch(gh::gh_token(), error = function(e) "")
 
@@ -276,13 +273,26 @@ set_gh_var <- function(root = ".", name, value) {
   invisible(NULL)
 }
 
-check_repo_status <- function(repo = ".", prompt = TRUE) {
-  # Fetch latest refs from remote (no merge)
+check_repo_status <- function(repo = ".", prompt = TRUE, timeout = 10) {
+  # Fetch latest refs from remote (no merge).
+  # Runs in a callr subprocess so the timeout is enforced cross-platform.
   fetch <- tryCatch(
-    gert::git_fetch(repo = repo, verbose = FALSE),
-    error = function(e) { warning(sprintf("Échec du fetch : %s", e$message)); NULL }
+    callr::r(
+      function(repo) gert::git_fetch(repo = repo, verbose = FALSE),
+      args    = list(repo = repo),
+      timeout = timeout
+    ),
+    error = function(e) {
+      if (inherits(e, "callr_timeout_error")) {
+        cli::cli_alert_warning(
+          "V\u00e9rification du d\u00e9p\u00f4t ignor\u00e9e \u2014 GitHub n'a pas r\u00e9pondu en {timeout}\u00a0s.")
+      } else {
+        cli::cli_alert_warning("Fetch \u00e9chou\u00e9 : {conditionMessage(e)}")
+      }
+      NULL
+    }
   )
-  if (is.null(fetch)) return(NULL)
+  if (is.null(fetch)) return(invisible(NULL))
 
   # Get current local branch
   branch <- gert::git_branch(repo = repo)
@@ -292,7 +302,7 @@ check_repo_status <- function(repo = ".", prompt = TRUE) {
   upstream  <- branches$upstream[branches$name == branch]
 
   if (is.na(upstream) || length(upstream) == 0) {
-    cli::cli_alert_danger("La branche '{branch}' n'a pas d'upstream configuré.")
+    cli::cli_alert_danger("Branch '", branch, "' has no upstream configured.")
     return(invisible(NULL))
   }
 
@@ -300,60 +310,33 @@ check_repo_status <- function(repo = ".", prompt = TRUE) {
   ab <- gert::git_ahead_behind(upstream = upstream, repo = repo)
 
   cli::cli_text(
-    "Branche         : {branch}")
+    "Branch        : {branch}")
   cli::cli_text(
-    "Upstream        : {upstream}")
+    "Upstream      : {upstream}")
   cli::cli_text(
-    "Commits en avance : {ab$ahead} (commits locaux non poussés)")
+    "Commits ahead : {ab$ahead} (local commits not pushed)")
   cli::cli_text(
-    "Commits en retard : {ab$behind} (commits distants non récupérés)")
+    "Commits behind: {ab$behind} (remote commits not pulled)")
 
   if (ab$ahead == 0 && ab$behind == 0) {
     cli::cli_alert_info(
-      "Statut          : à jour")
+      "Status        : up to date")
   }
   if (ab$ahead > 0) {
     cli::cli_alert_info(
-      "Statut          : en avance sur le remote — commits locaux non poussés\n")
+      "Status        : ahead of remote — unpushed local commits\n")
   }
 
   if (ab$behind > 0) {
     cli::cli_alert_danger(
-      "Statut          : EN RETARD sur le remote — lancer git_branch_fast_forward() ou git pull")
+      "Status        : BEHIND remote — run git_branch_fast_forward() or git pull")
     if(prompt) {
-      answer <- readline("Êtes-vous sûr·e de vouloir continuer ? [o/N] ")
-      if (!tolower(answer) %in% c("o", "oui")) {
-        message("Abandonné.")
-        stop("Le dépôt local est en retard par rapport à origin")
+      answer <- readline("Are you sure you want to proceed? [y/N] ")
+      if (!tolower(answer) %in% c("y", "yes")) {
+        message("Aborted.")
+        stop("Your blog repo is behind origin")
       }
     }
   }
   invisible(ab)
-}
-
-#' Résout le slug GitHub `"owner/repo"` depuis le remote `origin`
-#'
-#' Utilisé pour tagger les artefacts déployés (ex. `manifest.json`) avec leur
-#' dépôt d'origine, au même format que le contexte `github.repository` des
-#' workflows GitHub Actions — ce qui permet de comparer directement les deux
-#' valeurs sans reformatage.
-#'
-#' @param root Chemin vers la racine du dépôt Git local. Défaut `"."`.
-#' @return Chaîne `"owner/repo"`, ou `NA_character_` si le remote `origin`
-#'   est absent ou non reconnu.
-#' @keywords internal
-#' @noRd
-gh_slug_from_remote <- function(root = ".") {
-  remotes <- tryCatch(gert::git_remote_list(repo = root), error = function(e) NULL)
-  if (is.null(remotes) || nrow(remotes) == 0) return(NA_character_)
-  o   <- remotes[remotes$name == "origin", , drop = FALSE]
-  url <- if (nrow(o) > 0) o$url[[1]] else remotes$url[[1]]
-  url2 <- sub("\\.git$", "", url)
-  if (grepl("^git@", url2)) {
-    m <- regmatches(url2, regexec("git@[^:]+:([^/]+)/(.+)$", url2))[[1]]
-  } else {
-    m <- regmatches(url2, regexec("https?://[^/]+/([^/]+)/(.+)$", url2))[[1]]
-  }
-  if (length(m) < 3) return(NA_character_)
-  paste0(m[[2]], "/", m[[3]])
 }

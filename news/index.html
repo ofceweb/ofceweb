@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,9 +33,9 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.9.0" id="ofceweb-v090">ofceweb v0.9.0<a class="anchor" aria-label="anchor" href="#ofceweb-v090"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.9.1" id="ofceweb-v091">ofceweb v0.9.1<a class="anchor" aria-label="anchor" href="#ofceweb-v091"></a></h2>
 <div class="section level3">
-<h3 id="registre-central-wp-ofcewebwp-registry--nouveau-0-9-0">Registre central WP (<code>ofceweb/wp-registry</code>) — nouveau<a class="anchor" aria-label="anchor" href="#registre-central-wp-ofcewebwp-registry--nouveau-0-9-0"></a></h3>
+<h3 id="registre-central-wp-ofcewebwp-registry--nouveau-0-9-1">Registre central WP (<code>ofceweb/wp-registry</code>) — nouveau<a class="anchor" aria-label="anchor" href="#registre-central-wp-ofcewebwp-registry--nouveau-0-9-1"></a></h3>
 <p>Nouveau mécanisme d’autorisation de publication : un dépôt doit être enregistré dans le registre central avant de pouvoir publier sur le chemin FTP numéroté. Cela ferme deux failles de sécurité de la Phase 1 (contournement via <code>custom_version</code>, absence d’autorisation préalable).</p>
 <ul><li><p><code>wp_registry_request()</code> — nouvelle fonction exportée. Résout <code>{annee, wp, source-repo}</code> pour le dépôt local, vérifie l’organisation (<code>ofce</code> requis), auto-numérote le WP si <code>wp = NULL</code> (max existant + 1 pour l’année, tous types confondus), contrôle les collisions si <code>wp</code> est fourni explicitement, résout <code>contact</code> depuis <code>git config user.email</code>, clone <code>ofceweb/wp-registry</code>, pousse une branche <code>request/{annee}/{wp}</code> et ouvre une PR via l’API GitHub. Fire-and-forget : un·e admin fusionne la PR, puis <code><a href="../reference/render_wp.html">render_wp()</a></code> détecte automatiquement l’enregistrement. Paramètre <code>dry_run</code> pour inspecter l’entrée sans ouvrir de PR.</p></li>
 <li><p><code><a href="../reference/render_wp.html">render_wp()</a></code> — nouvelle étape 2.5 : consultation du registre central avant le rendu Quarto. Détermine <code>stage = TRUE</code> (dépôt non encore enregistré → staging FTP) ou <code>stage = FALSE</code> (enregistré → publication numérotée). Injecte <code>stage</code> comme métadonnée Quarto (pour le banner « Version provisoire » dans les extensions <code>ofce-quarto-extensions</code>). Passe <code>stage</code> à <code><a href="../reference/wp_manifest.html">wp_manifest()</a></code>. Synchronise <code>FTP_SERVER_DIR</code> uniquement si <code>stage = FALSE</code>. Affiche une notice si le dépôt n’est pas sous l’organisation <code>ofce</code>.</p></li>
@@ -43,20 +43,24 @@
 <li><p><code><a href="../reference/deploy_wp.html">deploy_wp()</a></code> — routage à trois branches basé sur <code>manifest$stage</code> : <code>FALSE</code> → FTP production (<code>ftp_deploy.yml</code>, branche <code>site-deploy</code>, inchangé) ; <code>TRUE</code> → FTP staging (<code>ftp_stage.yml</code>, branche <code>site-staging</code>, nouveau) ; <code>NULL</code> → GitHub Pages (<code>quarto publish gh-pages</code>, inchangé). Affiche une suggestion <code>wp_registry_request()</code> si le manifeste est présent mais sans champ <code>stage</code>.</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="staging-ftp-versionnée-nouveau-0-9-0">Staging FTP versionnée (nouveau)<a class="anchor" aria-label="anchor" href="#staging-ftp-versionn%C3%A9e-nouveau-0-9-0"></a></h3>
+<h3 id="staging-ftp-versionnée-nouveau-0-9-1">Staging FTP versionnée (nouveau)<a class="anchor" aria-label="anchor" href="#staging-ftp-versionn%C3%A9e-nouveau-0-9-1"></a></h3>
 <ul><li><p><code>inst/setup_wp/workflows/ftp_stage.yml</code> — nouveau workflow copié par <code><a href="../reference/setup_wp.html">setup_wp()</a></code>. Déclenché sur push vers <code>site-staging</code> ou <code>workflow_dispatch</code>. Utilise les secrets <code>STAGING_USERNAME</code> / <code>STAGING_PASSWORD</code> (chroot <code>stage/</code> côté serveur FTP — aucun risque d’écriture sur les chemins de production) et la variable <code>FTP_STAGING_DIR</code>. Chiffrement staticrypt optionnel. Conserve l’état FTP incrémental sur la branche <code>site-staging</code>.</p></li>
 <li><p><code><a href="../reference/setup_wp.html">setup_wp()</a></code> — nouvelle section 12b : positionne toujours la variable GitHub <code>FTP_STAGING_DIR</code> à <code>stage/wp/{repo}/{version}/</code>, indépendamment du numéro WP. Affiche une notice informative si le dépôt n’est pas sous l’organisation <code>ofce</code> (le rendu fonctionne, mais la publication FTP sera bloquée).</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="documentation-0-9-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-9-0"></a></h3>
+<h3 id="documentation-0-9-1">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-9-1"></a></h3>
 <ul><li>La vignette <code>vignettes/working-papers.Rmd</code> doit être mise à jour pour décrire le nouveau flux de publication : <code>wp_registry_request()</code> → approbation admin → <code><a href="../reference/render_wp.html">render_wp()</a></code> (détecte l’enregistrement) → <code><a href="../reference/deploy_wp.html">deploy_wp()</a></code> (route automatiquement vers staging ou production). Le fonctionnement en deux temps (staging FTP avant numérotation définitive) et les URLs de staging (<code>stage/wp/{repo}/{version}/</code>) doivent y être documentés.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="contrôles-et-diagnostics-0-9-0">Contrôles et diagnostics<a class="anchor" aria-label="anchor" href="#contr%C3%B4les-et-diagnostics-0-9-0"></a></h3>
+<h3 id="contrôles-et-diagnostics-0-9-1">Contrôles et diagnostics<a class="anchor" aria-label="anchor" href="#contr%C3%B4les-et-diagnostics-0-9-1"></a></h3>
 <ul><li>
 <code><a href="../reference/check_wp.html">check_wp()</a></code> — suppression du contrôle d’appartenance à l’organisation <code>ofce</code> (redondant : l’enregistrement dans le registre implique une vérification admin, et l’absence des secrets FTP bloque naturellement la publication hors <code>ofce</code>).</li>
 <li>
 <code><a href="../reference/check_wp.html">check_wp()</a></code> — le champ <code>citation</code> n’est plus un bloquant. En mode staging (<code>wp</code> absent), le contrôle est ignoré entièrement. Quand <code>wp</code> est présent, l’absence de <code>citation</code> génère un avertissement (relancer <code><a href="../reference/setup_wp.html">setup_wp()</a></code>) mais ne bloque pas le rendu — <code>citation</code> est calculé automatiquement par <code><a href="../reference/setup_wp.html">setup_wp()</a></code> dès que <code>annee</code>/<code>wp</code> sont fournis.</li>
+<li>
+<code><a href="../reference/check_wp.html">check_wp()</a></code> — tous les contrôles de <code>site-path</code> (absence, format incorrect, incohérence avec <code>annee</code>, incohérence avec <code>wp</code>, incohérence avec <code>version</code>) passent de <code>"error"</code> à <code>"warning"</code>. <code>site-path</code> est entièrement dérivé par <code><a href="../reference/setup_wp.html">setup_wp()</a></code> à partir de <code>annee</code> et <code>wp</code> — toute incohérence se corrige en relançant <code><a href="../reference/setup_wp.html">setup_wp()</a></code>, jamais en bloquant le rendu.</li>
+<li>
+<code>check_repo_status()</code> — nouveau paramètre <code>timeout</code> (défaut : 10 s). Le <code>git fetch</code> tourne désormais dans un sous-processus <code>callr</code> afin que le délai soit respecté sur toutes les plateformes (Windows inclus). Si GitHub ne répond pas dans le délai imparti, la vérification est silencieusement ignorée avec un avertissement plutôt que de bloquer indéfiniment le rendu.</li>
 </ul></div>
 </div>
     <div class="section level2">

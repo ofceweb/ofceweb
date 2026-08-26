@@ -1,8 +1,6 @@
 # Ces champs sont obligatoires et doivent être remplis
 title: "Titre du document de travail"
 date: "YYYY-MM-DD"
-wp: 10
-annee: 2026
 version: v0
 
 author:

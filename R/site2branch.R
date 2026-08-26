@@ -44,7 +44,6 @@
 #'   Défaut une liste vide.
 #'
 #' @return Renvoie invisiblement `NULL`. Appelée pour ses effets de bord.
-#' @export
 #'
 #' @examples
 #' \dontrun{

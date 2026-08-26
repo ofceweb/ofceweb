@@ -201,12 +201,12 @@ setup_wp <- function(
   # Le rendu local fonctionne, mais la publication FTP nécessite d'être dans
   # `ofce` : les secrets FTP y sont stockés et l'accès au registre central
   # (wp_registry_request()) est réservé aux dépôts de cette organisation.
-  if (!is.na(gh$owner) && !identical(gh_org, "ofce")) {
+  if (!is.na(gh$owner) && !identical(tolower(gh_org), "ofce")) {
     cli::cli_alert_info(
-      "Ce dépôt est sous {.strong {gh_org}}, pas sous {.strong ofce}. ",
-      "Le rendu fonctionne, mais la publication FTP ne sera pas possible ",
-      "avant un transfert de propriété vers l'organisation {.strong ofce} ",
-      "(GitHub → Settings → Danger Zone → Transfer repository).")
+      "Ce dépôt est sous {.strong {gh_org}}, pas sous {.strong ofce}.
+      Le rendu fonctionne, mais la publication FTP ne sera pas possible
+      avant un transfert de propriété vers l'organisation {.strong ofce}
+      GitHub → Settings → Danger Zone → Transfer repository).")
   }
 
   # ---- 3. titre du WP -------------------------------------------------------

@@ -100,6 +100,9 @@ render_wp <- function(
         "Dépôt sous {.strong {repo_owner}}, pas sous {.strong ofce} — ",
         "le rendu fonctionne mais la publication FTP sera bloquée. ",
         "Transférer via GitHub → Settings → Danger Zone → Transfer repository.")
+  } else {
+    cli::cli_alert_info(
+    "Le dossier n'est pas un dépôt github, aucune publication (staging ou enregistrée) ne sera possible")
   }
   registry_url <- "https://raw.githubusercontent.com/ofceweb/wp-registry/main/registry.json"
   registry <- tryCatch(
@@ -185,7 +188,15 @@ render_wp <- function(
 
   tictoc::toc()
 
-  status <- gert::git_status(staged = TRUE)
+  status <- tryCatch(
+    gert::git_status(staged = TRUE),
+    error = function(e) {
+      cli::cli_alert_warning(
+        "Statut git non disponible ({conditionMessage(e)}) \u2014 \\
+         initialiser le d\u00e9p\u00f4t avec {.code git init} et configurer un remote.")
+      NULL
+    }
+  )
 
   # ---- 8. déploiement / instruction ----------------------------------------
   if (site2branch) {

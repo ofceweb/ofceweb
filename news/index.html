@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,42 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.9.4" id="ofceweb-v094">ofceweb v0.9.4<a class="anchor" aria-label="anchor" href="#ofceweb-v094"></a></h2>
+<div class="section level3">
+<h3 id="setup_wp--refonte-du-routage-et-des-urls-0-9-4">
+<code>setup_wp()</code> — refonte du routage et des URLs<a class="anchor" aria-label="anchor" href="#setup_wp--refonte-du-routage-et-des-urls-0-9-4"></a></h3>
+<ul><li><p>Nouveau paramètre <code>stage_target</code> (<code>"gh-pages"</code> ou <code>"ftp"</code>) et nouvelle clé YAML <code>stage-target</code> : source de vérité pour la destination de déploiement des WPs non encore publiés. Valeur par défaut <code>gh-pages</code> dans le gabarit. <code><a href="../reference/setup_wp.html">setup_wp()</a></code> force-patche <code>stage-target</code> à chaque appel (comme <code>ofce_wp</code>).</p></li>
+<li><p><code>website.site-url</code> désormais toujours recalculé selon la cible effective : <code>https://www.ofce.fr/</code> (WP publié), <code>https://{org}.github.io/{repo}/</code> (brouillon gh-pages), <code>https://www.ofce.fr/staging/{repo}/[{version}/]</code> (staging FTP). Le champ <code>website.site-path</code> est supprimé pour les brouillons.</p></li>
+<li><p><code>website.repo-url</code> désormais toujours force-patché depuis le remote git (<code>gh_org</code>/<code>repo_name</code>), sans condition sur la présence du remote.</p></li>
+<li><p><code>project.type: website</code> désormais toujours forcé (comme <code>ofce_wp: true</code>).</p></li>
+<li><p>Gabarit <code>_quarto.yml</code> : section <code>navbar</code> supprimée (gérée par <code><a href="../reference/update_navbar.html">update_navbar()</a></code>) ; <code>stage-target: gh-pages</code> ajouté dans la section éditable.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="check_wp--vérification-de-la-connexion-github-0-9-4">
+<code>check_wp()</code> — vérification de la connexion GitHub<a class="anchor" aria-label="anchor" href="#check_wp--v%C3%A9rification-de-la-connexion-github-0-9-4"></a></h3>
+<ul><li>Nouveau diagnostic <code>gh:login</code> : appelle <code>gh::gh("GET /user")</code> et affiche le login GitHub de l’utilisateur (<code>ok</code>) ou un avertissement non bloquant si aucune authentification n’est détectée (<code>warning</code>). Les opérations staging et registry sont indisponibles sans connexion.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="render_wp--simplification-0-9-4">
+<code>render_wp()</code> — simplification<a class="anchor" aria-label="anchor" href="#render_wp--simplification-0-9-4"></a></h3>
+<ul><li><p>Paramètre <code>check_repo</code> supprimé (et l’appel à <code>check_repo_status()</code>) : le rendu Quarto ne dépend pas de l’état du dépôt git.</p></li>
+<li><p>Avertissement « dépôt sous {owner}, pas sous ofce » supprimé (couvert par <code><a href="../reference/setup_wp.html">setup_wp()</a></code> et <code><a href="../reference/check_wp.html">check_wp()</a></code>).</p></li>
+<li><p><code>git_status()</code> supprimé de la fin de la fonction ; retour <code>invisible(NULL)</code> à la place de <code>invisible(status)</code>.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="deploy_wp--routage-depuis-le-yaml-0-9-4">
+<code>deploy_wp()</code> — routage depuis le YAML<a class="anchor" aria-label="anchor" href="#deploy_wp--routage-depuis-le-yaml-0-9-4"></a></h3>
+<ul><li><p>Paramètre <code>target</code> supprimé. La cible effective est lue depuis <code>yml[["stage-target"]]</code> (avec fallback <code>"gh-pages"</code>). Le registre central reste prioritaire : <code>stage = FALSE</code> → FTP production quoi qu’il arrive.</p></li>
+<li><p>URL de staging corrigée : <code>https://www.ofce.fr/staging/{repo}/{version}/</code> (était <code>stage/wp/</code>, sans <code>index.html</code>).</p></li>
+<li><p>URL de production : <code>index.html</code> supprimé, zéro-padding (<code>%03d</code>) supprimé.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="ftp-staging--chemin-simplifié-0-9-4">FTP staging — chemin simplifié<a class="anchor" aria-label="anchor" href="#ftp-staging--chemin-simplifi%C3%A9-0-9-4"></a></h3>
+<ul><li><p><code>FTP_STAGING_DIR</code> passe de <code>stage/wp/{repo}/{version}/</code> à <code>{repo}/{version}/</code>. L’utilisateur FTP de staging a un chroot sur <code>www/staging/</code> — chemin effectif inchangé sur le serveur (<code>www/staging/{repo}/{version}/</code>).</p></li>
+<li><p>Message de résumé <code><a href="../reference/setup_wp.html">setup_wp()</a></code> : affiche désormais l’URL publique complète <code>https://www.ofce.fr/staging/{staging_dir}</code> plutôt que la variable brute.</p></li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.9.3" id="ofceweb-v093">ofceweb v0.9.3<a class="anchor" aria-label="anchor" href="#ofceweb-v093"></a></h2>
 <div class="section level3">

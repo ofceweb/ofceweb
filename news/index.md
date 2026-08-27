@@ -1,5 +1,80 @@
 # Changelog
 
+## ofceweb v0.9.4
+
+### `setup_wp()` — refonte du routage et des URLs
+
+- Nouveau paramètre `stage_target` (`"gh-pages"` ou `"ftp"`) et nouvelle
+  clé YAML `stage-target` : source de vérité pour la destination de
+  déploiement des WPs non encore publiés. Valeur par défaut `gh-pages`
+  dans le gabarit.
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  force-patche `stage-target` à chaque appel (comme `ofce_wp`).
+
+- `website.site-url` désormais toujours recalculé selon la cible
+  effective : `https://www.ofce.fr/` (WP publié),
+  `https://{org}.github.io/{repo}/` (brouillon gh-pages),
+  `https://www.ofce.fr/staging/{repo}/[{version}/]` (staging FTP). Le
+  champ `website.site-path` est supprimé pour les brouillons.
+
+- `website.repo-url` désormais toujours force-patché depuis le remote
+  git (`gh_org`/`repo_name`), sans condition sur la présence du remote.
+
+- `project.type: website` désormais toujours forcé (comme
+  `ofce_wp: true`).
+
+- Gabarit `_quarto.yml` : section `navbar` supprimée (gérée par
+  [`update_navbar()`](https://ofceweb.github.io/ofceweb/reference/update_navbar.md))
+  ; `stage-target: gh-pages` ajouté dans la section éditable.
+
+### `check_wp()` — vérification de la connexion GitHub
+
+- Nouveau diagnostic `gh:login` : appelle `gh::gh("GET /user")` et
+  affiche le login GitHub de l’utilisateur (`ok`) ou un avertissement
+  non bloquant si aucune authentification n’est détectée (`warning`).
+  Les opérations staging et registry sont indisponibles sans connexion.
+
+### `render_wp()` — simplification
+
+- Paramètre `check_repo` supprimé (et l’appel à `check_repo_status()`) :
+  le rendu Quarto ne dépend pas de l’état du dépôt git.
+
+- Avertissement « dépôt sous {owner}, pas sous ofce » supprimé (couvert
+  par
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  et
+  [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)).
+
+- `git_status()` supprimé de la fin de la fonction ; retour
+  `invisible(NULL)` à la place de `invisible(status)`.
+
+### `deploy_wp()` — routage depuis le YAML
+
+- Paramètre `target` supprimé. La cible effective est lue depuis
+  `yml[["stage-target"]]` (avec fallback `"gh-pages"`). Le registre
+  central reste prioritaire : `stage = FALSE` → FTP production quoi
+  qu’il arrive.
+
+- URL de staging corrigée :
+  `https://www.ofce.fr/staging/{repo}/{version}/` (était `stage/wp/`,
+  sans `index.html`).
+
+- URL de production : `index.html` supprimé, zéro-padding (`%03d`)
+  supprimé.
+
+### FTP staging — chemin simplifié
+
+- `FTP_STAGING_DIR` passe de `stage/wp/{repo}/{version}/` à
+  `{repo}/{version}/`. L’utilisateur FTP de staging a un chroot sur
+  `www/staging/` — chemin effectif inchangé sur le serveur
+  (`www/staging/{repo}/{version}/`).
+
+- Message de résumé
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  : affiche désormais l’URL publique complète
+  `https://www.ofce.fr/staging/{staging_dir}` plutôt que la variable
+  brute.
+
 ## ofceweb v0.9.3
 
 ### Registre central WP (`ofceweb/wp-registry`) — nouveau

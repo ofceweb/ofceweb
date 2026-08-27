@@ -10,8 +10,6 @@
 #'   Quarto déclaré dans `_quarto.yml`. Détermine le répertoire de sortie
 #'   (`_site_staging`, `_site_publish`, ou `_site_{profile}` pour tout autre
 #'   profil).
-#' @param check_repo Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
-#'   via [check_repo_status()].
 #' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
 #' @param preview Logique. Si `TRUE`, lance un serveur HTTP local via
 #'   [servr::httw()] sur le répertoire de sortie après le rendu. Défaut `TRUE`
@@ -31,7 +29,6 @@
 render_prev <- function(
     path     = ".",
     profile  = "staging",
-    check_repo = TRUE,
     progress   = TRUE,
     preview    = TRUE,
     workers    = 8L) {
@@ -59,8 +56,6 @@ render_prev <- function(
   oldwd <- getwd()
   on.exit(setwd(oldwd))
   setwd(root)
-
-  if (check_repo) check_repo_status()
 
   tictoc::tic()
   servr::daemon_stop()
@@ -114,10 +109,10 @@ render_prev <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [render_prev()], [deploy_prev()], [publish_prev()]
+#' @importFrom gh gh
 #' @export
 stage_prev <- function(
     path        = ".",
-    check_repo  = TRUE,
     progress    = TRUE,
     site2branch = TRUE,
     trigger     = site2branch,
@@ -125,10 +120,11 @@ stage_prev <- function(
     preview     = FALSE,
     workers     = 8L) {
 
+  check_gh_login()
+
   render_prev(
     path       = path,
     profile    = "staging",
-    check_repo = check_repo,
     progress   = progress,
     preview    = preview,
     workers    = workers
@@ -141,6 +137,23 @@ stage_prev <- function(
       trigger     = trigger,
       full_deploy = full_deploy
     )
+
+    root <- path |>
+      fs::path_expand() |>
+      fs::path_abs() |>
+      fs::path_norm()
+
+    stg <- tryCatch(
+      yaml::read_yaml(fs::path(root, "_quarto-staging.yml")),
+      error = function(e) NULL
+    )
+    site_path <- stg$website$`site-path`
+    if (!is.null(site_path) && nzchar(site_path)) {
+      staging_url <- sprintf("https://www.ofce.fr/%s/", site_path)
+      cli::cli_alert_success(
+        "Pr\u00e9vision en staging \u2014 disponible (apr\u00e8s d\u00e9ploiement FTP) \\
+         sur {.url {staging_url}}")
+    }
   } else {
     cli::cli_text(
       "Pour déployer en staging, lancer \\
@@ -160,10 +173,10 @@ stage_prev <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [render_prev()], [deploy_prev()], [stage_prev()]
+#' @importFrom gh gh
 #' @export
 publish_prev <- function(
     path        = ".",
-    check_repo  = TRUE,
     progress    = TRUE,
     site2branch = TRUE,
     trigger     = site2branch,
@@ -171,10 +184,11 @@ publish_prev <- function(
     preview     = FALSE,
     workers     = 8L) {
 
+  check_gh_login()
+
   render_prev(
     path       = path,
     profile    = "publish",
-    check_repo = check_repo,
     progress   = progress,
     preview    = preview,
     workers    = workers
@@ -213,7 +227,6 @@ publish_prev <- function(
 #' @export
 render_prev_publish <- function(
     path        = ".",
-    check_repo  = TRUE,
     progress    = TRUE,
     render_site = TRUE,
     site2branch = TRUE,
@@ -226,7 +239,6 @@ render_prev_publish <- function(
 
   publish_prev(
     path        = path,
-    check_repo  = check_repo,
     progress    = progress,
     site2branch = site2branch,
     trigger     = trigger,

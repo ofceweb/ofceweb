@@ -54,10 +54,10 @@ check_wp <- function(path = ".", verbose = TRUE) {
   if (verbose) cli::cli_h1("check_wp : {fs::path_file(root)}")
 
   # ---- connexion GitHub -------------------------------------------------------
-  gh_user <- tryCatch(gh::gh("GET /user"), error = function(e) NULL)
-  if (!is.null(gh_user) && !is.null(gh_user$login)) {
+  gh_login <- check_gh_login(verbose = FALSE)
+  if (!is.na(gh_login)) {
     add_diag("gh:login", "ok",
-             sprintf("Connecté à GitHub en tant que @%s.", gh_user$login))
+             sprintf("Connecté à GitHub en tant que @%s.", gh_login))
   } else {
     add_diag("gh:login", "warning",
              "Non connecté à GitHub (gh::gh('GET /user') a échoué). Les opérations staging et registry seront indisponibles.")

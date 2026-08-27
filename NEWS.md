@@ -1,3 +1,33 @@
+## ofceweb v0.10.1
+
+### `render_prev()` / `setup_prev()` — alignement sur le pattern `wp`
+
+* Paramètre `check_repo` supprimé de `render_prev()`, `stage_prev()`,
+  `publish_prev()` et `render_prev_publish()` (et l'appel à
+  `check_repo_status()`) : le rendu Quarto ne dépend pas de l'état du dépôt
+  git, comme pour `render_wp()`.
+
+* Nouveau diagnostic de connexion GitHub (`gh::gh("GET /user")`, factorisé
+  dans le helper interne `check_gh_login()` partagé avec `check_wp()`) :
+  appelé désormais par `setup_prev()`, `stage_prev()` et `publish_prev()`
+  pour avertir tôt si l'utilisateur n'est pas authentifié auprès de GitHub
+  (opérations staging/registry indisponibles sans connexion).
+
+* `check_prev()` : même diagnostic `gh:login` que `check_wp()` (même
+  helper `check_gh_login()`), pour une parité complète des vérifications
+  wp / prev.
+
+### Workflows de staging — corrections
+
+* `ftp_deploy_staging.yml` (gabarit `setup_prev`) : le secret GitHub Actions
+  utilisé pour l'utilisateur FTP de staging était mal nommé
+  (`STAGING_USERNAME` au lieu de `STAGING_USER`), provoquant l'échec de
+  l'authentification FTP en CI. Corrigé.
+
+* `ftp_deploy_staging.yml` (gabarit `setup_prev`) et `ftp_stage.yml`
+  (gabarit `setup_wp`) : la commande `staticrypt` ciblait `./` (le dossier
+  courant lui-même) au lieu de `./*` (son contenu). Corrigé.
+
 ## ofceweb v0.10.0
 
 ### Registre central — nouvelle disposition `wp/` (restructuration en 3 étapes)

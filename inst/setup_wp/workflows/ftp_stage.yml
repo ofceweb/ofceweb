@@ -34,7 +34,7 @@ jobs:
           else
             npm install -g staticrypt
             mkdir -p /tmp/staticrypt_out
-            staticrypt ./ \
+            staticrypt ./* \
               --recursive \
               --directory /tmp/staticrypt_out/ \
               --password "$STATICRYPT_PASSWORD" \

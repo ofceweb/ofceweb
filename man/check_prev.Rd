@@ -51,6 +51,8 @@ Contrôles effectués :
   \item Secret GitHub `STATICRYPT_PASSWORD` défini (warning non bloquant —
     le rendu local fonctionne sans lui, mais le workflow CI staging
     échouera)
+  \item Connexion GitHub (`gh::gh("GET /user")`) — warning non bloquant si
+    non authentifié
 }
 }
 \seealso{

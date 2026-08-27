@@ -6,7 +6,6 @@
 \usage{
 stage_prev(
   path = ".",
-  check_repo = TRUE,
   progress = TRUE,
   site2branch = TRUE,
   trigger = site2branch,
@@ -17,9 +16,6 @@ stage_prev(
 }
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
-
-\item{check_repo}{Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
-via [check_repo_status()].}
 
 \item{progress}{Logique. Affichage de la progression. Défaut `TRUE`.}
 

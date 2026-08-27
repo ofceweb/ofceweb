@@ -6,7 +6,6 @@
 \usage{
 render_prev_publish(
   path = ".",
-  check_repo = TRUE,
   progress = TRUE,
   render_site = TRUE,
   site2branch = TRUE,
@@ -15,9 +14,6 @@ render_prev_publish(
 }
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
-
-\item{check_repo}{Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
-via [check_repo_status()].}
 
 \item{progress}{Logique. Affichage de la progression. Défaut `TRUE`.}
 

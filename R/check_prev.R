@@ -32,6 +32,8 @@
 #'   \item Secret GitHub `STATICRYPT_PASSWORD` défini (warning non bloquant —
 #'     le rendu local fonctionne sans lui, mais le workflow CI staging
 #'     échouera)
+#'   \item Connexion GitHub (`gh::gh("GET /user")`) — warning non bloquant si
+#'     non authentifié
 #' }
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
@@ -45,6 +47,7 @@
 #' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists
 #' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_danger cli_rule
 #' @importFrom yaml read_yaml
+#' @importFrom gh gh
 #' @export
 check_prev <- function(path = ".", verbose = TRUE) {
 
@@ -65,6 +68,16 @@ check_prev <- function(path = ".", verbose = TRUE) {
   }
 
   if (verbose) cli::cli_h1("check_prev : {fs::path_file(root)}")
+
+  # ---- connexion GitHub -----------------------------------------------------
+  gh_login <- check_gh_login(verbose = FALSE)
+  if (!is.na(gh_login)) {
+    add_diag("gh:login", "ok",
+             sprintf("Connecté à GitHub en tant que @%s.", gh_login))
+  } else {
+    add_diag("gh:login", "warning",
+             "Non connecté à GitHub (gh::gh('GET /user') a échoué). Les opérations staging et registry seront indisponibles.")
+  }
 
   # ---- 1. Nom du dossier ---------------------------------------------------
   project <- fs::path_file(root) |> as.character()

@@ -55,6 +55,7 @@
 #' @importFrom cli cli_h1 cli_h2 cli_li cli_abort cli_alert_success cli_alert_warning cli_alert_info cli_bullets
 #' @importFrom yaml read_yaml
 #' @importFrom gert git_remote_list
+#' @importFrom gh gh
 #' @export
 setup_prev <- function(
     path        = ".",
@@ -70,6 +71,9 @@ setup_prev <- function(
     cli::cli_abort("Le dossier {.path {root}} n'existe pas.")
 
   cli::cli_h1("setup_prev dans {.path {fs::path_file(root)}}")
+
+  # ---- 0. connexion GitHub -------------------------------------------------
+  check_gh_login()
 
   # ---- 1. Résolution de l'identifiant prev ---------------------------------
   project <- fs::path_file(root) |> as.character()

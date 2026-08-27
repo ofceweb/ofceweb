@@ -273,6 +273,34 @@ set_gh_var <- function(root = ".", name, value) {
   invisible(NULL)
 }
 
+#' Vérifie la connexion GitHub (`gh::gh("GET /user")`)
+#'
+#' Diagnostic partagé par [check_wp()], [setup_prev()], [stage_prev()] et
+#' [publish_prev()] : appelle `gh::gh("GET /user")` et affiche le login
+#' GitHub de l'utilisateur (succès) ou un avertissement non bloquant si
+#' aucune authentification n'est détectée.
+#'
+#' @param verbose Logique. Si `TRUE` (défaut), affiche le résultat via
+#'   [cli::cli_alert_success()] / [cli::cli_alert_warning()].
+#' @return Chaîne (login GitHub) ou `NA_character_` si non connecté —
+#'   invisible.
+#' @keywords internal
+#' @noRd
+check_gh_login <- function(verbose = TRUE) {
+  gh_user <- tryCatch(gh::gh("GET /user"), error = function(e) NULL)
+  if (!is.null(gh_user) && !is.null(gh_user$login)) {
+    if (verbose)
+      cli::cli_alert_success(
+        "Connect\u00e9 \u00e0 GitHub en tant que @{gh_user$login}.")
+    return(invisible(gh_user$login))
+  }
+  if (verbose)
+    cli::cli_alert_warning(
+      "Non connect\u00e9 \u00e0 GitHub (gh::gh('GET /user') a \u00e9chou\u00e9). \\
+       Les op\u00e9rations staging et registry seront indisponibles.")
+  invisible(NA_character_)
+}
+
 check_repo_status <- function(repo = ".", prompt = TRUE, timeout = 10) {
   # Fetch latest refs from remote (no merge).
   # Runs in a callr subprocess so the timeout is enforced cross-platform.

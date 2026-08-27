@@ -7,7 +7,6 @@
 render_prev(
   path = ".",
   profile = "staging",
-  check_repo = TRUE,
   progress = TRUE,
   preview = TRUE,
   workers = 8L
@@ -20,9 +19,6 @@ render_prev(
 Quarto déclaré dans `_quarto.yml`. Détermine le répertoire de sortie
 (`_site_staging`, `_site_publish`, ou `_site_{profile}` pour tout autre
 profil).}
-
-\item{check_repo}{Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
-via [check_repo_status()].}
 
 \item{progress}{Logique. Affichage de la progression. Défaut `TRUE`.}
 

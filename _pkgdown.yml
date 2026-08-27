@@ -62,6 +62,7 @@ reference:
   - deploy_wp
   - rescan_wp
   - wp_version_up
+  - wp_registry_request
 
 - title: Sites génériques
   desc: >

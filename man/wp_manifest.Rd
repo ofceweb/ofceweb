@@ -4,7 +4,7 @@
 \alias{wp_manifest}
 \title{Génère ou met à jour le manifeste JSON d'un document de travail}
 \usage{
-wp_manifest(path = ".")
+wp_manifest(path = ".", stage = NULL)
 }
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}

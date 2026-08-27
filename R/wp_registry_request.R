@@ -2,19 +2,21 @@
 #'
 #' Calcule le triplet `{annee, wp, source-repo}` pour le dépôt WP local et
 #' ouvre une pull request contre `ofceweb/wp-registry` proposant d'ajouter
-#' l'entrée correspondante à `registry.json`. N'attend pas la fusion
-#' (fire-and-forget) — un·e admin doit approuver manuellement. Relancer
-#' [render_wp()] une fois la PR fusionnée pour basculer du mode staging
-#' au mode publication.
+#' l'entrée correspondante à `wp/{annee}.json` (et, si c'est la première
+#' demande pour cette année, crée ce fichier et met à jour `wp/index.json`
+#' dans le même commit). N'attend pas la fusion (fire-and-forget) — un·e
+#' admin doit approuver manuellement. Relancer [render_wp()] une fois la PR
+#' fusionnée pour basculer du mode staging au mode publication.
 #'
 #' @param path Chemin vers la racine du dépôt WP local. Défaut `"."`.
 #' @param annee Entier. Année du WP. Défaut : `annee` dans `_quarto.yml`
 #'   si présent, sinon l'année courante.
 #' @param wp Entier ou `NULL`. Numéro de WP souhaité. Si `NULL` (défaut),
 #'   calculé automatiquement comme `max(wp existants pour cette annee) + 1`
-#'   d'après `registry.json` au moment de l'appel (tous types confondus).
-#'   Si fourni explicitement, la fonction vérifie l'absence de collision avant
-#'   d'ouvrir la PR et échoue localement en cas de conflit.
+#'   d'après `wp/{annee}.json` au moment de l'appel (tous types confondus ;
+#'   `1` si le fichier n'existe pas encore). Si fourni explicitement, la
+#'   fonction vérifie l'absence de collision avant d'ouvrir la PR et échoue
+#'   localement en cas de conflit.
 #' @param contact Adresse de contact de l'auteur·e. Défaut : valeur de
 #'   `git config user.email` pour ce dépôt (config locale avec repli sur la
 #'   globale). La fonction échoue si aucune valeur ne peut être résolue.
@@ -75,23 +77,29 @@ wp_registry_request <- function(
   if (is.na(annee))
     cli::cli_abort("{.arg annee} doit \u00eatre un entier.")
 
-  # ---- 3. Lecture du registre (non authentifi\u00e9, registre public) ------------
-  registry_raw_url <- sprintf(
-    "https://raw.githubusercontent.com/%s/main/registry.json", registry_repo)
-  cli::cli_alert_info("Lecture du registre : {.url {registry_raw_url}}")
-  registry <- tryCatch(
-    jsonlite::fromJSON(registry_raw_url, simplifyVector = FALSE),
-    error = function(e)
-      cli::cli_abort(
-        "Impossible de lire {.url {registry_raw_url}} : {conditionMessage(e)}")
-  )
-  entries <- registry$wp %||% list()
+  # ---- 3. Lecture du fichier annuel du registre (non authentifi\u00e9) ---------
+  year_url <- sprintf(
+    "https://raw.githubusercontent.com/%s/main/wp/%d.json", registry_repo, annee)
+  cli::cli_alert_info("Lecture du registre : {.url {year_url}}")
+  new_year <- FALSE
+  entries <- fetch_wp_year(annee, registry_repo)
+  if (is.null(entries)) {
+    new_year <- TRUE
+    entries  <- list()
+    cli::cli_alert_info(
+      "Aucun fichier {.file wp/{annee}.json} existant \u2014 ce sera la premi\u00e8re \\
+       entr\u00e9e enregistr\u00e9e pour {.val {annee}}.")
+  }
 
   # ---- 4. R\u00e9solution du num\u00e9ro WP ----------------------------------------
+  # `entries` provient d\u00e9j\u00e0 de wp/{annee}.json (une seule ann\u00e9e), mais on
+  # filtre \u00e0 nouveau par `annee` par prudence (d\u00e9fensif si le champ ne
+  # correspondait pas au nom de fichier).
+  annee_entries <- Filter(function(e) identical(as.integer(e$annee), annee), entries)
   if (is.null(wp)) {
     # Auto-num\u00e9rotation : max(wp pour cette ann\u00e9e, tous types) + 1
     annee_wps <- vapply(
-      Filter(function(e) identical(as.integer(e$annee), annee), entries),
+      annee_entries,
       function(e) suppressWarnings(as.integer(e$wp %||% 0L)),
       integer(1L)
     )
@@ -104,9 +112,8 @@ wp_registry_request <- function(
       cli::cli_abort("{.arg wp} doit \u00eatre un entier ou NULL.")
     # V\u00e9rification collision
     collision <- Filter(
-      function(e)
-        identical(as.integer(e$annee), annee) && identical(as.integer(e$wp), wp),
-      entries
+      function(e) identical(as.integer(e$wp), wp),
+      annee_entries
     )
     if (length(collision) > 0L)
       cli::cli_abort(c(
@@ -174,19 +181,40 @@ wp_registry_request <- function(
   cli::cli_alert_info("Clonage de {.val {registry_repo}}...")
   gert::git_clone(url = registry_https, path = tmp, verbose = FALSE)
 
-  # ---- 9. Modification de registry.json ------------------------------------
-  reg_path    <- fs::path(tmp, "registry.json")
-  current_reg <- jsonlite::read_json(reg_path)
-  current_reg$wp <- c(current_reg$wp %||% list(), list(new_entry))
+  # ---- 9. Modification de wp/{annee}.json et wp/index.json -----------------
+  wp_dir <- fs::path(tmp, "wp")
+  fs::dir_create(wp_dir, recurse = TRUE)
+
+  year_path <- fs::path(wp_dir, sprintf("%d.json", annee))
+  current_year_reg <- if (fs::file_exists(year_path))
+    jsonlite::read_json(year_path)
+  else
+    list(wp = list())
+  current_year_reg$wp <- c(current_year_reg$wp %||% list(), list(new_entry))
   writeLines(
-    jsonlite::toJSON(current_reg, auto_unbox = TRUE, pretty = TRUE, null = "null"),
-    reg_path
+    jsonlite::toJSON(current_year_reg, auto_unbox = TRUE, pretty = TRUE, null = "null"),
+    year_path
+  )
+
+  # wp/index.json doit rester coh\u00e9rent : ajouter l'ann\u00e9e si absente. Toujours
+  # r\u00e9\u00e9crire le fichier (idempotent) pour simplifier le code, m\u00eame si le
+  # contenu ne change pas.
+  index_path <- fs::path(wp_dir, "index.json")
+  current_index <- if (fs::file_exists(index_path))
+    jsonlite::read_json(index_path)
+  else
+    list(years = list())
+  index_years <- sort(unique(c(vapply(current_index$years %||% list(), as.integer, integer(1L)), annee)))
+  current_index$years <- as.list(as.integer(index_years))
+  writeLines(
+    jsonlite::toJSON(current_index, auto_unbox = TRUE, pretty = TRUE),
+    index_path
   )
 
   # ---- 10. Branche, commit, push -------------------------------------------
   branch_name <- sprintf("request/%d/%d", annee, wp)
   gert::git_branch_create(branch = branch_name, repo = tmp, checkout = TRUE)
-  gert::git_add("registry.json", repo = tmp)
+  gert::git_add(c(sprintf("wp/%d.json", annee), "wp/index.json"), repo = tmp)
   gert::git_commit(
     message = sprintf("request: %d/%d \u2014 %s", annee, wp, source_repo),
     repo    = tmp,
@@ -225,6 +253,9 @@ wp_registry_request <- function(
     sprintf("| `contact` | %s |\n", contact),
     sprintf("| `registered-by` | %s |\n",
             if (!is.na(registered_by)) registered_by else "_(non r\u00e9solu)_"),
+    if (new_year) sprintf(
+      "\n_Premi\u00e8re demande pour %d : cr\u00e9e `wp/%d.json` et met \u00e0 jour `wp/index.json`._\n",
+      annee, annee) else "",
     "\n_Ouvert automatiquement par `ofceweb::wp_registry_request()`._"
   )
 

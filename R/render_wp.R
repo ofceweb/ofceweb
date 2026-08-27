@@ -30,7 +30,6 @@
 #' @importFrom future plan
 #' @importFrom future.mirai mirai_multisession
 #' @importFrom quarto quarto_render
-#' @importFrom jsonlite fromJSON
 #' @export
 render_wp <- function(
     path = ".",
@@ -80,23 +79,15 @@ render_wp <- function(
   future::plan(future.mirai::mirai_multisession, workers = workers)
 
   # ---- 2.5. registre central (détermine stage avant le rendu) --------------
-  # Consulte ofceweb/wp-registry pour savoir si ce dépôt a une entrée
-  # confirmée (type "repo"). Résultat : stage = FALSE (publié), TRUE (staging).
-  # Le résultat est injecté comme métadonnée Quarto pour le banner "Version
-  # provisoire" et écrit dans manifest.json pour router deploy_wp().
+  # Consulte ofceweb/wp-registry (disposition wp/index.json + wp/{année}.json)
+  # pour savoir si ce dépôt a une entrée confirmée (type "repo"). Résultat :
+  # stage = FALSE (publié), TRUE (staging). Le résultat est injecté comme
+  # métadonnée Quarto pour le banner "Version provisoire" et écrit dans
+  # manifest.json pour router deploy_wp().
   cli::cli_h2("Registre central")
-  source_repo  <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
-  registry_url <- "https://raw.githubusercontent.com/ofceweb/wp-registry/main/registry.json"
-  registry <- tryCatch(
-    jsonlite::fromJSON(registry_url, simplifyVector = FALSE),
-    error = function(e) {
-      cli::cli_alert_warning(
-        "Registre inaccessible ({conditionMessage(e)}) — staging par défaut.")
-      NULL
-    }
-  )
-  stage <- if (!is.null(registry) && !is.na(source_repo)) {
-    entries <- registry$wp
+  source_repo <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
+  entries     <- fetch_wp_entries()
+  stage <- if (!is.null(entries) && !is.na(source_repo)) {
     matched <- Filter(
       function(e) identical(e$type, "repo") && identical(e[["source-repo"]], source_repo),
       entries
@@ -112,7 +103,10 @@ render_wp <- function(
       TRUE
     }
   } else {
-    TRUE  # fallback sûr si réseau ou remote indisponible
+    if (is.null(entries))
+      cli::cli_alert_warning(
+        "Registre inaccessible ({.url wp/index.json}) — staging par défaut.")
+    TRUE  # fallback sûr si réseau, wp/index.json ou remote indisponible
   }
 
   # ---- 3. vider _site/ -----------------------------------------------------

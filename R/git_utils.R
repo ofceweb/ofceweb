@@ -341,6 +341,74 @@ check_repo_status <- function(repo = ".", prompt = TRUE, timeout = 10) {
   invisible(ab)
 }
 
+#' Liste des années disponibles dans `wp-registry` (`wp/index.json`)
+#'
+#' Télécharge `wp/index.json` (lecture publique, non authentifiée) du dépôt
+#' registre. Utilisé pour savoir quels fichiers `wp/{année}.json` interroger.
+#'
+#' @param registry_repo Slug `"owner/repo"` du dépôt registre.
+#' @return Vecteur entier des années, ou `NULL` si `wp/index.json` est
+#'   inaccessible (registre indisponible ou pas encore migré vers la
+#'   disposition `wp/`).
+#' @keywords internal
+#' @noRd
+fetch_wp_index <- function(registry_repo = "ofceweb/wp-registry") {
+  index_url <- sprintf(
+    "https://raw.githubusercontent.com/%s/main/wp/index.json", registry_repo)
+  tryCatch({
+    years <- jsonlite::fromJSON(index_url, simplifyVector = TRUE)$years
+    as.integer(years)
+  }, error = function(e) NULL)
+}
+
+#' Lit les entrées d'une année du registre (`wp/{année}.json`)
+#'
+#' @param annee Entier. Année à lire.
+#' @param registry_repo Slug `"owner/repo"` du dépôt registre.
+#' @return Liste d'entrées (`registry$wp`), ou `NULL` si le fichier est
+#'   introuvable ou illisible (année pas encore créée, ou erreur réseau).
+#' @keywords internal
+#' @noRd
+fetch_wp_year <- function(annee, registry_repo = "ofceweb/wp-registry") {
+  year_url <- sprintf(
+    "https://raw.githubusercontent.com/%s/main/wp/%d.json",
+    registry_repo, as.integer(annee))
+  tryCatch(
+    jsonlite::fromJSON(year_url, simplifyVector = FALSE)$wp,
+    error = function(e) NULL
+  )
+}
+
+#' Fusionne toutes les entrées du registre central `wp-registry`
+#'
+#' Télécharge `wp/index.json` puis chaque `wp/{année}.json` qui y est listé,
+#' et fusionne toutes les entrées obtenues. Tolérant : une année illisible
+#' individuellement est ignorée avec un avertissement, sans bloquer la
+#' lecture des autres années.
+#'
+#' @param registry_repo Slug `"owner/repo"` du dépôt registre.
+#' @return Liste fusionnée d'entrées, ou `NULL` si `wp/index.json` lui-même
+#'   est inaccessible (à distinguer d'une liste vide, qui signifie un
+#'   registre lu avec succès mais sans années ou sans entrées).
+#' @keywords internal
+#' @noRd
+fetch_wp_entries <- function(registry_repo = "ofceweb/wp-registry") {
+  years <- fetch_wp_index(registry_repo)
+  if (is.null(years)) return(NULL)
+
+  entries <- list()
+  for (y in years) {
+    yr_entries <- fetch_wp_year(y, registry_repo)
+    if (is.null(yr_entries)) {
+      cli::cli_alert_warning(
+        "Ann\u00e9e {.val {y}} du registre illisible ({.url wp/{y}.json}) \u2014 ignor\u00e9e.")
+      next
+    }
+    entries <- c(entries, yr_entries)
+  }
+  entries
+}
+
 #' Résout le slug GitHub `"owner/repo"` depuis le remote `origin`
 #'
 #' Fonctionne avec les URLs HTTPS et SSH. Retire le suffixe `.git` si présent.

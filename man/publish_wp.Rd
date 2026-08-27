@@ -6,7 +6,6 @@
 \usage{
 publish_wp(
   path = ".",
-  check_repo = TRUE,
   check = TRUE,
   progress = TRUE,
   render_site = TRUE,
@@ -16,9 +15,6 @@ publish_wp(
 }
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
-
-\item{check_repo}{Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
-avant le rendu via [check_repo_status()].}
 
 \item{check}{Logique. Si `TRUE` (défaut), appelle [check_wp()] avant le
 rendu et abandonne si des erreurs bloquantes sont détectées.}

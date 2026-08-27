@@ -13,30 +13,42 @@ deploy_wp(
 )
 }
 \arguments{
-\item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
+\item{path}{Chemin vers la racine du d\u00e9p\u00f4t. D\u00e9faut `"."`.}
 
-\item{progress}{Logique. Affichage de la progression. Défaut `TRUE`.}
+\item{progress}{Logique. Affichage de la progression. D\u00e9faut `TRUE`.}
 
-\item{trigger}{Passé à [site2branch()] (WP publié uniquement).
-Déclenche le workflow GitHub Actions FTP. Défaut `TRUE`.}
+\item{trigger}{Pass\u00e9 \u00e0 [site2branch()] (WP staged ou publi\u00e9 uniquement).
+D\u00e9clenche le workflow GitHub Actions FTP. D\u00e9faut `TRUE`.}
 
-\item{full_deploy}{Passé à [site2branch()]. Défaut `FALSE`.}
+\item{full_deploy}{Pass\u00e9 \u00e0 [site2branch()]. D\u00e9faut `FALSE`.}
 
-\item{...}{Arguments supplémentaires passés à [site2branch()].}
+\item{...}{Arguments suppl\u00e9mentaires pass\u00e9s \u00e0 [site2branch()].}
 }
 \value{
 Invisible `NULL`.
 }
 \description{
-Route le déploiement selon l'état du WP :
+Route le déploiement selon l'\u00e9tat du registre (`stage` dans
+`manifest.json`) et le param\u00e8tre `target` :
 \itemize{
-  \item **Brouillon** (`wp: null` dans `_quarto.yml`) : publie sur GitHub
-    Pages via `quarto publish gh-pages`.
-  \item **Publié** (`wp: N`) : pousse `_site/` vers la branche `site-deploy`
-    via [site2branch()], d'où le workflow FTP le transfère vers
-    `www.ofce.fr/wp/{annee}/{N}/{version}/`.
+  \item **Publi\u00e9** (`stage: false`) : toujours vers FTP production
+    (`ftp_deploy.yml`), quel que soit `target`.
+  \item **Non encore publi\u00e9** (`stage: true` ou `stage` absent) :
+    destination choisie par `target` :
+    \itemize{
+      \item `"auto"` (d\u00e9faut) : FTP staging si `stage = TRUE`
+        (demande de num\u00e9ro soumise), GitHub Pages sinon.
+      \item `"ftp"` : FTP staging (`ftp_stage.yml`, branche `site-staging`)
+        ind\u00e9pendamment de l'\u00e9tat du registre.
+      \item `"gh-pages"` : GitHub Pages (`quarto publish gh-pages`)
+        ind\u00e9pendamment de l'\u00e9tat du registre.
+    }
 }
 }
+\section{Working Paper (WP) Users}{
+
+}
+
 \seealso{
-[render_wp()], [site2branch()], [wp_version_up()]
+[render_wp()], [site2branch()], [wp_version_up()], [wp_registry_request()]
 }

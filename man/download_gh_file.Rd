@@ -2,7 +2,7 @@
 % Please edit documentation in R/git_utils.R
 \name{download_gh_file}
 \alias{download_gh_file}
-\title{Télécharge un seul fichier depuis un dépôt GitHub}
+\title{Download a single file from a GitHub repository}
 \usage{
 download_gh_file(
   path,
@@ -13,28 +13,30 @@ download_gh_file(
 )
 }
 \arguments{
-\item{path}{Chemin du fichier dans le dépôt (ex.
+\item{path}{Path to the file inside the repository (e.g.
 `"posts/2024-01-01/index.qmd"`).}
 
-\item{dest}{Chemin local où écrire le fichier. Défaut `path`.}
+\item{dest}{Local path to write the file to.  Defaults to `path`.}
 
-\item{owner}{Nom de l'utilisateur ou de l'organisation GitHub. Défaut
-`"ofceweb"`.}
+\item{owner}{GitHub user or organisation name.  Defaults to `"ofceweb"`.}
 
-\item{repo}{Nom du dépôt. Défaut `"webblog"`.}
+\item{repo}{Repository name.  Defaults to `"webblog"`.}
 
-\item{ref}{Référence Git (branche, tag ou SHA). Défaut `"site-deploy"`.}
+\item{ref}{Git ref (branch, tag, or SHA).  Defaults to `"site-deploy"`.}
 }
 \value{
-Le chemin local `dest` en cas de succès, ou `NULL` si le fichier
-  n'a pas été trouvé dans le dépôt.
+The local path `dest` on success, or `NULL` if the file was not
+  found in the repository.
 }
 \description{
-Recherche un fichier par son chemin via l'API Contents de GitHub et le
-télécharge vers une destination locale via `curl`. Un Bearer token est
-attaché automatiquement quand un PAT GitHub est configuré (nécessaire pour
-les dépôts privés).
+Looks up a file by path in the GitHub Contents API and downloads it to a
+local destination using `curl`.  A Bearer token is attached automatically
+when a GitHub PAT is configured (needed for private repositories).
 }
+\section{Other}{
+
+}
+
 \examples{
 \dontrun{
 download_gh_file("posts/my-post/index.qmd", dest = "local/index.qmd")

@@ -38,7 +38,6 @@ export(scan_qmd_deps)
 export(setup_prev)
 export(setup_site)
 export(setup_wp)
-export(site2branch)
 export(site2profile)
 export(site2publish)
 export(site2staging)
@@ -48,6 +47,7 @@ export(stage_site)
 export(submit_blog)
 export(trigger_action)
 export(update_navbar)
+export(wp_registry_request)
 export(wp_version_up)
 importFrom(cli,
   cli_abort,
@@ -101,6 +101,7 @@ importFrom(gert,
   git_branch_create,
   git_branch_delete,
   git_branch_list,
+  git_clone,
   git_commit,
   git_fetch,
   git_init,
@@ -109,12 +110,27 @@ importFrom(gert,
   git_remote_add,
   git_remote_list,
   git_remote_set_url,
+  git_signature,
   git_signature_default,
   git_status
 )
 importFrom(gh,gh)
 importFrom(glue,glue)
-importFrom(jsonlite,toJSON)
+importFrom(httr2,
+  req_auth_bearer_token,
+  req_body_json,
+  req_headers,
+  req_perform,
+  req_url_path,
+  request,
+  resp_body_json,
+  resp_status
+)
+importFrom(jsonlite,
+  fromJSON,
+  read_json,
+  toJSON
+)
 importFrom(lifecycle,deprecate_soft)
 importFrom(purrr,
   map,

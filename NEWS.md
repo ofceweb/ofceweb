@@ -1,3 +1,42 @@
+## ofceweb v0.10.0
+
+### Registre central — nouvelle disposition `wp/` (restructuration en 3 étapes)
+
+`ofceweb/wp-registry` a été restructuré : `registry.json` (racine, un seul
+fichier) devient `wp/index.json` (liste des années) + `wp/{annee}.json` (un
+fichier par année), en préparation de futurs registres pour d'autres types
+de documents (`prev/`, `rapports/`, ...). Cette version est l'**étape 2/3**
+de la migration (voir PR [#7](https://github.com/ofceweb/wp-registry/pull/7)
+pour l'étape 1) : `render_wp()` et `wp_registry_request()` lisent désormais
+exclusivement `wp/*.json`.
+
+* `render_wp()` : la consultation du registre télécharge `wp/index.json`,
+  puis chaque `wp/{année}.json` listé, et fusionne les entrées obtenues
+  (au lieu de télécharger un unique `registry.json`). Une année
+  individuellement illisible est ignorée avec un avertissement, sans
+  bloquer la recherche dans les autres années. Le repli sûr en cas de
+  registre inaccessible (`stage = TRUE`) est inchangé.
+
+* `wp_registry_request()` : l'auto-numérotation et la vérification de
+  collision ne lisent plus que `wp/{annee}.json` (au lieu de tout le
+  registre). Si c'est la première demande pour une année donnée (fichier
+  absent), la fonction crée `wp/{annee}.json` **et** met à jour
+  `wp/index.json` dans le même commit, pour que `render_wp()` sache
+  immédiatement aller le chercher.
+
+* Le champ `annee` est conservé dans chaque entrée malgré la redondance
+  avec le nom de fichier (une entrée copiée ou affichée isolément reste
+  ainsi auto-suffisante) ; la CI de `wp-registry` vérifie cette cohérence.
+
+* **Avertissement pour les versions antérieures d'`ofceweb`** : à l'issue
+  de l'étape 3 (suppression de `registry.json`/`registry.schema.json` à la
+  racine de `wp-registry`), toute version d'`ofceweb` antérieure à
+  `0.10.0` ne trouvera plus le registre et basculera silencieusement en
+  `stage = TRUE` — un WP déjà publié réafficherait alors le bandeau
+  « Version provisoire » (comportement de repli sûr mais inattendu pour un
+  document déjà publié). Mettre à jour `ofceweb` avant que l'étape 3 ne
+  soit fusionnée.
+
 ## ofceweb v0.9.4
 
 ### `setup_wp()` — refonte du routage et des URLs

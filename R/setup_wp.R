@@ -24,11 +24,13 @@
 #' absente.
 #'
 #' La variable `FTP_STAGING_DIR` est toujours positionnée (brouillon ou publié)
-#' à `stage/wp/{repo}/{version}/` — chemin utilisé par `ftp_stage.yml` pour
-#' déposer les versions de revue avant enregistrement dans le registre central
-#' (credentials chroot `stage/`, voir [wp_registry_request()]). Le workflow
-#' `ftp_stage.yml` est copié dans `.github/workflows/` au même titre que
-#' `ftp_deploy.yml` (section 10, seulement si absent).
+#' à `{repo}/{version}/` — l'utilisateur FTP de staging ayant un chroot sur
+#' `www/staging/`, le chemin effectif sur le serveur est
+#' `www/staging/{repo}/{version}/`. Ce chemin est utilisé par `ftp_stage.yml`
+#' pour déposer les versions de revue avant enregistrement dans le registre
+#' central (voir [wp_registry_request()]). Le workflow `ftp_stage.yml` est
+#' copié dans `.github/workflows/` au même titre que `ftp_deploy.yml`
+#' (section 10, seulement si absent).
 #'
 #' Toujours pour les WPs publiés, `citation.issue` (`"{année}-{wp}"`, sans
 #' zéro de remplissage) et `citation.url`
@@ -68,7 +70,8 @@ setup_wp <- function(
     annee = as.integer(format(Sys.Date(), "%Y")),
     lang = "fr",
     hypothesis = NULL,
-    versionning = NULL) {
+    versionning = NULL,
+    stage_target = NULL) {
 
   root <- path |>
     fs::path_expand() |>
@@ -86,7 +89,8 @@ setup_wp <- function(
   lang_provided       <- !missing(lang)
   title_provided      <- !missing(website_title)
   hypothesis_provided <- !missing(hypothesis)
-  version_provided    <- !missing(versionning)
+  version_provided      <- !missing(versionning)
+  stage_target_provided <- !missing(stage_target)
 
   # Vérifier si les arguments ne sont pas dans un yml
   dest_yaml <- fs::path(root, "_quarto.yml")
@@ -143,6 +147,17 @@ setup_wp <- function(
   if(hypothesis_provided){
       hypothesis <- isTRUE(hypothesis)
     }
+  if (!is.null(yml[["stage-target"]]) && !stage_target_provided) {
+    stage_target_provided <- TRUE
+    stage_target <- yml[["stage-target"]]
+  }
+  if (is.null(yml[["stage-target"]]) && !stage_target_provided) {
+    stage_target_provided <- TRUE
+    stage_target <- "gh-pages"
+  }
+  if (stage_target_provided)
+    stage_target <- match.arg(stage_target, c("gh-pages", "ftp"))
+
   version <- yml[["version"]]
   if(version_provided & is.null(yml[["version"]]) & isTRUE(versionning))
     version <- "v0"
@@ -374,6 +389,14 @@ setup_wp <- function(
   # version : le gabarit le fournit pour les nouveaux WPs — jamais injecté
   # dans un fichier existant.
 
+  # project.type : toujours forcé à "website" pour les WPs OFCE
+  yml$project$type <- "website"
+  lines <- yaml_patch_scalar(lines, "project.type", "website")
+
+  # stage-target : source de vérité pour le routage du déploiement — toujours positionné
+  yml$`stage-target` <- stage_target
+  lines <- yaml_patch_scalar(lines, "stage-target", stage_target)
+
   # ofce_wp : marqueur de dépôt WP OFCE — toujours positionné
   yml$ofce_wp <- TRUE
   lines <- yaml_patch_scalar(lines, "ofce_wp", TRUE)
@@ -384,22 +407,19 @@ setup_wp <- function(
   yml$website$favicon <- "www/fofce-wp.png"
   lines <- yaml_patch_scalar(lines, "website.favicon", "www/fofce-wp.png")
 
-  # repo-url : toujours calculé depuis le remote git (valeur dérivée, sans
-  # ambiguïté et sans risque pour l'utilisateur)
-  if (!is.na(gh$owner) && !is.na(gh$repo)) {
-    repo_url <- sprintf("https://github.com/%s/%s/", gh$owner, gh$repo)
-    yml$website$`repo-url` <- repo_url
-    lines <- yaml_patch_scalar(lines, "website.repo-url", repo_url)
-  }
+  # repo-url : toujours calculé depuis le remote git — forcé à chaque appel
+  repo_url <- sprintf("https://github.com/%s/%s/", gh_org, repo_name)
+  yml$website$`repo-url` <- repo_url
+  lines <- yaml_patch_scalar(lines, "website.repo-url", repo_url)
 
-  # site-url / site-path : champs dérivés de annee/wp — toujours recalculés
-  # dès que wp est non nul (fourni explicitement à cet appel, ou déjà
-  # présent dans _quarto.yml), pas seulement lors de l'appel qui l'a défini.
-  # Ceci garantit qu'un site-path manquant (WP créé avant cette
-  # fonctionnalité, ou édité à la main) est toujours (re)calculé.
+  # site-url / site-path : toujours recalculés — source de vérité pour les URLs
+  # canoniques injectées dans le HTML rendu.
+  #
+  # Publié (wp non nul)   : site-url = www.ofce.fr,  site-path = {annee}/{wp}/[{version}/]
+  # Brouillon gh-pages : site-url = {org}.github.io/{repo}/,         pas de site-path
+  # Staging FTP        : site-url = www.ofce.fr/staging/{repo}/[{version}/], pas de site-path
   if (!is.null(wp)) {
-    # Année effective : yml$annee est déjà à jour (mis à jour plus haut si
-    # annee_provided, sinon valeur existante du YAML, sinon argument par défaut).
+    # Année effective : yml$annee est déjà à jour.
     effective_annee_sp <- suppressWarnings(as.integer(yml$annee %||% annee))
     if (is.na(effective_annee_sp)) effective_annee_sp <- annee
     yml$website$`site-url`  <- "https://www.ofce.fr/"
@@ -413,33 +433,40 @@ setup_wp <- function(
     lines <- yaml_patch_scalar_or_delete(lines, "version", version)
 
     # Les WPs créés avant l'abandon du zéro-padding portent un site-path de
-    # la forme `2026/007` : la valeur recalculée l'écrase. Le déploiement
-    # changera donc de répertoire — le signaler explicitement.
+    # la forme `2026/007` : la valeur recalculée l'écrase.
     old_site_path <- as.character(yml$website$`site-path` %||% "")
     if (nzchar(old_site_path) && !identical(old_site_path, site_path)) {
       cli::cli_alert_warning(
-        "site-path modifié : {.val {old_site_path}} \u2192 {.val {site_path}} \\
+        "site-path modifié : {.val {old_site_path}} \u2192 {.val {site_path}} \r
          \u2014 le prochain déploiement ira sur une {.strong URL différente}."
       )
       cli::cli_alert_info(
-        "L'ancien répertoire {.val {old_site_path}} reste en place sur le \\
+        "L'ancien répertoire {.val {old_site_path}} reste en place sur le \r
          serveur : le supprimer ou y poser une redirection si nécessaire."
       )
     }
 
     yml$website$`site-path` <- site_path
     lines <- yaml_patch_scalar(lines, "website.site-path", site_path)
-  } else if (wp_provided) {
-    # wp explicitement remis à NULL à cet appel : repasse en brouillon
-    # (GitHub Pages). Ne se déclenche pas pour un brouillon qui n'a jamais
-    # eu de wp — seulement sur une transition explicite publié → brouillon.
-    yml$version <- NULL
-    lines <- yaml_patch_delete(lines, "version")
-    github_site_url <- sprintf("https://%s.github.io/%s/", gh_org, repo_name)
-    yml$website$`site-url`  <- github_site_url
-    lines <- yaml_patch_scalar(lines, "website.site-url", github_site_url)
+  } else {
+    # Brouillon / staging — toujours recalculé depuis stage-target.
+    # Transition explicite publié → brouillon : supprimer la version.
+    if (wp_provided) {
+      version <- NULL
+      yml$version <- NULL
+      lines <- yaml_patch_delete(lines, "version")
+    }
     yml$website$`site-path` <- NULL
     lines <- yaml_patch_delete(lines, "website.site-path")
+    draft_site_url <- if (identical(stage_target, "ftp")) {
+      ver_seg <- if (!is.null(version) && nzchar(as.character(version)))
+        paste0(version, "/") else ""
+      sprintf("https://www.ofce.fr/staging/%s/%s", repo_name, ver_seg)
+    } else {
+      sprintf("https://%s.github.io/%s/", gh_org, repo_name)
+    }
+    yml$website$`site-url`  <- draft_site_url
+    lines <- yaml_patch_scalar(lines, "website.site-url", draft_site_url)
   }
 
   # citation.url / citation.issue : valeurs dérivées, toujours mises à jour
@@ -536,14 +563,15 @@ setup_wp <- function(
   }
 
   # ---- 12b. FTP_STAGING_DIR (toujours, indépendant du numéro WP) -----------
-  # Chemin FTP de staging : stage/wp/{repo}/{version}/
-  # Utilisé par ftp_stage.yml avec les credentials chroot stage/ pour déposer
-  # les versions de revue d'un WP en attente d'enregistrement dans le registre.
+  # Chemin FTP de staging : {repo}/{version}/
+  # L'utilisateur FTP de staging a un chroot sur www/staging/, donc le chemin
+  # effectif sur le serveur est www/staging/{repo}/{version}/.
+  # Utilisé par ftp_stage.yml avec les credentials STAGING_USER/STAGING_PASSWORD.
   staging_slug    <- if (!is.na(gh$repo)) gh$repo else fs::path_file(root)
   staging_version <- yml$version
   staging_ver_seg <- if (!is.null(staging_version) && nzchar(as.character(staging_version)))
     paste0(staging_version, "/") else ""
-  staging_dir <- sprintf("stage/wp/%s/%s", staging_slug, staging_ver_seg)
+  staging_dir <- sprintf("%s/%s", staging_slug, staging_ver_seg)
   set_gh_var(root, "FTP_STAGING_DIR", staging_dir)
 
   # ---- 13. .gitignore -------------------------------------------------------
@@ -575,7 +603,8 @@ setup_wp <- function(
   cli::cli_li("site-url    : {yml$website$`site-url`}")
   if (!is.null(yml$website$`site-path`))
     cli::cli_li("site-path   : {yml$website$`site-path`}")
-  cli::cli_li("FTP_STAGING_DIR : {staging_dir}")
+  cli::cli_li("staging url : https://www.ofce.fr/staging/{staging_dir}")
+  cli::cli_li("stage-target: {stage_target}")
   if (!is.null(yml$citation$issue))
     cli::cli_li("citation issue: {yml$citation$issue}")
   if (!is.null(yml$citation$url))

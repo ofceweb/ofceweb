@@ -1,8 +1,11 @@
 # Ces champs sont obligatoires et doivent être remplis
 title: "Titre du document de travail"
+# respecter le format pour la date
 date: "YYYY-MM-DD"
 version: v0
-
+# Destination de déploiement pour les WPs non encore publiés :
+# gh-pages = GitHub Pages (brouillon) ; ftp = staging FTP OFCE (en attente d'enregistrement).
+stage-target: gh-pages
 author:
   - name: "Prénom Nom"
     email: "prenom.nom@sciencespo.fr"
@@ -18,7 +21,7 @@ date-modified: last-modified
 comments:
   hypothesis: false
 
-# Ce qui suit ne doit pas être modifié manuellement
+# Ce qui suit sera principalement imposé par setup_wp()
 project:
   type: website
 
@@ -31,19 +34,6 @@ website:
   page-navigation: true
   bread-crumbs: true
   favicon: www/fofce-wp.png
-  navbar:
-    title: false
-    search: true
-    left:
-      - text: "WP {{< meta annee >}}-{{< meta wp >}}"
-        icon: house
-        href: index.html
-      - text: Annexes
-        icon: file-bar-graph
-        href: annexes.html
-      - text: Historique
-        icon: newspaper
-        href: news.html
   other-links:
     - text: Annexes
       icon: file-bar-graph

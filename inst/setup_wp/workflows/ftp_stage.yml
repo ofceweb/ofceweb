@@ -51,7 +51,7 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server:   ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.STAGING_USERNAME }}
+          username: ${{ secrets.STAGING_USER }}
           password: ${{ secrets.STAGING_PASSWORD }}
           port: 21
           local-dir: ./

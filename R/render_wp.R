@@ -10,8 +10,6 @@
 #' déploiement sur la branche de déploiement et prévisualisation locale.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
-#' @param check_repo Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
-#'   avant le rendu via [check_repo_status()].
 #' @param check Logique. Si `TRUE` (défaut), appelle [check_wp()] avant le
 #'   rendu et abandonne si des erreurs bloquantes sont détectées.
 #' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
@@ -23,7 +21,7 @@
 #' @param workers Entier. Nombre de workers parallèles pour le rendu. Défaut
 #'   `8L`.
 #'
-#' @returns Invisible : sortie de [gert::git_status()].
+#' @returns Invisible NULL.
 #' @seealso [setup_wp()], [check_wp()], [deploy_wp()]
 #' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists dir_delete dir_ls file_delete
 #' @importFrom cli cli_h1 cli_h2 cli_abort cli_text cli_alert_warning cli_alert_success
@@ -32,12 +30,10 @@
 #' @importFrom future plan
 #' @importFrom future.mirai mirai_multisession
 #' @importFrom quarto quarto_render
-#' @importFrom gert git_status
 #' @importFrom jsonlite fromJSON
 #' @export
 render_wp <- function(
     path = ".",
-    check_repo  = TRUE,
     check       = TRUE,
     progress    = TRUE,
     render_site = TRUE,
@@ -69,9 +65,6 @@ render_wp <- function(
   on.exit(setwd(oldwd))
   setwd(root)
 
-  # ---- 1. vérification du dépôt git ----------------------------------------
-  if (check_repo) check_repo_status()
-
   # ---- 2. vérification de la structure WP ----------------------------------
   if (check) {
     diags <- check_wp(root, verbose = TRUE)
@@ -93,17 +86,6 @@ render_wp <- function(
   # provisoire" et écrit dans manifest.json pour router deploy_wp().
   cli::cli_h2("Registre central")
   source_repo  <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
-  if (!is.na(source_repo)) {
-    repo_owner <- strsplit(source_repo, "/", fixed = TRUE)[[1L]][[1L]]
-    if (!identical(repo_owner, "ofce"))
-      cli::cli_alert_info(
-        "Dépôt sous {.strong {repo_owner}}, pas sous {.strong ofce} — ",
-        "le rendu fonctionne mais la publication FTP sera bloquée. ",
-        "Transférer via GitHub → Settings → Danger Zone → Transfer repository.")
-  } else {
-    cli::cli_alert_info(
-    "Le dossier n'est pas un dépôt github, aucune publication (staging ou enregistrée) ne sera possible")
-  }
   registry_url <- "https://raw.githubusercontent.com/ofceweb/wp-registry/main/registry.json"
   registry <- tryCatch(
     jsonlite::fromJSON(registry_url, simplifyVector = FALSE),
@@ -188,16 +170,6 @@ render_wp <- function(
 
   tictoc::toc()
 
-  status <- tryCatch(
-    gert::git_status(staged = TRUE),
-    error = function(e) {
-      cli::cli_alert_warning(
-        "Statut git non disponible ({conditionMessage(e)}) \u2014 \\
-         initialiser le d\u00e9p\u00f4t avec {.code git init} et configurer un remote.")
-      NULL
-    }
-  )
-
   # ---- 8. déploiement / instruction ----------------------------------------
   if (site2branch) {
     ofceweb::site2branch(root, progress = progress, trigger = trigger)
@@ -216,7 +188,7 @@ render_wp <- function(
     servr::httw("_site", daemon = TRUE)
   }
 
-  invisible(status)
+  invisible(NULL)
 }
 
 #' Rendu et déploiement complet d'un document de travail (WP) OFCE
@@ -234,7 +206,6 @@ render_wp <- function(
 #' @export
 publish_wp <- function(
     path        = ".",
-    check_repo  = TRUE,
     check       = TRUE,
     progress    = TRUE,
     render_site = TRUE,
@@ -242,7 +213,6 @@ publish_wp <- function(
     workers     = 8L) {
   render_wp(
     path        = path,
-    check_repo  = check_repo,
     check       = check,
     progress    = progress,
     render_site = render_site,

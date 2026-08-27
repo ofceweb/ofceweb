@@ -31,6 +31,7 @@
 #' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_danger cli_rule cli_alert_info
 #' @importFrom yaml read_yaml
 #' @importFrom glue glue
+#' @importFrom gh gh
 #' @export
 check_wp <- function(path = ".", verbose = TRUE) {
 
@@ -51,6 +52,16 @@ check_wp <- function(path = ".", verbose = TRUE) {
   }
 
   if (verbose) cli::cli_h1("check_wp : {fs::path_file(root)}")
+
+  # ---- connexion GitHub -------------------------------------------------------
+  gh_user <- tryCatch(gh::gh("GET /user"), error = function(e) NULL)
+  if (!is.null(gh_user) && !is.null(gh_user$login)) {
+    add_diag("gh:login", "ok",
+             sprintf("Connecté à GitHub en tant que @%s.", gh_user$login))
+  } else {
+    add_diag("gh:login", "warning",
+             "Non connecté à GitHub (gh::gh('GET /user') a échoué). Les opérations staging et registry seront indisponibles.")
+  }
 
   # ---- _quarto.yml ---------------------------------------------------------
   yml_path <- fs::path(root, "_quarto.yml")

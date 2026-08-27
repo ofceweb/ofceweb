@@ -18,9 +18,6 @@
 #' }
 #'
 #' @param path Chemin vers la racine du d\u00e9p\u00f4t. D\u00e9faut `"."`.
-#' @param target Cha\u00eene. Destination pour les WPs non encore publi\u00e9s :
-#'   `"auto"` (d\u00e9faut), `"ftp"` ou `"gh-pages"`. Ignor\u00e9 si le WP
-#'   est confirm\u00e9 dans le registre (`stage = FALSE`).
 #' @param progress Logique. Affichage de la progression. D\u00e9faut `TRUE`.
 #' @param trigger Pass\u00e9 \u00e0 [site2branch()] (WP staged ou publi\u00e9 uniquement).
 #'   D\u00e9clenche le workflow GitHub Actions FTP. D\u00e9faut `TRUE`.
@@ -38,13 +35,10 @@
 #' @export
 deploy_wp <- function(
     path        = ".",
-    target      = "auto",
     progress    = TRUE,
     trigger     = TRUE,
     full_deploy = FALSE,
     ...) {
-
-  target <- match.arg(target, c("auto", "ftp", "gh-pages"))
 
   root <- path |>
     fs::path_expand() |>
@@ -79,7 +73,7 @@ deploy_wp <- function(
   if (isFALSE(stage)) {
     stable_url <- sprintf("https://www.ofce.fr/wp/%d/%03d", annee, wp)
     ver_seg    <- if (!is.null(version)) paste0(version, "/") else ""
-    final_url  <- sprintf("https://www.ofce.fr/wp/%d/%03d/%sindex.html", annee, wp, ver_seg)
+    final_url  <- sprintf("https://www.ofce.fr/wp/%d/%d/%s", annee, wp, ver_seg)
 
     cli::cli_h2("D\u00e9ploiement WP publi\u00e9 (site2branch \u2192 FTP production)")
     cli::cli_text(
@@ -106,15 +100,12 @@ deploy_wp <- function(
   }
 
   # ---- D\u00e9termination de la cible effective (non-publi\u00e9) ---------------------
-  effective_target <- if (target == "auto") {
-    if (isTRUE(stage)) "ftp" else "gh-pages"
-  } else {
-    target
-  }
-
-  if (target != "auto" && target != if (isTRUE(stage)) "ftp" else "gh-pages")
-    cli::cli_alert_info(
-      "Cible forc\u00e9e \u00e0 {.val {target}} (registre : {if (isTRUE(stage)) 'staging' else 'brouillon'}).")
+  # Source de v\u00e9rit\u00e9 : stage-target dans _quarto.yml (gh-pages ou ftp).
+  # Ignor\u00e9 si le WP est confirm\u00e9 dans le registre (stage = FALSE, ci-dessus).
+  effective_target <- match.arg(
+    yml[["stage-target"]] %||% "gh-pages",
+    c("gh-pages", "ftp")
+  )
 
   # ---- FTP staging ----------------------------------------------------------
   if (effective_target == "ftp") {
@@ -125,8 +116,7 @@ deploy_wp <- function(
       fs::path_file(root)
     }
     ver_seg   <- if (!is.null(version)) paste0(version, "/") else ""
-    final_url <- sprintf(
-      "https://www.ofce.fr/stage/wp/%s/%sindex.html", repo_slug, ver_seg)
+    final_url <- sprintf("https://www.ofce.fr/staging/%s/%s", repo_slug, ver_seg)
 
     cli::cli_h2("D\u00e9ploiement WP staging (site2branch \u2192 FTP staging)")
     cli::cli_text(
@@ -173,7 +163,7 @@ deploy_wp <- function(
   gh_url <- yml$website$`site-url`
   if (!is.null(gh_url) && nzchar(gh_url))
     cli::cli_alert_success(
-      "Disponible : {.url {paste0(sub('/?$', '/', gh_url), 'index.html')}}")
+      "Disponible : {.url {sub('/$', '', gh_url)}}")
 
   invisible(NULL)
 }

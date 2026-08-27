@@ -1,3 +1,6 @@
+# Écrite/synchronisée automatiquement par render_prev()/publish_prev().
+draft: false
+
 website:
   site-path: "prev/prevYYMM"
 

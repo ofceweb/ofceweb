@@ -3,8 +3,10 @@
 #' Orchestre le build complet d'un WP Quarto : vérification du dépôt git,
 #' vérification de la structure WP, consultation du registre central
 #' (`ofceweb/wp-registry`) pour déterminer l'état `stage` (staging ou publié),
-#' nettoyage de `_site/`, rendu Quarto (HTML + PDF) avec `stage` injecté
-#' comme métadonnée Quarto, construction du sitemap, patch des hashes
+#' persistance de cet état dans la clé `draft` de `_quarto.yml` (lue par les
+#' extensions `ofce-quarto-extensions` pour le bandeau « Version
+#' provisoire »), nettoyage de `_site/`, rendu Quarto (HTML + PDF),
+#' construction du sitemap, patch des hashes
 #' Bootstrap, écriture du manifeste (champ `stage` inclus), synchronisation
 #' de `FTP_SERVER_DIR` (WPs publiés confirmés uniquement), et optionnellement
 #' déploiement sur la branche de déploiement et prévisualisation locale.
@@ -81,9 +83,10 @@ render_wp <- function(
   # ---- 2.5. registre central (détermine stage avant le rendu) --------------
   # Consulte ofceweb/wp-registry (disposition wp/index.json + wp/{année}.json)
   # pour savoir si ce dépôt a une entrée confirmée (type "repo"). Résultat :
-  # stage = FALSE (publié), TRUE (staging). Le résultat est injecté comme
-  # métadonnée Quarto pour le banner "Version provisoire" et écrit dans
-  # manifest.json pour router deploy_wp().
+  # stage = FALSE (publié), TRUE (staging). Le résultat est persisté comme
+  # clé `draft` dans _quarto.yml (cf. 2.6, pour le banner "Version
+  # provisoire" des extensions) et écrit dans manifest.json pour router
+  # deploy_wp().
   cli::cli_h2("Registre central")
   source_repo <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
   entries     <- fetch_wp_entries()
@@ -109,6 +112,21 @@ render_wp <- function(
     TRUE  # fallback sûr si réseau, wp/index.json ou remote indisponible
   }
 
+  # ---- 2.6. persistance de `draft` dans _quarto.yml -------------------------
+  # Les extensions ofce-quarto-extensions lisent la métadonnée de projet
+  # `draft` (et non `stage`, qui reste un détail interne à ofceweb) pour
+  # afficher le bandeau « Version provisoire — non publiée » dans le HTML,
+  # le PDF et le Typst produits. Écrite ici, avant le rendu, pour que Quarto
+  # la lise comme n'importe quelle autre métadonnée de `_quarto.yml`.
+  qyml_path <- fs::path(root, "_quarto.yml")
+  tryCatch({
+    lines <- readLines(qyml_path, warn = FALSE)
+    lines <- yaml_patch_scalar(lines, "draft", stage)
+    writeLines(lines, qyml_path)
+  }, error = function(e)
+    cli::cli_alert_warning(
+      "Cl\u00e9 {.code draft} non \u00e9crite dans {.file _quarto.yml} : {conditionMessage(e)}"))
+
   # ---- 3. vider _site/ -----------------------------------------------------
   if (fs::dir_exists("_site"))
     tryCatch(
@@ -118,8 +136,7 @@ render_wp <- function(
 
   # ---- 4. rendu Quarto (HTML + PDF) ----------------------------------------
   cli::cli_h2("Rendu Quarto (HTML + PDF)")
-  quarto::quarto_render(output_format = "all", as_job = FALSE,
-                        metadata = list(stage = stage))
+  quarto::quarto_render(output_format = "all", as_job = FALSE)
 
   # Nettoyer les DS_Store
   if (fs::dir_exists("_site"))

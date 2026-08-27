@@ -6,6 +6,10 @@ version: v0
 # Destination de déploiement pour les WPs non encore publiés :
 # gh-pages = GitHub Pages (brouillon) ; ftp = staging FTP OFCE (en attente d'enregistrement).
 stage-target: gh-pages
+# Écrite/synchronisée automatiquement par render_wp() d'après le registre
+# central (ofceweb/wp-registry) ; lue par les extensions
+# ofce-quarto-extensions pour le bandeau "Version provisoire — non publiée".
+draft: true
 author:
   - name: "Prénom Nom"
     email: "prenom.nom@sciencespo.fr"

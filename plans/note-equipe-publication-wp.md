@@ -1,8 +1,6 @@
 ---
-
-editor_options: 
-  markdown: 
-    wrap: 72
+format:
+  typst: default
 ---
 
 # Nouveau processus de publication des documents de travail OFCE
@@ -199,4 +197,32 @@ L'administrateur actuel du registre est **xtimbeau**. Une équipe `wp-admins` da
 
 ------------------------------------------------------------------------
 
-*Ce processus est implémenté dans le package R `ofceweb`, mis à jour v0.9.0 → v0.9.4. Voir `NEWS.md` pour le détail de chaque version.*
+------------------------------------------------------------------------
+
+## Évolutions récentes (v0.10.1 - août 2026)
+
+### Alignement du tooling WP et prévisions
+
+Les fonctions de rendu et déploiement des **prévisions** (`render_prev()`, `stage_prev()`, `publish_prev()`) ont été alignées sur le pattern WP pour une cohérence maximale :
+
+- **Suppression du paramètre `check_repo`** de `render_prev()` et des orchestrateurs (`stage_prev()`, `publish_prev()`, `render_prev_publish()`) : le rendu Quarto ne dépend pas de l'état du dépôt git. La vérification git-status existait avant mais entrait en conflit avec les workflows CI (qui clonent le dépôt mais ne le configurent pas comme dépôt git "actif"). Supprimée pour cohérence avec `render_wp()`.
+
+- **Vérification GitHub unifiée** : un nouveau helper `check_gh_login()` (partagé entre WP et prévisions) appelle `gh::gh("GET /user")` pour vérifier la connexion GitHub. Intégré dans :
+
+  - `setup_prev()` au démarrage (alerte précoce si authentification manquante)
+  - `stage_prev()` et `publish_prev()` (empêche les déploiements staging/registry muets en cas d'absence de token)
+  - `check_prev()` (diagnostic `gh:login`, identique à `check_wp()`)
+  - `check_wp()` (refactorisé pour utiliser le helper partagé)
+
+- **Workflows toujours force-remplacés** : la politique a changé pour `setup_wp()` (était : créer seulement si absent) → toujours force-remplacer depuis le package template. `setup_prev()` était déjà ainsi. Raison : les workflows ne doivent **jamais** être édités manuellement — ce sont des templates de référence du package. Un force-replace garantit que chaque exécution de `setup_wp()` / `setup_prev()` propage les corrections critiques (comme les secrets mal nommés, les chemins `.staticrypt` mal ciblés) automatiquement au prochain `setup_*()` exécuté.
+
+### Correctifs dans les templates
+
+- **`ftp_deploy_staging.yml`** (prévisions) : secret GitHub Actions mal nommé (`STAGING_USERNAME` → `STAGING_USER`). Décorrelation FTP échouait en CI faute du secret correct. Corrigé.
+- **`ftp_deploy_staging.yml` et `ftp_stage.yml`** (tous deux) : la commande `staticrypt` visait `./` (le répertoire courant) au lieu de `./*` (son contenu). Résultat : le répertoire lui-même était chiffré plutôt que ses fichiers. Corrigé.
+
+Ces corrections sont désormais dans les templates du package. Au prochain `setup_wp()` / `setup_prev()`, tous les dépôts recevront automatiquement les workflows corrigés.
+
+------------------------------------------------------------------------
+
+*Ce processus est implémenté dans le package R `ofceweb`, version v0.10.1 (mise à jour v0.9.4 → v0.10.1, août 2026). Voir `NEWS.md` pour le détail de chaque version.*

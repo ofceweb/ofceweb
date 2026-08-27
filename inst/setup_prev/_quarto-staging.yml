@@ -1,3 +1,8 @@
+# Écrite/synchronisée automatiquement par render_prev()/stage_prev() ; lue
+# par les extensions ofce-quarto-extensions pour le bandeau "Version
+# provisoire — non publiée".
+draft: true
+
 website:
   site-path: "staging/prevYYMM/v0"
 

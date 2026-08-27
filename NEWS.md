@@ -28,6 +28,21 @@
   (gabarit `setup_wp`) : la commande `staticrypt` ciblait `./` (le dossier
   courant lui-même) au lieu de `./*` (son contenu). Corrigé.
 
+### `setup_wp()` / `setup_prev()` — workflows toujours mis à jour
+
+* Workflows GitHub Actions (`.github/workflows/`) : changement de politique.
+  Auparavant, `setup_wp()` ne créait les workflows que s'ils n'existaient pas ;
+  `setup_prev()` les remplaçait toujours. Désormais les deux fonctions
+  **forcent la mise à jour** à chaque appel. Les workflows sont la source de
+  vérité du package et ne doivent pas être modifiés manuellement. Cela
+  garantit que les corrections et améliorations de templates (comme le fix
+  `STAGING_USERNAME` → `STAGING_USER` ci-dessus) sont propagées
+  automatiquement à l'appel suivant de `setup_wp()` ou `setup_prev()`.
+
+* Docstring de `setup_wp()` clarifiée : explique désormais que les fichiers
+  utilisateur (`.qmd`, YAML) sont non-destructifs, mais les workflows
+  (gabarits du package) sont toujours remplacés.
+
 ## ofceweb v0.10.0
 
 ### Registre central — nouvelle disposition `wp/` (restructuration en 3 étapes)

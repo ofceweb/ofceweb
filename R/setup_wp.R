@@ -5,32 +5,35 @@
 #' adapte le `_quarto.yml` avec les métadonnées du WP (titre, numéro, année,
 #' langue, URLs).
 #'
-#' La fonction est **non-destructive** : sur un dépôt existant, les fichiers
-#' gabarits (dont `_quarto.yml`) ne sont pas écrasés, et les champs YAML ne
-#' sont mis à jour que si l'argument correspondant a été fourni explicitement.
-#' Les champs déjà absents ne sont pas injectés. `repo-url`, `favicon` et
-#' `ofce_wp: true` sont toujours positionnés (valeurs dérivées sans
-#' ambiguïté). `website.site-url`/`website.site-path` sont eux aussi
-#' toujours (re)calculés dès que `wp` est non nul — que ce soit via
-#' l'argument `wp` ou une valeur déjà présente dans `_quarto.yml` — pour
+#' La fonction est **non-destructive** pour les fichiers utilisateur : sur un
+#' dépôt existant, les fichiers gabarits `.qmd` et scripts (dont `_quarto.yml`)
+#' ne sont pas écrasés, et les champs YAML ne sont mis à jour que si l'argument
+#' correspondant a été fourni explicitement. Les champs déjà absents ne sont pas
+#' injectés. `repo-url`, `favicon` et `ofce_wp: true` sont toujours positionnés
+#' (valeurs dérivées sans ambiguïté). `website.site-url`/`website.site-path`
+#' sont eux aussi toujours (re)calculés dès que `wp` est non nul — que ce soit
+#' via l'argument `wp` ou une valeur déjà présente dans `_quarto.yml` — pour
 #' qu'un `site-path` manquant (fichier édité à la main, ou créé avant cette
 #' fonctionnalité) soit toujours réparé.
 #'
+#' En revanche, les **workflows GitHub Actions** (`.github/workflows/`) sont
+#' **toujours mis à jour** depuis la version de référence du package : ils ne
+#' doivent pas être modifiés manuellement par l'utilisateur, et chaque appel à
+#' `setup_wp()` réapplie les corrections et mises à jour de templates.
+#'
 #' Pour les WPs publiés (`wp` non nul), la fonction met à jour la variable
 #' GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
-#' à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
-#' aussi migré automatiquement si `server-dir` y est encore codé en dur, et si
-#' l'étape de vérification anti-collision (voir [wp_manifest()]) y est
-#' absente.
+#' à partir du `site-path` du `_quarto.yml`. Les workflows `ftp_deploy.yml` et
+#' `ftp_stage.yml` sont aussi migrés automatiquement si `server-dir` y est
+#' encore codé en dur, et si l'étape de vérification anti-collision (voir
+#' [wp_manifest()]) y est absente.
 #'
 #' La variable `FTP_STAGING_DIR` est toujours positionnée (brouillon ou publié)
 #' à `{repo}/{version}/` — l'utilisateur FTP de staging ayant un chroot sur
 #' `www/staging/`, le chemin effectif sur le serveur est
 #' `www/staging/{repo}/{version}/`. Ce chemin est utilisé par `ftp_stage.yml`
 #' pour déposer les versions de revue avant enregistrement dans le registre
-#' central (voir [wp_registry_request()]). Le workflow `ftp_stage.yml` est
-#' copié dans `.github/workflows/` au même titre que `ftp_deploy.yml`
-#' (section 10, seulement si absent).
+#' central (voir [wp_registry_request()]).
 #'
 #' Toujours pour les WPs publiés, `citation.issue` (`"{année}-{wp}"`, sans
 #' zéro de remplissage) et `citation.url`
@@ -299,25 +302,23 @@ setup_wp <- function(
   })
   check_stray_ofce_extensions(root)
 
-  # ---- 10. copie des workflows (seulement si absents) -----------------------
+  # ---- 10. copie des workflows (toujours mis à jour depuis le package) ------
+  # Les workflows sont la source de vérité du package — l'utilisateur ne doit
+  # pas les modifier. Force-remplacer à chaque appel.
   src_wf  <- fs::path(pkg_setup_wp, "workflows")
   dest_wf <- fs::path(root, ".github", "workflows")
   if (fs::dir_exists(src_wf)) {
     fs::dir_create(dest_wf, recurse = TRUE)
-    n_copied <- 0L
+    n_updated <- 0L
     for (f in fs::dir_ls(src_wf, type = "file")) {
       fname <- fs::path_file(f)
       if (fs::path_ext(fname) == "html") fname <- fs::path_ext_remove(fname)
       dest_f <- fs::path(dest_wf, fname)
-      if (!fs::file_exists(dest_f)) {
-        fs::file_copy(f, dest_f, overwrite = FALSE)
-        n_copied <- n_copied + 1L
-      } else {
-        cli::cli_alert_info("{.file .github/workflows/{fname}} déjà présent — non écrasé.")
-      }
+      fs::file_copy(f, dest_f, overwrite = TRUE)
+      n_updated <- n_updated + 1L
     }
-    if (n_copied > 0L)
-      cli::cli_alert_success("Copie de {n_copied} workflow{?s} vers {.path .github/workflows/}")
+    if (n_updated > 0L)
+      cli::cli_alert_success("Mise à jour de {n_updated} workflow{?s} vers {.path .github/workflows/}")
   }
 
   # ---- 10b. migration server-dir → ${{ vars.FTP_SERVER_DIR }} ---------------

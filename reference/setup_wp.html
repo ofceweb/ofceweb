@@ -101,30 +101,32 @@ ajoute `/v0` au `site-path`.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>La fonction est **non-destructive** : sur un dépôt existant, les fichiers
-gabarits (dont `_quarto.yml`) ne sont pas écrasés, et les champs YAML ne
-sont mis à jour que si l'argument correspondant a été fourni explicitement.
-Les champs déjà absents ne sont pas injectés. `repo-url`, `favicon` et
-`ofce_wp: true` sont toujours positionnés (valeurs dérivées sans
-ambiguïté). `website.site-url`/`website.site-path` sont eux aussi
-toujours (re)calculés dès que `wp` est non nul — que ce soit via
-l'argument `wp` ou une valeur déjà présente dans `_quarto.yml` — pour
+    <p>La fonction est **non-destructive** pour les fichiers utilisateur : sur un
+dépôt existant, les fichiers gabarits `.qmd` et scripts (dont `_quarto.yml`)
+ne sont pas écrasés, et les champs YAML ne sont mis à jour que si l'argument
+correspondant a été fourni explicitement. Les champs déjà absents ne sont pas
+injectés. `repo-url`, `favicon` et `ofce_wp: true` sont toujours positionnés
+(valeurs dérivées sans ambiguïté). `website.site-url`/`website.site-path`
+sont eux aussi toujours (re)calculés dès que `wp` est non nul — que ce soit
+via l'argument `wp` ou une valeur déjà présente dans `_quarto.yml` — pour
 qu'un `site-path` manquant (fichier édité à la main, ou créé avant cette
 fonctionnalité) soit toujours réparé.</p>
+<p>En revanche, les **workflows GitHub Actions** (`.github/workflows/`) sont
+**toujours mis à jour** depuis la version de référence du package : ils ne
+doivent pas être modifiés manuellement par l'utilisateur, et chaque appel à
+`setup_wp()` réapplie les corrections et mises à jour de templates.</p>
 <p>Pour les WPs publiés (`wp` non nul), la fonction met à jour la variable
 GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
-à partir du `site-path` du `_quarto.yml`. Le workflow `ftp_deploy.yml` est
-aussi migré automatiquement si `server-dir` y est encore codé en dur, et si
-l'étape de vérification anti-collision (voir [wp_manifest()]) y est
-absente.</p>
+à partir du `site-path` du `_quarto.yml`. Les workflows `ftp_deploy.yml` et
+`ftp_stage.yml` sont aussi migrés automatiquement si `server-dir` y est
+encore codé en dur, et si l'étape de vérification anti-collision (voir
+[wp_manifest()]) y est absente.</p>
 <p>La variable `FTP_STAGING_DIR` est toujours positionnée (brouillon ou publié)
 à `repo/version/` — l'utilisateur FTP de staging ayant un chroot sur
 `www/staging/`, le chemin effectif sur le serveur est
 `www/staging/repo/version/`. Ce chemin est utilisé par `ftp_stage.yml`
 pour déposer les versions de revue avant enregistrement dans le registre
-central (voir [wp_registry_request()]). Le workflow `ftp_stage.yml` est
-copié dans `.github/workflows/` au même titre que `ftp_deploy.yml`
-(section 10, seulement si absent).</p>
+central (voir [wp_registry_request()]).</p>
 <p>Toujours pour les WPs publiés, `citation.issue` (`"année-wp"`, sans
 zéro de remplissage) et `citation.url`
 (`https://www.ofce.fr/wp/année/wp/`, l'URL publique stable, sans

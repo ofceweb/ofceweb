@@ -135,6 +135,7 @@ révisions</strong> (<code>news.qmd</code>).</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="../reference/setup_wp.html">setup_wp()</a></code> :</p>
 <ol style="list-style-type: decimal">
+<li>Vérifie la connexion GitHub (<code>gh::gh("GET /user")</code>)</li>
 <li>Initialise la branche orpheline <code>gh-pages</code>
 (pré-publication GitHub Pages)</li>
 <li>Copie les gabarits (<code>_quarto.yml</code>,
@@ -143,8 +144,9 @@ révisions</strong> (<code>news.qmd</code>).</p>
 <li>Copie les assets OFCE (<code>www/</code>) et installe/met à jour les
 extensions Quarto OFCE (<code>_extensions/</code>) via
 <code>ofce::setup_quarto()</code> (accès réseau nécessaire)</li>
-<li>Copie les workflows GitHub Actions
-(<code>.github/workflows/</code>)</li>
+<li>Force-remplace les workflows GitHub Actions
+(<code>.github/workflows/</code>) depuis le package — les workflows ne
+doivent pas être édités manuellement</li>
 <li>Adapte <code>_quarto.yml</code> avec le titre, l’URL, le numéro WP,
 l’année, la langue</li>
 </ol>
@@ -160,6 +162,8 @@ l’année, la langue</li>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/check_wp.html">check_wp</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="../reference/check_wp.html">check_wp()</a></code> vérifie :</p>
 <ul>
+<li>Connexion GitHub : <code>gh::gh("GET /user")</code> (warning non
+bloquant si absent)</li>
 <li>Champs obligatoires dans <code>_quarto.yml</code> :
 <code>annee</code>, <code>author</code>, <code>date</code>,
 <code>citation</code>
@@ -189,7 +193,6 @@ appelée par <code><a href="../reference/render_wp.html">render_wp()</a></code>.
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/render_wp.html">render_wp</a></span><span class="op">(</span></span>
 <span>  path        <span class="op">=</span> <span class="st">"."</span>,</span>
-<span>  check_repo  <span class="op">=</span> <span class="cn">TRUE</span>,   <span class="co"># vérifier l'état git avant rendu</span></span>
 <span>  check       <span class="op">=</span> <span class="cn">TRUE</span>,   <span class="co"># appeler check_wp() avant rendu</span></span>
 <span>  render_site <span class="op">=</span> <span class="cn">TRUE</span>,   <span class="co"># lancer un serveur local après rendu</span></span>
 <span>  site2branch <span class="op">=</span> <span class="cn">FALSE</span>   <span class="co"># pousser vers la branche de déploiement</span></span>
@@ -197,11 +200,12 @@ appelée par <code><a href="../reference/render_wp.html">render_wp()</a></code>.
 <p><strong>Pipeline</strong> :</p>
 <ol style="list-style-type: decimal">
 <li>
-<code>check_repo_status()</code> si <code>check_repo</code>
-</li>
-<li>
 <code><a href="../reference/check_wp.html">check_wp()</a></code> si <code>check</code> (abandon si erreurs
-bloquantes)</li>
+bloquantes)
+<ul>
+<li>Vérifie la connexion GitHub (<code>gh::gh("GET /user")</code>)</li>
+</ul>
+</li>
 <li>Vide <code>_site/</code>
 </li>
 <li>
@@ -213,6 +217,8 @@ PDF</li>
 <code><a href="../reference/wp_manifest.html">wp_manifest()</a></code> — écriture / mise à jour de
 <code>manifest.json</code>
 </li>
+<li>Synchronisation de <code>FTP_SERVER_DIR</code> (variable GitHub
+Actions)</li>
 <li>Réécriture des liens absolus en relatifs si
 <code>render_site</code>
 </li>

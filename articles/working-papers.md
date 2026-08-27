@@ -41,15 +41,18 @@ setup_wp(
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
 :
 
-1.  Initialise la branche orpheline `gh-pages` (pré-publication GitHub
+1.  Vérifie la connexion GitHub (`gh::gh("GET /user")`)
+2.  Initialise la branche orpheline `gh-pages` (pré-publication GitHub
     Pages)
-2.  Copie les gabarits (`_quarto.yml`, `index.qmd`, `annexes.qmd`,
+3.  Copie les gabarits (`_quarto.yml`, `index.qmd`, `annexes.qmd`,
     `news.qmd`)
-3.  Copie les assets OFCE (`www/`) et installe/met à jour les extensions
+4.  Copie les assets OFCE (`www/`) et installe/met à jour les extensions
     Quarto OFCE (`_extensions/`) via `ofce::setup_quarto()` (accès
     réseau nécessaire)
-4.  Copie les workflows GitHub Actions (`.github/workflows/`)
-5.  Adapte `_quarto.yml` avec le titre, l’URL, le numéro WP, l’année, la
+5.  Force-remplace les workflows GitHub Actions (`.github/workflows/`)
+    depuis le package — les workflows ne doivent pas être édités
+    manuellement
+6.  Adapte `_quarto.yml` avec le titre, l’URL, le numéro WP, l’année, la
     langue
 
 Après
@@ -69,6 +72,8 @@ check_wp()
 [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
 vérifie :
 
+- Connexion GitHub : `gh::gh("GET /user")` (warning non bloquant si
+  absent)
 - Champs obligatoires dans `_quarto.yml` : `annee`, `author`, `date`,
   `citation`
 - `index.qmd` présent et déclarant les formats `wp-html` et `wp-pdf` /
@@ -91,7 +96,6 @@ appelée par
 
 render_wp(
   path        = ".",
-  check_repo  = TRUE,   # vérifier l'état git avant rendu
   check       = TRUE,   # appeler check_wp() avant rendu
   render_site = TRUE,   # lancer un serveur local après rendu
   site2branch = FALSE   # pousser vers la branche de déploiement
@@ -100,15 +104,16 @@ render_wp(
 
 **Pipeline** :
 
-1.  `check_repo_status()` si `check_repo`
-2.  [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
+1.  [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
     si `check` (abandon si erreurs bloquantes)
-3.  Vide `_site/`
-4.  `quarto::quarto_render(output_format = "all")` — HTML + PDF
-5.  Reconstruction du sitemap
-6.  Patch des hashes Bootstrap CSS
-7.  [`wp_manifest()`](https://ofceweb.github.io/ofceweb/reference/wp_manifest.md)
+    - Vérifie la connexion GitHub (`gh::gh("GET /user")`)
+2.  Vide `_site/`
+3.  `quarto::quarto_render(output_format = "all")` — HTML + PDF
+4.  Reconstruction du sitemap
+5.  Patch des hashes Bootstrap CSS
+6.  [`wp_manifest()`](https://ofceweb.github.io/ofceweb/reference/wp_manifest.md)
     — écriture / mise à jour de `manifest.json`
+7.  Synchronisation de `FTP_SERVER_DIR` (variable GitHub Actions)
 8.  Réécriture des liens absolus en relatifs si `render_site`
 9.  Pousse vers la branche de déploiement si `site2branch`
 10. Lance `servr::httw("_site")` si `render_site`

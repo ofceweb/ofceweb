@@ -9,7 +9,6 @@ Cette fonction est remplacée par \[publish_prev()\].
 ``` r
 render_prev_publish(
   path = ".",
-  check_repo = TRUE,
   progress = TRUE,
   render_site = TRUE,
   site2branch = TRUE,
@@ -22,11 +21,6 @@ render_prev_publish(
 - path:
 
   Chemin vers la racine du dépôt. Défaut \`"."\`.
-
-- check_repo:
-
-  Logique. Si \`TRUE\` (défaut), vérifie l'état du dépôt git via
-  \[check_repo_status()\].
 
 - progress:
 

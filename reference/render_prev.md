@@ -11,7 +11,6 @@ n'a \*\*pas\*\* lieu en local — il est appliqué en CI par le workflow
 render_prev(
   path = ".",
   profile = "staging",
-  check_repo = TRUE,
   progress = TRUE,
   preview = TRUE,
   workers = 8L
@@ -30,11 +29,6 @@ render_prev(
   déclaré dans \`\_quarto.yml\`. Détermine le répertoire de sortie
   (\`\_site_staging\`, \`\_site_publish\`, ou \`\_site_profile\` pour
   tout autre profil).
-
-- check_repo:
-
-  Logique. Si \`TRUE\` (défaut), vérifie l'état du dépôt git via
-  \[check_repo_status()\].
 
 - progress:
 

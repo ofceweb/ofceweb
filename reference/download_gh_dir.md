@@ -1,10 +1,9 @@
-# Télécharge un répertoire depuis un dépôt GitHub
+# Download a directory from a GitHub repository
 
-Parcourt récursivement un répertoire de dépôt GitHub, collecte tous les
-fichiers correspondants en parallèle avec \[fast_collect_gh_files()\],
-puis les télécharge localement via \`curl\`, en ajoutant un en-tête
-Bearer token quand un PAT GitHub est disponible (nécessaire pour les
-dépôts privés).
+Recursively walks a GitHub repository directory, collects all matching
+files in parallel with \[fast_collect_gh_files()\], then downloads them
+locally using \`curl\`, adding a Bearer token header when a GitHub PAT
+is available (required for private repositories).
 
 ## Usage
 
@@ -24,43 +23,45 @@ download_gh_dir(
 
 - owner:
 
-  Nom de l'utilisateur ou de l'organisation GitHub.
+  GitHub user or organisation name.
 
 - repo:
 
-  Nom du dépôt.
+  Repository name.
 
 - path:
 
-  Chemin du répertoire à télécharger dans le dépôt (ex. \`"posts"\`).
+  Path inside the repository to download (e.g. \`"posts"\`).
 
 - destdir:
 
-  Répertoire local où écrire les fichiers. Défaut \`path\`.
+  Local directory to write files into. Defaults to \`path\`.
 
 - ref:
 
-  Référence Git (branche, tag ou SHA). Défaut \`"HEAD"\`.
+  Git ref (branch, tag, or SHA). Defaults to \`"HEAD"\`.
 
 - ext:
 
-  Si non \`NULL\`, seuls les fichiers se terminant par cette chaîne sont
-  téléchargés (ex. \`".qmd"\`).
+  If non-\`NULL\`, only files ending with this string are downloaded
+  (e.g. \`".qmd"\`).
 
 - max_depth:
 
-  Profondeur maximale de récursion. Défaut \`3\`.
+  Maximum directory recursion depth. Defaults to \`3\`.
 
 ## Value
 
-\`invisible(NULL)\`, appelée pour son effet de bord d'écriture des
-fichiers dans \`destdir\`.
+\`invisible(NULL)\`, called for its side-effect of writing files to
+\`destdir\`.
+
+## Other
 
 ## Examples
 
 ``` r
 if (FALSE) { # \dontrun{
-# Ne télécharger que les fichiers .qmd du répertoire posts/
+# Download only .qmd files from the posts/ directory
 download_gh_dir("OFCE", "Blog_OFCE", "posts", ext = ".qmd", max_depth = 3)
 } # }
 ```

@@ -9,7 +9,6 @@ redirection vers l'URL stable (via \[push_wp_redirect()\]).
 ``` r
 publish_wp(
   path = ".",
-  check_repo = TRUE,
   check = TRUE,
   progress = TRUE,
   render_site = TRUE,
@@ -23,11 +22,6 @@ publish_wp(
 - path:
 
   Chemin vers la racine du dépôt. Défaut \`"."\`.
-
-- check_repo:
-
-  Logique. Si \`TRUE\` (défaut), vérifie l'état du dépôt git avant le
-  rendu via \[check_repo_status()\].
 
 - check:
 

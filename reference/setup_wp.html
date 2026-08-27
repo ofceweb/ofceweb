@@ -13,7 +13,7 @@ langue, URLs)."><meta property="og:image" content="https://ofceweb.github.io/ofc
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,7 +55,8 @@ langue, URLs).</p>
 <span>  annee <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.Date</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"%Y"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  lang <span class="op">=</span> <span class="st">"fr"</span>,</span>
 <span>  hypothesis <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  versionning <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  versionning <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stage_target <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -116,6 +117,14 @@ GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
 aussi migré automatiquement si `server-dir` y est encore codé en dur, et si
 l'étape de vérification anti-collision (voir [wp_manifest()]) y est
 absente.</p>
+<p>La variable `FTP_STAGING_DIR` est toujours positionnée (brouillon ou publié)
+à `repo/version/` — l'utilisateur FTP de staging ayant un chroot sur
+`www/staging/`, le chemin effectif sur le serveur est
+`www/staging/repo/version/`. Ce chemin est utilisé par `ftp_stage.yml`
+pour déposer les versions de revue avant enregistrement dans le registre
+central (voir [wp_registry_request()]). Le workflow `ftp_stage.yml` est
+copié dans `.github/workflows/` au même titre que `ftp_deploy.yml`
+(section 10, seulement si absent).</p>
 <p>Toujours pour les WPs publiés, `citation.issue` (`"année-wp"`, sans
 zéro de remplissage) et `citation.url`
 (`https://www.ofce.fr/wp/année/wp/`, l'URL publique stable, sans

@@ -8,7 +8,7 @@ déployé).
 ## Usage
 
 ``` r
-wp_manifest(path = ".")
+wp_manifest(path = ".", stage = NULL)
 ```
 
 ## Arguments

@@ -1,5 +1,94 @@
 # Changelog
 
+## ofceweb v0.10.1
+
+### `render_prev()` / `setup_prev()` — alignement sur le pattern `wp`
+
+- Paramètre `check_repo` supprimé de
+  [`render_prev()`](https://ofceweb.github.io/ofceweb/reference/render_prev.md),
+  [`stage_prev()`](https://ofceweb.github.io/ofceweb/reference/stage_prev.md),
+  [`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md)
+  et
+  [`render_prev_publish()`](https://ofceweb.github.io/ofceweb/reference/render_prev_publish.md)
+  (et l’appel à `check_repo_status()`) : le rendu Quarto ne dépend pas
+  de l’état du dépôt git, comme pour
+  [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md).
+
+- Nouveau diagnostic de connexion GitHub (`gh::gh("GET /user")`,
+  factorisé dans le helper interne `check_gh_login()` partagé avec
+  [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md))
+  : appelé désormais par
+  [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md),
+  [`stage_prev()`](https://ofceweb.github.io/ofceweb/reference/stage_prev.md)
+  et
+  [`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md)
+  pour avertir tôt si l’utilisateur n’est pas authentifié auprès de
+  GitHub (opérations staging/registry indisponibles sans connexion).
+
+- [`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
+  : même diagnostic `gh:login` que
+  [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
+  (même helper `check_gh_login()`), pour une parité complète des
+  vérifications wp / prev.
+
+### Workflows de staging — corrections
+
+- `ftp_deploy_staging.yml` (gabarit `setup_prev`) : le secret GitHub
+  Actions utilisé pour l’utilisateur FTP de staging était mal nommé
+  (`STAGING_USERNAME` au lieu de `STAGING_USER`), provoquant l’échec de
+  l’authentification FTP en CI. Corrigé.
+
+- `ftp_deploy_staging.yml` (gabarit `setup_prev`) et `ftp_stage.yml`
+  (gabarit `setup_wp`) : la commande `staticrypt` ciblait `./` (le
+  dossier courant lui-même) au lieu de `./*` (son contenu). Corrigé.
+
+## ofceweb v0.10.0
+
+### Registre central — nouvelle disposition `wp/` (restructuration en 3 étapes)
+
+`ofceweb/wp-registry` a été restructuré : `registry.json` (racine, un
+seul fichier) devient `wp/index.json` (liste des années) +
+`wp/{annee}.json` (un fichier par année), en préparation de futurs
+registres pour d’autres types de documents (`prev/`, `rapports/`, …).
+Cette version est l’**étape 2/3** de la migration (voir PR
+[\#7](https://github.com/ofceweb/wp-registry/pull/7) pour l’étape 1) :
+[`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md)
+et
+[`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md)
+lisent désormais exclusivement `wp/*.json`.
+
+- [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md)
+  : la consultation du registre télécharge `wp/index.json`, puis chaque
+  `wp/{année}.json` listé, et fusionne les entrées obtenues (au lieu de
+  télécharger un unique `registry.json`). Une année individuellement
+  illisible est ignorée avec un avertissement, sans bloquer la recherche
+  dans les autres années. Le repli sûr en cas de registre inaccessible
+  (`stage = TRUE`) est inchangé.
+
+- [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md)
+  : l’auto-numérotation et la vérification de collision ne lisent plus
+  que `wp/{annee}.json` (au lieu de tout le registre). Si c’est la
+  première demande pour une année donnée (fichier absent), la fonction
+  crée `wp/{annee}.json` **et** met à jour `wp/index.json` dans le même
+  commit, pour que
+  [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md)
+  sache immédiatement aller le chercher.
+
+- Le champ `annee` est conservé dans chaque entrée malgré la redondance
+  avec le nom de fichier (une entrée copiée ou affichée isolément reste
+  ainsi auto-suffisante) ; la CI de `wp-registry` vérifie cette
+  cohérence.
+
+- **Avertissement pour les versions antérieures d’`ofceweb`** : à
+  l’issue de l’étape 3 (suppression de
+  `registry.json`/`registry.schema.json` à la racine de `wp-registry`),
+  toute version d’`ofceweb` antérieure à `0.10.0` ne trouvera plus le
+  registre et basculera silencieusement en `stage = TRUE` — un WP déjà
+  publié réafficherait alors le bandeau « Version provisoire »
+  (comportement de repli sûr mais inattendu pour un document déjà
+  publié). Mettre à jour `ofceweb` avant que l’étape 3 ne soit
+  fusionnée.
+
 ## ofceweb v0.9.4
 
 ### `setup_wp()` — refonte du routage et des URLs
@@ -84,14 +173,15 @@ enregistré dans le registre central avant de pouvoir publier sur le
 chemin FTP numéroté. Cela ferme deux failles de sécurité de la Phase 1
 (contournement via `custom_version`, absence d’autorisation préalable).
 
-- `wp_registry_request()` — nouvelle fonction exportée. Résout
-  `{annee, wp, source-repo}` pour le dépôt local, vérifie l’organisation
-  (`ofce` requis), auto-numérote le WP si `wp = NULL` (max existant + 1
-  pour l’année, tous types confondus), contrôle les collisions si `wp`
-  est fourni explicitement, résout `contact` depuis
-  `git config user.email`, clone `ofceweb/wp-registry`, pousse une
-  branche `request/{annee}/{wp}` et ouvre une PR via l’API GitHub.
-  Fire-and-forget : un·e admin fusionne la PR, puis
+- [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md)
+  — nouvelle fonction exportée. Résout `{annee, wp, source-repo}` pour
+  le dépôt local, vérifie l’organisation (`ofce` requis), auto-numérote
+  le WP si `wp = NULL` (max existant + 1 pour l’année, tous types
+  confondus), contrôle les collisions si `wp` est fourni explicitement,
+  résout `contact` depuis `git config user.email`, clone
+  `ofceweb/wp-registry`, pousse une branche `request/{annee}/{wp}` et
+  ouvre une PR via l’API GitHub. Fire-and-forget : un·e admin fusionne
+  la PR, puis
   [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md)
   détecte automatiquement l’enregistrement. Paramètre `dry_run` pour
   inspecter l’entrée sans ouvrir de PR.
@@ -119,8 +209,9 @@ chemin FTP numéroté. Cela ferme deux failles de sécurité de la Phase 1
   production (`ftp_deploy.yml`, branche `site-deploy`, inchangé) ;
   `TRUE` → FTP staging (`ftp_stage.yml`, branche `site-staging`,
   nouveau) ; `NULL` → GitHub Pages (`quarto publish gh-pages`,
-  inchangé). Affiche une suggestion `wp_registry_request()` si le
-  manifeste est présent mais sans champ `stage`.
+  inchangé). Affiche une suggestion
+  [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md)
+  si le manifeste est présent mais sans champ `stage`.
 
 ### Staging FTP versionnée (nouveau)
 
@@ -143,8 +234,9 @@ chemin FTP numéroté. Cela ferme deux failles de sécurité de la Phase 1
 ### Documentation
 
 - La vignette `vignettes/working-papers.Rmd` doit être mise à jour pour
-  décrire le nouveau flux de publication : `wp_registry_request()` →
-  approbation admin →
+  décrire le nouveau flux de publication :
+  [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md)
+  → approbation admin →
   [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md)
   (détecte l’enregistrement) →
   [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)
@@ -183,9 +275,10 @@ chemin FTP numéroté. Cela ferme deux failles de sécurité de la Phase 1
   est calculé par
   [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
   (année courante par défaut) ; `wp` est attribué par le registre
-  central après `wp_registry_request()` — son absence est le cas normal
-  en phase de staging. Un WP sans numéro peut désormais se rendre sans
-  blocage.
+  central après
+  [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md)
+  — son absence est le cas normal en phase de staging. Un WP sans numéro
+  peut désormais se rendre sans blocage.
 - `check_repo_status()` — nouveau paramètre `timeout` (défaut : 10 s).
   Le `git fetch` tourne désormais dans un sous-processus `callr` afin
   que le délai soit respecté sur toutes les plateformes (Windows

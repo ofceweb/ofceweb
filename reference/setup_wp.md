@@ -15,7 +15,8 @@ setup_wp(
   annee = as.integer(format(Sys.Date(), "%Y")),
   lang = "fr",
   hypothesis = NULL,
-  versionning = NULL
+  versionning = NULL,
+  stage_target = NULL
 )
 ```
 
@@ -77,6 +78,16 @@ Settings → Variables) à partir du \`site-path\` du \`\_quarto.yml\`. Le
 workflow \`ftp_deploy.yml\` est aussi migré automatiquement si
 \`server-dir\` y est encore codé en dur, et si l'étape de vérification
 anti-collision (voir \[wp_manifest()\]) y est absente.
+
+La variable \`FTP_STAGING_DIR\` est toujours positionnée (brouillon ou
+publié) à \`repo/version/\` — l'utilisateur FTP de staging ayant un
+chroot sur \`www/staging/\`, le chemin effectif sur le serveur est
+\`www/staging/repo/version/\`. Ce chemin est utilisé par
+\`ftp_stage.yml\` pour déposer les versions de revue avant
+enregistrement dans le registre central (voir
+\[wp_registry_request()\]). Le workflow \`ftp_stage.yml\` est copié dans
+\`.github/workflows/\` au même titre que \`ftp_deploy.yml\` (section 10,
+seulement si absent).
 
 Toujours pour les WPs publiés, \`citation.issue\` (\`"année-wp"\`, sans
 zéro de remplissage) et \`citation.url\`

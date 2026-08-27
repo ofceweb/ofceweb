@@ -74,6 +74,9 @@ Contrôles effectués :
     le rendu local fonctionne sans lui, mais le workflow CI staging
     échouera)
 
+16. Connexion GitHub (\`gh::gh("GET /user")\`) — warning non bloquant si
+    non authentifié
+
 ## See also
 
 \[setup_prev()\], \[render_prev()\]

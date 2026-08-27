@@ -10,7 +10,6 @@ workflow \`ftp_deploy_staging.yml\` avant le transfert FTP.
 ``` r
 stage_prev(
   path = ".",
-  check_repo = TRUE,
   progress = TRUE,
   site2branch = TRUE,
   trigger = site2branch,
@@ -25,11 +24,6 @@ stage_prev(
 - path:
 
   Chemin vers la racine du dépôt. Défaut \`"."\`.
-
-- check_repo:
-
-  Logique. Si \`TRUE\` (défaut), vérifie l'état du dépôt git via
-  \[check_repo_status()\].
 
 - progress:
 

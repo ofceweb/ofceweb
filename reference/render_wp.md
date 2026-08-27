@@ -1,18 +1,20 @@
 # Rendu complet d'un document de travail (WP) OFCE
 
 Orchestre le build complet d'un WP Quarto : vérification du dépôt git,
-vérification de la structure WP, nettoyage de \`\_site/\`, rendu Quarto
-(HTML + PDF), construction du sitemap, patch des hashes Bootstrap,
-écriture du manifeste, synchronisation de la variable GitHub Actions
-\`FTP_SERVER_DIR\` (WPs publiés uniquement), et optionnellement
-déploiement sur la branche de déploiement et prévisualisation locale.
+vérification de la structure WP, consultation du registre central
+(\`ofceweb/wp-registry\`) pour déterminer l'état \`stage\` (staging ou
+publié), nettoyage de \`\_site/\`, rendu Quarto (HTML + PDF) avec
+\`stage\` injecté comme métadonnée Quarto, construction du sitemap,
+patch des hashes Bootstrap, écriture du manifeste (champ \`stage\`
+inclus), synchronisation de \`FTP_SERVER_DIR\` (WPs publiés confirmés
+uniquement), et optionnellement déploiement sur la branche de
+déploiement et prévisualisation locale.
 
 ## Usage
 
 ``` r
 render_wp(
   path = ".",
-  check_repo = TRUE,
   check = TRUE,
   progress = TRUE,
   render_site = TRUE,
@@ -27,11 +29,6 @@ render_wp(
 - path:
 
   Chemin vers la racine du dépôt. Défaut \`"."\`.
-
-- check_repo:
-
-  Logique. Si \`TRUE\` (défaut), vérifie l'état du dépôt git avant le
-  rendu via \[check_repo_status()\].
 
 - check:
 
@@ -62,7 +59,7 @@ render_wp(
 
 ## Value
 
-Invisible : sortie de \[gert::git_status()\].
+Invisible NULL.
 
 ## See also
 

@@ -8,6 +8,7 @@
 #' \itemize{
 #'   \item Présence et validité de `_quarto.yml` (champs `annee`, `author`,
 #'     `date`, `citation` — erreur bloquante si absents)
+#'   \item `project.type: ofce-website` présent dans `_quarto.yml` (warning)
 #'   \item `index.qmd` présent, déclare `wp-html` et `wp-pdf` / `wp-typst`
 #'   \item `references.bib` présent (warning)
 #'   \item `news.qmd` présent (warning)
@@ -144,6 +145,16 @@ check_wp <- function(path = ".", verbose = TRUE) {
     add_diag("author", "error", "Champ `author` absent de _quarto.yml.")
   } else {
     add_diag("author", "ok", "Champ `author` présent.")
+  }
+
+  # ---- project.type: ofce-website -------------------------------------------
+  if (identical(yml$project$type, "ofce-website")) {
+    add_diag("project.type", "ok",
+             "`project.type: ofce-website` présent dans _quarto.yml.")
+  } else {
+    add_diag("project.type", "warning",
+             sprintf("`project.type` vaut `%s` — attendu `ofce-website`. Lancer setup_wp().",
+                     yml$project$type %||% "(absent)"))
   }
 
   # ---- index.qmd -----------------------------------------------------------

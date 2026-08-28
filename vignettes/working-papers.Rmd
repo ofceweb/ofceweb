@@ -3,8 +3,11 @@ title: "Documents de travail (Working Papers)"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Documents de travail (Working Papers)}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -13,23 +16,33 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 ## Vue d'ensemble
 
-Chaque document de travail (WP) de l'OFCE vit dans son propre dépôt GitHub.
-Un WP produit deux sorties :
+Chaque document de travail (WP) de l'OFCE vit dans son propre dépôt
+GitHub. Un WP produit deux sorties :
 
 - une **page HTML** (site Quarto avec l'extension `wp`)
 - un **PDF** (LaTeX via `wp-pdf` ou Typst via `wp-typst`)
 
-Il peut aussi contenir des **annexes** (`annexes.qmd`) et un **historique des
-révisions** (`news.qmd`).
+Il peut contenir des **annexes** (`annexes.qmd`) et un **historique des
+révisions** (`news.qmd`), ainsi que tout autre document que l'on
+souhaite (code, explications de code, de données, etc...).
 
 ### Cycle de vie
 
-| État | `wp` dans `_quarto.yml` | Hébergement | URL |
-|---|---|---|---|
-| Brouillon | `null` | GitHub Pages | `ofce.github.io/{repo}/` |
-| Publié | `N` (entier) | Serveur OFCE FTP | `www.ofce.fr/wp/{annee}/{N}/{version}/` |
++----------------+----------------+----------------+-----------------------------------------+
+| État           | `wp` dans      | Hébergement    | URL                                     |
+|                | `_quarto.yml`  |                |                                         |
++================+================+================+=========================================+
+| Brouillon      | `null`         | GitHub Pages   | `ofce.github.io/{repo}/`                |
+|                |                | ou             |                                         |
+|                |                |                | www.ofce.fr/staging/{repo}/{version}    |
+|                |                | OFCE staging   |                                         |
++----------------+----------------+----------------+-----------------------------------------+
+| Publié         | `N` (entier)   | Serveur OFCE   | `www.ofce.fr/wp/{annee}/{N}/{version}/` |
+|                |                | FTP            |                                         |
++----------------+----------------+----------------+-----------------------------------------+
 
----
+ 
+------------------------------------------------------------------------
 
 ## 1. Initialiser un nouveau WP
 
@@ -50,20 +63,24 @@ setup_wp(
 
 `setup_wp()` :
 
-1. Vérifie la connexion GitHub (`gh::gh("GET /user")`)
-2. Initialise la branche orpheline `gh-pages` (pré-publication GitHub Pages)
-3. Copie les gabarits (`_quarto.yml`, `index.qmd`, `annexes.qmd`, `news.qmd`)
-4. Copie les assets OFCE (`www/`) et installe/met à jour les extensions
-   Quarto OFCE (`_extensions/`) via `ofce::setup_quarto()` (accès réseau
-   nécessaire)
-5. Force-remplace les workflows GitHub Actions (`.github/workflows/`) depuis
-   le package — les workflows ne doivent pas être édités manuellement
-6. Adapte `_quarto.yml` avec le titre, l'URL, le numéro WP, l'année, la langue
+1.  Vérifie la connexion GitHub (`gh::gh("GET /user")`)
+2.  Initialise la branche orpheline `gh-pages` (pré-publication GitHub
+    Pages)
+3.  Copie les gabarits (`_quarto.yml`, `index.qmd`, `annexes.qmd`,
+    `news.qmd`)
+4.  Copie les assets OFCE (`www/`) et installe/met à jour les extensions
+    Quarto OFCE (`_extensions/`) via `ofce::setup_quarto()` (accès
+    réseau nécessaire)
+5.  Force-remplace les workflows GitHub Actions (`.github/workflows/`)
+    depuis le package — les workflows ne doivent pas être édités
+    manuellement
+6.  Adapte `_quarto.yml` avec le titre, l'URL, le numéro WP, l'année, la
+    langue
 
-Après `setup_wp()`, éditez `_quarto.yml` et `index.qmd` pour renseigner les
-métadonnées définitives (auteurs, résumé, date) avant de commiter.
+Après `setup_wp()`, éditez `_quarto.yml` et `index.qmd` pour renseigner
+les métadonnées définitives (auteurs, résumé, date) avant de commiter.
 
----
+------------------------------------------------------------------------
 
 ## 2. Vérifier la structure avant rendu
 
@@ -73,19 +90,22 @@ check_wp()
 
 `check_wp()` vérifie :
 
-- Connexion GitHub : `gh::gh("GET /user")` (warning non bloquant si absent)
-- Champs obligatoires dans `_quarto.yml` : `annee`, `author`, `date`, `citation`
-- `index.qmd` présent et déclarant les formats `wp-html` et `wp-pdf` / `wp-typst`
+- Connexion GitHub : `gh::gh("GET /user")` (warning non bloquant si
+  absent)
+- Champs obligatoires dans `_quarto.yml` : `annee`, `author`, `date`,
+  `citation`
+- `index.qmd` présent et déclarant les formats `wp-html` et `wp-pdf` /
+  `wp-typst`
 - `references.bib` présent (warning sinon)
 - `news.qmd` présent (warning sinon)
 - Si WP publié : cohérence `version` / `site-path`, `annee` valide
 - Tous les `.qmd` non-index référencés dans `website.other-links`
 - Unicité des `output-file` PDF
 
-Elle retourne un data frame de diagnostics et est automatiquement appelée par
-`render_wp()`.
+Elle retourne un data frame de diagnostics et est automatiquement
+appelée par `render_wp()`.
 
----
+------------------------------------------------------------------------
 
 ## 3. Rendre le WP
 
@@ -100,19 +120,19 @@ render_wp(
 
 **Pipeline** :
 
-1. `check_wp()` si `check` (abandon si erreurs bloquantes)
-   - Vérifie la connexion GitHub (`gh::gh("GET /user")`)
-2. Vide `_site/`
-3. `quarto::quarto_render(output_format = "all")` — HTML + PDF
-4. Reconstruction du sitemap
-5. Patch des hashes Bootstrap CSS
-6. `wp_manifest()` — écriture / mise à jour de `manifest.json`
-7. Synchronisation de `FTP_SERVER_DIR` (variable GitHub Actions)
-8. Réécriture des liens absolus en relatifs si `render_site`
-9. Pousse vers la branche de déploiement si `site2branch`
+1.  `check_wp()` si `check` (abandon si erreurs bloquantes)
+    - Vérifie la connexion GitHub (`gh::gh("GET /user")`)
+2.  Vide `_site/`
+3.  `quarto::quarto_render(output_format = "all")` — HTML + PDF
+4.  Reconstruction du sitemap
+5.  Patch des hashes Bootstrap CSS
+6.  `wp_manifest()` — écriture / mise à jour de `manifest.json`
+7.  Synchronisation de `FTP_SERVER_DIR` (variable GitHub Actions)
+8.  Réécriture des liens absolus en relatifs si `render_site`
+9.  Pousse vers la branche de déploiement si `site2branch`
 10. Lance `servr::httw("_site")` si `render_site`
 
----
+------------------------------------------------------------------------
 
 ## 4. Déployer le WP
 
@@ -122,37 +142,37 @@ deploy_wp()
 
 Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 
-- **Brouillon** (`wp: null`) → `quarto publish gh-pages`
-  (publie sur `ofce.github.io/{repo}/`)
-- **Publié** (`wp: N`) → `site2branch()` vers `site-deploy`,
-  puis le workflow FTP transfère vers `www.ofce.fr/wp/{annee}/{N}/{version}/`
+- **Brouillon** (`wp: null`) → `quarto publish gh-pages` (publie sur
+  `ofce.github.io/{repo}/`)
+- **Publié** (`wp: N`) → `site2branch()` vers `site-deploy`, puis le
+  workflow FTP transfère vers `www.ofce.fr/wp/{annee}/{N}/{version}/`
 
----
+------------------------------------------------------------------------
 
 ## 5. Passer de brouillon à publié
 
-1. Dans `_quarto.yml`, renseigner les champs `wp` et `annee` :
+1.  Dans `_quarto.yml`, renseigner les champs `wp` et `annee` :
 
-```yaml
+``` yaml
 wp: 6
 annee: 2026
 ```
 
-2. Relancer `setup_wp()` avec le numéro WP pour mettre à jour les URLs et le
-   workflow FTP :
+2.  Relancer `setup_wp()` avec le numéro WP pour mettre à jour les URLs
+    et le workflow FTP :
 
 ```{r}
 setup_wp(wp = 6, annee = 2026)
 ```
 
-3. Rendre et déployer :
+3.  Rendre et déployer :
 
 ```{r}
 render_wp()
 deploy_wp()
 ```
 
----
+------------------------------------------------------------------------
 
 ## 6. Chiffrement (optionnel)
 
@@ -164,7 +184,7 @@ Si le secret `STATICRYPT_PASSWORD` est défini sur le dépôt, le workflow
 l'envoi au serveur. Si le secret est absent, le déploiement s'effectue
 sans chiffrement.
 
-```sh
+``` sh
 # Activer le chiffrement
 gh secret set STATICRYPT_PASSWORD --repo owner/mon-wp
 
@@ -174,7 +194,7 @@ gh secret delete STATICRYPT_PASSWORD --repo owner/mon-wp
 
 Le rendu local (`render_wp()`) produit toujours du HTML en clair.
 
----
+------------------------------------------------------------------------
 
 ## 7. Incrémenter la version après une révision
 
@@ -185,10 +205,10 @@ wp_version_up(custom_version = "v1_corr")   # version personnalisée
 
 `wp_version_up()` met à jour en cascade :
 
-1. Le champ `version` dans `_quarto.yml`
-2. Le dernier segment de `website.site-path`
-3. Le `server-dir` dans `.github/workflows/ftp_deploy.yml`
-4. `manifest.json` (via `wp_manifest()`)
+1.  Le champ `version` dans `_quarto.yml`
+2.  Le dernier segment de `website.site-path`
+3.  Le `server-dir` dans `.github/workflows/ftp_deploy.yml`
+4.  `manifest.json` (via `wp_manifest()`)
 
 Après l'incrémentation, rendre et déployer à nouveau :
 
@@ -197,14 +217,14 @@ render_wp()
 deploy_wp()
 ```
 
----
+------------------------------------------------------------------------
 
 ## 8. Manifeste JSON
 
 `wp_manifest()` (appelée automatiquement par `render_wp()`) génère
 `manifest.json` à la racine du dépôt et dans `_site/` :
 
-```json
+``` json
 {
   "title": "Mon document de travail",
   "authors": [{"name": "Prénom Nom", "affiliation": "OFCE, Sciences Po Paris"}],
@@ -221,14 +241,14 @@ deploy_wp()
 }
 ```
 
-Ce manifeste est collecté par `webhome` via la GitHub API pour construire
-l'index des WPs de l'OFCE.
+Ce manifeste est collecté par `webhome` via la GitHub API pour
+construire l'index des WPs de l'OFCE.
 
----
+------------------------------------------------------------------------
 
 ## Structure d'un dépôt WP
 
-```
+```         
 mon-wp/
 ├── _quarto.yml          # métadonnées WP (wp, annee, version, auteurs, …)
 ├── index.qmd            # corps du document

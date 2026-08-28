@@ -27,7 +27,7 @@ comments:
 
 # Ce qui suit sera principalement imposé par setup_wp()
 project:
-  type: website
+  type: ofce-website
 
 execute:
   freeze: auto

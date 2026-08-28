@@ -1,4 +1,4 @@
-#' Initialise un dépôt de document de travail (WP) OFCE
+﻿#' Initialise un dépôt de document de travail (WP) OFCE
 #'
 #' Copie les gabarits embarqués dans le package (`inst/setup_wp/`) à la racine
 #' du dépôt, initialise la branche `gh-pages` pour la pré-publication, et
@@ -390,9 +390,9 @@ setup_wp <- function(
   # version : le gabarit le fournit pour les nouveaux WPs — jamais injecté
   # dans un fichier existant.
 
-  # project.type : toujours forcé à "website" pour les WPs OFCE
-  yml$project$type <- "website"
-  lines <- yaml_patch_scalar(lines, "project.type", "website")
+  # project.type : toujours forcé à "ofce-website" pour les WPs OFCE
+  yml$project$type <- "ofce-website"
+  lines <- yaml_patch_scalar(lines, "project.type", "ofce-website")
 
   # stage-target : source de vérité pour le routage du déploiement — toujours positionné
   yml$`stage-target` <- stage_target

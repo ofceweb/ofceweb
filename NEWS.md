@@ -17,6 +17,12 @@
   helper `check_gh_login()`), pour une parité complète des vérifications
   wp / prev.
 
+* `setup_wp()` forçait `project.type: website` au lieu de `project.type:
+  ofce-website` (gabarit `inst/setup_wp/_quarto.yml` inclus) — corrigé.
+  `check_wp()` gagne un nouveau diagnostic `project.type` (warning si la
+  valeur diffère de `ofce-website`, suggérant de relancer `setup_wp()`),
+  identique à celui déjà présent dans `check_prev()`.
+
 ### Workflows de staging — corrections
 
 * `ftp_deploy_staging.yml` (gabarit `setup_prev`) : le secret GitHub Actions

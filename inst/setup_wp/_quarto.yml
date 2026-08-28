@@ -38,6 +38,7 @@ website:
   page-navigation: true
   bread-crumbs: true
   favicon: www/fofce-wp.png
+  draft-mode: visible
   other-links:
     - text: Annexes
       icon: file-bar-graph

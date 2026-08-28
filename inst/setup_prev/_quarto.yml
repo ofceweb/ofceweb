@@ -20,6 +20,7 @@ website:
   draft-mode: visible
   favicon: www/fofce.png
   page-navigation: true
+  draft-mode: visible
   twitter-card:
     image: www/ofce_banner_alt2.png
     title: "Prévisions de l'OFCE"

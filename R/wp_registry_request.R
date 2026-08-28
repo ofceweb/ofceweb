@@ -29,7 +29,7 @@
 #'   `pr_url` (URL de la PR ouverte, `NULL` en mode `dry_run`).
 #' @seealso [setup_wp()], [render_wp()], [deploy_wp()]
 #' @importFrom fs path_expand path_abs path_norm path dir_delete path_file
-#' @importFrom cli cli_h1 cli_h2 cli_abort cli_alert_success cli_alert_warning cli_alert_info cli_text
+#' @importFrom cli cli_h1 cli_h2 cli_abort cli_alert_success cli_alert_warning cli_alert_info cli_text cli_verbatim
 #' @importFrom yaml read_yaml
 #' @importFrom jsonlite fromJSON toJSON read_json
 #' @importFrom gert git_clone git_branch_create git_add git_commit git_signature
@@ -59,7 +59,7 @@ wp_registry_request <- function(
     ))
 
   repo_owner <- strsplit(source_repo, "/", fixed = TRUE)[[1L]][[1L]]
-  if (!identical(repo_owner, "ofce"))
+  if (!identical(tolower(repo_owner), "ofce"))
     cli::cli_abort(c(
       "Ce d\u00e9p\u00f4t est sous {.strong {repo_owner}}, pas sous {.strong ofce}.",
       "i" = "Transf\u00e9rer via GitHub \u2192 Settings \u2192 Danger Zone \u2192 Transfer repository \u2192 ofce.",
@@ -164,7 +164,10 @@ wp_registry_request <- function(
   )
 
   cli::cli_h2("Entr\u00e9e propos\u00e9e")
-  cli::cli_text(
+  # cli_verbatim() (pas cli_text()) : le JSON pretty-printed contient des
+  # accolades litt\u00e9rales que cli_text() tenterait d'interpr\u00e9ter comme des
+  # expressions glue.
+  cli::cli_verbatim(
     jsonlite::toJSON(new_entry, auto_unbox = TRUE, pretty = TRUE, null = "null"))
 
   if (dry_run) {

@@ -61,6 +61,7 @@ importFrom(cli,
   cli_li,
   cli_rule,
   cli_text,
+  cli_verbatim,
   cli_warn
 )
 importFrom(dplyr,
@@ -92,8 +93,6 @@ importFrom(fs,
   path_norm,
   path_rel
 )
-importFrom(future,plan)
-importFrom(future.mirai,mirai_multisession)
 importFrom(gert,
   git_add,
   git_branch,

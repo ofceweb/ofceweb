@@ -3,10 +3,12 @@
 Orchestre le build complet d'un WP Quarto : vérification du dépôt git,
 vérification de la structure WP, consultation du registre central
 (\`ofceweb/wp-registry\`) pour déterminer l'état \`stage\` (staging ou
-publié), nettoyage de \`\_site/\`, rendu Quarto (HTML + PDF) avec
-\`stage\` injecté comme métadonnée Quarto, construction du sitemap,
-patch des hashes Bootstrap, écriture du manifeste (champ \`stage\`
-inclus), synchronisation de \`FTP_SERVER_DIR\` (WPs publiés confirmés
+publié), persistance de cet état dans la clé \`draft\` de
+\`\_quarto.yml\` (lue par les extensions \`ofce-quarto-extensions\` pour
+le bandeau « Version provisoire »), nettoyage de \`\_site/\`, rendu
+Quarto (HTML + PDF), construction du sitemap, patch des hashes
+Bootstrap, écriture du manifeste (champ \`stage\` inclus),
+synchronisation de \`FTP_SERVER_DIR\` (WPs publiés confirmés
 uniquement), et optionnellement déploiement sur la branche de
 déploiement et prévisualisation locale.
 

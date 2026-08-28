@@ -15,7 +15,6 @@ execute:
   cache: false
 
 website:
-  title: "Prévisions de l'OFCE"
   site-url: "https://www.ofce.fr/"
   draft-mode: visible
   favicon: www/fofce.png

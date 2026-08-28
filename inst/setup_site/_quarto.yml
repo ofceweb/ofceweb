@@ -13,7 +13,6 @@ profile:
 toc: false
 
 website:
-  title: "INDEX"
   site-url: "https://www.ofce.fr/"
   site-path: "staging/"
   repo-url: https://github.com/ofceweb/webblog

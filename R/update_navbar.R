@@ -6,6 +6,12 @@
 #' au site (`title`, `logo`, `background`, ...) sont préservées : seuls les
 #' menus sont centralisés.
 #'
+#' Supprime également la clé `website.title` si elle est encore présente :
+#' `setup_wp()`, `setup_prev()` et `setup_site()` ne l'écrivent plus (le
+#' titre affiché à côté du logo reste porté par la navbar centralisée, pas
+#' par un titre calculé par site) ; cet appel nettoie les dépôts initialisés
+#' avant ce changement.
+#'
 #' Les fichiers de profils (`_quarto-fr.yml`, `_quarto-en.yml`, ...) ne sont
 #' pas modifiés : s'ils redéfinissent une clé navbar (ex. le sélecteur de
 #' langue FR/EN du blog dans `right`), c'est une surcharge locale volontaire
@@ -54,14 +60,22 @@ update_navbar <- function(root = ".") {
 
   old_navbar <- yml$website$navbar
   navbar_keys <- c("left", "tools", "logo", "logo-href", "logo-alt")
+  had_title <- !is.null(yml$website$title)
 
   lines <- readLines(yml_path, warn = FALSE)
+  if (had_title) {
+    lines <- yaml_patch_delete(lines, "website.title")
+  }
   for (key in navbar_keys) {
     lines <- yaml_patch_block(lines, paste0("website.navbar.", key), navbar[[key]])
   }
   writeLines(lines, yml_path)
 
   cli::cli_alert_success("Navbar mise à jour dans {.file {yml_path}}.")
+  if (had_title) {
+    cli::cli_alert_info(
+      "Clé {.code website.title} supprimée (plus écrite par setup_wp() /        setup_prev() / setup_site()).")
+  }
   for (key in navbar_keys) {
     cli::cli_alert_info(
       "{.code {key}} : {count_items(old_navbar[[key]])} -> \\

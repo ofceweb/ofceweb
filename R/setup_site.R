@@ -16,8 +16,11 @@
 #' @param website_code Chaîne ou `NULL`. Code court du site (lettres, chiffres,
 #'   underscores uniquement). Si invalide, retombe sur `NULL`. Si `NULL`, on
 #'   utilise le nom du dépôt GitHub.
-#' @param website_title Chaîne ou `NULL`. Titre du site. Si `NULL`, on prend le
-#'   titre de `index.qmd` s'il existe, sinon le nom du dépôt.
+#' @param website_title Chaîne ou `NULL`. Titre du site, utilisé pour le
+#'   résumé affiché en fin d'appel uniquement — n'est plus jamais écrit comme
+#'   `website.title` dans `_quarto.yml` (voir [update_navbar()], qui
+#'   supprime cette clé si un appel antérieur l'y avait laissée). Si `NULL`,
+#'   on prend le titre de `index.qmd` s'il existe, sinon le nom du dépôt.
 #' @param hypothesis Logique. Active ou non les commentaires hypothesis dans le
 #'   `_quarto.yml`. Défaut `TRUE`.
 #' @param versionning Logique. Si `TRUE` (défaut) et `ofce_host = TRUE`, ajoute
@@ -32,7 +35,6 @@
 #'
 #' | Clé | Valeur imposée |
 #' |-----|----------------|
-#' | `website.title` | Titre calculé depuis `index.qmd` ou le nom du dépôt |
 #' | `ofce_host` | Valeur de l'argument `ofce_host` |
 #' | `website.other-links` | Liste reconstruite par scan des `.qmd` |
 #' | `website.comments` | `{hypothesis: true}` ou supprimé selon `hypothesis` |
@@ -324,8 +326,10 @@ setup_site <- function(
     lines <- yaml_patch_delete(lines, "website.site-path")
   }
 
-  yml$website$title <- final_title
-  lines <- yaml_patch_scalar(lines, "website.title", final_title)
+  # website.title n'est plus jamais écrit (voir update_navbar(), qui
+  # supprime la clé si un appel antérieur de setup_site() l'y avait
+  # laissée) ; final_title reste calculé pour le résumé affiché en fin
+  # d'appel uniquement.
   yml$ofce_host <- isTRUE(ofce_host)
   lines <- yaml_patch_scalar(lines, "ofce_host", isTRUE(ofce_host))
 

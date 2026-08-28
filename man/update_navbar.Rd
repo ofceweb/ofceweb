@@ -20,6 +20,12 @@ au site (`title`, `logo`, `background`, ...) sont préservées : seuls les
 menus sont centralisés.
 }
 \details{
+Supprime également la clé `website.title` si elle est encore présente :
+`setup_wp()`, `setup_prev()` et `setup_site()` ne l'écrivent plus (le
+titre affiché à côté du logo reste porté par la navbar centralisée, pas
+par un titre calculé par site) ; cet appel nettoie les dépôts initialisés
+avant ce changement.
+
 Les fichiers de profils (`_quarto-fr.yml`, `_quarto-en.yml`, ...) ne sont
 pas modifiés : s'ils redéfinissent une clé navbar (ex. le sélecteur de
 langue FR/EN du blog dans `right`), c'est une surcharge locale volontaire

@@ -69,8 +69,15 @@ push_site_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
   set_gh_var(root, "FTP_REDIRECT_DIR", redirect_dir)
 
   # ---- Génération du HTML de redirection ------------------------------------
-  site_title <- if (!is.null(yml$website$title) && nzchar(yml$website$title))
-    yml$website$title else ""
+  # website.title n'est plus jamais écrit par setup_wp()/setup_prev()/
+  # setup_site() (nettoyé par update_navbar()) ; on préfère le `title` de
+  # premier niveau (WP), avec repli sur website.title pour les dépôts pas
+  # encore nettoyés, puis chaîne vide.
+  site_title <- if (!is.null(yml$title) && nzchar(yml$title))
+    yml$title
+  else if (!is.null(yml$website$title) && nzchar(yml$website$title))
+    yml$website$title
+  else ""
   # URL cible : chemin absolu-serveur vers la version courante
   target <- paste0("/", sub("/?$", "/", site_path))
 

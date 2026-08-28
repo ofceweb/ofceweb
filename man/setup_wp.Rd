@@ -18,8 +18,11 @@ setup_wp(
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
 
-\item{website_title}{Chaîne ou `NULL`. Titre du WP. Si `NULL`, utilise le
-nom du dépôt GitHub.}
+\item{website_title}{Chaîne ou `NULL`. Titre du WP, utilisé pour le résumé
+affiché en fin d'appel uniquement — n'est plus jamais écrit comme
+`website.title` dans `_quarto.yml` (voir [update_navbar()], qui
+supprime cette clé si un appel antérieur l'y avait laissée). Si `NULL`,
+déduit de `index.qmd` ou du nom du dépôt GitHub.}
 
 \item{wp}{Entier ou `NULL`. Numéro du WP. `NULL` = brouillon (pré-publication
 GitHub Pages) ; entier = WP publié (hébergement OFCE FTP).}

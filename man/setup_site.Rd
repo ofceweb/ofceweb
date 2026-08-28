@@ -30,8 +30,11 @@ des secrets FTP utilisés (`STAGING_*`, `WP_*`, `THREEME_*`).}
 underscores uniquement). Si invalide, retombe sur `NULL`. Si `NULL`, on
 utilise le nom du dépôt GitHub.}
 
-\item{website_title}{Chaîne ou `NULL`. Titre du site. Si `NULL`, on prend le
-titre de `index.qmd` s'il existe, sinon le nom du dépôt.}
+\item{website_title}{Chaîne ou `NULL`. Titre du site, utilisé pour le
+résumé affiché en fin d'appel uniquement — n'est plus jamais écrit comme
+`website.title` dans `_quarto.yml` (voir [update_navbar()], qui
+supprime cette clé si un appel antérieur l'y avait laissée). Si `NULL`,
+on prend le titre de `index.qmd` s'il existe, sinon le nom du dépôt.}
 
 \item{hypothesis}{Logique. Active ou non les commentaires hypothesis dans le
 `_quarto.yml`. Défaut `TRUE`.}
@@ -58,7 +61,6 @@ certaines clés. Les autres sont conservées.
 
 | Clé | Valeur imposée |
 |-----|----------------|
-| `website.title` | Titre calculé depuis `index.qmd` ou le nom du dépôt |
 | `ofce_host` | Valeur de l'argument `ofce_host` |
 | `website.other-links` | Liste reconstruite par scan des `.qmd` |
 | `website.comments` | `{hypothesis: true}` ou supprimé selon `hypothesis` |

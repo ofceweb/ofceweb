@@ -49,8 +49,11 @@
 #' supprimées automatiquement.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
-#' @param website_title Chaîne ou `NULL`. Titre du WP. Si `NULL`, utilise le
-#'   nom du dépôt GitHub.
+#' @param website_title Chaîne ou `NULL`. Titre du WP, utilisé pour le résumé
+#'   affiché en fin d'appel uniquement — n'est plus jamais écrit comme
+#'   `website.title` dans `_quarto.yml` (voir [update_navbar()], qui
+#'   supprime cette clé si un appel antérieur l'y avait laissée). Si `NULL`,
+#'   déduit de `index.qmd` ou du nom du dépôt GitHub.
 #' @param wp Entier ou `NULL`. Numéro du WP. `NULL` = brouillon (pré-publication
 #'   GitHub Pages) ; entier = WP publié (hébergement OFCE FTP).
 #' @param annee Entier. Année de publication. Défaut = année courante.
@@ -129,14 +132,12 @@ setup_wp <- function(
     lang <- "fr"
     lang_provided <- TRUE
   }
-  if(!is.null(yml[["website"]][["title"]])&&!title_provided) {
-    title_provided <- TRUE
+  # website_title : hérité d'un website.title résiduel (compat. avant
+  # update_navbar(), qui supprime cette clé) ou du titre de index.qmd.
+  if (is.null(website_title) && !is.null(yml[["website"]][["title"]])) {
     website_title <- yml[["website"]][["title"]]
-  } else {
-    if(!is.null(index_yml[["title"]])){
-      title_provided <- TRUE
-      website_title <- index_yml[["title"]]
-    }
+  } else if (is.null(website_title) && !is.null(index_yml[["title"]])) {
+    website_title <- index_yml[["title"]]
   }
   if(!is.null(yml[["comment"]][["hypothesis"]])&&!hypothesis_provided) {
     hypothesis_provided <- TRUE
@@ -600,7 +601,7 @@ setup_wp <- function(
 
   # ---- Résumé ---------------------------------------------------------------
   cli::cli_h2("Résumé")
-  cli::cli_li("titre       : {yml$website$title}")
+  cli::cli_li("titre       : {final_title}")
   cli::cli_li("wp          : {if (is.null(yml$wp)) 'brouillon (null)' else yml$wp}")
   cli::cli_li("annee       : {yml$annee}")
   cli::cli_li("version     : {yml$version}")

@@ -1,15 +1,15 @@
 #' Rendu complet d'un document de travail (WP) OFCE
 #'
 #' Orchestre le build complet d'un WP Quarto : vérification du dépôt git,
-#' vérification de la structure WP, consultation du registre central
-#' (`ofceweb/wp-registry`) pour déterminer l'état `stage` (staging ou publié),
-#' persistance de cet état dans la clé `draft` de `_quarto.yml` (lue par les
-#' extensions `ofce-quarto-extensions` pour le bandeau « Version
-#' provisoire »). Les clés `wp`/`annee` de `_quarto.yml` sont synchronisées
-#' depuis l'entrée du registre trouvée (dépôt publié) ou effacées (dépôt en
-#' staging, pas encore de numéro attribué) — leur valeur n'est plus jamais
-#' laissée à la charge de l'auteur·e. Suivent le nettoyage de `_site/`, le
-#' rendu Quarto (HTML + PDF),
+#' vérification de la structure WP, lecture de l'état `stage` (staging ou
+#' publié) depuis la clé `draft` de `_quarto.yml` (lue par les extensions
+#' `ofce-quarto-extensions` pour le bandeau « Version provisoire »). **La
+#' consultation du registre central (`ofceweb/wp-registry`) ne se fait plus
+#' ici** : elle a lieu en amont, dans [setup_wp()] (et à nouveau dans
+#' [publish_wp()] juste avant l'appel à `render_wp()`) — `render_wp()`
+#' suppose que `draft`/`wp`/`annee` sont déjà synchronisés dans
+#' `_quarto.yml` et se contente de les lire, sans accès réseau. Suivent le
+#' nettoyage de `_site/`, le rendu Quarto (HTML + PDF),
 #' construction du sitemap, patch des hashes
 #' Bootstrap, écriture du manifeste (champ `stage` inclus), synchronisation
 #' de `FTP_SERVER_DIR` (WPs publiés confirmés uniquement), et optionnellement
@@ -81,65 +81,23 @@ render_wp <- function(
   tictoc::tic()
   servr::daemon_stop()
 
-  # ---- 2.5. registre central (détermine stage avant le rendu) --------------
-  # Consulte ofceweb/wp-registry (disposition wp/index.json + wp/{année}.json)
-  # pour savoir si ce dépôt a une entrée confirmée (type "repo"). Résultat :
-  # stage = FALSE (publié), TRUE (staging). Le résultat est persisté comme
-  # clé `draft` dans _quarto.yml (cf. 2.6, pour le banner "Version
-  # provisoire" des extensions) et écrit dans manifest.json pour router
-  # deploy_wp().
-  cli::cli_h2("Registre central")
-  source_repo    <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
-  entries        <- fetch_wp_entries()
-  registry_entry <- NULL
-  stage <- if (!is.null(entries) && !is.na(source_repo)) {
-    matched <- Filter(
-      function(e) identical(e$type, "repo") && identical(e[["source-repo"]], source_repo),
-      entries
-    )
-    if (length(matched) > 0L) {
-      registry_entry <- matched[[1L]]
-      cli::cli_alert_success(
-        "Dépôt {.val {source_repo}} enregistré — déploiement en production.")
-      FALSE
-    } else {
-      cli::cli_alert_warning(
-        "Dépôt {.val {source_repo}} absent du registre — staging. ",
-        "Lancer {.run ofceweb::wp_registry_request()} pour demander un numéro.")
-      TRUE
-    }
+  # ---- 2.5. état registre : lu directement depuis _quarto.yml --------------
+  # La consultation du registre central (ofceweb/wp-registry) et la
+  # synchronisation de `draft`/`wp`/`annee` se font désormais en amont, dans
+  # setup_wp() et publish_wp() (sync_wp_registry_state()) — pas ici. render_wp()
+  # se contente de lire l'état déjà persisté, sans accès réseau : `draft`
+  # (lu par les extensions ofce-quarto-extensions pour le bandeau « Version
+  # provisoire ») fait foi pour `stage`, utilisé plus bas pour le manifeste
+  # et la synchronisation de FTP_SERVER_DIR.
+  stage <- if (!is.null(yml_top) && !is.null(yml_top$draft)) {
+    isTRUE(yml_top$draft)
   } else {
-    if (is.null(entries))
-      cli::cli_alert_warning(
-        "Registre inaccessible ({.url wp/index.json}) — staging par défaut.")
-    TRUE  # fallback sûr si réseau, wp/index.json ou remote indisponible
-  }
-
-  # ---- 2.6. persistance de `draft`, `wp` et `annee` dans _quarto.yml -------
-  # Les extensions ofce-quarto-extensions lisent la métadonnée de projet
-  # `draft` (et non `stage`, qui reste un détail interne à ofceweb) pour
-  # afficher le bandeau « Version provisoire — non publiée » dans le HTML,
-  # le PDF et le Typst produits. Écrite ici, avant le rendu, pour que Quarto
-  # la lise comme n'importe quelle autre métadonnée de `_quarto.yml`.
-  # `wp`/`annee` sont la propriété du registre, pas de l'auteur·e (cf.
-  # check_wp()) : synchronisés depuis l'entrée trouvée à l'étape 2.5 quand le
-  # dépôt est enregistré, effacés sinon — leur absence dans _quarto.yml
-  # signale sans ambiguïté l'état staging (pas encore de numéro attribué).
-  qyml_path <- fs::path(root, "_quarto.yml")
-  tryCatch({
-    lines <- readLines(qyml_path, warn = FALSE)
-    lines <- yaml_patch_scalar(lines, "draft", stage)
-    if (!is.null(registry_entry)) {
-      lines <- yaml_patch_scalar(lines, "annee", as.integer(registry_entry$annee))
-      lines <- yaml_patch_scalar(lines, "wp", as.integer(registry_entry$wp))
-    } else {
-      lines <- yaml_patch_delete(lines, "annee")
-      lines <- yaml_patch_delete(lines, "wp")
-    }
-    writeLines(lines, qyml_path)
-  }, error = function(e)
     cli::cli_alert_warning(
-      "Cl\u00e9s {.code draft}/{.code wp}/{.code annee} non \u00e9crites dans {.file _quarto.yml} : {conditionMessage(e)}"))
+      "Pas de cl\u00e9 {.code draft} dans {.file _quarto.yml} \u2014 \u00e9tat registre non \\
+       synchronis\u00e9. Lancer {.run ofceweb::setup_wp()} avant de rendre. \\
+       Valeur par d\u00e9faut : {.val TRUE} (staging).")
+    TRUE
+  }
 
   # ---- 3. vider _site/ -----------------------------------------------------
   if (fs::dir_exists("_site"))
@@ -218,9 +176,15 @@ render_wp <- function(
 
 #' Rendu et déploiement complet d'un document de travail (WP) OFCE
 #'
-#' Enchaîne [render_wp()] puis [deploy_wp()] : rend le WP, pousse `_site/`
-#' vers la branche de déploiement FTP, et met à jour la page de redirection
-#' vers l'URL stable (via [push_wp_redirect()]).
+#' Rafraîchit l'état du registre central (`ofceweb/wp-registry`, via
+#' `sync_wp_registry_state()`) — pour rattraper un enregistrement survenu
+#' depuis le dernier [setup_wp()] — puis enchaîne [render_wp()] et
+#' [deploy_wp()] : rend le WP, pousse `_site/` vers la branche de
+#' déploiement FTP, et met à jour la page de redirection vers l'URL stable
+#' (via [push_wp_redirect()]). Ce rafraîchissement ne recalcule que
+#' `draft`/`wp`/`annee` ; si le numéro WP change à cette étape, un
+#' avertissement invite à relancer [setup_wp()] pour recalculer les champs
+#' dérivés (`site-path`, `citation.*`, `FTP_SERVER_DIR`).
 #'
 #' @inheritParams render_wp
 #' @param trigger Logique. Déclenche les workflows GitHub Actions FTP après le
@@ -236,6 +200,37 @@ publish_wp <- function(
     render_site = TRUE,
     trigger     = TRUE,
     workers     = 8L) {
+
+  root <- path |>
+    fs::path_expand() |>
+    fs::path_abs() |>
+    fs::path_norm()
+
+  # ---- rafraîchir l'état registre avant le rendu ---------------------------
+  # Rattrape le cas où le dépôt a été enregistré (PR wp-registry fusionnée)
+  # depuis le dernier setup_wp(). Ne recalcule pas site-path/citation.*/
+  # FTP_SERVER_DIR/FTP_REDIRECT_DIR (source de vérité : setup_wp()) — un
+  # avertissement invite à relancer setup_wp() si wp/annee changent ici.
+  qyml_path <- fs::path(root, "_quarto.yml")
+  wp_before <- if (fs::file_exists(qyml_path))
+    tryCatch(yaml::read_yaml(qyml_path)$wp, error = function(e) NULL) else NULL
+
+  cli::cli_h2("Registre central")
+  reg <- tryCatch(sync_wp_registry_state(root), error = function(e) {
+    cli::cli_alert_warning("Synchronisation du registre ignor\u00e9e : {conditionMessage(e)}")
+    NULL
+  })
+
+  if (!is.null(reg) && !isTRUE(reg$network_error)) {
+    wp_after <- if (!is.null(reg$registry_entry)) as.integer(reg$registry_entry$wp) else NULL
+    if (!is.null(wp_after) && !identical(wp_before, wp_after)) {
+      cli::cli_alert_warning(
+        "Num\u00e9ro WP mis \u00e0 jour depuis le registre ({.val {wp_before}} \u2192 {.val {wp_after}}) \\
+         \u2014 relancer {.run ofceweb::setup_wp()} pour recalculer {.field site-path}/\\
+         {.field citation.*}/{.field FTP_SERVER_DIR} avant de publier.")
+    }
+  }
+
   render_wp(
     path        = path,
     check       = check,

@@ -68,6 +68,13 @@ wp_manifest <- function(path = ".", stage = NULL) {
   }
   if (!is.null(abstract)) abstract <- as.character(abstract)
 
+  # Dépôt source (owner/repo) — utilisé par ftp_deploy.yml pour vérifier
+  # qu'un déploiement ne s'apprête pas à écraser un WP publié par un autre
+  # dépôt réutilisant le même numéro. Même format que le contexte
+  # `github.repository` des workflows GitHub Actions.
+  source_repo <- gh_slug_from_remote(root)
+  if (is.na(source_repo)) source_repo <- NULL
+
   # URL de déploiement
   ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
   url <- if (isFALSE(stage) && !is.null(wp) && !is.null(annee)) {
@@ -89,13 +96,6 @@ wp_manifest <- function(path = ".", stage = NULL) {
 
   # URL du dépôt
   repo_url <- yml$website$`repo-url`
-
-  # Dépôt source (owner/repo) — utilisé par ftp_deploy.yml pour vérifier
-  # qu'un déploiement ne s'apprête pas à écraser un WP publié par un autre
-  # dépôt réutilisant le même numéro. Même format que le contexte
-  # `github.repository` des workflows GitHub Actions.
-  source_repo <- gh_slug_from_remote(root)
-  if (is.na(source_repo)) source_repo <- NULL
 
   # Fichier PDF (cherche wp-pdf puis wp-typst)
   pdf_file <- NULL

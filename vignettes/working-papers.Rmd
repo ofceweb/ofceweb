@@ -76,8 +76,16 @@ setup_wp(
     manuellement
 6.  Adapte `_quarto.yml` avec le titre, l'URL, le numéro WP, l'année, la
     langue
+7.  Consulte le registre central `ofceweb/wp-registry` (accès réseau
+    nécessaire) : si le dépôt y a une entrée confirmée, `wp`/`annee`
+    sont synchronisés depuis cette entrée (prioritaires sur les
+    arguments `wp=`/`annee=`) et `draft` est positionné en conséquence
+    — voir « 5. Passer de brouillon à publié » ci-dessous ; en cas
+    d'échec réseau, ces clés sont laissées inchangées.
 
-Après `setup_wp()`, éditez `_quarto.yml` et `index.qmd` pour renseigner
+Après `setup_wp()`, `_quarto.yml` est déjà correct et cohérent
+(`draft`, `wp`, `annee`, `site-path`, `citation.*`) : éditez-le ainsi
+que `index.qmd` pour renseigner
 les métadonnées définitives (auteurs, résumé, date) avant de commiter.
 
 ------------------------------------------------------------------------
@@ -151,18 +159,33 @@ Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 
 ## 5. Passer de brouillon à publié
 
-1.  Dans `_quarto.yml`, renseigner les champs `wp` et `annee` :
+Le numéro WP (`wp`) et l'année (`annee`) sont la propriété du
+**registre central** `ofceweb/wp-registry`, pas de l'auteur·e : dès
+que le dépôt y a une entrée confirmée, `setup_wp()` synchronise
+`wp`/`annee` (et `draft`) depuis cette entrée, en écrasant toute
+valeur passée en argument ou déjà présente dans `_quarto.yml`.
 
-``` yaml
-wp: 6
-annee: 2026
-```
-
-2.  Relancer `setup_wp()` avec le numéro WP pour mettre à jour les URLs
-    et le workflow FTP :
+1.  Demander un numéro via `wp_registry_request()`, qui calcule le
+    numéro (auto-incrémenté, ou fourni via `wp =`) et ouvre une PR
+    contre `ofceweb/wp-registry` — `annee` est lu depuis `_quarto.yml`
+    si absent, et `contact` depuis `git config user.email` si non
+    fourni :
 
 ```{r}
-setup_wp(wp = 6, annee = 2026)
+wp_registry_request()
+```
+
+    Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
+    n'attend pas la fusion (fire-and-forget).
+
+2.  Une fois la PR fusionnée, relancer `setup_wp()` (sans `wp=`/
+    `annee=` — inutiles, le registre fait foi) pour synchroniser
+    `_quarto.yml` (`wp`, `annee`, `draft`, `site-path`,
+    `citation.url`/`citation.issue`) et mettre à jour les variables FTP
+    (`FTP_SERVER_DIR`, `FTP_REDIRECT_DIR`) :
+
+```{r}
+setup_wp()
 ```
 
 3.  Rendre et déployer :
@@ -171,6 +194,19 @@ setup_wp(wp = 6, annee = 2026)
 render_wp()
 deploy_wp()
 ```
+
+`publish_wp()` (qui enchaîne `render_wp()` et `deploy_wp()` — voir
+`publish()` pour la dispatche automatique selon le type de dépôt)
+refait cette consultation du registre juste avant le rendu, pour
+rattraper un enregistrement survenu depuis le dernier `setup_wp()` —
+mais ne recalcule que `draft`/`wp`/`annee`, pas
+`site-path`/`citation.*` : si le numéro change à cette étape, relancer
+`setup_wp()` avant de publier à nouveau.
+
+Pour un dépôt **pas encore enregistré**, `wp=`/`annee=` restent les
+seuls arguments qui pilotent `_quarto.yml` — utile pour un brouillon
+en attente de numéro (le bandeau « Version provisoire » reste affiché
+tant que le registre ne confirme rien).
 
 ------------------------------------------------------------------------
 

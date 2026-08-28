@@ -159,6 +159,39 @@ test_that("setup_wp() installs Quarto extensions via ofce::setup_quarto()", {
   expect_equal(fs::path_norm(calls[[1L]]), fs::path_norm(dir))
 })
 
+test_that("setup_wp() lets a confirmed registry entry override the wp=/annee= arguments", {
+  local_mocked_bindings(
+    init_gh_pages_branch = function(...) invisible(NULL),
+    set_gh_var           = function(...) invisible(NULL),
+    fetch_wp_entries      = function(...) list(
+      list(annee = 2027L, wp = 4L, type = "repo", `source-repo` = "ofce/wp2026-1")
+    )
+  )
+  local_mocked_bindings(
+    setup_quarto = function(...) invisible(NULL),
+    .package = "ofce"
+  )
+  dir <- withr::local_tempdir()
+  build_legacy_padded_wp_repo(dir, wp = 5L, annee = 2026L)
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  yml$website$`site-path` <- "2026/5/v0"
+  write_quarto_yml(dir, yml)
+  gert::git_init(path = dir)
+  gert::git_remote_add(url = "https://github.com/ofce/wp2026-1.git", name = "origin", repo = dir)
+
+  # wp = 6L below is deliberately different from both the pre-existing
+  # yml$wp (5L) and the registry entry's wp (4L): the registry entry must
+  # win over this explicit argument.
+  suppressMessages(setup_wp(dir, wp = 6L))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$wp, 4L)
+  expect_equal(yml$annee, 2027L)
+  expect_false(yml$draft)
+  expect_equal(yml$website$`site-path`, "2027/4/v0")
+  expect_equal(yml$citation$issue, "2027-4")
+})
+
 test_that("setup_wp() warns about legacy stray extensions left on disk", {
   local_stub_wp_side_effects()
   dir <- withr::local_tempdir()

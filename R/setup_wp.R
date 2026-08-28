@@ -368,12 +368,37 @@ setup_wp <- function(
     }
   }
 
+  # ---- 10d. registre central (source de vérité pour wp/annee/draft) --------
+  # Consulte ofceweb/wp-registry (sync_wp_registry_state(), partagée avec
+  # publish_wp()) pour que _quarto.yml soit déjà correct et cohérent après
+  # cet appel, sans attendre render_wp(). Une entrée confirmée pour ce dépôt
+  # (source-repo correspondant) l'emporte toujours sur les arguments
+  # wp=/annee= : ceux-ci ne restent utiles que pour un dépôt pas encore
+  # enregistré. En cas d'échec réseau, fail-soft : draft/wp/annee ne sont pas
+  # modifiés et les arguments/valeurs existantes du YAML font foi ci-dessous.
+  cli::cli_h2("Registre central")
+  registry_state <- tryCatch(
+    sync_wp_registry_state(root),
+    error = function(e) {
+      cli::cli_alert_warning("Synchronisation du registre ignor\u00e9e : {conditionMessage(e)}")
+      NULL
+    }
+  )
+  if (!is.null(registry_state) && !isTRUE(registry_state$network_error) &&
+      !is.null(registry_state$registry_entry)) {
+    wp             <- as.integer(registry_state$registry_entry$wp)
+    annee          <- as.integer(registry_state$registry_entry$annee)
+    wp_provided    <- TRUE
+    annee_provided <- TRUE
+  }
+
   # ---- 11. édition du _quarto.yml ------------------------------------------
   # Patch textuel : ne touche que les lignes des clés modifiées ci-dessous,
   # préservant commentaires, indentation et mise en page du reste du
   # fichier. `lines` est lu ICI (après la copie éventuelle du gabarit en
-  # section 5) pour patcher le contenu réel sur disque, et non un `yml`
-  # capturé avant que le gabarit n'existe.
+  # section 5, et après la synchronisation du registre en 10d, qui peut
+  # avoir déjà réécrit draft/wp/annee sur disque) pour patcher le contenu
+  # réel sur disque, et non un `yml` capturé avant que le gabarit n'existe.
   lines_before <- readLines(dest_yaml, warn = FALSE)
   lines <- lines_before
 
@@ -611,6 +636,7 @@ setup_wp <- function(
     cli::cli_li("site-path   : {yml$website$`site-path`}")
   cli::cli_li("staging url : https://www.ofce.fr/staging/{staging_dir}")
   cli::cli_li("stage-target: {stage_target}")
+  cli::cli_li("draft       : {if (is.null(registry_state) || isTRUE(registry_state$network_error)) '(non consulte)' else registry_state$stage}")
   if (!is.null(yml$citation$issue))
     cli::cli_li("citation issue: {yml$citation$issue}")
   if (!is.null(yml$citation$url))

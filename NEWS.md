@@ -1,4 +1,41 @@
-## ofceweb v0.10.2
+## ofceweb v0.10.3
+
+### Consultation du registre central déplacée de `render_wp()` vers `setup_wp()`/`publish_wp()`
+
+* La consultation d'`ofceweb/wp-registry` et la synchronisation de
+  `draft`/`wp`/`annee` dans `_quarto.yml` (auparavant faites dans
+  `render_wp()`, juste avant le rendu) sont désormais faites par
+  `setup_wp()` — `_quarto.yml` est donc déjà correct et cohérent
+  (`draft`, `wp`, `annee`, `site-path`, `citation.*`) juste après
+  `setup_wp()`, sans attendre un rendu. Logique extraite dans le helper
+  interne partagé `sync_wp_registry_state()`
+  (`R/wp_registry_sync.R`).
+
+* `publish_wp()` rafraîchit à nouveau l'état du registre juste avant
+  d'appeler `render_wp()`, pour rattraper un enregistrement survenu
+  depuis le dernier `setup_wp()` (PR `wp-registry` fusionnée). Ce
+  rafraîchissement ne recalcule que `draft`/`wp`/`annee` ; si le numéro
+  WP change à cette étape, un avertissement invite à relancer
+  `setup_wp()` pour recalculer les champs dérivés (`site-path`,
+  `citation.*`, `FTP_SERVER_DIR`).
+
+* `render_wp()` ne consulte plus le registre : il lit `draft`
+  directement dans `_quarto.yml` (déjà synchronisé par `setup_wp()`/
+  `publish_wp()`), ce qui le rend plus rapide et indépendant du
+  réseau — mais un `render_wp()` isolé (sans `setup_wp()`/
+  `publish_wp()` récent) ne détecte plus un changement d'état du
+  registre.
+
+* **Priorité** : quand le dépôt a une entrée confirmée dans le
+  registre, celle-ci l'emporte toujours sur les arguments
+  `wp=`/`annee=` passés à `setup_wp()`. Ces arguments ne restent
+  utiles que pour un dépôt pas encore enregistré.
+
+* **Comportement changé en cas d'échec réseau** : auparavant, un
+  registre inaccessible forçait `draft: true` et effaçait `wp`/`annee`
+  — même pour un WP déjà publié. La consultation est désormais
+  fail-soft : en cas d'échec, `draft`/`wp`/`annee` restent inchangés
+  dans `_quarto.yml`, avec un avertissement invitant à réessayer.
 
 ### `render_prev()` / `setup_prev()` — alignement sur le pattern `wp`
 

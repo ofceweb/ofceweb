@@ -56,11 +56,15 @@ diag_status <- function(df, field) {
 
 # setup_wp() touches git, the GitHub API, and (via ofce::setup_quarto())
 # the network; those calls are stubbed so the tests exercise only the
-# _quarto.yml editing logic.
+# _quarto.yml editing logic. fetch_wp_entries() is stubbed to simulate a
+# registry lookup failure (NULL) -- the fail-soft path of
+# sync_wp_registry_state() -- so setup_wp() leaves draft/wp/annee untouched
+# and tests keep exercising only the argument-driven YAML editing logic.
 local_stub_wp_side_effects <- function(env = parent.frame()) {
   local_mocked_bindings(
     init_gh_pages_branch = function(...) invisible(NULL),
     set_gh_var           = function(...) invisible(NULL),
+    fetch_wp_entries     = function(...) NULL,
     .env = env
   )
   local_mocked_bindings(

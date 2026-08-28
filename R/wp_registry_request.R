@@ -5,8 +5,11 @@
 #' l'entrée correspondante à `wp/{annee}.json` (et, si c'est la première
 #' demande pour cette année, crée ce fichier et met à jour `wp/index.json`
 #' dans le même commit). N'attend pas la fusion (fire-and-forget) — un·e
-#' admin doit approuver manuellement. Relancer [render_wp()] une fois la PR
-#' fusionnée pour basculer du mode staging au mode publication.
+#' admin doit approuver manuellement. Relancer [setup_wp()] une fois la PR
+#' fusionnée : c'est `setup_wp()` (pas `render_wp()`, qui ne consulte plus
+#' le registre) qui synchronise `wp`/`annee`/`draft` et recalcule
+#' `site-path`/`citation.*` depuis l'entrée confirmée, pour basculer du
+#' mode staging au mode publication.
 #'
 #' @param path Chemin vers la racine du dépôt WP local. Défaut `"."`.
 #' @param annee Entier. Année du WP. Défaut : `annee` dans `_quarto.yml`
@@ -289,7 +292,10 @@ wp_registry_request <- function(
     "Un\u00b7e admin doit approuver et fusionner la PR avant que le d\u00e9p\u00f4t \\
      puisse publier sur le chemin num\u00e9rot\u00e9.")
   cli::cli_text(
-    "Relancer {.run ofceweb::render_wp()} une fois la PR fusionn\u00e9e.")
+    "Relancer {.run ofceweb::setup_wp()} une fois la PR fusionn\u00e9e \
+     (pas {.fn render_wp}, qui ne consulte plus le registre) pour \
+     synchroniser {.code wp}/{.code annee}/{.code draft} et recalculer \
+     {.field site-path}/{.field citation.*}.")
 
   invisible(list(entry = new_entry, pr_url = pr_url))
 }

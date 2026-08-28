@@ -16,6 +16,10 @@ souhaite (code, explications de code, de données, etc…).
 
 [TABLE]
 
+Lorsque le docuement de travail est *stagé* sur le site ofce.fr, il est
+possible de versionner. Le versionnage est impossible sur github
+gh-pages.
+
 ------------------------------------------------------------------------
 
 ## 1. Initialiser un nouveau WP
@@ -27,9 +31,6 @@ library(ofceweb)
 # Depuis la racine du dépôt GitHub du WP
 setup_wp(
   path          = ".",
-  website_title = "Mon document de travail",
-  wp            = NULL,    # NULL = brouillon ; entier = publié
-  annee         = 2026,
   lang          = "fr",
   hypothesis    = FALSE,
   versionning   = TRUE
@@ -54,10 +55,9 @@ setup_wp(
     langue
 7.  Consulte le registre central `ofceweb/wp-registry` (accès réseau
     nécessaire) : si le dépôt y a une entrée confirmée, `wp`/`annee`
-    sont synchronisés depuis cette entrée (prioritaires sur les
-    arguments `wp=`/`annee=`) et `draft` est positionné en conséquence —
-    voir « 5. Passer de brouillon à publié » ci-dessous ; en cas d’échec
-    réseau, ces clés sont laissées inchangées.
+    sont synchronisés depuis cette entrée et `draft` est positionné en
+    conséquence — voir « 5. Passer de brouillon à publié » ci-dessous ;
+    en cas d’échec réseau, ces clés sont laissées inchangées.
 
 Après
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
@@ -136,7 +136,8 @@ deploy_wp()
 Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 
 - **Brouillon** (`wp: null`) → `quarto publish gh-pages` (publie sur
-  `ofce.github.io/{repo}/`)
+  `ofce.github.io/{repo}/`) ou pousse en staging sur le site de l’ofce à
+  l’adresse `www.ofce.fr/stage/{repo}/{version}/`.
 - **Publié** (`wp: N`) →
   [`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
   vers `site-deploy`, puis le workflow FTP transfère vers
@@ -170,10 +171,9 @@ wp_registry_request()
 
 2.  Une fois la PR fusionnée, relancer
     [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
-    (sans `wp=`/ `annee=` — inutiles, le registre fait foi) pour
-    synchroniser `_quarto.yml` (`wp`, `annee`, `draft`, `site-path`,
-    `citation.url`/`citation.issue`) et mettre à jour les variables FTP
-    (`FTP_SERVER_DIR`, `FTP_REDIRECT_DIR`) :
+    pour synchroniser `_quarto.yml` (`wp`, `annee`, `draft`,
+    `site-path`, `citation.url`/`citation.issue`) et mettre à jour les
+    variables FTP (`FTP_SERVER_DIR`, `FTP_REDIRECT_DIR`) :
 
 ``` r
 
@@ -206,8 +206,8 @@ avant de publier à nouveau.
 
 Pour un dépôt **pas encore enregistré**, `wp=`/`annee=` restent les
 seuls arguments qui pilotent `_quarto.yml` — utile pour un brouillon en
-attente de numéro (le bandeau « Version provisoire » reste affiché tant
-que le registre ne confirme rien).
+attente de numéro (le bandeau « Version préliminaire » reste affiché
+tant que le registre ne confirme rien).
 
 ------------------------------------------------------------------------
 
@@ -219,7 +219,8 @@ avant le transfert FTP. Aucune manipulation locale n’est requise.
 Si le secret `STATICRYPT_PASSWORD` est défini sur le dépôt, le workflow
 `ftp_deploy.yml` chiffre automatiquement tous les fichiers HTML avant
 l’envoi au serveur. Si le secret est absent, le déploiement s’effectue
-sans chiffrement.
+avec chiffrement en utilisant la valeur par défaut du mot de passe
+STATICRYPT_PASSWORD (voir les administrateurs pour cette valeur).
 
 ``` sh
 # Activer le chiffrement
@@ -301,7 +302,7 @@ construire l’index des WPs de l’OFCE.
     ├── references.bib       # bibliographie
     ├── manifest.json        # manifeste JSON (généré par render_wp)
     ├── www/                 # assets OFCE (logos, icônes)
-    ├── _extensions/wp/      # extension Quarto WP
+    ├── _extensions/ofce/      # extension Quarto ofce
     └── .github/workflows/
         ├── ftp_deploy.yml   # déploiement FTP (WP publié)
         └── gh-pages.yml     # déploiement GitHub Pages (brouillon)

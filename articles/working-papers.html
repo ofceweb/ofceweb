@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,10 +87,10 @@ etc…).</p>
 </h3>
 <table style="width:98%;" class="table">
 <colgroup>
-<col width="17%">
-<col width="17%">
-<col width="17%">
-<col width="44%">
+<col width="15%">
+<col width="18%">
+<col width="15%">
+<col width="47%">
 </colgroup>
 <thead><tr class="header">
 <th>État</th>
@@ -110,7 +110,7 @@ etc…).</p>
 </td>
 <td>
 <p><code>ofce.github.io/{repo}/</code></p>
-<p>www.ofce.fr/staging/{repo}/{version}</p>
+<p><code>www.ofce.fr/staging/{repo}/{version}</code></p>
 </td>
 </tr>
 <tr class="even">
@@ -122,6 +122,9 @@ etc…).</p>
 </tr>
 </tbody>
 </table>
+<p>Lorsque le docuement de travail est <em>stagé</em> sur le site
+ofce.fr, il est possible de versionner. Le versionnage est impossible
+sur github gh-pages.</p>
 <hr>
 </div>
 </div>
@@ -134,9 +137,6 @@ etc…).</p>
 <span><span class="co"># Depuis la racine du dépôt GitHub du WP</span></span>
 <span><span class="fu"><a href="../reference/setup_wp.html">setup_wp</a></span><span class="op">(</span></span>
 <span>  path          <span class="op">=</span> <span class="st">"."</span>,</span>
-<span>  website_title <span class="op">=</span> <span class="st">"Mon document de travail"</span>,</span>
-<span>  wp            <span class="op">=</span> <span class="cn">NULL</span>,    <span class="co"># NULL = brouillon ; entier = publié</span></span>
-<span>  annee         <span class="op">=</span> <span class="fl">2026</span>,</span>
 <span>  lang          <span class="op">=</span> <span class="st">"fr"</span>,</span>
 <span>  hypothesis    <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  versionning   <span class="op">=</span> <span class="cn">TRUE</span></span>
@@ -160,10 +160,9 @@ l’année, la langue</li>
 <li>Consulte le registre central <code>ofceweb/wp-registry</code> (accès
 réseau nécessaire) : si le dépôt y a une entrée confirmée,
 <code>wp</code>/<code>annee</code> sont synchronisés depuis cette entrée
-(prioritaires sur les arguments <code>wp=</code>/<code>annee=</code>) et
-<code>draft</code> est positionné en conséquence — voir « 5. Passer de
-brouillon à publié » ci-dessous ; en cas d’échec réseau, ces clés sont
-laissées inchangées.</li>
+et <code>draft</code> est positionné en conséquence — voir « 5. Passer
+de brouillon à publié » ci-dessous ; en cas d’échec réseau, ces clés
+sont laissées inchangées.</li>
 </ol>
 <p>Après <code><a href="../reference/setup_wp.html">setup_wp()</a></code>, <code>_quarto.yml</code> est déjà
 correct et cohérent (<code>draft</code>, <code>wp</code>,
@@ -259,7 +258,9 @@ Actions)</li>
 <li>
 <strong>Brouillon</strong> (<code>wp: null</code>) →
 <code>quarto publish gh-pages</code> (publie sur
-<code>ofce.github.io/{repo}/</code>)</li>
+<code>ofce.github.io/{repo}/</code>) ou pousse en staging sur le site de
+l’ofce à l’adresse
+<code>www.ofce.fr/stage/{repo}/{version}/</code>.</li>
 <li>
 <strong>Publié</strong> (<code>wp: N</code>) →
 <code><a href="../reference/site2branch.html">site2branch()</a></code> vers <code>site-deploy</code>, puis le
@@ -285,16 +286,16 @@ calcule le numéro (auto-incrémenté, ou fourni via <code>wp =</code>) et
 ouvre une PR contre <code>ofceweb/wp-registry</code> —
 <code>annee</code> est lu depuis <code>_quarto.yml</code> si absent, et
 <code>contact</code> depuis <code>git config user.email</code> si non
-fourni :</li>
+fourni
+:</li>
 </ol>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/wp_registry_request.html">wp_registry_request</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code>Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
 n'attend pas la fusion (fire-and-forget).</code></pre>
 <ol start="2" style="list-style-type: decimal">
-<li>Une fois la PR fusionnée, relancer <code><a href="../reference/setup_wp.html">setup_wp()</a></code> (sans
-<code>wp=</code>/ <code>annee=</code> — inutiles, le registre fait foi)
-pour synchroniser <code>_quarto.yml</code> (<code>wp</code>,
+<li>Une fois la PR fusionnée, relancer <code><a href="../reference/setup_wp.html">setup_wp()</a></code> pour
+synchroniser <code>_quarto.yml</code> (<code>wp</code>,
 <code>annee</code>, <code>draft</code>, <code>site-path</code>,
 <code>citation.url</code>/<code>citation.issue</code>) et mettre à jour
 les variables FTP (<code>FTP_SERVER_DIR</code>,
@@ -320,7 +321,7 @@ nouveau.</p>
 <p>Pour un dépôt <strong>pas encore enregistré</strong>,
 <code>wp=</code>/<code>annee=</code> restent les seuls arguments qui
 pilotent <code>_quarto.yml</code> — utile pour un brouillon en attente
-de numéro (le bandeau « Version provisoire » reste affiché tant que le
+de numéro (le bandeau « Version préliminaire » reste affiché tant que le
 registre ne confirme rien).</p>
 <hr>
 </div>
@@ -333,7 +334,9 @@ requise.</p>
 <p>Si le secret <code>STATICRYPT_PASSWORD</code> est défini sur le
 dépôt, le workflow <code>ftp_deploy.yml</code> chiffre automatiquement
 tous les fichiers HTML avant l’envoi au serveur. Si le secret est
-absent, le déploiement s’effectue sans chiffrement.</p>
+absent, le déploiement s’effectue avec chiffrement en utilisant la
+valeur par défaut du mot de passe STATICRYPT_PASSWORD (voir les
+administrateurs pour cette valeur).</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Activer le chiffrement</span></span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="ex">gh</span> secret set STATICRYPT_PASSWORD <span class="at">--repo</span> owner/mon-wp</span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
@@ -402,7 +405,7 @@ pour construire l’index des WPs de l’OFCE.</p>
 ├── references.bib       # bibliographie
 ├── manifest.json        # manifeste JSON (généré par render_wp)
 ├── www/                 # assets OFCE (logos, icônes)
-├── _extensions/wp/      # extension Quarto WP
+├── _extensions/ofce/      # extension Quarto ofce
 └── .github/workflows/
     ├── ftp_deploy.yml   # déploiement FTP (WP publié)
     └── gh-pages.yml     # déploiement GitHub Pages (brouillon)</code></pre>

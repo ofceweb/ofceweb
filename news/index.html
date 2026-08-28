@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,23 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.4" id="ofceweb-v0104">ofceweb v0.10.4<a class="anchor" aria-label="anchor" href="#ofceweb-v0104"></a></h2>
+<div class="section level3">
+<h3 id="render_site--render_wp--suppression-du-patch-des-hashes-bootstrap-0-10-4">
+<code>render_site()</code> / <code>render_wp()</code> — suppression du patch des hashes Bootstrap<a class="anchor" aria-label="anchor" href="#render_site--render_wp--suppression-du-patch-des-hashes-bootstrap-0-10-4"></a></h3>
+<ul><li>Suppression de l’étape <code>patch_sitelibs_hashes()</code> (renommage des fichiers hashés de <code>_site/site_libs/</code> vers des noms stables et réécriture des références HTML correspondantes) dans <code><a href="../reference/render_site.html">render_site()</a></code> et <code><a href="../reference/render_wp.html">render_wp()</a></code> : ce patch provoquait un bug pernicieux et n’est plus nécessaire. <code><a href="../reference/render_prev.html">render_prev()</a></code> n’a jamais eu cette étape. La vignette <code>build-a-site.Rmd</code>/<code>working-papers.Rmd</code> et <code>work/setup_site.md</code> sont mis à jour en conséquence.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="setup_wp--suppression-des-arguments-wpanneewebsite_title-0-10-4">
+<code>setup_wp()</code> — suppression des arguments <code>wp</code>/<code>annee</code>/<code>website_title</code>
+<a class="anchor" aria-label="anchor" href="#setup_wp--suppression-des-arguments-wpanneewebsite_title-0-10-4"></a></h3>
+<ul><li>
+<code>wp</code> et <code>annee</code> ne sont plus des arguments de <code><a href="../reference/setup_wp.html">setup_wp()</a></code> : ils sont désormais toujours lus depuis un <code>_quarto.yml</code> existant, ou écrasés par une entrée confirmée du registre central (<code>ofceweb/wp-registry</code>), jamais choisis librement par l’appelant. Pour changer le numéro d’un WP déjà publié, éditer directement <code>_quarto.yml</code> (ou passer par le registre).</li>
+<li>
+<code>website_title</code> disparaît également : le titre affiché dans le résumé de fin d’appel est toujours déduit de <code>index.qmd</code> (ou du nom du dépôt GitHub), comme c’était déjà le cas par défaut.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.3" id="ofceweb-v0103">ofceweb v0.10.3<a class="anchor" aria-label="anchor" href="#ofceweb-v0103"></a></h2>
 <div class="section level3">

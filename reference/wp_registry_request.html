@@ -4,14 +4,20 @@ ouvre une pull request contre `ofceweb/wp-registry` proposant d'ajouter
 l'entrée correspondante à `wp/annee.json` (et, si c'est la première
 demande pour cette année, crée ce fichier et met à jour `wp/index.json`
 dans le même commit). N'attend pas la fusion (fire-and-forget) — un·e
-admin doit approuver manuellement. Relancer [render_wp()] une fois la PR
-fusionnée pour basculer du mode staging au mode publication."><meta property="og:description" content="Calcule le triplet `annee, wp, source-repo` pour le dépôt WP local et
+admin doit approuver manuellement. Relancer [setup_wp()] une fois la PR
+fusionnée : c'est `setup_wp()` (pas `render_wp()`, qui ne consulte plus
+le registre) qui synchronise `wp`/`annee`/`draft` et recalcule
+`site-path`/`citation.*` depuis l'entrée confirmée, pour basculer du
+mode staging au mode publication."><meta property="og:description" content="Calcule le triplet `annee, wp, source-repo` pour le dépôt WP local et
 ouvre une pull request contre `ofceweb/wp-registry` proposant d'ajouter
 l'entrée correspondante à `wp/annee.json` (et, si c'est la première
 demande pour cette année, crée ce fichier et met à jour `wp/index.json`
 dans le même commit). N'attend pas la fusion (fire-and-forget) — un·e
-admin doit approuver manuellement. Relancer [render_wp()] une fois la PR
-fusionnée pour basculer du mode staging au mode publication."><meta property="og:image" content="https://ofceweb.github.io/ofceweb/logo.svg"></head><body>
+admin doit approuver manuellement. Relancer [setup_wp()] une fois la PR
+fusionnée : c'est `setup_wp()` (pas `render_wp()`, qui ne consulte plus
+le registre) qui synchronise `wp`/`annee`/`draft` et recalcule
+`site-path`/`citation.*` depuis l'entrée confirmée, pour basculer du
+mode staging au mode publication."><meta property="og:image" content="https://ofceweb.github.io/ofceweb/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -19,7 +25,7 @@ fusionnée pour basculer du mode staging au mode publication."><meta property="o
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,8 +57,11 @@ ouvre une pull request contre `ofceweb/wp-registry` proposant d'ajouter
 l'entrée correspondante à `wp/annee.json` (et, si c'est la première
 demande pour cette année, crée ce fichier et met à jour `wp/index.json`
 dans le même commit). N'attend pas la fusion (fire-and-forget) — un·e
-admin doit approuver manuellement. Relancer [render_wp()] une fois la PR
-fusionnée pour basculer du mode staging au mode publication.</p>
+admin doit approuver manuellement. Relancer [setup_wp()] une fois la PR
+fusionnée : c'est `setup_wp()` (pas `render_wp()`, qui ne consulte plus
+le registre) qui synchronise `wp`/`annee`/`draft` et recalcule
+`site-path`/`citation.*` depuis l'entrée confirmée, pour basculer du
+mode staging au mode publication.</p>
     </div>
 
     <div class="section level2">

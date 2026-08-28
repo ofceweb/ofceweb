@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -327,10 +327,6 @@ n’est donc pas protégée par mot de passe.</p>
 <li>Reconstruit <code>_site/sitemap.xml</code> à partir du contenu réel
 de <code>_site/</code> (Quarto ne couvre que les pages fraîchement
 rendues).</li>
-<li>Strippe les hash de contenu des fichiers
-<code>_site/site_libs/*</code> pour que la synchronisation FTP ne
-re-transfère pas l’identique à chaque rendu
-(<code>patch_sitelibs_hashes()</code>).</li>
 <li>Lance une prévisualisation locale via
 <code>servr::httw("_site")</code> (URLs absolues réécrites en relatif
 pour la navigation locale).</li>

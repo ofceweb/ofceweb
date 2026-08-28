@@ -23,6 +23,15 @@
   valeur diffère de `ofce-website`, suggérant de relancer `setup_wp()`),
   identique à celui déjà présent dans `check_prev()`.
 
+* `render_wp()` synchronise désormais automatiquement `wp`/`annee` dans
+  `_quarto.yml` d'après l'entrée trouvée dans le registre central
+  (`ofceweb/wp-registry`) : écrits depuis l'entrée quand le dépôt est
+  enregistré, effacés sinon (registre inaccessible ou dépôt non enregistré).
+  Ces clés ne sont plus jamais laissées à la charge de l'auteur·e — leur
+  absence dans `_quarto.yml` signale sans ambiguïté l'état staging.
+  Corrige au passage un contrôle de la synchronisation `FTP_SERVER_DIR` qui
+  relisait la valeur de `wp` d'avant cette synchronisation.
+
 ### Workflows de staging — corrections
 
 * `ftp_deploy_staging.yml` (gabarit `setup_prev`) : le secret GitHub Actions

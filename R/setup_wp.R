@@ -90,7 +90,6 @@ setup_wp <- function(
   wp_provided         <- !missing(wp)
   annee_provided      <- !missing(annee)
   lang_provided       <- !missing(lang)
-  title_provided      <- !missing(website_title)
   hypothesis_provided <- !missing(hypothesis)
   version_provided      <- !missing(versionning)
   stage_target_provided <- !missing(stage_target)
@@ -383,10 +382,10 @@ setup_wp <- function(
   if (wp_provided)    { yml$wp    <- wp;    lines <- yaml_patch_scalar_or_delete(lines, "wp", wp) }
   if (annee_provided) { yml$annee <- annee; lines <- yaml_patch_scalar(lines, "annee", annee) }
   if (lang_provided)  { yml$lang  <- lang;  lines <- yaml_patch_scalar(lines, "lang", lang) }
-  if (title_provided) {
-    yml[["website"]][["title"]] <- final_title
-    lines <- yaml_patch_scalar(lines, "website.title", final_title)
-  }
+  # website.title : plus jamais écrit (cf. update_navbar(), qui supprime la
+  # clé si elle est encore présente d'un appel antérieur) — le titre du WP
+  # reste porté par la clé `title` au niveau racine, pas par `website.title`.
+
   # version : le gabarit le fournit pour les nouveaux WPs — jamais injecté
   # dans un fichier existant.
 

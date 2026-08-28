@@ -5,7 +5,11 @@
 #' (`ofceweb/wp-registry`) pour déterminer l'état `stage` (staging ou publié),
 #' persistance de cet état dans la clé `draft` de `_quarto.yml` (lue par les
 #' extensions `ofce-quarto-extensions` pour le bandeau « Version
-#' provisoire »), nettoyage de `_site/`, rendu Quarto (HTML + PDF),
+#' provisoire »). Les clés `wp`/`annee` de `_quarto.yml` sont synchronisées
+#' depuis l'entrée du registre trouvée (dépôt publié) ou effacées (dépôt en
+#' staging, pas encore de numéro attribué) — leur valeur n'est plus jamais
+#' laissée à la charge de l'auteur·e. Suivent le nettoyage de `_site/`, le
+#' rendu Quarto (HTML + PDF),
 #' construction du sitemap, patch des hashes
 #' Bootstrap, écriture du manifeste (champ `stage` inclus), synchronisation
 #' de `FTP_SERVER_DIR` (WPs publiés confirmés uniquement), et optionnellement
@@ -85,14 +89,16 @@ render_wp <- function(
   # provisoire" des extensions) et écrit dans manifest.json pour router
   # deploy_wp().
   cli::cli_h2("Registre central")
-  source_repo <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
-  entries     <- fetch_wp_entries()
+  source_repo    <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
+  entries        <- fetch_wp_entries()
+  registry_entry <- NULL
   stage <- if (!is.null(entries) && !is.na(source_repo)) {
     matched <- Filter(
       function(e) identical(e$type, "repo") && identical(e[["source-repo"]], source_repo),
       entries
     )
     if (length(matched) > 0L) {
+      registry_entry <- matched[[1L]]
       cli::cli_alert_success(
         "Dépôt {.val {source_repo}} enregistré — déploiement en production.")
       FALSE
@@ -109,20 +115,31 @@ render_wp <- function(
     TRUE  # fallback sûr si réseau, wp/index.json ou remote indisponible
   }
 
-  # ---- 2.6. persistance de `draft` dans _quarto.yml -------------------------
+  # ---- 2.6. persistance de `draft`, `wp` et `annee` dans _quarto.yml -------
   # Les extensions ofce-quarto-extensions lisent la métadonnée de projet
   # `draft` (et non `stage`, qui reste un détail interne à ofceweb) pour
   # afficher le bandeau « Version provisoire — non publiée » dans le HTML,
   # le PDF et le Typst produits. Écrite ici, avant le rendu, pour que Quarto
   # la lise comme n'importe quelle autre métadonnée de `_quarto.yml`.
+  # `wp`/`annee` sont la propriété du registre, pas de l'auteur·e (cf.
+  # check_wp()) : synchronisés depuis l'entrée trouvée à l'étape 2.5 quand le
+  # dépôt est enregistré, effacés sinon — leur absence dans _quarto.yml
+  # signale sans ambiguïté l'état staging (pas encore de numéro attribué).
   qyml_path <- fs::path(root, "_quarto.yml")
   tryCatch({
     lines <- readLines(qyml_path, warn = FALSE)
     lines <- yaml_patch_scalar(lines, "draft", stage)
+    if (!is.null(registry_entry)) {
+      lines <- yaml_patch_scalar(lines, "annee", as.integer(registry_entry$annee))
+      lines <- yaml_patch_scalar(lines, "wp", as.integer(registry_entry$wp))
+    } else {
+      lines <- yaml_patch_delete(lines, "annee")
+      lines <- yaml_patch_delete(lines, "wp")
+    }
     writeLines(lines, qyml_path)
   }, error = function(e)
     cli::cli_alert_warning(
-      "Cl\u00e9 {.code draft} non \u00e9crite dans {.file _quarto.yml} : {conditionMessage(e)}"))
+      "Cl\u00e9s {.code draft}/{.code wp}/{.code annee} non \u00e9crites dans {.file _quarto.yml} : {conditionMessage(e)}"))
 
   # ---- 3. vider _site/ -----------------------------------------------------
   if (fs::dir_exists("_site"))
@@ -164,7 +181,7 @@ render_wp <- function(
   # workflow FTP. On synchronise ici pour que le déploiement soit toujours
   # cohérent, même si le workflow a été copié depuis le gabarit (placeholder)
   # ou si la version a été incrémentée depuis le dernier setup.
-  if (!is.null(yml_top) && !is.null(yml_top$wp) && isFALSE(stage)) {
+  if (!is.null(yml_top) && isFALSE(stage)) {
     server_dir <- yml_top$website$`site-path`
     if (!is.null(server_dir) && nzchar(server_dir)) {
       if (!grepl("/$", server_dir)) server_dir <- paste0(server_dir, "/")

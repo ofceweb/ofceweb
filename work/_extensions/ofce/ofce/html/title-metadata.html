@@ -1,7 +1,34 @@
+$if(categories)$
+  <div class="cat-box">
+    <div class="quarto-categories onec">
+    $for(categories)$
+      <div class="quarto-category">$categories$</div>
+    $endfor$
+    </div>
+  </div>
+$endif$
+
+$if(draft)$
+<div>
+  <div class="quarto-title-meta-heading">Status</div>
+  <div class="quarto-title-meta-contents">
+    $if(french)$
+    <span class="badge-draft">Version provisoire, ne pas citer, ne pas diffuser</span>
+    $else$
+    <span class="badge-draft">Preliminary version, do not quote, do not disseminate</span>
+    $endif$
+  </div>
+</div>
+$endif$
+
 
 $if(author)$
   <details class="details-box">
-    <summary class ="quarto-title-meta-heading"><b>$authors-title$</b></summary>
+    $if(french)$
+      <summary class ="quarto-title-meta-heading"><b>Auteurs&résumé</b></summary>
+    $else$
+      <summary class ="quarto-title-meta-heading"><b>Authors&Summary</b></summary>
+    $endif$
 
     $if(by-affiliation/first)$
     <div class="quarto-title-meta-author">
@@ -92,7 +119,8 @@ $if(author)$
       </div>
       $endif$
 
-      $if(keywords)$
+<!--
+    $if(keywords)$
       <div>
         <div class="keywords">
           <div class="quarto-title-meta-heading">$labels.keywords$</div>
@@ -101,6 +129,7 @@ $if(author)$
       </div>
       $endif$
     </div>
+-->
 
     $if(abstract)$
       <div>

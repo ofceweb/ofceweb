@@ -21,8 +21,6 @@
 #' @importFrom cli cli_h1 cli_h2 cli_abort cli_alert_warning
 #' @importFrom tictoc tic toc
 #' @importFrom servr daemon_stop httw
-#' @importFrom future plan
-#' @importFrom future.mirai mirai_multisession
 #' @importFrom quarto quarto_render
 #' @importFrom yaml read_yaml
 #' @export
@@ -59,7 +57,6 @@ render_prev <- function(
 
   tictoc::tic()
   servr::daemon_stop()
-  future::plan(future.mirai::mirai_multisession, workers = workers)
 
   site_dir <- paste0("_site_", profile)
 

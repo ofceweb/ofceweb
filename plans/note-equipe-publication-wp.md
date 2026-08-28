@@ -99,7 +99,7 @@ Les secrets de staging (`STAGING_USERNAME`, `STAGING_PASSWORD`) sont différents
 
 ### La vérification du registre a lieu au moment du rendu, pas du déploiement
 
-`render_wp()` consulte le registre **avant** de lancer Quarto. Cela permet : - d'injecter un bandeau « Version provisoire — non publiée » dans le HTML, le PDF et le Typst produits (géré par les extensions `ofce-quarto-extensions`) ; - d'écrire le champ `stage` dans `manifest.json`, que `deploy_wp()` lit ensuite pour choisir la bonne destination (staging ou production).
+`render_wp()` consulte le registre **avant** de lancer Quarto. Cela permet : - de persister une clé de projet `draft` (`true`/`false`) dans `_quarto.yml`, lue par les extensions `ofce-quarto-extensions` pour afficher un bandeau « Version provisoire — non publiée » dans le HTML, le PDF et le Typst produits ; - d'écrire le champ `stage` dans `manifest.json`, que `deploy_wp()` lit ensuite pour choisir la bonne destination (staging ou production).
 
 Le workflow `ftp_deploy.yml` effectue sa propre vérification indépendante au moment du déploiement, comme deuxième ligne de défense.
 
@@ -215,6 +215,14 @@ Les fonctions de rendu et déploiement des **prévisions** (`render_prev()`, `st
   - `check_wp()` (refactorisé pour utiliser le helper partagé)
 
 - **Workflows toujours force-remplacés** : la politique a changé pour `setup_wp()` (était : créer seulement si absent) → toujours force-remplacer depuis le package template. `setup_prev()` était déjà ainsi. Raison : les workflows ne doivent **jamais** être édités manuellement — ce sont des templates de référence du package. Un force-replace garantit que chaque exécution de `setup_wp()` / `setup_prev()` propage les corrections critiques (comme les secrets mal nommés, les chemins `.staticrypt` mal ciblés) automatiquement au prochain `setup_*()` exécuté.
+
+### `draft` remplace l'injection transitoire de `stage` comme métadonnée de rendu
+
+Auparavant, `render_wp()` passait `stage` à `quarto::quarto_render(metadata = list(stage = stage))` : une métadonnée valable pour ce seul appel, jamais écrite sur disque. Ce mécanisme est remplacé par une clé de projet **persistée** :
+
+- `render_wp()` écrit désormais `draft: true`/`draft: false` directement dans `_quarto.yml`, avant l'appel à `quarto::quarto_render()` (qui n'a donc plus besoin de l'argument `metadata`). La valeur reflète le résultat de la consultation du registre central (`stage`), sous un autre nom : `draft` est le terme que lisent les extensions `ofce-quarto-extensions`, `stage` reste un détail interne à `ofceweb` (champ du manifeste, routage de `deploy_wp()`).
+- Pour les **prévisions**, la même clé `draft` est fixée **statiquement** dans les gabarits de profil plutôt que recalculée à chaque rendu : `draft: true` dans `_quarto-staging.yml`, `draft: false` dans `_quarto-publish.yml` (`inst/setup_prev/`). Comme Quarto superpose le fichier de profil actif au `_quarto.yml` de base, la bonne valeur est automatiquement en vigueur selon le profil (`staging` ou `publish`) sans logique supplémentaire dans `render_prev()`.
+- Écrire la clé dans le fichier plutôt que la passer en métadonnée de rendu la rend visible et diffable dans `_quarto.yml`, et cohérente pour tout rendu ultérieur du projet (pas seulement celui déclenché par `render_wp()`/`render_prev()`).
 
 ### Correctifs dans les templates
 

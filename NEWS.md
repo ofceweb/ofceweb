@@ -42,6 +42,10 @@
 * Docstring de `setup_wp()` clarifiée : explique désormais que les fichiers
   utilisateur (`.qmd`, YAML) sont non-destructifs, mais les workflows
   (gabarits du package) sont toujours remplacés.
+  
+### divers
+
+* plus d'appel à `future::plan()` dans `render()`
 
 ## ofceweb v0.10.0
 

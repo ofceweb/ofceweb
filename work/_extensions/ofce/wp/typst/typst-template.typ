@@ -14,18 +14,61 @@
   #let scpored = rgb("#e6142d")
   #let scpodarkred = rgb("#770C19")
   #let colourtype = rgb("#EEC900")
+  #let ife1 = rgb("#7D0000")
+  #let ife2 = rgb("#21606E")
+  #let ifegrey = rgb("#DDDBDB")
 
   // Font definition
-  #let main_title_font = "Open sans"
-  #let serif_font = "Open sans"
+  #let main_title_font = "Arimo"
+  #let serif_font = "Merriweather"
+
+ // Callout settings
+  
+#let callout(
+body: [],
+title: "Callout",
+background_color: none,
+icon: none,
+icon_color: none,
+body_background_color: white) = {
+  let _bg = rgb("#faf0f3")
+  let _ic = rgb("#faf0f3")
+  let _bbg =  rgb("#faf0f3")
+  block(
+    breakable: true,
+    fill: _bg,
+    stroke: (paint: _ic, thickness: 0.5pt, cap: "round"),
+    width: 100%,
+    radius: 2pt,
+    block(
+      breakable: true,
+      inset: 1pt,
+      width: 100%,
+      below: 0pt,
+      block(
+        breakable: true,
+        fill: _bg,
+        width: 100%,
+        inset: 8pt)[#if icon != none [#text(_ic, weight: 900)[#icon] ]#title]) +
+      if(body != []){
+        block(
+          breakable: true,
+          inset: 1pt,
+          width: 100%,
+          block(breakable: true, fill: _bbg, width: 100%, inset: 8pt, align(left, body)))
+      }
+    )
+}
+
 
 #let title-page(
   title:[],
   subtitle:[],
   authors: none, email:[],
   first_publish: none,
-  abstract: none, year:[],
+  abstract: none, year: none,
   number:[],
+  draft: false,
   language: "fr",
   body) = {
 
@@ -33,10 +76,23 @@
   let ph = 29.7cm // page height for a4
   let pw = 21.0cm // page width for a4
   let logo_column = 4cm
-  let lc_space = 0.5cm
-  let line_x = 0cm + (logo_column - marge) + lc_space*2
+  let lc_space = 0.75cm
+  let line_x = -0.5cm + (logo_column - marge) + lc_space*2
 
+  let grey0 =  rgb("#030303")
+  let grey1 =  rgb("#6B6B6B")
+  let grey2 =  rgb("#A6A6A6")
+  let grey3 =  rgb("#D6D6D6")
+  let scpored = rgb("#e6142d")
+  let scpodarkred = rgb("#770C19")
+  let colourtype = rgb("#EEC900")
+  let ife1 = rgb("#7D0000")
+  let ife2 = rgb("#21606E")
+  let ifegrey = rgb("#DDDBDB")
 
+  // Font definition
+  let main_title_font = "Arimo"
+  let serif_font = "Merriweather"
 
 // Author block
 
@@ -83,6 +139,16 @@ if authors != none {
 
   }
 
+  // Année affichée : on privilégie `annee` (yaml) ; à défaut on extrait
+  // l'année de la date de première publication.
+  let display_year = if year != none {
+    year
+  } else if main_date != none {
+    main_date.split("-").at(0)
+  } else {
+    none
+  }
+
     // Page formatting
 
   set page(margin: (top: marge, rest: marge))
@@ -95,11 +161,11 @@ if authors != none {
   /////// 1. logo position and line
 
   place(top + left, dx: -marge+lc_space,dy:-2cm,
-        image("/_extensions/ofce/blog/ofce_m.png", width: logo_column)
+        image("/_extensions/ofce/ofce/img/ofce_m.png", width: logo_column*0.7)
         )
 
   place(bottom + left, dx: -marge+lc_space,dy: 2cm,
-        image("/_extensions/ofce/blog/sciencespo.png", width: logo_column)
+        image("/_extensions/ofce/ofce/img/sciencespo.png", width: logo_column*0.7)
       )
   place(left,
         line(start: (line_x, 0cm), end: (line_x,  ph - 2*marge),
@@ -112,7 +178,7 @@ if authors != none {
   place(dx: 2cm,dy: 4cm,
     box(width: 13cm,
       align(horizon + left)[
-        #text(size: 24pt, title, fill:  scpored,weight: "bold" )
+        #text(size: 24pt, title, fill: ife2, weight: "bold", font: serif_font)
         #v(1em)
         #text(subtitle,fill: grey1)
         #v(2em)
@@ -132,15 +198,24 @@ if authors != none {
 
   //// 3. Publishing date And Issue number
 
+  if not draft {
   place(top+right ,dy:-2cm,dx: marge ,
-        square(fill: colourtype, size: 2cm,align(center+horizon,text(fill: white,size: 1cm,number)))
+        square(fill: ife1, size: 2cm,align(center+horizon,text(fill: white,size: 1.5cm,number)))
       )
 
+  if display_year != none {
   place(top+right ,dy:0cm,dx: marge ,
-        text(fill: colourtype, size: 0.9cm,text(year))
+        text(fill: ife1, size: 0.9cm,text(display_year))
       )
+  }
+  } else {
+  place(top+right ,dy:-2cm,dx: marge ,
+        box(fill: ife1, inset: 8pt, radius: 2pt,
+          align(center+horizon,text(fill: white,size: 0.9cm, weight: "bold","BROUILLON")))
+      )
+  }
 
-  place(top + right, dx:+1.25cm,dy:-1.5cm, align(horizon,text(fill: gray ,size:2cm,font: serif_font,style:"italic","Blog")))
+  place(top + right, dx:+1.25cm,dy:-1.5cm, align(horizon,text(fill: gray ,size:1cm,weight: "bold", font: serif_font,style:"italic","Document de travail")))
 
 
   place(bottom + right, dx: 1.5cm,
@@ -178,7 +253,7 @@ if authors != none {
   pagebreak()
   set page(fill: none, margin: auto)
 
-  align(bottom , text("Rédacteurs en chef : Elliot Aurissergues & Paul Malliet") )
+
 
 
 
@@ -237,6 +312,7 @@ if authors != none {
   toc_depth: none,
   toc_indent: 1.5em,
   number: none,
+  draft: false,
   bibliography-title: "Références",
   bibliography-style: "apa",
   cols: 1,
@@ -255,8 +331,8 @@ if authors != none {
   let colourtype = rgb("#EEC900")
 
   // Font definition
-  let main_title_font = "Open sans"
-  let serif_font = "Open sans"
+  let main_title_font = "Arimo"
+  let serif_font = "Merriweather"
 
 
   // Date formatting
@@ -285,6 +361,9 @@ if authors != none {
   show link: set text(fill: linkcolor)
   show cite: set text(fill: linkcolor)
 
+ show figure.where(kind: "quarto-float-apptbl"): set block(breakable: true)
+ show figure.where(kind: table): set block(breakable: true)
+
   // Allow custom title for bibliography section
   set bibliography(title: bibliography-title, style: bibliography-style, )
 
@@ -311,8 +390,8 @@ if authors != none {
 
           grid(
           columns: (1fr, 1fr),
-          align(left+ bottom)[#text([Blog OFCE nº #number\ publié le #pretty_date], style: "italic")],
-          align(right + bottom)[#image("/_extensions/ofce/blog/ofce_m.png", width: 1cm) ]
+          align(left+ bottom)[#text(if draft [Document de travail OFCE — brouillon] else [Document de travail OFCE nº #number\ publié le #pretty_date], style: "italic")],
+          align(right + bottom)[#image("/_extensions/ofce/ofce/img/ofce.png", width: 1cm) ]
 
           )
 
@@ -324,14 +403,14 @@ if authors != none {
             grid(
             columns: (1fr, 1fr),
             align(left + bottom)[#counter(page).display()],
-            align(right + bottom)[#image("/_extensions/ofce/blog/ofce_m.png", width: 1cm) ]
+            align(right + bottom)[#image("/_extensions/ofce/ofce/img/ofce.png", width: 1cm) ]
 
           )
 
           } else {
           grid(
             columns: (1fr, 1fr),
-            align(left)[#image("/_extensions/ofce/blog/ofce_m.png", width: 1cm) ],
+            align(left)[#image("/_extensions/ofce/ofce/img/ofce.png", width: 1cm) ],
             align(right)[#counter(page).display()]
           )
 
@@ -379,7 +458,7 @@ if authors != none {
   show heading.where(
     level: 1
   ): it => block(width: 100%, below: 1em, above: 1.25em)[
-    #set text(size: fontsize*1.1, weight: "bold")
+    #set text(size: fontsize*1.3, weight: "bold", font: serif_font)
     #it
   ]
   // Level 2 headers
@@ -423,7 +502,7 @@ v(4cm)
 
 
 
-text(title, size: 20pt, weight: "bold")
+text(title, size: 24pt, weight: "bold", font: serif_font)
 
 if subtitle != none {
 v(1em)

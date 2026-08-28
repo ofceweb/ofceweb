@@ -1,6 +1,55 @@
 # Changelog
 
-## ofceweb v0.10.2
+## ofceweb v0.10.3
+
+### Consultation du registre central déplacée de `render_wp()` vers `setup_wp()`/`publish_wp()`
+
+- La consultation d’`ofceweb/wp-registry` et la synchronisation de
+  `draft`/`wp`/`annee` dans `_quarto.yml` (auparavant faites dans
+  [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md),
+  juste avant le rendu) sont désormais faites par
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  — `_quarto.yml` est donc déjà correct et cohérent (`draft`, `wp`,
+  `annee`, `site-path`, `citation.*`) juste après
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
+  sans attendre un rendu. Logique extraite dans le helper interne
+  partagé `sync_wp_registry_state()` (`R/wp_registry_sync.R`).
+
+- [`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md)
+  rafraîchit à nouveau l’état du registre juste avant d’appeler
+  [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md),
+  pour rattraper un enregistrement survenu depuis le dernier
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  (PR `wp-registry` fusionnée). Ce rafraîchissement ne recalcule que
+  `draft`/`wp`/`annee` ; si le numéro WP change à cette étape, un
+  avertissement invite à relancer
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  pour recalculer les champs dérivés (`site-path`, `citation.*`,
+  `FTP_SERVER_DIR`).
+
+- [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md)
+  ne consulte plus le registre : il lit `draft` directement dans
+  `_quarto.yml` (déjà synchronisé par
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/
+  [`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md)),
+  ce qui le rend plus rapide et indépendant du réseau — mais un
+  [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md)
+  isolé (sans
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/
+  [`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md)
+  récent) ne détecte plus un changement d’état du registre.
+
+- **Priorité** : quand le dépôt a une entrée confirmée dans le registre,
+  celle-ci l’emporte toujours sur les arguments `wp=`/`annee=` passés à
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md).
+  Ces arguments ne restent utiles que pour un dépôt pas encore
+  enregistré.
+
+- **Comportement changé en cas d’échec réseau** : auparavant, un
+  registre inaccessible forçait `draft: true` et effaçait `wp`/`annee` —
+  même pour un WP déjà publié. La consultation est désormais fail-soft :
+  en cas d’échec, `draft`/`wp`/`annee` restent inchangés dans
+  `_quarto.yml`, avec un avertissement invitant à réessayer.
 
 ### `render_prev()` / `setup_prev()` — alignement sur le pattern `wp`
 

@@ -65,6 +65,13 @@
   YAML) sont non-destructifs, mais les workflows (gabarits du package)
   sont toujours remplacés.
 
+### divers
+
+- plus d’appel à
+  [`future::plan()`](https://future.futureverse.org/reference/plan.html)
+  dans
+  [`render()`](https://ofceweb.github.io/ofceweb/reference/render.md)
+
 ## ofceweb v0.10.0
 
 ### Registre central — nouvelle disposition `wp/` (restructuration en 3 étapes)

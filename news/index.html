@@ -53,6 +53,11 @@
 <ul><li><p>Workflows GitHub Actions (<code>.github/workflows/</code>) : changement de politique. Auparavant, <code><a href="../reference/setup_wp.html">setup_wp()</a></code> ne créait les workflows que s’ils n’existaient pas ; <code><a href="../reference/setup_prev.html">setup_prev()</a></code> les remplaçait toujours. Désormais les deux fonctions <strong>forcent la mise à jour</strong> à chaque appel. Les workflows sont la source de vérité du package et ne doivent pas être modifiés manuellement. Cela garantit que les corrections et améliorations de templates (comme le fix <code>STAGING_USERNAME</code> → <code>STAGING_USER</code> ci-dessus) sont propagées automatiquement à l’appel suivant de <code><a href="../reference/setup_wp.html">setup_wp()</a></code> ou <code><a href="../reference/setup_prev.html">setup_prev()</a></code>.</p></li>
 <li><p>Docstring de <code><a href="../reference/setup_wp.html">setup_wp()</a></code> clarifiée : explique désormais que les fichiers utilisateur (<code>.qmd</code>, YAML) sont non-destructifs, mais les workflows (gabarits du package) sont toujours remplacés.</p></li>
 </ul></div>
+<div class="section level3">
+<h3 id="divers-0-10-1">divers<a class="anchor" aria-label="anchor" href="#divers-0-10-1"></a></h3>
+<ul><li>plus d’appel à <code><a href="https://future.futureverse.org/reference/plan.html" class="external-link">future::plan()</a></code> dans <code><a href="../reference/render.html">render()</a></code>
+</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.0" id="ofceweb-v0100">ofceweb v0.10.0<a class="anchor" aria-label="anchor" href="#ofceweb-v0100"></a></h2>

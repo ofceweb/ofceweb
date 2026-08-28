@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,11 +33,11 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.10.1" id="ofceweb-v0101">ofceweb v0.10.1<a class="anchor" aria-label="anchor" href="#ofceweb-v0101"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.10.2" id="ofceweb-v0102">ofceweb v0.10.2<a class="anchor" aria-label="anchor" href="#ofceweb-v0102"></a></h2>
 <div class="section level3">
-<h3 id="render_prev--setup_prev--alignement-sur-le-pattern-wp-0-10-1">
+<h3 id="render_prev--setup_prev--alignement-sur-le-pattern-wp-0-10-2">
 <code>render_prev()</code> / <code>setup_prev()</code> — alignement sur le pattern <code>wp</code>
-<a class="anchor" aria-label="anchor" href="#render_prev--setup_prev--alignement-sur-le-pattern-wp-0-10-1"></a></h3>
+<a class="anchor" aria-label="anchor" href="#render_prev--setup_prev--alignement-sur-le-pattern-wp-0-10-2"></a></h3>
 <ul><li><p>Paramètre <code>check_repo</code> supprimé de <code><a href="../reference/render_prev.html">render_prev()</a></code>, <code><a href="../reference/stage_prev.html">stage_prev()</a></code>, <code><a href="../reference/publish_prev.html">publish_prev()</a></code> et <code><a href="../reference/render_prev_publish.html">render_prev_publish()</a></code> (et l’appel à <code>check_repo_status()</code>) : le rendu Quarto ne dépend pas de l’état du dépôt git, comme pour <code><a href="../reference/render_wp.html">render_wp()</a></code>.</p></li>
 <li><p>Nouveau diagnostic de connexion GitHub (<code>gh::gh("GET /user")</code>, factorisé dans le helper interne <code>check_gh_login()</code> partagé avec <code><a href="../reference/check_wp.html">check_wp()</a></code>) : appelé désormais par <code><a href="../reference/setup_prev.html">setup_prev()</a></code>, <code><a href="../reference/stage_prev.html">stage_prev()</a></code> et <code><a href="../reference/publish_prev.html">publish_prev()</a></code> pour avertir tôt si l’utilisateur n’est pas authentifié auprès de GitHub (opérations staging/registry indisponibles sans connexion).</p></li>
 <li><p><code><a href="../reference/check_prev.html">check_prev()</a></code> : même diagnostic <code>gh:login</code> que <code><a href="../reference/check_wp.html">check_wp()</a></code> (même helper <code>check_gh_login()</code>), pour une parité complète des vérifications wp / prev.</p></li>
@@ -45,18 +45,25 @@
 <li><p><code><a href="../reference/render_wp.html">render_wp()</a></code> synchronise désormais automatiquement <code>wp</code>/<code>annee</code> dans <code>_quarto.yml</code> d’après l’entrée trouvée dans le registre central (<code>ofceweb/wp-registry</code>) : écrits depuis l’entrée quand le dépôt est enregistré, effacés sinon (registre inaccessible ou dépôt non enregistré). Ces clés ne sont plus jamais laissées à la charge de l’auteur·e — leur absence dans <code>_quarto.yml</code> signale sans ambiguïté l’état staging. Corrige au passage un contrôle de la synchronisation <code>FTP_SERVER_DIR</code> qui relisait la valeur de <code>wp</code> d’avant cette synchronisation.</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="workflows-de-staging--corrections-0-10-1">Workflows de staging — corrections<a class="anchor" aria-label="anchor" href="#workflows-de-staging--corrections-0-10-1"></a></h3>
+<h3 id="websitetitle--clé-supprimée-0-10-2">
+<code>website.title</code> — clé supprimée<a class="anchor" aria-label="anchor" href="#websitetitle--cl%C3%A9-supprim%C3%A9e-0-10-2"></a></h3>
+<ul><li><p><code><a href="../reference/setup_wp.html">setup_wp()</a></code> et <code><a href="../reference/setup_site.html">setup_site()</a></code> n’écrivent plus jamais la clé <code>website.title</code> dans <code>_quarto.yml</code> (le titre calculé depuis <code>website_title</code>/<code>index.qmd</code>/nom du dépôt ne sert plus qu’au résumé affiché en fin d’appel). Le gabarit <code>inst/setup_prev/_quarto.yml</code> et <code>inst/setup_site/_quarto.yml</code>, qui la codaient en dur, sont aussi corrigés (<code>inst/setup_wp/_quarto.yml</code> ne l’avait jamais eue).</p></li>
+<li><p><code><a href="../reference/update_navbar.html">update_navbar()</a></code> supprime désormais <code>website.title</code> si la clé est encore présente (dépôt initialisé avant ce changement), en plus de synchroniser les menus depuis <code>navbar.yml</code>.</p></li>
+<li><p><code>site_redirect.R</code> : la page de redirection utilisait <code>website.title</code> comme titre HTML ; retombe désormais sur la clé <code>title</code> de premier niveau en priorité (présente pour les WPs), avec <code>website.title</code> en second repli pour les dépôts pas encore nettoyés par <code><a href="../reference/update_navbar.html">update_navbar()</a></code>.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="workflows-de-staging--corrections-0-10-2">Workflows de staging — corrections<a class="anchor" aria-label="anchor" href="#workflows-de-staging--corrections-0-10-2"></a></h3>
 <ul><li><p><code>ftp_deploy_staging.yml</code> (gabarit <code>setup_prev</code>) : le secret GitHub Actions utilisé pour l’utilisateur FTP de staging était mal nommé (<code>STAGING_USERNAME</code> au lieu de <code>STAGING_USER</code>), provoquant l’échec de l’authentification FTP en CI. Corrigé.</p></li>
 <li><p><code>ftp_deploy_staging.yml</code> (gabarit <code>setup_prev</code>) et <code>ftp_stage.yml</code> (gabarit <code>setup_wp</code>) : la commande <code>staticrypt</code> ciblait <code>./</code> (le dossier courant lui-même) au lieu de <code>./*</code> (son contenu). Corrigé.</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="setup_wp--setup_prev--workflows-toujours-mis-à-jour-0-10-1">
-<code>setup_wp()</code> / <code>setup_prev()</code> — workflows toujours mis à jour<a class="anchor" aria-label="anchor" href="#setup_wp--setup_prev--workflows-toujours-mis-%C3%A0-jour-0-10-1"></a></h3>
+<h3 id="setup_wp--setup_prev--workflows-toujours-mis-à-jour-0-10-2">
+<code>setup_wp()</code> / <code>setup_prev()</code> — workflows toujours mis à jour<a class="anchor" aria-label="anchor" href="#setup_wp--setup_prev--workflows-toujours-mis-%C3%A0-jour-0-10-2"></a></h3>
 <ul><li><p>Workflows GitHub Actions (<code>.github/workflows/</code>) : changement de politique. Auparavant, <code><a href="../reference/setup_wp.html">setup_wp()</a></code> ne créait les workflows que s’ils n’existaient pas ; <code><a href="../reference/setup_prev.html">setup_prev()</a></code> les remplaçait toujours. Désormais les deux fonctions <strong>forcent la mise à jour</strong> à chaque appel. Les workflows sont la source de vérité du package et ne doivent pas être modifiés manuellement. Cela garantit que les corrections et améliorations de templates (comme le fix <code>STAGING_USERNAME</code> → <code>STAGING_USER</code> ci-dessus) sont propagées automatiquement à l’appel suivant de <code><a href="../reference/setup_wp.html">setup_wp()</a></code> ou <code><a href="../reference/setup_prev.html">setup_prev()</a></code>.</p></li>
 <li><p>Docstring de <code><a href="../reference/setup_wp.html">setup_wp()</a></code> clarifiée : explique désormais que les fichiers utilisateur (<code>.qmd</code>, YAML) sont non-destructifs, mais les workflows (gabarits du package) sont toujours remplacés.</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="divers-0-10-1">divers<a class="anchor" aria-label="anchor" href="#divers-0-10-1"></a></h3>
+<h3 id="divers-0-10-2">divers<a class="anchor" aria-label="anchor" href="#divers-0-10-2"></a></h3>
 <ul><li>plus d’appel à <code><a href="https://future.futureverse.org/reference/plan.html" class="external-link">future::plan()</a></code> dans <code><a href="../reference/render.html">render()</a></code>
 </li>
 </ul></div>

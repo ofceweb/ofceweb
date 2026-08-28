@@ -47,8 +47,12 @@ setup_site(
 
 - website_title:
 
-  Chaîne ou \`NULL\`. Titre du site. Si \`NULL\`, on prend le titre de
-  \`index.qmd\` s'il existe, sinon le nom du dépôt.
+  Chaîne ou \`NULL\`. Titre du site, utilisé pour le résumé affiché en
+  fin d'appel uniquement — n'est plus jamais écrit comme
+  \`website.title\` dans \`\_quarto.yml\` (voir \[update_navbar()\], qui
+  supprime cette clé si un appel antérieur l'y avait laissée). Si
+  \`NULL\`, on prend le titre de \`index.qmd\` s'il existe, sinon le nom
+  du dépôt.
 
 - hypothesis:
 
@@ -72,10 +76,9 @@ certaines clés. Les autres sont conservées.
 
 \*\*Toujours écrasées\*\* (sans garde) :
 
-\| Clé \| Valeur imposée \| \|—–\|—————-\| \| \`website.title\` \| Titre
-calculé depuis \`index.qmd\` ou le nom du dépôt \| \| \`ofce_host\` \|
-Valeur de l'argument \`ofce_host\` \| \| \`website.other-links\` \|
-Liste reconstruite par scan des \`.qmd\` \| \| \`website.comments\` \|
+\| Clé \| Valeur imposée \| \|—–\|—————-\| \| \`ofce_host\` \| Valeur de
+l'argument \`ofce_host\` \| \| \`website.other-links\` \| Liste
+reconstruite par scan des \`.qmd\` \| \| \`website.comments\` \|
 \`hypothesis: true\` ou supprimé selon \`hypothesis\` \|
 
 \*\*Préservées si déjà renseignées\*\* (non écrasées) :

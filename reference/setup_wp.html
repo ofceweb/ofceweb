@@ -13,7 +13,7 @@ langue, URLs)."><meta property="og:image" content="https://ofceweb.github.io/ofc
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,8 +69,11 @@ langue, URLs).</p>
 
 
 <dt id="arg-website-title">website_title<a class="anchor" aria-label="anchor" href="#arg-website-title"></a></dt>
-<dd><p>Chaîne ou `NULL`. Titre du WP. Si `NULL`, utilise le
-nom du dépôt GitHub.</p></dd>
+<dd><p>Chaîne ou `NULL`. Titre du WP, utilisé pour le résumé
+affiché en fin d'appel uniquement — n'est plus jamais écrit comme
+`website.title` dans `_quarto.yml` (voir [update_navbar()], qui
+supprime cette clé si un appel antérieur l'y avait laissée). Si `NULL`,
+déduit de `index.qmd` ou du nom du dépôt GitHub.</p></dd>
 
 
 <dt id="arg-wp">wp<a class="anchor" aria-label="anchor" href="#arg-wp"></a></dt>

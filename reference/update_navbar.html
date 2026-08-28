@@ -15,7 +15,7 @@ menus sont centralisés."><meta property="og:image" content="https://ofceweb.git
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +68,12 @@ menus sont centralisés.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Les fichiers de profils (`_quarto-fr.yml`, `_quarto-en.yml`, ...) ne sont
+    <p>Supprime également la clé `website.title` si elle est encore présente :
+`setup_wp()`, `setup_prev()` et `setup_site()` ne l'écrivent plus (le
+titre affiché à côté du logo reste porté par la navbar centralisée, pas
+par un titre calculé par site) ; cet appel nettoie les dépôts initialisés
+avant ce changement.</p>
+<p>Les fichiers de profils (`_quarto-fr.yml`, `_quarto-en.yml`, ...) ne sont
 pas modifiés : s'ils redéfinissent une clé navbar (ex. le sélecteur de
 langue FR/EN du blog dans `right`), c'est une surcharge locale volontaire
 qui prime au render. Un message signale les profils concernés.</p>

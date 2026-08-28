@@ -1,6 +1,6 @@
 # Changelog
 
-## ofceweb v0.10.1
+## ofceweb v0.10.2
 
 ### `render_prev()` / `setup_prev()` — alignement sur le pattern `wp`
 
@@ -52,6 +52,29 @@
   l’état staging. Corrige au passage un contrôle de la synchronisation
   `FTP_SERVER_DIR` qui relisait la valeur de `wp` d’avant cette
   synchronisation.
+
+### `website.title` — clé supprimée
+
+- [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  et
+  [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
+  n’écrivent plus jamais la clé `website.title` dans `_quarto.yml` (le
+  titre calculé depuis `website_title`/`index.qmd`/nom du dépôt ne sert
+  plus qu’au résumé affiché en fin d’appel). Le gabarit
+  `inst/setup_prev/_quarto.yml` et `inst/setup_site/_quarto.yml`, qui la
+  codaient en dur, sont aussi corrigés (`inst/setup_wp/_quarto.yml` ne
+  l’avait jamais eue).
+
+- [`update_navbar()`](https://ofceweb.github.io/ofceweb/reference/update_navbar.md)
+  supprime désormais `website.title` si la clé est encore présente
+  (dépôt initialisé avant ce changement), en plus de synchroniser les
+  menus depuis `navbar.yml`.
+
+- `site_redirect.R` : la page de redirection utilisait `website.title`
+  comme titre HTML ; retombe désormais sur la clé `title` de premier
+  niveau en priorité (présente pour les WPs), avec `website.title` en
+  second repli pour les dépôts pas encore nettoyés par
+  [`update_navbar()`](https://ofceweb.github.io/ofceweb/reference/update_navbar.md).
 
 ### Workflows de staging — corrections
 

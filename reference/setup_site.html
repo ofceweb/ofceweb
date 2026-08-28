@@ -13,7 +13,7 @@ titre, code de site, commentaires hypothesis, etc.)."><meta property="og:image" 
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,8 +87,11 @@ utilise le nom du dépôt GitHub.</p></dd>
 
 
 <dt id="arg-website-title">website_title<a class="anchor" aria-label="anchor" href="#arg-website-title"></a></dt>
-<dd><p>Chaîne ou `NULL`. Titre du site. Si `NULL`, on prend le
-titre de `index.qmd` s'il existe, sinon le nom du dépôt.</p></dd>
+<dd><p>Chaîne ou `NULL`. Titre du site, utilisé pour le
+résumé affiché en fin d'appel uniquement — n'est plus jamais écrit comme
+`website.title` dans `_quarto.yml` (voir [update_navbar()], qui
+supprime cette clé si un appel antérieur l'y avait laissée). Si `NULL`,
+on prend le titre de `index.qmd` s'il existe, sinon le nom du dépôt.</p></dd>
 
 
 <dt id="arg-hypothesis">hypothesis<a class="anchor" aria-label="anchor" href="#arg-hypothesis"></a></dt>
@@ -115,7 +118,6 @@ certaines clés. Les autres sont conservées.</p>
 <p>**Toujours écrasées** (sans garde) :</p>
 <p>| Clé | Valeur imposée |
 |—–|—————-|
-| `website.title` | Titre calculé depuis `index.qmd` ou le nom du dépôt |
 | `ofce_host` | Valeur de l'argument `ofce_host` |
 | `website.other-links` | Liste reconstruite par scan des `.qmd` |
 | `website.comments` | `hypothesis: true` ou supprimé selon `hypothesis` |</p>

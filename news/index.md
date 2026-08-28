@@ -31,6 +31,27 @@
   (même helper `check_gh_login()`), pour une parité complète des
   vérifications wp / prev.
 
+### Bandeau « Version provisoire » — persistance de `draft`
+
+- [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md)
+  : l’état `stage` déterminé depuis le registre central n’est plus
+  injecté comme métadonnée éphémère à
+  `quarto::quarto_render(metadata = list(stage = stage))`, mais persisté
+  comme clé `draft` dans `_quarto.yml` avant le rendu — lue comme
+  n’importe quelle autre métadonnée par les extensions
+  `ofce-quarto-extensions` pour afficher le bandeau « Version provisoire
+  — non publiée » dans le HTML, le PDF et le Typst produits. Le gabarit
+  `inst/setup_wp/_quarto.yml` déclare désormais `draft: true` par
+  défaut.
+
+- [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
+  : même bandeau pour les prévisions, mais porté statiquement par les
+  profils plutôt que calculé dynamiquement — les gabarits
+  `inst/setup_prev/_quarto-staging.yml` et `_quarto-publish.yml`
+  déclarent respectivement `draft: true` et `draft: false`.
+
+### `project.type` et registre central
+
 - [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
   forçait `project.type: website` au lieu de
   `project.type: ofce-website` (gabarit `inst/setup_wp/_quarto.yml`
@@ -52,6 +73,29 @@
   l’état staging. Corrige au passage un contrôle de la synchronisation
   `FTP_SERVER_DIR` qui relisait la valeur de `wp` d’avant cette
   synchronisation.
+
+- [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md)
+  : le contrôle de l’organisation du dépôt (`ofce`) était sensible à la
+  casse et rejetait un remote orthographié `OFCE/...` — comparaison
+  désormais insensible à la casse
+  ([`tolower()`](https://rdrr.io/r/base/chartr.html)). L’entrée JSON
+  proposée pour la pull request s’affichait aussi mal (les accolades
+  littérales du JSON pretty-printé étaient interprétées comme des
+  expressions glue par
+  [`cli::cli_text()`](https://cli.r-lib.org/reference/cli_text.html)) —
+  remplacé par
+  [`cli::cli_verbatim()`](https://cli.r-lib.org/reference/cli_verbatim.html).
+
+### `website.draft-mode` — toujours resynchronisé
+
+- [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
+  [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
+  et
+  [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
+  forcent désormais `website.draft-mode` à chaque appel, même sur un
+  `_quarto.yml` existant créé avant l’introduction de cette clé :
+  `"visible"` pour les WPs et les prévisions, `"gone"` pour les sites
+  génériques.
 
 ### `website.title` — clé supprimée
 

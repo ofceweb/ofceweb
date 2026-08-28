@@ -8,15 +8,13 @@ GitHub. Un WP produit deux sorties :
 - une **page HTML** (site Quarto avec l’extension `wp`)
 - un **PDF** (LaTeX via `wp-pdf` ou Typst via `wp-typst`)
 
-Il peut aussi contenir des **annexes** (`annexes.qmd`) et un
-**historique des révisions** (`news.qmd`).
+Il peut contenir des **annexes** (`annexes.qmd`) et un **historique des
+révisions** (`news.qmd`), ainsi que tout autre document que l’on
+souhaite (code, explications de code, de données, etc…).
 
 ### Cycle de vie
 
-| État | `wp` dans `_quarto.yml` | Hébergement | URL |
-|----|----|----|----|
-| Brouillon | `null` | GitHub Pages | `ofce.github.io/{repo}/` |
-| Publié | `N` (entier) | Serveur OFCE FTP | `www.ofce.fr/wp/{annee}/{N}/{version}/` |
+[TABLE]
 
 ------------------------------------------------------------------------
 

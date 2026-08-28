@@ -36,6 +36,8 @@ Contrôles effectués :
 - Présence et validité de \`\_quarto.yml\` (champs \`annee\`,
   \`author\`, \`date\`, \`citation\` — erreur bloquante si absents)
 
+- \`project.type: ofce-website\` présent dans \`\_quarto.yml\` (warning)
+
 - \`index.qmd\` présent, déclare \`wp-html\` et \`wp-pdf\` /
   \`wp-typst\`
 

@@ -31,6 +31,17 @@
   (même helper `check_gh_login()`), pour une parité complète des
   vérifications wp / prev.
 
+- [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  forçait `project.type: website` au lieu de
+  `project.type: ofce-website` (gabarit `inst/setup_wp/_quarto.yml`
+  inclus) — corrigé.
+  [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
+  gagne un nouveau diagnostic `project.type` (warning si la valeur
+  diffère de `ofce-website`, suggérant de relancer
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)),
+  identique à celui déjà présent dans
+  [`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md).
+
 ### Workflows de staging — corrections
 
 - `ftp_deploy_staging.yml` (gabarit `setup_prev`) : le secret GitHub

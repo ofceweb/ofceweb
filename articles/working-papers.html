@@ -77,18 +77,20 @@ GitHub. Un WP produit deux sorties :</p>
 <li>un <strong>PDF</strong> (LaTeX via <code>wp-pdf</code> ou Typst via
 <code>wp-typst</code>)</li>
 </ul>
-<p>Il peut aussi contenir des <strong>annexes</strong>
+<p>Il peut contenir des <strong>annexes</strong>
 (<code>annexes.qmd</code>) et un <strong>historique des
-révisions</strong> (<code>news.qmd</code>).</p>
+révisions</strong> (<code>news.qmd</code>), ainsi que tout autre
+document que l’on souhaite (code, explications de code, de données,
+etc…).</p>
 <div class="section level3">
 <h3 id="cycle-de-vie">Cycle de vie<a class="anchor" aria-label="anchor" href="#cycle-de-vie"></a>
 </h3>
-<table class="table">
+<table style="width:98%;" class="table">
 <colgroup>
-<col width="25%">
-<col width="25%">
-<col width="25%">
-<col width="25%">
+<col width="17%">
+<col width="17%">
+<col width="17%">
+<col width="44%">
 </colgroup>
 <thead><tr class="header">
 <th>État</th>
@@ -102,8 +104,14 @@ révisions</strong> (<code>news.qmd</code>).</p>
 <tr class="odd">
 <td>Brouillon</td>
 <td><code>null</code></td>
-<td>GitHub Pages</td>
-<td><code>ofce.github.io/{repo}/</code></td>
+<td>
+<p>GitHub Pages ou</p>
+<p>OFCE staging</p>
+</td>
+<td>
+<p><code>ofce.github.io/{repo}/</code></p>
+<p>www.ofce.fr/staging/{repo}/{version}</p>
+</td>
 </tr>
 <tr class="even">
 <td>Publié</td>

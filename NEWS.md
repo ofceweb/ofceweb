@@ -17,6 +17,24 @@
   helper `check_gh_login()`), pour une parité complète des vérifications
   wp / prev.
 
+### Bandeau « Version provisoire » — persistance de `draft`
+
+* `render_wp()` : l'état `stage` déterminé depuis le registre central
+  n'est plus injecté comme métadonnée éphémère à
+  `quarto::quarto_render(metadata = list(stage = stage))`, mais persisté
+  comme clé `draft` dans `_quarto.yml` avant le rendu — lue comme
+  n'importe quelle autre métadonnée par les extensions
+  `ofce-quarto-extensions` pour afficher le bandeau « Version provisoire —
+  non publiée » dans le HTML, le PDF et le Typst produits. Le gabarit
+  `inst/setup_wp/_quarto.yml` déclare désormais `draft: true` par défaut.
+
+* `setup_prev()` : même bandeau pour les prévisions, mais porté
+  statiquement par les profils plutôt que calculé dynamiquement — les
+  gabarits `inst/setup_prev/_quarto-staging.yml` et `_quarto-publish.yml`
+  déclarent respectivement `draft: true` et `draft: false`.
+
+### `project.type` et registre central
+
 * `setup_wp()` forçait `project.type: website` au lieu de `project.type:
   ofce-website` (gabarit `inst/setup_wp/_quarto.yml` inclus) — corrigé.
   `check_wp()` gagne un nouveau diagnostic `project.type` (warning si la
@@ -31,6 +49,21 @@
   absence dans `_quarto.yml` signale sans ambiguïté l'état staging.
   Corrige au passage un contrôle de la synchronisation `FTP_SERVER_DIR` qui
   relisait la valeur de `wp` d'avant cette synchronisation.
+
+* `wp_registry_request()` : le contrôle de l'organisation du dépôt (`ofce`)
+  était sensible à la casse et rejetait un remote orthographié
+  `OFCE/...` — comparaison désormais insensible à la casse (`tolower()`).
+  L'entrée JSON proposée pour la pull request s'affichait aussi mal (les
+  accolades littérales du JSON pretty-printé étaient interprétées comme
+  des expressions glue par `cli::cli_text()`) — remplacé par
+  `cli::cli_verbatim()`.
+
+### `website.draft-mode` — toujours resynchronisé
+
+* `setup_wp()`, `setup_prev()` et `setup_site()` forcent désormais
+  `website.draft-mode` à chaque appel, même sur un `_quarto.yml` existant
+  créé avant l'introduction de cette clé : `"visible"` pour les WPs et les
+  prévisions, `"gone"` pour les sites génériques.
 
 ### `website.title` — clé supprimée
 

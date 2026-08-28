@@ -242,6 +242,12 @@ setup_prev <- function(
   # un _quarto.yml existant.
   yml$website$favicon <- "www/fofce.png"
   lines <- yaml_patch_scalar(lines, "website.favicon", "www/fofce.png")
+
+  # draft-mode : toujours resynchronisé, même sur un _quarto.yml existant qui
+  # aurait été créé avant l’introduction de cette clé.
+  yml$website$`draft-mode` <- "visible"
+  lines <- yaml_patch_scalar(lines, "website.draft-mode", "visible")
+
   if (!is.null(prev))  { yml$prev  <- prev;  lines <- yaml_patch_scalar(lines, "prev", prev) }
   if (!is.na(annee))   { yml$annee <- annee; lines <- yaml_patch_scalar(lines, "annee", annee) }
   if (!is.null(mois))  { yml$mois  <- mois;  lines <- yaml_patch_scalar(lines, "mois", mois) }

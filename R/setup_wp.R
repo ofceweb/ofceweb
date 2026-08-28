@@ -408,6 +408,11 @@ setup_wp <- function(
   yml$website$favicon <- "www/fofce-wp.png"
   lines <- yaml_patch_scalar(lines, "website.favicon", "www/fofce-wp.png")
 
+  # draft-mode : toujours resynchronisé, même sur un _quarto.yml existant qui
+  # aurait été créé avant l’introduction de cette clé.
+  yml$website$`draft-mode` <- "visible"
+  lines <- yaml_patch_scalar(lines, "website.draft-mode", "visible")
+
   # repo-url : toujours calculé depuis le remote git — forcé à chaque appel
   repo_url <- sprintf("https://github.com/%s/%s/", gh_org, repo_name)
   yml$website$`repo-url` <- repo_url

@@ -17,7 +17,7 @@ website:
   site-url: "https://www.ofce.fr/"
   site-path: "staging/"
   repo-url: https://github.com/ofceweb/webblog
-  draft-mode: gone
+  draft-mode: visible
   reader-mode: false
   bread-crumbs: false
   favicon: www/fofce.png

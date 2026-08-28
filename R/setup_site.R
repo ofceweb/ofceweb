@@ -334,6 +334,11 @@ setup_site <- function(
   yml$website$favicon <- "www/fofce.png"
   lines <- yaml_patch_scalar(lines, "website.favicon", "www/fofce.png")
 
+  # draft-mode : toujours resynchronisé, même sur un _quarto.yml existant qui
+  # aurait été créé avant l’introduction de cette clé.
+  yml$website$`draft-mode` <- "gone"
+  lines <- yaml_patch_scalar(lines, "website.draft-mode", "gone")
+
   if(!is.na(gh$host) && !is.na(gh$repo) &&
      (is.null(yml$website$`repo-url`) || !nzchar(yml$website$`repo-url` %||% ""))) {
     repo_url <- paste0("https://github.com/", gh$host, "/", gh$repo)

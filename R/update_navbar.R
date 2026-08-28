@@ -74,12 +74,22 @@ update_navbar <- function(root = ".") {
   cli::cli_alert_success("Navbar mise à jour dans {.file {yml_path}}.")
   if (had_title) {
     cli::cli_alert_info(
-      "Clé {.code website.title} supprimée (plus écrite par setup_wp() /        setup_prev() / setup_site()).")
+      "Clé {.code website.title} supprimée (plus écrite par setup_wp() / \\
+       setup_prev() / setup_site()).")
   }
-  for (key in navbar_keys) {
-    cli::cli_alert_info(
-      "{.code {key}} : {count_items(old_navbar[[key]])} -> \\
-       {count_items(navbar[[key]])} item{?s}.")
+  changed_keys <- Filter(
+    function(key) !identical(count_items(old_navbar[[key]]), count_items(navbar[[key]])),
+    navbar_keys
+  )
+  if (length(changed_keys) > 0L) {
+    detail <- vapply(
+      changed_keys,
+      function(key) sprintf(
+        "%s (%d \u2192 %d)", key, count_items(old_navbar[[key]]), count_items(navbar[[key]])
+      ),
+      character(1L)
+    )
+    cli::cli_alert_info("Contenu modifi\u00e9 : {paste(detail, collapse = ', ')}.")
   }
 
   profile_paths <- fs::dir_ls(root, regexp = "/_quarto-[^/]+[.]yml$")

@@ -78,9 +78,12 @@ test_that("setup_wp() updates citation.issue when the WP number changes", {
   build_legacy_padded_wp_repo(dir, wp = 5L, annee = 2026L)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`site-path` <- "2026/5/v0"
+  # setup_wp() has no wp=/annee= arguments -- a WP number change must be
+  # made directly in _quarto.yml (or via the central registry).
+  yml$wp <- 8L
   write_quarto_yml(dir, yml)
 
-  suppressMessages(setup_wp(dir, wp = 8L))
+  suppressMessages(setup_wp(dir))
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
 
   expect_equal(yml$wp, 8L)
@@ -159,7 +162,7 @@ test_that("setup_wp() installs Quarto extensions via ofce::setup_quarto()", {
   expect_equal(fs::path_norm(calls[[1L]]), fs::path_norm(dir))
 })
 
-test_that("setup_wp() lets a confirmed registry entry override the wp=/annee= arguments", {
+test_that("setup_wp() lets a confirmed registry entry override the existing _quarto.yml values", {
   local_mocked_bindings(
     init_gh_pages_branch = function(...) invisible(NULL),
     set_gh_var           = function(...) invisible(NULL),
@@ -179,10 +182,10 @@ test_that("setup_wp() lets a confirmed registry entry override the wp=/annee= ar
   gert::git_init(path = dir)
   gert::git_remote_add(url = "https://github.com/ofce/wp2026-1.git", name = "origin", repo = dir)
 
-  # wp = 6L below is deliberately different from both the pre-existing
-  # yml$wp (5L) and the registry entry's wp (4L): the registry entry must
-  # win over this explicit argument.
-  suppressMessages(setup_wp(dir, wp = 6L))
+  # setup_wp() has no wp=/annee= arguments: the pre-existing _quarto.yml
+  # value (wp = 5L) is deliberately different from the registry entry's
+  # wp (4L) -- the registry entry must win.
+  suppressMessages(setup_wp(dir))
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
 
   expect_equal(yml$wp, 4L)

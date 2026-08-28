@@ -10,8 +10,7 @@
 #' suppose que `draft`/`wp`/`annee` sont déjà synchronisés dans
 #' `_quarto.yml` et se contente de les lire, sans accès réseau. Suivent le
 #' nettoyage de `_site/`, le rendu Quarto (HTML + PDF),
-#' construction du sitemap, patch des hashes
-#' Bootstrap, écriture du manifeste (champ `stage` inclus), synchronisation
+#' construction du sitemap, écriture du manifeste (champ `stage` inclus), synchronisation
 #' de `FTP_SERVER_DIR` (WPs publiés confirmés uniquement), et optionnellement
 #' déploiement sur la branche de déploiement et prévisualisation locale.
 #'
@@ -122,19 +121,13 @@ render_wp <- function(
            error = function(e)
              cli::cli_alert_warning("Sitemap non généré : {conditionMessage(e)}"))
 
-  # ---- 6. patch hashes bootstrap -------------------------------------------
-  cli::cli_h2("Patch des html (bootstrap css hashé)")
-  tryCatch(patch_sitelibs_hashes(NULL, root, progress = progress),
-           error = function(e)
-             cli::cli_alert_warning("Patch site_libs ignoré : {conditionMessage(e)}"))
-
-  # ---- 7. manifeste --------------------------------------------------------
+  # ---- 6. manifeste --------------------------------------------------------
   cli::cli_h2("Écriture du manifest.json")
   tryCatch(wp_manifest(root, stage = stage),
            error = function(e)
              cli::cli_alert_warning("manifest.json non généré : {conditionMessage(e)}"))
 
-  # ---- 7.5. synchronisation server-dir FTP ---------------------------------
+  # ---- 6.5. synchronisation server-dir FTP ---------------------------------
   # site-path dans _quarto.yml est la source de vérité pour server-dir dans le
   # workflow FTP. On synchronise ici pour que le déploiement soit toujours
   # cohérent, même si le workflow a été copié depuis le gabarit (placeholder)
@@ -153,7 +146,7 @@ render_wp <- function(
 
   tictoc::toc()
 
-  # ---- 8. déploiement / instruction ----------------------------------------
+  # ---- 7. déploiement / instruction -----------------------------------------
   if (site2branch) {
     ofceweb::site2branch(root, progress = progress, trigger = trigger)
   } else {
@@ -161,7 +154,7 @@ render_wp <- function(
       "Pour déployer, lancer {.run ofceweb::deploy_wp()}")
   }
 
-  # ---- 9. prévisualisation locale ------------------------------------------
+  # ---- 8. prévisualisation locale --------------------------------------------
   if (render_site) {
     cli::cli_h2("Prévisualisation locale")
     tryCatch(rewrite_absolute_hrefs(root),

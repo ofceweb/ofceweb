@@ -34,9 +34,15 @@ push. Défaut `TRUE`.}
 Invisible `NULL`.
 }
 \description{
-Enchaîne [render_wp()] puis [deploy_wp()] : rend le WP, pousse `_site/`
-vers la branche de déploiement FTP, et met à jour la page de redirection
-vers l'URL stable (via [push_wp_redirect()]).
+Rafraîchit l'état du registre central (`ofceweb/wp-registry`, via
+`sync_wp_registry_state()`) — pour rattraper un enregistrement survenu
+depuis le dernier [setup_wp()] — puis enchaîne [render_wp()] et
+[deploy_wp()] : rend le WP, pousse `_site/` vers la branche de
+déploiement FTP, et met à jour la page de redirection vers l'URL stable
+(via [push_wp_redirect()]). Ce rafraîchissement ne recalcule que
+`draft`/`wp`/`annee` ; si le numéro WP change à cette étape, un
+avertissement invite à relancer [setup_wp()] pour recalculer les champs
+dérivés (`site-path`, `citation.*`, `FTP_SERVER_DIR`).
 }
 \seealso{
 [render_wp()], [deploy_wp()], [push_wp_redirect()], [setup_wp()]

@@ -59,7 +59,8 @@ diag_status <- function(df, field) {
 # _quarto.yml editing logic. fetch_wp_entries() is stubbed to simulate a
 # registry lookup failure (NULL) -- the fail-soft path of
 # sync_wp_registry_state() -- so setup_wp() leaves draft/wp/annee untouched
-# and tests keep exercising only the argument-driven YAML editing logic.
+# and tests keep exercising only the yaml-driven editing logic (setup_wp()
+# has no wp=/annee=/website_title= arguments).
 local_stub_wp_side_effects <- function(env = parent.frame()) {
   local_mocked_bindings(
     init_gh_pages_branch = function(...) invisible(NULL),

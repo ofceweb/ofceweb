@@ -28,20 +28,22 @@ souhaite (code, explications de code, de données, etc...).
 
 ### Cycle de vie
 
-+----------------+----------------+----------------+-----------------------------------------+
-| État           | `wp` dans      | Hébergement    | URL                                     |
-|                | `_quarto.yml`  |                |                                         |
-+================+================+================+=========================================+
-| Brouillon      | `null`         | GitHub Pages   | `ofce.github.io/{repo}/`                |
-|                |                | ou             |                                         |
-|                |                |                | www.ofce.fr/staging/{repo}/{version}    |
-|                |                | OFCE staging   |                                         |
-+----------------+----------------+----------------+-----------------------------------------+
-| Publié         | `N` (entier)   | Serveur OFCE   | `www.ofce.fr/wp/{annee}/{N}/{version}/` |
-|                |                | FTP            |                                         |
-+----------------+----------------+----------------+-----------------------------------------+
++-------------+---------------+-------------+-----------------------------------------+
+| État        | `wp` dans     | Hébergement | URL                                     |
+|             | `_quarto.yml` |             |                                         |
++=============+===============+=============+=========================================+
+| Brouillon   | `null`        | GitHub      | `ofce.github.io/{repo}/`                |
+|             |               | Pages ou    |                                         |
+|             |               |             | `www.ofce.fr/staging/{repo}/{version}`  |
+|             |               | OFCE        |                                         |
+|             |               | staging     |                                         |
++-------------+---------------+-------------+-----------------------------------------+
+| Publié      | `N` (entier)  | Serveur     | `www.ofce.fr/wp/{annee}/{N}/{version}/` |
+|             |               | OFCE FTP    |                                         |
++-------------+---------------+-------------+-----------------------------------------+
 
- 
+Lorsque le docuement de travail est *stagé* sur le site ofce.fr, il est possible de versionner. Le versionnage est impossible sur github gh-pages.
+
 ------------------------------------------------------------------------
 
 ## 1. Initialiser un nouveau WP
@@ -52,9 +54,6 @@ library(ofceweb)
 # Depuis la racine du dépôt GitHub du WP
 setup_wp(
   path          = ".",
-  website_title = "Mon document de travail",
-  wp            = NULL,    # NULL = brouillon ; entier = publié
-  annee         = 2026,
   lang          = "fr",
   hypothesis    = FALSE,
   versionning   = TRUE
@@ -78,15 +77,14 @@ setup_wp(
     langue
 7.  Consulte le registre central `ofceweb/wp-registry` (accès réseau
     nécessaire) : si le dépôt y a une entrée confirmée, `wp`/`annee`
-    sont synchronisés depuis cette entrée (prioritaires sur les
-    arguments `wp=`/`annee=`) et `draft` est positionné en conséquence
-    — voir « 5. Passer de brouillon à publié » ci-dessous ; en cas
-    d'échec réseau, ces clés sont laissées inchangées.
+    sont synchronisés depuis cette entrée et `draft` est positionné en conséquence —
+    voir « 5. Passer de brouillon à publié » ci-dessous ; en cas d'échec
+    réseau, ces clés sont laissées inchangées.
 
-Après `setup_wp()`, `_quarto.yml` est déjà correct et cohérent
-(`draft`, `wp`, `annee`, `site-path`, `citation.*`) : éditez-le ainsi
-que `index.qmd` pour renseigner
-les métadonnées définitives (auteurs, résumé, date) avant de commiter.
+Après `setup_wp()`, `_quarto.yml` est déjà correct et cohérent (`draft`,
+`wp`, `annee`, `site-path`, `citation.*`) : éditez-le ainsi que
+`index.qmd` pour renseigner les métadonnées définitives (auteurs,
+résumé, date) avant de commiter.
 
 ------------------------------------------------------------------------
 
@@ -151,7 +149,7 @@ deploy_wp()
 Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 
 - **Brouillon** (`wp: null`) → `quarto publish gh-pages` (publie sur
-  `ofce.github.io/{repo}/`)
+  `ofce.github.io/{repo}/`) ou pousse en staging sur le site de l'ofce à l'adresse `www.ofce.fr/stage/{repo}/{version}/`.
 - **Publié** (`wp: N`) → `site2branch()` vers `site-deploy`, puis le
   workflow FTP transfère vers `www.ofce.fr/wp/{annee}/{N}/{version}/`
 
@@ -159,27 +157,28 @@ Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 
 ## 5. Passer de brouillon à publié
 
-Le numéro WP (`wp`) et l'année (`annee`) sont la propriété du
-**registre central** `ofceweb/wp-registry`, pas de l'auteur·e : dès
-que le dépôt y a une entrée confirmée, `setup_wp()` synchronise
-`wp`/`annee` (et `draft`) depuis cette entrée, en écrasant toute
-valeur passée en argument ou déjà présente dans `_quarto.yml`.
+Le numéro WP (`wp`) et l'année (`annee`) sont la propriété du **registre
+central** `ofceweb/wp-registry`, pas de l'auteur·e : dès que le dépôt y
+a une entrée confirmée, `setup_wp()` synchronise `wp`/`annee` (et
+`draft`) depuis cette entrée, en écrasant toute valeur passée en
+argument ou déjà présente dans `_quarto.yml`.
 
 1.  Demander un numéro via `wp_registry_request()`, qui calcule le
     numéro (auto-incrémenté, ou fourni via `wp =`) et ouvre une PR
     contre `ofceweb/wp-registry` — `annee` est lu depuis `_quarto.yml`
-    si absent, et `contact` depuis `git config user.email` si non
-    fourni :
+    si absent, et `contact` depuis `git config user.email` si non fourni
+    :
 
 ```{r}
 wp_registry_request()
 ```
 
-    Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
-    n'attend pas la fusion (fire-and-forget).
+```         
+Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
+n'attend pas la fusion (fire-and-forget).
+```
 
-2.  Une fois la PR fusionnée, relancer `setup_wp()` (sans `wp=`/
-    `annee=` — inutiles, le registre fait foi) pour synchroniser
+2.  Une fois la PR fusionnée, relancer `setup_wp()` pour synchroniser
     `_quarto.yml` (`wp`, `annee`, `draft`, `site-path`,
     `citation.url`/`citation.issue`) et mettre à jour les variables FTP
     (`FTP_SERVER_DIR`, `FTP_REDIRECT_DIR`) :
@@ -196,17 +195,17 @@ deploy_wp()
 ```
 
 `publish_wp()` (qui enchaîne `render_wp()` et `deploy_wp()` — voir
-`publish()` pour la dispatche automatique selon le type de dépôt)
-refait cette consultation du registre juste avant le rendu, pour
-rattraper un enregistrement survenu depuis le dernier `setup_wp()` —
-mais ne recalcule que `draft`/`wp`/`annee`, pas
-`site-path`/`citation.*` : si le numéro change à cette étape, relancer
-`setup_wp()` avant de publier à nouveau.
+`publish()` pour la dispatche automatique selon le type de dépôt) refait
+cette consultation du registre juste avant le rendu, pour rattraper un
+enregistrement survenu depuis le dernier `setup_wp()` — mais ne
+recalcule que `draft`/`wp`/`annee`, pas `site-path`/`citation.*` : si le
+numéro change à cette étape, relancer `setup_wp()` avant de publier à
+nouveau.
 
 Pour un dépôt **pas encore enregistré**, `wp=`/`annee=` restent les
-seuls arguments qui pilotent `_quarto.yml` — utile pour un brouillon
-en attente de numéro (le bandeau « Version provisoire » reste affiché
-tant que le registre ne confirme rien).
+seuls arguments qui pilotent `_quarto.yml` — utile pour un brouillon en
+attente de numéro (le bandeau « Version préliminaire » reste affiché tant
+que le registre ne confirme rien).
 
 ------------------------------------------------------------------------
 
@@ -218,7 +217,7 @@ avant le transfert FTP. Aucune manipulation locale n'est requise.
 Si le secret `STATICRYPT_PASSWORD` est défini sur le dépôt, le workflow
 `ftp_deploy.yml` chiffre automatiquement tous les fichiers HTML avant
 l'envoi au serveur. Si le secret est absent, le déploiement s'effectue
-sans chiffrement.
+avec chiffrement en utilisant la valeur par défaut du mot de passe STATICRYPT_PASSWORD (voir les administrateurs pour cette valeur).
 
 ``` sh
 # Activer le chiffrement
@@ -293,7 +292,7 @@ mon-wp/
 ├── references.bib       # bibliographie
 ├── manifest.json        # manifeste JSON (généré par render_wp)
 ├── www/                 # assets OFCE (logos, icônes)
-├── _extensions/wp/      # extension Quarto WP
+├── _extensions/ofce/      # extension Quarto ofce
 └── .github/workflows/
     ├── ftp_deploy.yml   # déploiement FTP (WP publié)
     └── gh-pages.yml     # déploiement GitHub Pages (brouillon)

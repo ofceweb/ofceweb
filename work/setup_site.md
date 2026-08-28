@@ -74,7 +74,7 @@ In any case a message should be displayed inviting the used to manually modify i
 
 ## render_site()
 
-Build pipeline for a generic (non-bilingual) site initialized via `setup_site()`. Wipes `_site/`, runs `quarto::quarto_render()`, rebuilds the sitemap via `build_sitemap()`, strips Quarto's content-hashed suffixes from `_site/site_libs/*` via `patch_sitelibs_hashes()`, and — if `encrypt_site: true` is set in `_quarto.yml` — runs `staticryptR::staticryptr()` over `_site/` using the password in the `STATICRYPT_PASSWORD` env var. Optionally pushes via `site2branch()` and starts a local preview with `servr::httw()` (with absolute `other-links` URLs rewritten to relative paths so navigation works locally).
+Build pipeline for a generic (non-bilingual) site initialized via `setup_site()`. Wipes `_site/`, runs `quarto::quarto_render()`, rebuilds the sitemap via `build_sitemap()`, and — if `encrypt_site: true` is set in `_quarto.yml` — runs `staticryptR::staticryptr()` over `_site/` using the password in the `STATICRYPT_PASSWORD` env var. Optionally pushes via `site2branch()` and starts a local preview with `servr::httw()` (with absolute `other-links` URLs rewritten to relative paths so navigation works locally).
 
 ## deploy_site()
 

@@ -3,8 +3,7 @@
 #' Lance un build complet du site Quarto pour le dépôt courant (initialisé via
 #' [setup_site()]). Calque le fonctionnement de [render_blog()] mais pour un
 #' site simple non bilingue : nettoyage de `_site`, rendu Quarto, reconstruction
-#' du sitemap, patch des hash de `site_libs/`, déploiement optionnel et
-#' prévisualisation locale.
+#' du sitemap, déploiement optionnel et prévisualisation locale.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param check_repo Logique. Si `TRUE` (défaut), vérifie l'état du dépôt git
@@ -75,11 +74,6 @@ render_site <- function(
   tryCatch(build_sitemap(root, progress = progress),
            error = function(e)
              cli::cli_alert_warning("Sitemap non généré : {conditionMessage(e)}"))
-
-  cli::cli_h2("Patch des html (bootstrap css hashé)")
-  tryCatch(patch_sitelibs_hashes(NULL, root, progress = progress),
-           error = function(e)
-             cli::cli_alert_warning("Patch site_libs ignoré : {conditionMessage(e)}"))
 
   tictoc::toc()
 

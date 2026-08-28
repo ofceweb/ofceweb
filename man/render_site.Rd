@@ -40,8 +40,7 @@ Invisible : sortie de [gert::git_status()].
 Lance un build complet du site Quarto pour le dépôt courant (initialisé via
 [setup_site()]). Calque le fonctionnement de [render_blog()] mais pour un
 site simple non bilingue : nettoyage de `_site`, rendu Quarto, reconstruction
-du sitemap, patch des hash de `site_libs/`, déploiement optionnel et
-prévisualisation locale.
+du sitemap, déploiement optionnel et prévisualisation locale.
 }
 \seealso{
 [setup_site()], [stage_site()], [site2branch()], [render_blog()]

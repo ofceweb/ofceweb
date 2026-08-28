@@ -1,3 +1,26 @@
+## ofceweb v0.10.4
+
+### `render_site()` / `render_wp()` — suppression du patch des hashes Bootstrap
+
+* Suppression de l'étape `patch_sitelibs_hashes()` (renommage des fichiers
+  hashés de `_site/site_libs/` vers des noms stables et réécriture des
+  références HTML correspondantes) dans `render_site()` et `render_wp()` :
+  ce patch provoquait un bug pernicieux et n'est plus nécessaire.
+  `render_prev()` n'a jamais eu cette étape. La vignette
+  `build-a-site.Rmd`/`working-papers.Rmd` et `work/setup_site.md` sont mis
+  à jour en conséquence.
+
+### `setup_wp()` — suppression des arguments `wp`/`annee`/`website_title`
+
+* `wp` et `annee` ne sont plus des arguments de `setup_wp()` : ils sont
+  désormais toujours lus depuis un `_quarto.yml` existant, ou écrasés par
+  une entrée confirmée du registre central (`ofceweb/wp-registry`), jamais
+  choisis librement par l'appelant. Pour changer le numéro d'un WP déjà
+  publié, éditer directement `_quarto.yml` (ou passer par le registre).
+* `website_title` disparaît également : le titre affiché dans le résumé de
+  fin d'appel est toujours déduit de `index.qmd` (ou du nom du dépôt
+  GitHub), comme c'était déjà le cas par défaut.
+
 ## ofceweb v0.10.3
 
 ### Consultation du registre central déplacée de `render_wp()` vers `setup_wp()`/`publish_wp()`

@@ -6,9 +6,6 @@
 \usage{
 setup_wp(
   path = ".",
-  website_title = NULL,
-  wp = NULL,
-  annee = as.integer(format(Sys.Date(), "\%Y")),
   lang = "fr",
   hypothesis = NULL,
   versionning = NULL,
@@ -17,17 +14,6 @@ setup_wp(
 }
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
-
-\item{website_title}{Chaîne ou `NULL`. Titre du WP, utilisé pour le résumé
-affiché en fin d'appel uniquement — n'est plus jamais écrit comme
-`website.title` dans `_quarto.yml` (voir [update_navbar()], qui
-supprime cette clé si un appel antérieur l'y avait laissée). Si `NULL`,
-déduit de `index.qmd` ou du nom du dépôt GitHub.}
-
-\item{wp}{Entier ou `NULL`. Numéro du WP. `NULL` = brouillon (pré-publication
-GitHub Pages) ; entier = WP publié (hébergement OFCE FTP).}
-
-\item{annee}{Entier. Année de publication. Défaut = année courante.}
 
 \item{lang}{Chaîne. Langue principale : `"fr"` (défaut) ou `"en"`.}
 
@@ -52,9 +38,9 @@ ne sont pas écrasés, et les champs YAML ne sont mis à jour que si l'argument
 correspondant a été fourni explicitement. Les champs déjà absents ne sont pas
 injectés. `repo-url`, `favicon` et `ofce_wp: true` sont toujours positionnés
 (valeurs dérivées sans ambiguïté). `website.site-url`/`website.site-path`
-sont eux aussi toujours (re)calculés dès que `wp` est non nul — que ce soit
-via l'argument `wp` ou une valeur déjà présente dans `_quarto.yml` — pour
-qu'un `site-path` manquant (fichier édité à la main, ou créé avant cette
+sont eux aussi toujours (re)calculés dès que `wp` est non nul — valeur lue
+dans `_quarto.yml` ou fournie par le registre central — pour qu'un
+`site-path` manquant (fichier édité à la main, ou créé avant cette
 fonctionnalité) soit toujours réparé.
 
 En revanche, les **workflows GitHub Actions** (`.github/workflows/`) sont
@@ -68,6 +54,16 @@ GitHub Actions `FTP_SERVER_DIR` (publique, visible dans Settings → Variables)
 `ftp_stage.yml` sont aussi migrés automatiquement si `server-dir` y est
 encore codé en dur, et si l'étape de vérification anti-collision (voir
 [wp_manifest()]) y est absente.
+
+`wp` et `annee` ne sont **pas** des arguments : ils sont soit lus depuis un
+`_quarto.yml` déjà existant, soit écrasés par une entrée confirmée du
+registre central (`ofceweb/wp-registry`), jamais choisis librement par
+l'appelant. Un dépôt sans `_quarto.yml` et sans entrée de registre reste un
+brouillon (`wp` absent) ; pour obtenir un numéro, utiliser
+[wp_registry_request()] puis relancer `setup_wp()` une fois la PR
+fusionnée. De même, le titre affiché dans le résumé est toujours déduit de
+`index.qmd` (ou du nom du dépôt GitHub) — il n'y a plus d'argument
+`website_title`.
 
 La variable `FTP_STAGING_DIR` est toujours positionnée (brouillon ou publié)
 à `{repo}/{version}/` — l'utilisateur FTP de staging ayant un chroot sur

@@ -176,9 +176,6 @@ Pipeline :
 - Lance `quarto::quarto_render(output_format = "all")`.
 - Reconstruit `_site/sitemap.xml` à partir du contenu réel de `_site/`
   (Quarto ne couvre que les pages fraîchement rendues).
-- Strippe les hash de contenu des fichiers `_site/site_libs/*` pour
-  que la synchronisation FTP ne re-transfère pas l'identique à chaque
-  rendu (`patch_sitelibs_hashes()`).
 - Lance une prévisualisation locale via `servr::httw("_site")` (URLs
   absolues réécrites en relatif pour la navigation locale).
 

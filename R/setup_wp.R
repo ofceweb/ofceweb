@@ -11,9 +11,9 @@
 #' correspondant a été fourni explicitement. Les champs déjà absents ne sont pas
 #' injectés. `repo-url`, `favicon` et `ofce_wp: true` sont toujours positionnés
 #' (valeurs dérivées sans ambiguïté). `website.site-url`/`website.site-path`
-#' sont eux aussi toujours (re)calculés dès que `wp` est non nul — que ce soit
-#' via l'argument `wp` ou une valeur déjà présente dans `_quarto.yml` — pour
-#' qu'un `site-path` manquant (fichier édité à la main, ou créé avant cette
+#' sont eux aussi toujours (re)calculés dès que `wp` est non nul — valeur lue
+#' dans `_quarto.yml` ou fournie par le registre central — pour qu'un
+#' `site-path` manquant (fichier édité à la main, ou créé avant cette
 #' fonctionnalité) soit toujours réparé.
 #'
 #' En revanche, les **workflows GitHub Actions** (`.github/workflows/`) sont
@@ -27,6 +27,16 @@
 #' `ftp_stage.yml` sont aussi migrés automatiquement si `server-dir` y est
 #' encore codé en dur, et si l'étape de vérification anti-collision (voir
 #' [wp_manifest()]) y est absente.
+#'
+#' `wp` et `annee` ne sont **pas** des arguments : ils sont soit lus depuis un
+#' `_quarto.yml` déjà existant, soit écrasés par une entrée confirmée du
+#' registre central (`ofceweb/wp-registry`), jamais choisis librement par
+#' l'appelant. Un dépôt sans `_quarto.yml` et sans entrée de registre reste un
+#' brouillon (`wp` absent) ; pour obtenir un numéro, utiliser
+#' [wp_registry_request()] puis relancer `setup_wp()` une fois la PR
+#' fusionnée. De même, le titre affiché dans le résumé est toujours déduit de
+#' `index.qmd` (ou du nom du dépôt GitHub) — il n'y a plus d'argument
+#' `website_title`.
 #'
 #' La variable `FTP_STAGING_DIR` est toujours positionnée (brouillon ou publié)
 #' à `{repo}/{version}/` — l'utilisateur FTP de staging ayant un chroot sur
@@ -49,14 +59,6 @@
 #' supprimées automatiquement.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
-#' @param website_title Chaîne ou `NULL`. Titre du WP, utilisé pour le résumé
-#'   affiché en fin d'appel uniquement — n'est plus jamais écrit comme
-#'   `website.title` dans `_quarto.yml` (voir [update_navbar()], qui
-#'   supprime cette clé si un appel antérieur l'y avait laissée). Si `NULL`,
-#'   déduit de `index.qmd` ou du nom du dépôt GitHub.
-#' @param wp Entier ou `NULL`. Numéro du WP. `NULL` = brouillon (pré-publication
-#'   GitHub Pages) ; entier = WP publié (hébergement OFCE FTP).
-#' @param annee Entier. Année de publication. Défaut = année courante.
 #' @param lang Chaîne. Langue principale : `"fr"` (défaut) ou `"en"`.
 #' @param hypothesis Logique. Active les commentaires Hypothesis. Défaut `FALSE`.
 #' @param versionning Logique. Si `TRUE` et WP publié (`wp` non `NULL`),
@@ -71,9 +73,6 @@
 #' @export
 setup_wp <- function(
     path = ".",
-    website_title = NULL,
-    wp = NULL,
-    annee = as.integer(format(Sys.Date(), "%Y")),
     lang = "fr",
     hypothesis = NULL,
     versionning = NULL,
@@ -90,8 +89,6 @@ setup_wp <- function(
   cli::cli_h1("setup_wp dans {.path {fs::path_file(root)}}")
 
   # Détecter les arguments fournis explicitement (avant toute modification)
-  wp_provided         <- !missing(wp)
-  annee_provided      <- !missing(annee)
   lang_provided       <- !missing(lang)
   hypothesis_provided <- !missing(hypothesis)
   version_provided      <- !missing(versionning)
@@ -116,14 +113,17 @@ setup_wp <- function(
     index_yml <- get_yaml(dest_index) else
       index_yml <- list()
 
-  if(!is.null(yml[["wp"]])&&!wp_provided) {
-    wp <- yml[["wp"]]
-    wp_provided <- TRUE
-  }
-  if(!is.null(yml[["annee"]])&&!annee_provided) {
-    annee <- yml[["annee"]]
-    annee_provided <- TRUE
-  }
+  # wp / annee : plus d'arguments — toujours lus depuis _quarto.yml, sauf
+  # écrasement par une entrée confirmée du registre central (section 10d).
+  # `wp_provided`/`annee_provided` indiquent simplement qu'une valeur est
+  # déjà connue (yml ou registre) et doit donc être (ré)écrite plus bas.
+  wp          <- yml[["wp"]]
+  wp_provided <- !is.null(wp)
+
+  annee          <- yml[["annee"]]
+  annee_provided <- !is.null(annee)
+  if (is.null(annee)) annee <- as.integer(format(Sys.Date(), "%Y"))
+
   if(!is.null(yml[["lang"]])&&!lang_provided) {
     lang <- yml[["lang"]]
     lang_provided <- TRUE
@@ -132,11 +132,13 @@ setup_wp <- function(
     lang <- "fr"
     lang_provided <- TRUE
   }
-  # website_title : hérité d'un website.title résiduel (compat. avant
-  # update_navbar(), qui supprime cette clé) ou du titre de index.qmd.
-  if (is.null(website_title) && !is.null(yml[["website"]][["title"]])) {
+  # website_title : plus d'argument — toujours déduit d'un website.title
+  # résiduel (compat. avant update_navbar(), qui supprime cette clé) ou du
+  # titre de index.qmd.
+  website_title <- NULL
+  if (!is.null(yml[["website"]][["title"]])) {
     website_title <- yml[["website"]][["title"]]
-  } else if (is.null(website_title) && !is.null(index_yml[["title"]])) {
+  } else if (!is.null(index_yml[["title"]])) {
     website_title <- index_yml[["title"]]
   }
   if(!is.null(yml[["comment"]][["hypothesis"]])&&!hypothesis_provided) {
@@ -372,10 +374,10 @@ setup_wp <- function(
   # Consulte ofceweb/wp-registry (sync_wp_registry_state(), partagée avec
   # publish_wp()) pour que _quarto.yml soit déjà correct et cohérent après
   # cet appel, sans attendre render_wp(). Une entrée confirmée pour ce dépôt
-  # (source-repo correspondant) l'emporte toujours sur les arguments
-  # wp=/annee= : ceux-ci ne restent utiles que pour un dépôt pas encore
+  # (source-repo correspondant) l'emporte toujours sur la valeur déjà présente
+  # dans _quarto.yml : celle-ci ne reste utile que pour un dépôt pas encore
   # enregistré. En cas d'échec réseau, fail-soft : draft/wp/annee ne sont pas
-  # modifiés et les arguments/valeurs existantes du YAML font foi ci-dessous.
+  # modifiés et les valeurs existantes du YAML font foi ci-dessous.
   cli::cli_h2("Registre central")
   registry_state <- tryCatch(
     sync_wp_registry_state(root),
@@ -402,9 +404,10 @@ setup_wp <- function(
   lines_before <- readLines(dest_yaml, warn = FALSE)
   lines <- lines_before
 
-  # Champs-arguments : écrire UNIQUEMENT si l'argument a été fourni explicitement.
-  # Pour un nouveau WP, le gabarit contient déjà les valeurs par défaut.
-  # Pour un WP existant, l'absence d'un champ est intentionnelle.
+  # wp/annee/lang : écrire UNIQUEMENT si une valeur est déjà connue (yml
+  # existant ou registre central) — pour un nouveau WP, le gabarit contient
+  # déjà les valeurs par défaut ; pour un WP existant, l'absence d'un champ
+  # est intentionnelle.
   if (wp_provided)    { yml$wp    <- wp;    lines <- yaml_patch_scalar_or_delete(lines, "wp", wp) }
   if (annee_provided) { yml$annee <- annee; lines <- yaml_patch_scalar(lines, "annee", annee) }
   if (lang_provided)  { yml$lang  <- lang;  lines <- yaml_patch_scalar(lines, "lang", lang) }
@@ -481,12 +484,6 @@ setup_wp <- function(
     lines <- yaml_patch_scalar(lines, "website.site-path", site_path)
   } else {
     # Brouillon / staging — toujours recalculé depuis stage-target.
-    # Transition explicite publié → brouillon : supprimer la version.
-    if (wp_provided) {
-      version <- NULL
-      yml$version <- NULL
-      lines <- yaml_patch_delete(lines, "version")
-    }
     yml$website$`site-path` <- NULL
     lines <- yaml_patch_delete(lines, "website.site-path")
     draft_site_url <- if (identical(stage_target, "ftp")) {
@@ -530,9 +527,9 @@ setup_wp <- function(
     lines <- yaml_patch_scalar(lines, "comments.hypothesis", isTRUE(hypothesis))
   }
 
-  # output-file PDF : uniquement si wp ou annee fournis explicitement ET si le
-  # format wp-pdf ou wp-typst est déjà déclaré dans le YAML (ne pas injecter
-  # un format que le WP n'utilise pas)
+  # output-file PDF : uniquement si wp ou annee sont déjà connus (yml existant
+  # ou registre) ET si le format wp-pdf ou wp-typst est déjà déclaré dans le
+  # YAML (ne pas injecter un format que le WP n'utilise pas)
   uses_wp_pdf <- is.list(index_yml$format) &&
     (is.list(index_yml$format$`wp-pdf`) || is.list(index_yml$format$`wp-typst`))
   if ((wp_provided || annee_provided) && uses_wp_pdf) {

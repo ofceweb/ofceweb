@@ -34,7 +34,7 @@ souhaite (code, explications de code, de données, etc...).
 +=============+===============+=============+=========================================+
 | Brouillon   | `null`        | GitHub      | `ofce.github.io/{repo}/`                |
 |             |               | Pages ou    |                                         |
-|             |               |             | `www.ofce.fr/staging/{repo}/{version}`  |
+|             |               |             | `staging.ofce.fr/{repo}/{version}`      |
 |             |               | OFCE        |                                         |
 |             |               | staging     |                                         |
 +-------------+---------------+-------------+-----------------------------------------+
@@ -149,7 +149,7 @@ deploy_wp()
 Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 
 - **Brouillon** (`wp: null`) → `quarto publish gh-pages` (publie sur
-  `ofce.github.io/{repo}/`) ou pousse en staging sur le site de l'ofce à l'adresse `www.ofce.fr/stage/{repo}/{version}/`.
+  `ofce.github.io/{repo}/`) ou pousse en staging sur le site de l'ofce à l'adresse `staging.ofce.fr/{repo}/{version}/`.
 - **Publié** (`wp: N`) → `site2branch()` vers `site-deploy`, puis le
   workflow FTP transfère vers `www.ofce.fr/wp/{annee}/{N}/{version}/`
 

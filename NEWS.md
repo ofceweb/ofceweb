@@ -1,3 +1,28 @@
+## ofceweb v0.10.5
+
+### Domaine de staging OFCE renommé en `staging.ofce.fr`
+
+* L'URL publique de l'espace de staging FTP OFCE change de
+  `www.ofce.fr/staging/{repo}/{version}/` à
+  `staging.ofce.fr/{repo}/{version}/` (le segment `staging/` est absorbé par
+  le sous-domaine). Impacte les WP en brouillon avec `stage-target: "ftp"`
+  (`setup_wp()`, `deploy_wp()`, `wp_manifest()`) et les prévisions en
+  staging (`setup_prev()`, `render_prev()`/`stage_prev()`,
+  `prev_version_up()`).
+* Pour les prévisions, `website.site-path` de `_quarto-staging.yml` perd son
+  préfixe `staging/` (`prev{YYMM}/v{N}` au lieu de `staging/prev{YYMM}/v{N}`)
+  et `website.site-url` est désormais explicitement fixé à
+  `https://staging.ofce.fr/` (auparavant hérité du `site-url` partagé avec
+  le profil `publish`). `check_prev()` valide ces deux champs en
+  conséquence (nouvelle vérification `staging/site-url`, regex `site-path`
+  mise à jour). Le chemin FTP effectif (`FTP_STAGING_DIR`, chroot
+  `www/staging/{repo}/{version}/`) est inchangé — seule l'URL publique
+  bouge.
+* correction incidente de `wp_manifest()` : l'URL de staging calculée pour
+  le `manifest.json` utilisait par erreur `www.ofce.fr/stage/wp/{repo}/`
+  (incohérent avec le reste du package) — désormais alignée sur
+  `staging.ofce.fr/{repo}/{version}/`.
+
 ## ofceweb v0.10.4
 
 ### `render_site()` / `render_wp()` — suppression du patch des hashes Bootstrap

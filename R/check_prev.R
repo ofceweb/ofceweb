@@ -17,9 +17,10 @@
 #'   \item Section `profile` de `_quarto.yml` : `default: staging` et groupe
 #'     `[staging, publish]` (avertissements non bloquants si modifiés) ; vérifie
 #'     que les fichiers `_quarto-{profil}.yml` existent pour chaque profil déclaré
-#'   \item `_quarto-staging.yml` présent avec `version`, `site-path` de la
-#'     forme `staging/prev{YYMM}/v{N}`, `encrypt_site: true`,
-#'     `comments.hypothesis: true`, et `project.output-dir: _site_staging`
+#'   \item `_quarto-staging.yml` présent avec `version`, `site-url:
+#'     https://staging.ofce.fr/`, `site-path` de la forme `prev{YYMM}/v{N}`,
+#'     `encrypt_site: true`, `comments.hypothesis: true`, et
+#'     `project.output-dir: _site_staging`
 #'   \item `_quarto-publish.yml` présent avec `site-path` de la forme
 #'     `prev/prev{YYMM}`, `encrypt_site: false`, `comments.hypothesis: false`,
 #'     et `project.output-dir: _site_publish`
@@ -207,17 +208,31 @@ check_prev <- function(path = ".", verbose = TRUE) {
                  "Champ `version` absent de _quarto-staging.yml.")
       }
 
-      # site-path forme staging/prev{YYMM}/v{N}
+      # site-path forme prev{YYMM}/v{N} (servi depuis le sous-domaine
+      # staging.ofce.fr, sans préfixe "staging/")
       sp_stg <- stg$website$`site-path`
       if (is.null(sp_stg)) {
         add_diag("staging/site-path", "error",
                  "Champ `site-path` absent de _quarto-staging.yml.")
-      } else if (!grepl("^staging/prev[0-9]{4}/v[0-9]+", sp_stg)) {
+      } else if (!grepl("^prev[0-9]{4}/v[0-9]+", sp_stg)) {
         add_diag("staging/site-path", "error",
-                 sprintf("`site-path` staging `%s` mal formé — attendu : staging/prev{YYMM}/v{N}.", sp_stg))
+                 sprintf("`site-path` staging `%s` mal formé — attendu : prev{YYMM}/v{N}.", sp_stg))
       } else {
         add_diag("staging/site-path", "ok",
                  sprintf("`site-path` staging `%s` bien formé.", sp_stg))
+      }
+
+      # site-url attendu : https://staging.ofce.fr/
+      su_stg <- stg$website$`site-url`
+      if (is.null(su_stg)) {
+        add_diag("staging/site-url", "error",
+                 "Champ `site-url` absent de _quarto-staging.yml.")
+      } else if (!identical(sub("/$", "", su_stg), "https://staging.ofce.fr")) {
+        add_diag("staging/site-url", "error",
+                 sprintf("`site-url` staging `%s` inattendu — attendu https://staging.ofce.fr/.", su_stg))
+      } else {
+        add_diag("staging/site-url", "ok",
+                 "`site-url: https://staging.ofce.fr/` présent dans _quarto-staging.yml.")
       }
 
       # encrypt_site: true
@@ -316,7 +331,7 @@ check_prev <- function(path = ".", verbose = TRUE) {
     if (!is.null(stg)) {
       sp_stg <- stg$website$`site-path`
       if (!is.null(sp_stg)) {
-        m <- regmatches(sp_stg, regexec("staging/prev([0-9]{4})/", sp_stg))[[1]]
+        m <- regmatches(sp_stg, regexec("^prev([0-9]{4})/", sp_stg))[[1]]
         if (length(m) >= 2L) {
           stg_id <- m[[2L]]
           if (identical(stg_id, prev_id)) {

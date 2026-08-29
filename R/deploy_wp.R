@@ -116,7 +116,7 @@ deploy_wp <- function(
       fs::path_file(root)
     }
     ver_seg   <- if (!is.null(version)) paste0(version, "/") else ""
-    final_url <- sprintf("https://www.ofce.fr/staging/%s/%s", repo_slug, ver_seg)
+    final_url <- sprintf("https://staging.ofce.fr/%s/%s", repo_slug, ver_seg)
 
     cli::cli_h2("D\u00e9ploiement WP staging (site2branch \u2192 FTP staging)")
     cli::cli_text(

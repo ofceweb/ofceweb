@@ -146,7 +146,7 @@ stage_prev <- function(
     )
     site_path <- stg$website$`site-path`
     if (!is.null(site_path) && nzchar(site_path)) {
-      staging_url <- sprintf("https://www.ofce.fr/%s/", site_path)
+      staging_url <- sprintf("https://staging.ofce.fr/%s/", site_path)
       cli::cli_alert_success(
         "Pr\u00e9vision en staging \u2014 disponible (apr\u00e8s d\u00e9ploiement FTP) \\
          sur {.url {staging_url}}")

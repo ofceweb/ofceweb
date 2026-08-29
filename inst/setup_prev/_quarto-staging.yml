@@ -4,7 +4,8 @@
 draft: true
 
 website:
-  site-path: "staging/prevYYMM/v0"
+  site-url: "https://staging.ofce.fr/"
+  site-path: "prevYYMM/v0"
 
 version: "v0"
 

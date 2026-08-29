@@ -153,6 +153,16 @@ stage_prev <- function(
     )
     site_path <- stg$website$`site-path`
     if (!is.null(site_path) && nzchar(site_path)) {
+      # Compat : dépôts non re-migrés depuis le renommage du domaine de
+      # staging (site-path portait auparavant un préfixe "staging/", absorbé
+      # depuis par le sous-domaine staging.ofce.fr).
+      if (grepl("^staging/", site_path)) {
+        cli::cli_alert_warning(
+          "{.code site-path} ({.val {site_path}}) dans {.file _quarto-staging.yml} \\
+           porte encore un préfixe {.val staging/} périmé — relancer \\
+           {.run ofceweb::setup_prev()} pour corriger le fichier.")
+        site_path <- sub("^staging/", "", site_path)
+      }
       staging_url <- sprintf("https://staging.ofce.fr/%s/", site_path)
       cli::cli_alert_success(
         "Pr\u00e9vision en staging \u2014 disponible (apr\u00e8s d\u00e9ploiement FTP) \\

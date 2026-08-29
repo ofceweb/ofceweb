@@ -244,7 +244,20 @@ push_prev_staging_redirect <- function(path = ".", progress = TRUE, trigger = TR
     return(invisible(NULL))
   }
 
-  # ex. "prev2609/v0" -> redirect_dir "prev2609/", version "v0"
+  # Compat : dépôts non re-migrés depuis le renommage du domaine de staging
+  # (site-path portait auparavant un préfixe "staging/", absorbé depuis par
+  # le sous-domaine staging.ofce.fr). On le tolère ici pour ne pas produire
+  # une URL doublée, mais le fichier doit être corrigé via setup_prev().
+  if (grepl("^staging/", site_path)) {
+    cli::cli_alert_warning(
+      "{.code site-path} ({.val {site_path}}) dans {.file _quarto-staging.yml} \\
+       porte encore un préfixe {.val staging/} périmé — relancer \\
+       {.run ofceweb::setup_prev()} pour corriger le fichier. \\
+       Préfixe ignoré pour cette redirection.")
+    site_path <- sub("^staging/", "", site_path)
+  }
+
+  # ex. "prev2609/v0" -> redirect_dir "prev2609", version "v0"
   segments <- strsplit(site_path, "/", fixed = TRUE)[[1]]
   if (length(segments) < 2L) {
     cli::cli_alert_info(
@@ -261,10 +274,19 @@ push_prev_staging_redirect <- function(path = ".", progress = TRUE, trigger = TR
     return(invisible(NULL))
   }
 
-  prev_id <- segments[length(segments) - 1L]
-  version <- segments[length(segments)]
+  prev_id      <- segments[length(segments) - 1L]
+  version      <- segments[length(segments)]
   redirect_dir <- paste(segments[-length(segments)], collapse = "/")
-  target <- paste0("/", redirect_dir, "/")
+
+  site_url <- stg$website$`site-url` %||% "https://staging.ofce.fr/"
+  if (!grepl("/$", site_url)) site_url <- paste0(site_url, "/")
+
+  # Cible relative (méta-refresh/lien) : le sous-dossier de version, dans le
+  # même répertoire que la page de redirection elle-même (prev2609/v0/, pas
+  # /prev2609/ qui pointerait vers la page de redirection elle-même).
+  relative_target <- paste0(version, "/")
+  # URL canonique (absolue) : pointe vers la version publiée en clair.
+  canonical <- sprintf("%s%s/%s/", site_url, redirect_dir, version)
 
   # ---- Variable GitHub FTP_STAGING_REDIRECT_DIR ---------------------------------
   # Chemin relatif au répertoire www/staging/ du compte FTP (même convention que
@@ -272,10 +294,23 @@ push_prev_staging_redirect <- function(path = ".", progress = TRUE, trigger = TR
   set_gh_var(root, "FTP_STAGING_REDIRECT_DIR", paste0(redirect_dir, "/"))
 
   # ---- Génération du HTML de redirection -----------------------------------------
-  redirect_html <- build_redirect_html(
-    target     = target,
-    title      = glue::glue("Prévision {prev_id} — redirection"),
-    link_label = glue::glue("la dernière version ({version})")
+  redirect_html <- sprintf(
+'<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0; url=%s">
+  <link rel="canonical" href="%s">
+  <title>Pr\u00e9vision %s \u2014 redirection</title>
+</head>
+<body>
+  <p>Redirection vers <a href="%s">la derni\u00e8re version (%s)</a>\u2026</p>
+  <script>window.location.replace("%s");</script>
+</body>
+</html>',
+    relative_target, canonical, prev_id,
+    relative_target, version,
+    relative_target
   )
 
   # ---- Push vers site-staging-redirect ------------------------------------------

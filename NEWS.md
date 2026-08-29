@@ -18,6 +18,25 @@
 * Mise à jour de `AGENTS.md` : documentation de `FTP_STAGING_REDIRECT_DIR`,
   branche `site-staging-redirect` et architecture des redirections staging.
 
+### Correctif : redirection staging auto-référente + URL doublée sur dépôts non migrés
+
+* `push_prev_staging_redirect()` générait une page de redirection
+  auto-référente : la cible du méta-refresh/lien était calculée comme le
+  répertoire **parent** (`/prev2609/`), identique à l'emplacement de la page
+  de redirection elle-même — la redirection ne menait donc jamais à la
+  version publiée. Corrigé pour utiliser une cible **relative** vers le
+  sous-dossier de version (`v{N}/`, comme pour les WP via
+  `push_wp_redirect()`), l'URL canonique restant absolue
+  (`https://staging.ofce.fr/{prev_id}/v{N}/`).
+* `push_prev_staging_redirect()` et le message affiché par `stage_prev()`
+  tolèrent désormais un préfixe `staging/` périmé dans `site-path` de
+  `_quarto-staging.yml` (dépôts non re-migrés depuis le renommage de domaine
+  en v0.10.5, cf. plus bas) : le préfixe est ignoré pour le calcul de l'URL
+  (au lieu de produire `staging.ofce.fr/staging/{prev_id}/...`), avec un
+  avertissement invitant à relancer `setup_prev()` pour corriger le fichier
+  de façon permanente. `check_prev()` continue de signaler ce préfixe comme
+  une erreur bloquante (`staging/site-path`).
+
 ## ofceweb v0.10.5
 
 ### Domaine de staging OFCE renommé en `staging.ofce.fr`

@@ -36,9 +36,10 @@ Contrôles effectués :
   \item Section `profile` de `_quarto.yml` : `default: staging` et groupe
     `[staging, publish]` (avertissements non bloquants si modifiés) ; vérifie
     que les fichiers `_quarto-{profil}.yml` existent pour chaque profil déclaré
-  \item `_quarto-staging.yml` présent avec `version`, `site-path` de la
-    forme `staging/prev{YYMM}/v{N}`, `encrypt_site: true`,
-    `comments.hypothesis: true`, et `project.output-dir: _site_staging`
+  \item `_quarto-staging.yml` présent avec `version`, `site-url:
+    https://staging.ofce.fr/`, `site-path` de la forme `prev{YYMM}/v{N}`,
+    `encrypt_site: true`, `comments.hypothesis: true`, et
+    `project.output-dir: _site_staging`
   \item `_quarto-publish.yml` présent avec `site-path` de la forme
     `prev/prev{YYMM}`, `encrypt_site: false`, `comments.hypothesis: false`,
     et `project.output-dir: _site_publish`

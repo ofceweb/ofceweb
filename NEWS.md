@@ -1,3 +1,23 @@
+## ofceweb v0.10.6 (development)
+
+### Redirection stable pour les prévisions en staging
+
+* Nouvelle fonction `push_prev_staging_redirect()` : génère et déploie une page
+  de redirection stable pour les prévisions en staging (`staging.ofce.fr/{prev_id}/`),
+  analogues aux redirections existantes pour les WP en publication
+  (`www.ofce.fr/wp/{annee}/{wp}/`) et les prévisions publiées
+  (`www.ofce.fr/prev/derniere/`). Cela permet une URL stable quand plusieurs
+  versions de la prévision existent en staging (v0, v1, v2, …), toujours
+  pointant vers la dernière.
+* Nouveau workflow `ftp_redirect_staging.yml` : déploie la redirection
+  staging via FTP sur la branche `site-staging-redirect` (séparée du contenu
+  en `site-staging`).
+* `stage_prev()` appelle automatiquement `push_prev_staging_redirect()` après
+  déploiement (paramètre `trigger_staging_redirect = TRUE`), sauf si l'utilisateur
+  passe `FALSE`. Cela maintient l'URL stable à jour sans manipulation manuelle.
+* Mise à jour de `AGENTS.md` : documentation de `FTP_STAGING_REDIRECT_DIR`,
+  branche `site-staging-redirect` et architecture des redirections staging.
+
 ## ofceweb v0.10.5
 
 ### Domaine de staging OFCE renommé en `staging.ofce.fr`

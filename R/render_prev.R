@@ -98,14 +98,20 @@ render_prev <- function(
 #' [site2staging()]. Le chiffrement est appliqué **en CI** par le workflow
 #' `ftp_deploy_staging.yml` avant le transfert FTP.
 #'
+#' Après déploiement, met automatiquement à jour la redirection stable vers la
+#' dernière version en staging (via [push_prev_staging_redirect()]), sauf si
+#' `trigger_staging_redirect = FALSE`.
+#'
 #' @inheritParams render_prev
 #' @param site2branch Logique. Si `TRUE` (défaut), appelle [site2staging()]
 #'   après le rendu.
 #' @param trigger Passé à [site2staging()]. Défaut = valeur de `site2branch`.
 #' @param full_deploy Passé à [site2staging()]. Défaut `FALSE`.
+#' @param trigger_staging_redirect Logique. Si `TRUE` (défaut), appelle
+#'   [push_prev_staging_redirect()] après [site2staging()]. Défaut `TRUE`.
 #'
 #' @returns Invisible `NULL`.
-#' @seealso [render_prev()], [deploy_prev()], [publish_prev()]
+#' @seealso [render_prev()], [deploy_prev()], [publish_prev()], [push_prev_staging_redirect()]
 #' @importFrom gh gh
 #' @export
 stage_prev <- function(
@@ -115,7 +121,8 @@ stage_prev <- function(
     trigger     = site2branch,
     full_deploy = FALSE,
     preview     = FALSE,
-    workers     = 8L) {
+    workers     = 8L,
+    trigger_staging_redirect = TRUE) {
 
   check_gh_login()
 
@@ -150,6 +157,16 @@ stage_prev <- function(
       cli::cli_alert_success(
         "Pr\u00e9vision en staging \u2014 disponible (apr\u00e8s d\u00e9ploiement FTP) \\
          sur {.url {staging_url}}")
+    }
+
+    # Mettre à jour la redirection stable vers la dernière version en staging
+    if (trigger_staging_redirect && !is.null(site_path) && nzchar(site_path)) {
+      tryCatch(
+        push_prev_staging_redirect(path = path, progress = progress, trigger = trigger),
+        error = function(e)
+          cli::cli_alert_warning(
+            "Mise à jour de la redirection staging échouée : {conditionMessage(e)}")
+      )
     }
   } else {
     cli::cli_text(

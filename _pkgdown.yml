@@ -12,6 +12,17 @@ navbar:
     left: [intro, reference, articles, news]
     right: [search, github]
   components:
+    articles:
+      text: Articles
+      menu:
+      - text: Prérequis
+        href: articles/prerequisites.html
+      - text: Faire un document de travail
+        href: articles/working-papers.html
+      - text: Faire un mini-site
+        href: articles/build-a-site.html
+      - text: Faire une prévision
+        href: articles/previsions.html
     github:
       icon: fab fa-github
       href: https://github.com/ofceweb/ofceweb
@@ -44,6 +55,7 @@ reference:
   - site2profile
   - prev_version_up
   - push_prev_redirect
+  - push_prev_staging_redirect
   - render_prev_publish
   - preview_qmd
   - preview_qmd_staging
@@ -124,14 +136,6 @@ reference:
   - check_fonts
   - font_installed
   - install_fonts
-
-articles:
-- title: Articles
-  contents:
-  - prerequisites
-  - working-papers
-  - build-a-site
-  - previsions
 
 deploy:
   install_metadata: true

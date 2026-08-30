@@ -42,11 +42,14 @@ souhaite (code, explications de code, de données, etc...).
 |             |               | OFCE FTP    |                                         |
 +-------------+---------------+-------------+-----------------------------------------+
 
-Lorsque le docuement de travail est *stagé* sur le site ofce.fr, il est possible de versionner. Le versionnage est impossible sur github gh-pages.
+Lorsque le docuement de travail est *stagé* sur le site staging.ofce.fr, il est possible de versionner. Le versionnage est impossible sur github gh-pages.
 
 ------------------------------------------------------------------------
 
 ## 1. Initialiser un nouveau WP
+
+Il suffit de lancer `setup_wp()` dans un dépôt git qui contient (ou non) le matériau pour le document de travail. Le document principal s'appelle `index.qmd` (c'est obligatoire). `setup_wp()` crée le document s'il n'existe pas, ne le change pas s'il existe. Il est possible de copier coller un contenu dans le document créé.
+
 
 ```{r}
 library(ofceweb)
@@ -84,7 +87,7 @@ setup_wp(
 Après `setup_wp()`, `_quarto.yml` est déjà correct et cohérent (`draft`,
 `wp`, `annee`, `site-path`, `citation.*`) : éditez-le ainsi que
 `index.qmd` pour renseigner les métadonnées définitives (auteurs,
-résumé, date) avant de commiter.
+résumé, date) et bien sûr le contenu avant de commiter.
 
 ------------------------------------------------------------------------
 

@@ -50,10 +50,10 @@ Contrôles effectués :
     modifiés) ; vérifie que les fichiers \`\_quarto-profil.yml\`
     existent pour chaque profil déclaré
 
-8.  \`\_quarto-staging.yml\` présent avec \`version\`, \`site-path\` de
-    la forme \`staging/prevYYMM/vN\`, \`encrypt_site: true\`,
-    \`comments.hypothesis: true\`, et \`project.output-dir:
-    \_site_staging\`
+8.  \`\_quarto-staging.yml\` présent avec \`version\`, \`site-url:
+    https://staging.ofce.fr/\`, \`site-path\` de la forme
+    \`prevYYMM/vN\`, \`encrypt_site: true\`, \`comments.hypothesis:
+    true\`, et \`project.output-dir: \_site_staging\`
 
 9.  \`\_quarto-publish.yml\` présent avec \`site-path\` de la forme
     \`prev/prevYYMM\`, \`encrypt_site: false\`, \`comments.hypothesis:

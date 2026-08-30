@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -16,7 +16,13 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/prerequisites.html">Prérequis</a></li>
+    <li><a class="dropdown-item" href="articles/working-papers.html">Faire un document de travail</a></li>
+    <li><a class="dropdown-item" href="articles/build-a-site.html">Faire un mini-site</a></li>
+    <li><a class="dropdown-item" href="articles/previsions.html">Faire une prévision</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json"></form></li>
@@ -35,23 +41,54 @@
 <div class="section level2">
 <h2 id="ftp-deployment-architecture">FTP deployment architecture<a class="anchor" aria-label="anchor" href="#ftp-deployment-architecture"></a></h2>
 <div class="section level3">
-<h3 id="production-ftp_deployyml">Production (<code>ftp_deploy.yml</code>)<a class="anchor" aria-label="anchor" href="#production-ftp_deployyml"></a></h3>
+<h3 id="production--content-deployment-ftp_deployyml--ftp_deploy_publishyml">Production — Content Deployment (<code>ftp_deploy.yml</code> / <code>ftp_deploy_publish.yml</code>)<a class="anchor" aria-label="anchor" href="#production--content-deployment-ftp_deployyml--ftp_deploy_publishyml"></a></h3>
 <ul><li>Credentials : <code>FTP_SERVER</code> / <code>FTP_USER</code> / <code>FTP_PASSWORD</code>
 </li>
-<li>Destination : <code>${{ vars.FTP_SERVER_DIR }}</code> → set by <code><a href="reference/setup_wp.html">setup_wp()</a></code> to <code>{annee}/{wp}/</code> (with optional <code>/v{n}</code> suffix)</li>
-<li>Variable <code>FTP_REDIRECT_DIR</code> : parent path used for stable redirect (without version segment)</li>
+<li>Destination : <code>${{ vars.FTP_SERVER_DIR }}</code>
+<ul><li>
+<strong>WP</strong>: <code>{annee}/{wp}/</code> or <code>{annee}/{wp}/v{n}</code> (with version suffix)</li>
+<li>
+<strong>Prevision publish</strong>: <code>prev/prev{YYMM}</code>
+</li>
+</ul></li>
+<li>Effective server path (production): paths under <code>/wp/</code> or <code>/prev/</code>
+</li>
 </ul></div>
 <div class="section level3">
-<h3 id="staging-ftp_stageyml">Staging (<code>ftp_stage.yml</code>)<a class="anchor" aria-label="anchor" href="#staging-ftp_stageyml"></a></h3>
+<h3 id="production--redirection-ftp_redirectyml">Production — Redirection (<code>ftp_redirect.yml</code>)<a class="anchor" aria-label="anchor" href="#production--redirection-ftp_redirectyml"></a></h3>
+<ul><li>Credentials : <code>FTP_SERVER</code> / <code>FTP_USER</code> / <code>FTP_PASSWORD</code>
+</li>
+<li>Variable <code>FTP_REDIRECT_DIR</code> : parent path for stable redirect (without version segment)
+<ul><li>
+<strong>WP</strong>: <code>{annee}/{wp}/</code> → generates <code>index.html</code> redirecting to latest version</li>
+<li>
+<strong>Prevision</strong>: <code>derniere/</code> → redirects to current published prevision</li>
+</ul></li>
+<li>Branch: <code>site-redirect</code> (separate from content branches)</li>
+</ul></div>
+<div class="section level3">
+<h3 id="staging--content-deployment-ftp_deploy_stagingyml">Staging — Content Deployment (<code>ftp_deploy_staging.yml</code>)<a class="anchor" aria-label="anchor" href="#staging--content-deployment-ftp_deploy_stagingyml"></a></h3>
 <ul><li>Credentials : <code>FTP_SERVER</code> / <code>STAGING_USER</code> / <code>STAGING_PASSWORD</code>
 </li>
 <li>The staging FTP user has a <strong>chroot on <code>www/staging/</code></strong>
 </li>
 <li>
-<code>FTP_STAGING_DIR</code> is set by <code><a href="reference/setup_wp.html">setup_wp()</a></code> to <code>{repo}/{version}/</code>
+<code>FTP_STAGING_DIR</code> is set by <code><a href="reference/setup_prev.html">setup_prev()</a></code> / <code><a href="reference/setup_wp.html">setup_wp()</a></code> to <code>{repo}/{version}/</code>
 </li>
 <li>Effective server path : <code>www/staging/{repo}/{version}/</code>
 </li>
+</ul></div>
+<div class="section level3">
+<h3 id="staging--redirection-ftp_redirect_stagingyml">Staging — Redirection (<code>ftp_redirect_staging.yml</code>)<a class="anchor" aria-label="anchor" href="#staging--redirection-ftp_redirect_stagingyml"></a></h3>
+<ul><li>Credentials : <code>FTP_SERVER</code> / <code>STAGING_USER</code> / <code>STAGING_PASSWORD</code>
+</li>
+<li>Variable <code>FTP_STAGING_REDIRECT_DIR</code> : parent path for staging redirect
+<ul><li>
+<strong>Prevision</strong>: <code>prev{YYMM}/</code> → generates <code>index.html</code> redirecting to latest version</li>
+<li>Effective server path: <code>www/staging/prev{YYMM}/</code>
+</li>
+</ul></li>
+<li>Branch: <code>site-staging-redirect</code> (separate from staging content branch <code>site-staging</code>)</li>
 </ul></div>
 </div>
 

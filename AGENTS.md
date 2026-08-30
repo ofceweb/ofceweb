@@ -2,20 +2,42 @@
 
 ## FTP deployment architecture
 
-### Production (`ftp_deploy.yml`)
+### Production — Content Deployment (`ftp_deploy.yml` / `ftp_deploy_publish.yml`)
 
 - Credentials : `FTP_SERVER` / `FTP_USER` / `FTP_PASSWORD`
-- Destination : `${{ vars.FTP_SERVER_DIR }}` → set by
-  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
-  to `{annee}/{wp}/` (with optional `/v{n}` suffix)
-- Variable `FTP_REDIRECT_DIR` : parent path used for stable redirect
-  (without version segment)
+- Destination : `${{ vars.FTP_SERVER_DIR }}`
+  - **WP**: `{annee}/{wp}/` or `{annee}/{wp}/v{n}` (with version suffix)
+  - **Prevision publish**: `prev/prev{YYMM}`
+- Effective server path (production): paths under `/wp/` or `/prev/`
 
-### Staging (`ftp_stage.yml`)
+### Production — Redirection (`ftp_redirect.yml`)
+
+- Credentials : `FTP_SERVER` / `FTP_USER` / `FTP_PASSWORD`
+- Variable `FTP_REDIRECT_DIR` : parent path for stable redirect (without
+  version segment)
+  - **WP**: `{annee}/{wp}/` → generates `index.html` redirecting to
+    latest version
+  - **Prevision**: `derniere/` → redirects to current published
+    prevision
+- Branch: `site-redirect` (separate from content branches)
+
+### Staging — Content Deployment (`ftp_deploy_staging.yml`)
 
 - Credentials : `FTP_SERVER` / `STAGING_USER` / `STAGING_PASSWORD`
 - The staging FTP user has a **chroot on `www/staging/`**
 - `FTP_STAGING_DIR` is set by
+  [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
+  /
   [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
   to `{repo}/{version}/`
 - Effective server path : `www/staging/{repo}/{version}/`
+
+### Staging — Redirection (`ftp_redirect_staging.yml`)
+
+- Credentials : `FTP_SERVER` / `STAGING_USER` / `STAGING_PASSWORD`
+- Variable `FTP_STAGING_REDIRECT_DIR` : parent path for staging redirect
+  - **Prevision**: `prev{YYMM}/` → generates `index.html` redirecting to
+    latest version
+  - Effective server path: `www/staging/prev{YYMM}/`
+- Branch: `site-staging-redirect` (separate from staging content branch
+  `site-staging`)

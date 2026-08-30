@@ -41,6 +41,8 @@ GitHub Actions — pas localement.
 - [`push_prev_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_redirect.md)
   : Pousse la page de redirection stable /prev/derniere/ d'une prévision
   OFCE
+- [`push_prev_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_staging_redirect.md)
+  : Pousse la page de redirection stable pour la prévision en staging
 - [`render_prev_publish()`](https://ofceweb.github.io/ofceweb/reference/render_prev_publish.md)
   : Génère le site de la prévision (déprécié)
 - [`preview_qmd()`](https://ofceweb.github.io/ofceweb/reference/preview_qmd.md)

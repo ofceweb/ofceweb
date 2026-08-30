@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,7 +37,15 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/prerequisites.html">Prérequis</a></li>
+    <li><a class="dropdown-item" href="../articles/working-papers.html">Faire un document de travail</a></li>
+    <li><a class="dropdown-item" href="../articles/build-a-site.html">Faire un mini-site</a></li>
+    <li><a class="dropdown-item" href="../articles/previsions.html">Faire une prévision</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -123,14 +131,20 @@ etc…).</p>
 </tbody>
 </table>
 <p>Lorsque le docuement de travail est <em>stagé</em> sur le site
-ofce.fr, il est possible de versionner. Le versionnage est impossible
-sur github gh-pages.</p>
+staging.ofce.fr, il est possible de versionner. Le versionnage est
+impossible sur github gh-pages.</p>
 <hr>
 </div>
 </div>
 <div class="section level2">
 <h2 id="initialiser-un-nouveau-wp">1. Initialiser un nouveau WP<a class="anchor" aria-label="anchor" href="#initialiser-un-nouveau-wp"></a>
 </h2>
+<p>Il suffit de lancer <code><a href="../reference/setup_wp.html">setup_wp()</a></code> dans un dépôt git qui
+contient (ou non) le matériau pour le document de travail. Le document
+principal s’appelle <code>index.qmd</code> (c’est obligatoire).
+<code><a href="../reference/setup_wp.html">setup_wp()</a></code> crée le document s’il n’existe pas, ne le change
+pas s’il existe. Il est possible de copier coller un contenu dans le
+document créé.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ofceweb.github.io/ofceweb/">ofceweb</a></span><span class="op">)</span></span>
 <span></span>
@@ -168,7 +182,8 @@ sont laissées inchangées.</li>
 correct et cohérent (<code>draft</code>, <code>wp</code>,
 <code>annee</code>, <code>site-path</code>, <code>citation.*</code>) :
 éditez-le ainsi que <code>index.qmd</code> pour renseigner les
-métadonnées définitives (auteurs, résumé, date) avant de commiter.</p>
+métadonnées définitives (auteurs, résumé, date) et bien sûr le contenu
+avant de commiter.</p>
 <hr>
 </div>
 <div class="section level2">

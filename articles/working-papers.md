@@ -16,13 +16,22 @@ souhaite (code, explications de code, de données, etc…).
 
 [TABLE]
 
-Lorsque le docuement de travail est *stagé* sur le site ofce.fr, il est
-possible de versionner. Le versionnage est impossible sur github
+Lorsque le docuement de travail est *stagé* sur le site staging.ofce.fr,
+il est possible de versionner. Le versionnage est impossible sur github
 gh-pages.
 
 ------------------------------------------------------------------------
 
 ## 1. Initialiser un nouveau WP
+
+Il suffit de lancer
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+dans un dépôt git qui contient (ou non) le matériau pour le document de
+travail. Le document principal s’appelle `index.qmd` (c’est
+obligatoire).
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+crée le document s’il n’existe pas, ne le change pas s’il existe. Il est
+possible de copier coller un contenu dans le document créé.
 
 ``` r
 
@@ -63,8 +72,8 @@ Après
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
 `_quarto.yml` est déjà correct et cohérent (`draft`, `wp`, `annee`,
 `site-path`, `citation.*`) : éditez-le ainsi que `index.qmd` pour
-renseigner les métadonnées définitives (auteurs, résumé, date) avant de
-commiter.
+renseigner les métadonnées définitives (auteurs, résumé, date) et bien
+sûr le contenu avant de commiter.
 
 ------------------------------------------------------------------------
 

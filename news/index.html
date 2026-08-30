@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -16,7 +16,13 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/prerequisites.html">Prérequis</a></li>
+    <li><a class="dropdown-item" href="../articles/working-papers.html">Faire un document de travail</a></li>
+    <li><a class="dropdown-item" href="../articles/build-a-site.html">Faire un mini-site</a></li>
+    <li><a class="dropdown-item" href="../articles/previsions.html">Faire une prévision</a></li>
+  </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -32,6 +38,24 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.6" id="ofceweb-v0106-development">ofceweb v0.10.6 (development)<a class="anchor" aria-label="anchor" href="#ofceweb-v0106-development"></a></h2>
+<div class="section level3">
+<h3 id="redirection-stable-pour-les-prévisions-en-staging-0-10-6">Redirection stable pour les prévisions en staging<a class="anchor" aria-label="anchor" href="#redirection-stable-pour-les-pr%C3%A9visions-en-staging-0-10-6"></a></h3>
+<ul><li>Nouvelle fonction <code><a href="../reference/push_prev_staging_redirect.html">push_prev_staging_redirect()</a></code> : génère et déploie une page de redirection stable pour les prévisions en staging (<code>staging.ofce.fr/{prev_id}/</code>), analogues aux redirections existantes pour les WP en publication (<code>www.ofce.fr/wp/{annee}/{wp}/</code>) et les prévisions publiées (<code>www.ofce.fr/prev/derniere/</code>). Cela permet une URL stable quand plusieurs versions de la prévision existent en staging (v0, v1, v2, …), toujours pointant vers la dernière.</li>
+<li>Nouveau workflow <code>ftp_redirect_staging.yml</code> : déploie la redirection staging via FTP sur la branche <code>site-staging-redirect</code> (séparée du contenu en <code>site-staging</code>).</li>
+<li>
+<code><a href="../reference/stage_prev.html">stage_prev()</a></code> appelle automatiquement <code><a href="../reference/push_prev_staging_redirect.html">push_prev_staging_redirect()</a></code> après déploiement (paramètre <code>trigger_staging_redirect = TRUE</code>), sauf si l’utilisateur passe <code>FALSE</code>. Cela maintient l’URL stable à jour sans manipulation manuelle.</li>
+<li>Mise à jour de <code>AGENTS.md</code> : documentation de <code>FTP_STAGING_REDIRECT_DIR</code>, branche <code>site-staging-redirect</code> et architecture des redirections staging.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="correctif--redirection-staging-auto-référente--url-doublée-sur-dépôts-non-migrés-0-10-6">Correctif : redirection staging auto-référente + URL doublée sur dépôts non migrés<a class="anchor" aria-label="anchor" href="#correctif--redirection-staging-auto-r%C3%A9f%C3%A9rente--url-doubl%C3%A9e-sur-d%C3%A9p%C3%B4ts-non-migr%C3%A9s-0-10-6"></a></h3>
+<ul><li>
+<code><a href="../reference/push_prev_staging_redirect.html">push_prev_staging_redirect()</a></code> générait une page de redirection auto-référente : la cible du méta-refresh/lien était calculée comme le répertoire <strong>parent</strong> (<code>/prev2609/</code>), identique à l’emplacement de la page de redirection elle-même — la redirection ne menait donc jamais à la version publiée. Corrigé pour utiliser une cible <strong>relative</strong> vers le sous-dossier de version (<code>v{N}/</code>, comme pour les WP via <code><a href="../reference/push_wp_redirect.html">push_wp_redirect()</a></code>), l’URL canonique restant absolue (<code>https://staging.ofce.fr/{prev_id}/v{N}/</code>).</li>
+<li>
+<code><a href="../reference/push_prev_staging_redirect.html">push_prev_staging_redirect()</a></code> et le message affiché par <code><a href="../reference/stage_prev.html">stage_prev()</a></code> tolèrent désormais un préfixe <code>staging/</code> périmé dans <code>site-path</code> de <code>_quarto-staging.yml</code> (dépôts non re-migrés depuis le renommage de domaine en v0.10.5, cf. plus bas) : le préfixe est ignoré pour le calcul de l’URL (au lieu de produire <code>staging.ofce.fr/staging/{prev_id}/...</code>), avec un avertissement invitant à relancer <code><a href="../reference/setup_prev.html">setup_prev()</a></code> pour corriger le fichier de façon permanente. <code><a href="../reference/check_prev.html">check_prev()</a></code> continue de signaler ce préfixe comme une erreur bloquante (<code>staging/site-path</code>).</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.5" id="ofceweb-v0105">ofceweb v0.10.5<a class="anchor" aria-label="anchor" href="#ofceweb-v0105"></a></h2>
 <div class="section level3">

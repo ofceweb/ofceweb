@@ -1,5 +1,57 @@
 # Changelog
 
+## ofceweb v0.10.6 (development)
+
+### Redirection stable pour les prévisions en staging
+
+- Nouvelle fonction
+  [`push_prev_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_staging_redirect.md)
+  : génère et déploie une page de redirection stable pour les prévisions
+  en staging (`staging.ofce.fr/{prev_id}/`), analogues aux redirections
+  existantes pour les WP en publication (`www.ofce.fr/wp/{annee}/{wp}/`)
+  et les prévisions publiées (`www.ofce.fr/prev/derniere/`). Cela permet
+  une URL stable quand plusieurs versions de la prévision existent en
+  staging (v0, v1, v2, …), toujours pointant vers la dernière.
+- Nouveau workflow `ftp_redirect_staging.yml` : déploie la redirection
+  staging via FTP sur la branche `site-staging-redirect` (séparée du
+  contenu en `site-staging`).
+- [`stage_prev()`](https://ofceweb.github.io/ofceweb/reference/stage_prev.md)
+  appelle automatiquement
+  [`push_prev_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_staging_redirect.md)
+  après déploiement (paramètre `trigger_staging_redirect = TRUE`), sauf
+  si l’utilisateur passe `FALSE`. Cela maintient l’URL stable à jour
+  sans manipulation manuelle.
+- Mise à jour de `AGENTS.md` : documentation de
+  `FTP_STAGING_REDIRECT_DIR`, branche `site-staging-redirect` et
+  architecture des redirections staging.
+
+### Correctif : redirection staging auto-référente + URL doublée sur dépôts non migrés
+
+- [`push_prev_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_staging_redirect.md)
+  générait une page de redirection auto-référente : la cible du
+  méta-refresh/lien était calculée comme le répertoire **parent**
+  (`/prev2609/`), identique à l’emplacement de la page de redirection
+  elle-même — la redirection ne menait donc jamais à la version publiée.
+  Corrigé pour utiliser une cible **relative** vers le sous-dossier de
+  version (`v{N}/`, comme pour les WP via
+  [`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)),
+  l’URL canonique restant absolue
+  (`https://staging.ofce.fr/{prev_id}/v{N}/`).
+- [`push_prev_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_staging_redirect.md)
+  et le message affiché par
+  [`stage_prev()`](https://ofceweb.github.io/ofceweb/reference/stage_prev.md)
+  tolèrent désormais un préfixe `staging/` périmé dans `site-path` de
+  `_quarto-staging.yml` (dépôts non re-migrés depuis le renommage de
+  domaine en v0.10.5, cf. plus bas) : le préfixe est ignoré pour le
+  calcul de l’URL (au lieu de produire
+  `staging.ofce.fr/staging/{prev_id}/...`), avec un avertissement
+  invitant à relancer
+  [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
+  pour corriger le fichier de façon permanente.
+  [`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
+  continue de signaler ce préfixe comme une erreur bloquante
+  (`staging/site-path`).
+
 ## ofceweb v0.10.5
 
 ### Domaine de staging OFCE renommé en `staging.ofce.fr`

@@ -15,7 +15,8 @@ stage_prev(
   trigger = site2branch,
   full_deploy = FALSE,
   preview = FALSE,
-  workers = 8L
+  workers = 8L,
+  trigger_staging_redirect = TRUE
 )
 ```
 
@@ -52,10 +53,23 @@ stage_prev(
 
   Entier. Nombre de workers parallèles. Défaut \`8L\`.
 
+- trigger_staging_redirect:
+
+  Logique. Si \`TRUE\` (défaut), appelle
+  \[push_prev_staging_redirect()\] après \[site2staging()\]. Défaut
+  \`TRUE\`.
+
 ## Value
 
 Invisible \`NULL\`.
 
+## Details
+
+Après déploiement, met automatiquement à jour la redirection stable vers
+la dernière version en staging (via \[push_prev_staging_redirect()\]),
+sauf si \`trigger_staging_redirect = FALSE\`.
+
 ## See also
 
-\[render_prev()\], \[deploy_prev()\], \[publish_prev()\]
+\[render_prev()\], \[deploy_prev()\], \[publish_prev()\],
+\[push_prev_staging_redirect()\]

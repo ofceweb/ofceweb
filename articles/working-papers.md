@@ -20,6 +20,12 @@ Lorsque le docuement de travail est *stagé* sur le site staging.ofce.fr,
 il est possible de versionner. Le versionnage est impossible sur github
 gh-pages.
 
+Pour être *stagé* sur le site ofce.fr ou publié, la propriété du dépôt
+doit être transférée à l’organisation OFCE. On recommande la convention
+de nommage suitante :
+`wp-{initiales de l'auteur.e}-{nom court du projet}`, le TOUT EN
+MINUSCULE. Par exemple `wp-gaxt-trec`.
+
 ------------------------------------------------------------------------
 
 ## 1. Initialiser un nouveau WP

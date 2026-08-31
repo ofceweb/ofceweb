@@ -88,6 +88,8 @@ setup_wp <- function(
 
   cli::cli_h1("setup_wp dans {.path {fs::path_file(root)}}")
 
+  check_quarto_version()
+
   # Détecter les arguments fournis explicitement (avant toute modification)
   lang_provided       <- !missing(lang)
   hypothesis_provided <- !missing(hypothesis)
@@ -293,12 +295,30 @@ setup_wp <- function(
     cli::cli_alert_success("Copie du dossier {.path www/}")
   }
 
+  # ---- 8b. polices Google (thèmes OFCE) -------------------------------------
+  tryCatch(
+    check_fonts(quiet = TRUE),
+    error = function(e)
+      cli::cli_alert_warning("{.fn check_fonts} a \u00e9chou\u00e9 : {conditionMessage(e)}")
+  )
+
   # ---- 9. extensions Quarto OFCE (source de vérité : ofce::setup_quarto()) --
   tryCatch({
     ofce::setup_quarto(root, quiet = TRUE)
-    cli::cli_alert_success(
-      "Extensions Quarto OFCE install\u00e9es/mises \u00e0 jour ({.fn ofce::setup_quarto})."
-    )
+    # `ofce::setup_quarto()` peut réussir (exit code 0) sans avoir réellement
+    # posé les fichiers attendus : on vérifie donc la présence effective du
+    # dossier, plutôt que de se fier uniquement à l’absence d’erreur R.
+    if (fs::dir_exists(fs::path(root, "_extensions", "ofce"))) {
+      cli::cli_alert_success(
+        "Extensions Quarto OFCE install\u00e9es/mises \u00e0 jour ({.fn ofce::setup_quarto})."
+      )
+    } else {
+      cli::cli_alert_warning(
+        "{.fn ofce::setup_quarto} n'a signal\u00e9 aucune erreur mais \
+         {.path _extensions/ofce/} est absent \u2014 v\u00e9rifier la connexion \
+         r\u00e9seau et l'installation de Quarto ({.code quarto check})."
+      )
+    }
   }, error = function(e) {
     cli::cli_alert_warning("{.fn ofce::setup_quarto} a \u00e9chou\u00e9 : {conditionMessage(e)}")
   })

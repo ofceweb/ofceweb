@@ -35,6 +35,8 @@ Description: Outils de build et de déploiement pour l'infrastructure web de
 License: CC-by 4.0
 Encoding: UTF-8
 LazyData: true
+SystemRequirements: Quarto CLI (>= 1.9.38) <https://quarto.org>, checked at
+    runtime by check_quarto_version() in setup_wp()/setup_prev()/setup_site()
 Imports:
     callr,
     cli,

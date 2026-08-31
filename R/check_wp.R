@@ -232,14 +232,14 @@ check_wp <- function(path = ".", verbose = TRUE) {
     slug_parts <- strsplit(repo_slug, "/", fixed = TRUE)[[1]]
     if (length(slug_parts) == 2L && tolower(slug_parts[[1]]) == "ofce") {
       repo_name <- slug_parts[[2]]
-      follows_convention <- grepl("^wp-[a-z]-[a-z0-9]+(-[a-z0-9]+)*$", repo_name)
+      follows_convention <- grepl("^wp-[a-z]+-[a-z0-9|_|-]+$", repo_name)
       if (follows_convention) {
         add_diag("repo-name", "ok",
                  sprintf("Nom du dépôt `%s` suit la convention `wp-{initiale}-{nom court}`.", repo_name))
       } else {
         add_diag("repo-name", "warning",
                  sprintf(
-                   "Nom du dépôt `%s` (org OFCE) ne suit pas la convention recommandée `wp-{initiale de l'auteur·e}-{nom court}`, tout en minuscules (ex. `wp-t-mon-wp`).",
+                   "Nom du dépôt `%s` (org OFCE) ne suit pas la convention recommandée `wp-{initiale de l'auteur·e}-{nom court}`, tout en minuscules (ex. `wp-xt-monwp`).",
                    repo_name))
       }
     }

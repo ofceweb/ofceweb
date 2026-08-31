@@ -297,14 +297,14 @@ setup_wp <- function(
 
   # ---- 8b. polices Google (thèmes OFCE) -------------------------------------
   tryCatch(
-    check_fonts(quiet = TRUE),
+    check_fonts(quiet = FALSE),
     error = function(e)
       cli::cli_alert_warning("{.fn check_fonts} a \u00e9chou\u00e9 : {conditionMessage(e)}")
   )
 
   # ---- 9. extensions Quarto OFCE (source de vérité : ofce::setup_quarto()) --
   tryCatch({
-    ofce::setup_quarto(root, quiet = FALSE)
+    ofce::setup_quarto(root, quiet = TRUE)
     # `ofce::setup_quarto()` peut réussir (exit code 0) sans avoir réellement
     # posé les fichiers attendus : on vérifie donc la présence effective du
     # dossier, plutôt que de se fier uniquement à l’absence d’erreur R.

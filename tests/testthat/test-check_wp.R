@@ -271,6 +271,42 @@ test_that("check_wp() warns when a non-index .qmd is not referenced in other-lin
   expect_equal(diag_status(df, "annexes.qmd"), "warning")
 })
 
+test_that("check_wp() warns when the OFCE-org repo name doesn't follow wp-{initial}-{name}", {
+  dir <- withr::local_tempdir()
+  build_valid_wp_repo(dir)
+  local_mocked_bindings(
+    gh_slug_from_remote = function(...) "OFCE/mon-super-wp"
+  )
+
+  df <- check_wp(dir, verbose = FALSE)
+
+  expect_equal(diag_status(df, "repo-name"), "warning")
+})
+
+test_that("check_wp() is ok when the OFCE-org repo name follows wp-{initial}-{name}", {
+  dir <- withr::local_tempdir()
+  build_valid_wp_repo(dir)
+  local_mocked_bindings(
+    gh_slug_from_remote = function(...) "OFCE/wp-t-mon-super-wp"
+  )
+
+  df <- check_wp(dir, verbose = FALSE)
+
+  expect_equal(diag_status(df, "repo-name"), "ok")
+})
+
+test_that("check_wp() skips the repo-name convention check outside the OFCE org", {
+  dir <- withr::local_tempdir()
+  build_valid_wp_repo(dir)
+  local_mocked_bindings(
+    gh_slug_from_remote = function(...) "someoneelse/mon-super-wp"
+  )
+
+  df <- check_wp(dir, verbose = FALSE)
+
+  expect_equal(diag_status(df, "repo-name"), character(0))
+})
+
 test_that("check_wp() errors when two documents declare the same PDF output-file", {
   dir <- withr::local_tempdir()
   build_valid_wp_repo(dir)

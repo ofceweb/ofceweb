@@ -14,6 +14,8 @@
 #'   \item `news.qmd` présent (warning)
 #'   \item Si WP publié (`wp` non nul) : `annee` entier valide, cohérence
 #'     `version` / dernier segment de `site-path`
+#'   \item Nom du dépôt conforme à `wp-{initiale}-{nom court}` (minuscules)
+#'     lorsque l'org GitHub est `OFCE` (warning non bloquant)
 #'   \item Tous les `.qmd` non-index référencés dans `website.other-links`
 #'     (warning)
 #'   \item Unicité des `output-file` PDF à travers tous les `.qmd` (erreur)
@@ -221,6 +223,26 @@ check_wp <- function(path = ".", verbose = TRUE) {
   } else {
     add_diag("renv.lock", "warning",
              "renv.lock absent — le rendu en CI (render_and_deploy.yml) échouera sans renv. Initialiser avec renv::init().")
+  }
+
+  # ---- convention de nommage du dépôt (org OFCE) ---------------------------
+  # Non bloquant : simple suggestion de convention, pas une règle imposée.
+  repo_slug <- gh_slug_from_remote(root)
+  if (!is.na(repo_slug)) {
+    slug_parts <- strsplit(repo_slug, "/", fixed = TRUE)[[1]]
+    if (length(slug_parts) == 2L && tolower(slug_parts[[1]]) == "ofce") {
+      repo_name <- slug_parts[[2]]
+      follows_convention <- grepl("^wp-[a-z]-[a-z0-9]+(-[a-z0-9]+)*$", repo_name)
+      if (follows_convention) {
+        add_diag("repo-name", "ok",
+                 sprintf("Nom du dépôt `%s` suit la convention `wp-{initiale}-{nom court}`.", repo_name))
+      } else {
+        add_diag("repo-name", "warning",
+                 sprintf(
+                   "Nom du dépôt `%s` (org OFCE) ne suit pas la convention recommandée `wp-{initiale de l'auteur·e}-{nom court}`, tout en minuscules (ex. `wp-t-mon-wp`).",
+                   repo_name))
+      }
+    }
   }
 
   # ---- Contrôles spécifiques WP publié -------------------------------------

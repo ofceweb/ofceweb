@@ -49,11 +49,8 @@ contributes:
       favicon: ../ofce/img/fofce.png
       filters:
         - quotes
-        - collapse-callout
         - nbsp
         - quarto
-      collapse-callout:
-        tip: true
       shortcodes:
         - fontawesome
       csl: ../ofce/csl/revue-francaise-de-gestion.csl

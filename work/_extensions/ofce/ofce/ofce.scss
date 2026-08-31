@@ -367,36 +367,54 @@ div.callout-tip {
     background-color: rgba($lightgrey, 0.5) !important;
   }
 
-  .collapse {
+  .callout-body-container {
     max-height: 90px;
     overflow: hidden;
-    transition: max-height 3.35s ease;
     position: relative;
+    transition: max-height 0.5s ease;
 
-    &:not(.show) {
-      display: block;
-      max-height: 90px;
-
-      &::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 60px;
-        background: linear-gradient(transparent, white);
-      }
-    }
-
-    &.show {
-      max-height: 2000px;
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: linear-gradient(transparent, white);
+      transition: opacity 0.5s ease;
     }
   }
 
-  .callout-collapse .collapsing {
-    height: 90px;
-    overflow: hidden;
-    transition: height 0.35s ease;
+  &.enc-expanded .callout-body-container {
+    max-height: 2000px;
+
+    &::after {
+      opacity: 0;
+    }
+  }
+
+  .enc-preview-btn {
+    display: inline-block;
+    margin: .2em 0 .5em .1em;
+    font-size: .85em;
+    cursor: pointer;
+    color: #0d6efd;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  .enc-preview-btn.enc-close-btn {
+    display: none;
+  }
+
+  &.enc-expanded {
+    .enc-preview-btn.enc-open-btn {
+      display: none;
+    }
+    .enc-preview-btn.enc-close-btn {
+      display: inline-block;
+    }
   }
 }
 

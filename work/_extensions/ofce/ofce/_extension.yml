@@ -49,11 +49,8 @@ contributes:
       filters:
         - draft-detection
         - quotes
-        - collapse-callout
         - nbsp
         - quarto
-      collapse-callout:
-        tip: true
       shortcodes:
         - fontawesome
       csl: csl/revue-francaise-de-gestion.csl

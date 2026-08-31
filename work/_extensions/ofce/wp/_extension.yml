@@ -47,12 +47,9 @@ contributes:
       logo: ../ofce/img/logo.png
       filters:
         - quotes
-        - collapse-callout
         - nbsp
         - quarto
       quot-lang: fr
-      collapse-callout:
-        tip: true
       shortcodes:
         - fontawesome
       csl: ../ofce/csl/revue-francaise-de-gestion.csl

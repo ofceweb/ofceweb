@@ -1,4 +1,4 @@
-﻿#' Initialise un dépôt de document de travail (WP) OFCE
+#' Initialise un dépôt de document de travail (WP) OFCE
 #'
 #' Copie les gabarits embarqués dans le package (`inst/setup_wp/`) à la racine
 #' du dépôt, initialise la branche `gh-pages` pour la pré-publication, et
@@ -304,18 +304,18 @@ setup_wp <- function(
 
   # ---- 9. extensions Quarto OFCE (source de vérité : ofce::setup_quarto()) --
   tryCatch({
-    ofce::setup_quarto(root, quiet = TRUE)
+    ofce::setup_quarto(root, quiet = FALSE)
     # `ofce::setup_quarto()` peut réussir (exit code 0) sans avoir réellement
     # posé les fichiers attendus : on vérifie donc la présence effective du
     # dossier, plutôt que de se fier uniquement à l’absence d’erreur R.
-    if (fs::dir_exists(fs::path(root, "_extensions", "ofce"))) {
+    if (fs::dir_exists(fs::path(root, "_extensions", "ofce", "wp"))) {
       cli::cli_alert_success(
         "Extensions Quarto OFCE install\u00e9es/mises \u00e0 jour ({.fn ofce::setup_quarto})."
       )
     } else {
       cli::cli_alert_warning(
         "{.fn ofce::setup_quarto} n'a signal\u00e9 aucune erreur mais \
-         {.path _extensions/ofce/} est absent \u2014 v\u00e9rifier la connexion \
+         {.path _extensions/ofce/wp} est absent \u2014 v\u00e9rifier la connexion \
          r\u00e9seau et l'installation de Quarto ({.code quarto check})."
       )
     }

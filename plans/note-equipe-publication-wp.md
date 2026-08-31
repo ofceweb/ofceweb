@@ -30,7 +30,7 @@ Le dépôt est créé et configuré avec `setup_wp()`, mais aucune demande de nu
 L'auteur·e a transféré la propriété de son wp à l'organisation OFCE et se prépare à demander un numéro via `wp_registry_request()`. Une pull request est ouverte dans le registre central, en attente d'approbation par un administrateur web. En attendant, chaque rendu dépose le document sur le **serveur FTP de l'OFCE dans un espace de staging** (si `stage-target: ftp`, voir plus bas) à l'adresse :
 
 ```         
-https://www.ofce.fr/staging/{nom-du-depot}/v1/
+https://staging.ofce.fr/{nom-du-depot}/v1/
 ```
 
 Contrairement à GitHub Pages, cet espace est **versionné** : chaque version envoyée à des relecteurs (v1, v2, v3…) reste accessible à son URL propre. Les relecteurs peuvent donc conserver leurs liens même si une nouvelle version est déposée. Les versions de staging sont conservées indéfiniment jusqu'à décision explicite de l'administrateur.

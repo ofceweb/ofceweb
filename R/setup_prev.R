@@ -218,7 +218,7 @@ setup_prev <- function(
   prev_id         <- prev %||% "YYMM"
   staging_version <- if (!is.null(stg$version)) as.character(stg$version)
   else "v0"
-  staging_sitepath <- sprintf("staging/prev%s/%s", prev_id, staging_version)
+  staging_sitepath <- sprintf("prev%s/%s", prev_id, staging_version)
   publish_sitepath <- sprintf("prev/prev%s", prev_id)
 
   # ---- 8. _quarto.yml (base) -----------------------------------------------
@@ -307,6 +307,7 @@ setup_prev <- function(
     cli::cli_alert_info("{.file _quarto-staging.yml} déjà présent \u2014 mise à jour.")
   }
 
+  stg$website$`site-url`  <- "https://staging.ofce.fr/"
   stg$website$`site-path` <- staging_sitepath
   stg$version             <- staging_version
   stg$comments            <- list(hypothesis = TRUE)
@@ -315,6 +316,7 @@ setup_prev <- function(
 
   stg_lines_before <- readLines(dest_stg, warn = FALSE)
   stg_lines <- stg_lines_before
+  stg_lines <- yaml_patch_scalar(stg_lines, "website.site-url", "https://staging.ofce.fr/")
   stg_lines <- yaml_patch_scalar(stg_lines, "website.site-path", staging_sitepath)
   stg_lines <- yaml_patch_scalar(stg_lines, "version", staging_version)
   stg_lines <- yaml_patch_block(stg_lines, "comments", list(hypothesis = TRUE))
@@ -370,8 +372,10 @@ setup_prev <- function(
   }
 
   # ---- 12. Variables GitHub ------------------------------------------------
-  staging_dir <- paste0(staging_sitepath, "/") |>
-    stringr::str_remove("^staging/")
+  # staging_sitepath ne porte plus de préfixe "staging/" (segment absorbé par
+  # le sous-domaine staging.ofce.fr) — correspond déjà au chemin FTP relatif
+  # {repo}/{version}/ attendu par le chroot www/staging/ de l'utilisateur FTP.
+  staging_dir <- paste0(staging_sitepath, "/")
 
   publish_dir <- paste0(publish_sitepath, "/") |>
     stringr::str_remove("^prev/")

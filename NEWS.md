@@ -1,3 +1,67 @@
+## ofceweb v0.10.6 (development)
+
+### Redirection stable pour les prévisions en staging
+
+* Nouvelle fonction `push_prev_staging_redirect()` : génère et déploie une page
+  de redirection stable pour les prévisions en staging (`staging.ofce.fr/{prev_id}/`),
+  analogues aux redirections existantes pour les WP en publication
+  (`www.ofce.fr/wp/{annee}/{wp}/`) et les prévisions publiées
+  (`www.ofce.fr/prev/derniere/`). Cela permet une URL stable quand plusieurs
+  versions de la prévision existent en staging (v0, v1, v2, …), toujours
+  pointant vers la dernière.
+* Nouveau workflow `ftp_redirect_staging.yml` : déploie la redirection
+  staging via FTP sur la branche `site-staging-redirect` (séparée du contenu
+  en `site-staging`).
+* `stage_prev()` appelle automatiquement `push_prev_staging_redirect()` après
+  déploiement (paramètre `trigger_staging_redirect = TRUE`), sauf si l'utilisateur
+  passe `FALSE`. Cela maintient l'URL stable à jour sans manipulation manuelle.
+* Mise à jour de `AGENTS.md` : documentation de `FTP_STAGING_REDIRECT_DIR`,
+  branche `site-staging-redirect` et architecture des redirections staging.
+
+### Correctif : redirection staging auto-référente + URL doublée sur dépôts non migrés
+
+* `push_prev_staging_redirect()` générait une page de redirection
+  auto-référente : la cible du méta-refresh/lien était calculée comme le
+  répertoire **parent** (`/prev2609/`), identique à l'emplacement de la page
+  de redirection elle-même — la redirection ne menait donc jamais à la
+  version publiée. Corrigé pour utiliser une cible **relative** vers le
+  sous-dossier de version (`v{N}/`, comme pour les WP via
+  `push_wp_redirect()`), l'URL canonique restant absolue
+  (`https://staging.ofce.fr/{prev_id}/v{N}/`).
+* `push_prev_staging_redirect()` et le message affiché par `stage_prev()`
+  tolèrent désormais un préfixe `staging/` périmé dans `site-path` de
+  `_quarto-staging.yml` (dépôts non re-migrés depuis le renommage de domaine
+  en v0.10.5, cf. plus bas) : le préfixe est ignoré pour le calcul de l'URL
+  (au lieu de produire `staging.ofce.fr/staging/{prev_id}/...`), avec un
+  avertissement invitant à relancer `setup_prev()` pour corriger le fichier
+  de façon permanente. `check_prev()` continue de signaler ce préfixe comme
+  une erreur bloquante (`staging/site-path`).
+
+## ofceweb v0.10.5
+
+### Domaine de staging OFCE renommé en `staging.ofce.fr`
+
+* L'URL publique de l'espace de staging FTP OFCE change de
+  `www.ofce.fr/staging/{repo}/{version}/` à
+  `staging.ofce.fr/{repo}/{version}/` (le segment `staging/` est absorbé par
+  le sous-domaine). Impacte les WP en brouillon avec `stage-target: "ftp"`
+  (`setup_wp()`, `deploy_wp()`, `wp_manifest()`) et les prévisions en
+  staging (`setup_prev()`, `render_prev()`/`stage_prev()`,
+  `prev_version_up()`).
+* Pour les prévisions, `website.site-path` de `_quarto-staging.yml` perd son
+  préfixe `staging/` (`prev{YYMM}/v{N}` au lieu de `staging/prev{YYMM}/v{N}`)
+  et `website.site-url` est désormais explicitement fixé à
+  `https://staging.ofce.fr/` (auparavant hérité du `site-url` partagé avec
+  le profil `publish`). `check_prev()` valide ces deux champs en
+  conséquence (nouvelle vérification `staging/site-url`, regex `site-path`
+  mise à jour). Le chemin FTP effectif (`FTP_STAGING_DIR`, chroot
+  `www/staging/{repo}/{version}/`) est inchangé — seule l'URL publique
+  bouge.
+* correction incidente de `wp_manifest()` : l'URL de staging calculée pour
+  le `manifest.json` utilisait par erreur `www.ofce.fr/stage/wp/{repo}/`
+  (incohérent avec le reste du package) — désormais alignée sur
+  `staging.ofce.fr/{repo}/{version}/`.
+
 ## ofceweb v0.10.4
 
 ### `render_site()` / `render_wp()` — suppression du patch des hashes Bootstrap

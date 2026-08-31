@@ -34,7 +34,7 @@ souhaite (code, explications de code, de données, etc...).
 +=============+===============+=============+=========================================+
 | Brouillon   | `null`        | GitHub      | `ofce.github.io/{repo}/`                |
 |             |               | Pages ou    |                                         |
-|             |               |             | `www.ofce.fr/staging/{repo}/{version}`  |
+|             |               |             | `staging.ofce.fr/{repo}/{version}`      |
 |             |               | OFCE        |                                         |
 |             |               | staging     |                                         |
 +-------------+---------------+-------------+-----------------------------------------+
@@ -42,13 +42,16 @@ souhaite (code, explications de code, de données, etc...).
 |             |               | OFCE FTP    |                                         |
 +-------------+---------------+-------------+-----------------------------------------+
 
-Lorsque le docuement de travail est *stagé* sur le site ofce.fr, il est possible de versionner. Le versionnage est impossible sur github gh-pages.
+Lorsque le docuement de travail est *stagé* sur le site staging.ofce.fr, il est possible de versionner. Le versionnage est impossible sur github gh-pages.
 
 Pour être *stagé* sur le site ofce.fr ou publié, la propriété du dépôt doit être transférée à l'organisation OFCE. On recommande la convention de nommage suitante : `wp-{initiales de l'auteur.e}-{nom court du projet}`, le TOUT EN MINUSCULE. Par exemple `wp-gaxt-trec`.
 
 ------------------------------------------------------------------------
 
 ## 1. Initialiser un nouveau WP
+
+Il suffit de lancer `setup_wp()` dans un dépôt git qui contient (ou non) le matériau pour le document de travail. Le document principal s'appelle `index.qmd` (c'est obligatoire). `setup_wp()` crée le document s'il n'existe pas, ne le change pas s'il existe. Il est possible de copier coller un contenu dans le document créé.
+
 
 ```{r}
 library(ofceweb)
@@ -86,7 +89,7 @@ setup_wp(
 Après `setup_wp()`, `_quarto.yml` est déjà correct et cohérent (`draft`,
 `wp`, `annee`, `site-path`, `citation.*`) : éditez-le ainsi que
 `index.qmd` pour renseigner les métadonnées définitives (auteurs,
-résumé, date) avant de commiter.
+résumé, date) et bien sûr le contenu avant de commiter.
 
 ------------------------------------------------------------------------
 
@@ -151,7 +154,7 @@ deploy_wp()
 Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 
 - **Brouillon** (`wp: null`) → `quarto publish gh-pages` (publie sur
-  `ofce.github.io/{repo}/`) ou pousse en staging sur le site de l'ofce à l'adresse `www.ofce.fr/stage/{repo}/{version}/`.
+  `ofce.github.io/{repo}/`) ou pousse en staging sur le site de l'ofce à l'adresse `staging.ofce.fr/{repo}/{version}/`.
 - **Publié** (`wp: N`) → `site2branch()` vers `site-deploy`, puis le
   workflow FTP transfère vers `www.ofce.fr/wp/{annee}/{N}/{version}/`
 

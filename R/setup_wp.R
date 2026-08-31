@@ -451,7 +451,7 @@ setup_wp <- function(
   #
   # Publié (wp non nul)   : site-url = www.ofce.fr,  site-path = {annee}/{wp}/[{version}/]
   # Brouillon gh-pages : site-url = {org}.github.io/{repo}/,         pas de site-path
-  # Staging FTP        : site-url = www.ofce.fr/staging/{repo}/[{version}/], pas de site-path
+  # Staging FTP        : site-url = staging.ofce.fr/{repo}/[{version}/], pas de site-path
   if (!is.null(wp)) {
     # Année effective : yml$annee est déjà à jour.
     effective_annee_sp <- suppressWarnings(as.integer(yml$annee %||% annee))
@@ -489,7 +489,7 @@ setup_wp <- function(
     draft_site_url <- if (identical(stage_target, "ftp")) {
       ver_seg <- if (!is.null(version) && nzchar(as.character(version)))
         paste0(version, "/") else ""
-      sprintf("https://www.ofce.fr/staging/%s/%s", repo_name, ver_seg)
+      sprintf("https://staging.ofce.fr/%s/%s", repo_name, ver_seg)
     } else {
       sprintf("https://%s.github.io/%s/", gh_org, repo_name)
     }
@@ -631,7 +631,7 @@ setup_wp <- function(
   cli::cli_li("site-url    : {yml$website$`site-url`}")
   if (!is.null(yml$website$`site-path`))
     cli::cli_li("site-path   : {yml$website$`site-path`}")
-  cli::cli_li("staging url : https://www.ofce.fr/staging/{staging_dir}")
+  cli::cli_li("staging url : https://staging.ofce.fr/{staging_dir}")
   cli::cli_li("stage-target: {stage_target}")
   cli::cli_li("draft       : {if (is.null(registry_state) || isTRUE(registry_state$network_error)) '(non consulte)' else registry_state$stage}")
   if (!is.null(yml$citation$issue))

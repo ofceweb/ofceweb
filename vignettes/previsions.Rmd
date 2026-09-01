@@ -229,6 +229,13 @@ Cela met à jour `_quarto-staging.yml` et la variable GitHub
 nouveau sous-dossier, laissant la version précédente intacte sur le
 FTP.
 
+Indépendamment de ce numéro de version, le bandeau « Version
+préliminaire » affiché sur les pages staging complète automatiquement
+son texte avec un compteur de déploiement (« · déploiement n°N »), tiré
+de `github.run_number` à chaque exécution de `ftp_deploy_staging.yml` —
+utile pour repérer si la dernière mise à jour a bien été poussée, sans
+avoir à changer `v0`/`v1`.
+
 ## 8. Récapitulatif
 
 ```r

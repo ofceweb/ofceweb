@@ -47,6 +47,10 @@ jobs:
             cp -r /tmp/staticrypt_out/. ./
           fi
 
+      - name: Write push counter
+        run: |
+          echo "{\"count\": ${{ github.run_number }}, \"run_id\": \"${{ github.run_id }}\", \"updated\": \"$(date -u +%FT%TZ)\"}" > push-count.json
+
       - name: FTP stage
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:

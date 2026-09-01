@@ -36,8 +36,12 @@ dans un dépôt git qui contient (ou non) le matériau pour le document de
 travail. Le document principal s’appelle `index.qmd` (c’est
 obligatoire).
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
-crée le document s’il n’existe pas, ne le change pas s’il existe. Il est
-possible de copier coller un contenu dans le document créé.
+crée le document s’il n’existe pas, ne le change pas s’il existe. On
+peut donc exécuter autant de fois que nécessaire
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
+en particulier lors d’un problème ou d’un rendu non satisfaisant.
+
+Il est possible de copier coller des contenus dans les document créés.
 
 ``` r
 

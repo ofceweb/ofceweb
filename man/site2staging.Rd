@@ -28,3 +28,4 @@ en CI par `ftp_deploy_staging.yml` avant le transfert FTP.
 \seealso{
 [deploy_prev()], [stage_prev()], [site2branch()]
 }
+\keyword{internal}

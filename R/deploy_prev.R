@@ -93,7 +93,7 @@ deploy_prev <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [deploy_prev()], [site2branch()], [site2staging()]
-#' @export
+#' @keywords internal
 site2profile <- function(
     path        = ".",
     profile,
@@ -129,7 +129,7 @@ site2profile <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [deploy_prev()], [stage_prev()], [site2branch()]
-#' @export
+#' @keywords internal
 site2staging <- function(
     path        = ".",
     progress    = TRUE,

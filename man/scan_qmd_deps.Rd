@@ -19,3 +19,4 @@ Seuls les chemins relatifs pointant dans le dossier du `.qmd` ou ses
 sous-dossiers sont retenus — les URLs, chemins absolus et remontées `../`
 sont exclus.
 }
+\keyword{internal}

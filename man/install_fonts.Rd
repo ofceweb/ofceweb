@@ -35,3 +35,4 @@ le dossier de polices de l'utilisateur :
 * Windows : `%LOCALAPPDATA%/Microsoft/Windows/Fonts` (+ enregistrement dans
   `HKCU\\...\\Fonts`)
 }
+\keyword{internal}

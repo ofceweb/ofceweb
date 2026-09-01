@@ -34,3 +34,4 @@ Si le secret est absent, le déploiement s'effectue sans chiffrement.
 \seealso{
 [remove_encrypt()]
 }
+\keyword{internal}

@@ -34,6 +34,8 @@ Contrôles effectués :
   \item `news.qmd` présent (warning)
   \item Si WP publié (`wp` non nul) : `annee` entier valide, cohérence
     `version` / dernier segment de `site-path`
+  \item Nom du dépôt conforme à `wp-{initiale}-{nom court}` (minuscules)
+    lorsque l'org GitHub est `OFCE` (warning non bloquant)
   \item Tous les `.qmd` non-index référencés dans `website.other-links`
     (warning)
   \item Unicité des `output-file` PDF à travers tous les `.qmd` (erreur)

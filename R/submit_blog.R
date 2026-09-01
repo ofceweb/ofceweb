@@ -67,7 +67,7 @@
 #' @return Vecteur de caractères : chemins relatifs depuis le dossier du `.qmd`.
 #' @importFrom fs path_norm path_abs path_expand
 #' @importFrom stringr str_match_all
-#' @export
+#' @keywords internal
 scan_qmd_deps <- function(qmd_path) {
   qmd_path <- qmd_path |>
     fs::path_abs() |> fs::path_norm() |> as.character()

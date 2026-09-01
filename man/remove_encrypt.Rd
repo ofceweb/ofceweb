@@ -30,3 +30,4 @@ Si le secret est absent, le déploiement s'effectue sans chiffrement.
 \seealso{
 [encrypt_site()]
 }
+\keyword{internal}

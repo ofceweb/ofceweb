@@ -26,3 +26,4 @@ Regarde si les familles `Open Sans`, `Arimo` et `Merriweather` sont
 disponibles pour le système (via [systemfonts::system_fonts()]) et, le cas
 échéant, installe celles qui manquent avec [install_fonts()].
 }
+\keyword{internal}

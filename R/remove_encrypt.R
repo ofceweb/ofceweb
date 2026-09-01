@@ -19,7 +19,7 @@
 #' @returns Invisible `NULL`.
 #' @seealso [encrypt_site()]
 #' @importFrom lifecycle deprecate_soft
-#' @export
+#' @keywords internal
 remove_encrypt <- function(path = ".", delete_secret = TRUE) {
   lifecycle::deprecate_soft(
     when    = "0.5.5",

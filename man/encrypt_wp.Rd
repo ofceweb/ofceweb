@@ -16,3 +16,4 @@ encrypt_wp(path = ".", password = NULL)
 
 Cette fonction est dépréciée. Voir [encrypt_site()] pour plus de détails.
 }
+\keyword{internal}

@@ -39,3 +39,4 @@ juste après sa première publication.
 \seealso{
 [publish_prev()], [deploy_prev()], [push_site_redirect()]
 }
+\keyword{internal}

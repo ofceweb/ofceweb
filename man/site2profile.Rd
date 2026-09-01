@@ -40,3 +40,4 @@ rôle.
 \seealso{
 [deploy_prev()], [site2branch()], [site2staging()]
 }
+\keyword{internal}

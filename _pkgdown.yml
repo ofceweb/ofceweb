@@ -3,8 +3,8 @@ template:
   bootstrap: 5
   theme: atom-one-light
   bslib:
-    base_font: {google: "Open Sans"}
-    heading_font: {google: "Open Sans"}
+    base_font: {google: "Arimo"}
+    heading_font: {google: "Merriweather"}
     code_font: {google: "Fira Code"}
 
 navbar:
@@ -15,7 +15,7 @@ navbar:
     articles:
       text: Articles
       menu:
-      - text: Prérequis
+      - text: Prérequis (authentification gh, github)
         href: articles/prerequisites.html
       - text: Faire un document de travail
         href: articles/working-papers.html
@@ -51,13 +51,7 @@ reference:
   - stage_prev
   - publish_prev
   - deploy_prev
-  - site2staging
-  - site2profile
   - prev_version_up
-  - push_prev_redirect
-  - push_prev_staging_redirect
-  - render_prev_publish
-  - preview_qmd
 
 - title: Working papers
   desc: >
@@ -91,17 +85,6 @@ reference:
   - rescan_site
   - site_version_up
 
-- title: Fonctions dépréciées
-  desc: >
-    Ces fonctions géraient autrefois le chiffrement localement. Le chiffrement
-    est désormais piloté **exclusivement en CI** via le secret GitHub
-    `STATICRYPT_PASSWORD`. Utiliser `gh secret set` / `gh secret delete`
-    directement.
-  contents:
-  - encrypt_site
-  - encrypt_wp
-  - remove_encrypt
-
 - title: Blog
   desc: >
     Fonctions pour le blog OFCE bilingue (FR/EN). Gère le cache des posts,
@@ -121,20 +104,13 @@ reference:
 
 - title: Déploiement & utilitaires
   desc: >
-    Fonctions de bas niveau partagées entre les différents types de dépôts :
-    push vers une branche de déploiement, déclenchement de workflows GitHub
-    Actions avec inputs optionnels, téléchargement de fichiers depuis GitHub.
+    Fonctions de bas niveau partagées entre les différents types de dépôts.
   contents:
-  - site2branch
-  - site2publish
-  - trigger_action
-  - download_gh_dir
-  - download_gh_file
-  - update_navbar
-  - scan_qmd_deps
-  - check_fonts
-  - font_installed
-  - install_fonts
+    - preview_qmd
+    - update_navbar
+    - check_fonts
+    - download_gh_dir
+    - download_gh_file
 
 deploy:
   install_metadata: true

@@ -15,3 +15,4 @@ Un vecteur logique nommé (mêmes noms que `fonts`).
 \description{
 Teste la présence de familles de polices sur le système
 }
+\keyword{internal}

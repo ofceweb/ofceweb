@@ -52,16 +52,14 @@ rsconnect/
 /.quarto/
 **/*.quarto_ipynb
 
-_freeze
-.quarto
-_site
 
 .DS_Store
 .crossrefs
 
 /.luarc.json
 
+_freeze
+.quarto
 _site
 _site_publish
 _site_staging
-data_pays/data_pays.RData

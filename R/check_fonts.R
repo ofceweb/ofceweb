@@ -23,7 +23,7 @@ ofce_fonts <- function() {
 #'
 #' @return Invisible, un vecteur logique nommé indiquant, pour chaque famille,
 #'   si elle est installée **après** l'éventuelle installation.
-#' @export
+#' @keywords internal
 check_fonts <- function(fonts = ofce_fonts(),
                         install = TRUE,
                         quiet = FALSE,
@@ -69,7 +69,7 @@ check_fonts <- function(fonts = ofce_fonts(),
 #'
 #' @param fonts Vecteur de noms de familles.
 #' @return Un vecteur logique nommé (mêmes noms que `fonts`).
-#' @export
+#' @keywords internal
 font_installed <- function(fonts = ofce_fonts()) {
   # `systemfonts` met en cache la liste des polices : on la vide pour voir
   # celles installées depuis le début de la session.
@@ -105,7 +105,7 @@ font_installed <- function(fonts = ofce_fonts()) {
 #'
 #' @return Invisible, un vecteur logique nommé : `TRUE` si l'installation de la
 #'   famille s'est déroulée sans erreur.
-#' @export
+#' @keywords internal
 install_fonts <- function(fonts = ofce_fonts(),
                           method = c("auto", "brew", "download"),
                           quiet = FALSE) {

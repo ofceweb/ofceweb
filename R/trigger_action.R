@@ -28,7 +28,7 @@
 #'   vide (pas d'entrée).
 #'
 #' @return Renvoie invisiblement `NULL`. Appelée pour ses effets de bord.
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{

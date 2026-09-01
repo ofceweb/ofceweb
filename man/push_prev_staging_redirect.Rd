@@ -36,3 +36,4 @@ la redirection sans refaire un build complet.
 \seealso{
 [stage_prev()], [push_prev_redirect()], [push_site_redirect()]
 }
+\keyword{internal}

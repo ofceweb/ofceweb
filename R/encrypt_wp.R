@@ -7,7 +7,7 @@
 #'
 #' @inheritParams encrypt_site
 #' @importFrom lifecycle deprecate_soft
-#' @export
+#' @keywords internal
 encrypt_wp <- function(path = ".", password = NULL) {
   lifecycle::deprecate_soft(
     when    = "0.5.5",

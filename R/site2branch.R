@@ -44,7 +44,7 @@
 #'   Défaut une liste vide.
 #'
 #' @return Renvoie invisiblement `NULL`. Appelée pour ses effets de bord.
-#'
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #' # Pousser _site/ et déclencher le workflow FTP
@@ -219,7 +219,7 @@ site2branch <- function(
 #'   complet.
 #'
 #' @return Renvoie invisiblement `NULL`. Appelée pour ses effets de bord.
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{

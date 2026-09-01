@@ -2,7 +2,6 @@
 % Please edit documentation in R/preview_qmd.R
 \name{preview_qmd}
 \alias{preview_qmd}
-\alias{preview_qmd_staging}
 \title{Prévisualise le document `.qmd` actif dans RStudio}
 \usage{
 preview_qmd(
@@ -12,8 +11,6 @@ preview_qmd(
   as_job = FALSE,
   ...
 )
-
-preview_qmd_staging(daemon = TRUE, ...)
 }
 \arguments{
 \item{profile}{`[character(1)]` ou `NULL`.\cr
@@ -49,10 +46,3 @@ Le répertoire servi et le chemin initial sont déduits automatiquement via
     pointe sur le dossier du `.qmd` lui-même.
 }
 }
-\section{Functions}{
-\itemize{
-\item \code{preview_qmd_staging()}: Raccourci pour `preview_qmd(profile = "staging")`.
-Lance la prévisualisation du document `.qmd` actif avec le profil Quarto
-`"staging"`, sans autre paramètre à préciser.
-
-}}

@@ -13,6 +13,7 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/check_blog.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/check_fonts.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/check_prev.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/check_quarto_version.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/check_stray_ofce_extensions.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/check_wp.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/complete_wp.html</loc></url>
@@ -49,7 +50,6 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/render_blog.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/render_home.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/render_prev.html</loc></url>
-<url><loc>https://ofceweb.github.io/ofceweb/reference/render_prev_publish.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/render_site.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/render_wp.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/rescan_site.html</loc></url>

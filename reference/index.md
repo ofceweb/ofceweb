@@ -32,22 +32,8 @@ GitHub Actions — pas localement.
   : Rend et publie la prévision (publish)
 - [`deploy_prev()`](https://ofceweb.github.io/ofceweb/reference/deploy_prev.md)
   : Déploie la prévision OFCE (staging ou publish)
-- [`site2staging()`](https://ofceweb.github.io/ofceweb/reference/site2staging.md)
-  : Pousse \`\_site_staging/\` vers la branche \`site-staging\`
-- [`site2profile()`](https://ofceweb.github.io/ofceweb/reference/site2profile.md)
-  : Déploie un profil personnalisé vers staging/repo/profile/
 - [`prev_version_up()`](https://ofceweb.github.io/ofceweb/reference/prev_version_up.md)
   : Incrémente la version staging d'une prévision OFCE
-- [`push_prev_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_redirect.md)
-  : Pousse la page de redirection stable /prev/derniere/ d'une prévision
-  OFCE
-- [`push_prev_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_staging_redirect.md)
-  : Pousse la page de redirection stable pour la prévision en staging
-- [`render_prev_publish()`](https://ofceweb.github.io/ofceweb/reference/render_prev_publish.md)
-  : Génère le site de la prévision (déprécié)
-- [`preview_qmd()`](https://ofceweb.github.io/ofceweb/reference/preview_qmd.md)
-  [`preview_qmd_staging()`](https://ofceweb.github.io/ofceweb/reference/preview_qmd.md)
-  : Prévisualise le document \`.qmd\` actif dans RStudio
 
 ## Working papers
 
@@ -97,20 +83,6 @@ locale n’est requise.
 - [`site_version_up()`](https://ofceweb.github.io/ofceweb/reference/site_version_up.md)
   : Incrémente la version dans le \`site-path\` du \`\_quarto.yml\`
 
-## Fonctions dépréciées
-
-Ces fonctions géraient autrefois le chiffrement localement. Le
-chiffrement est désormais piloté **exclusivement en CI** via le secret
-GitHub `STATICRYPT_PASSWORD`. Utiliser `gh secret set` /
-`gh secret delete` directement.
-
-- [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-  : Active le chiffrement statique du site
-- [`encrypt_wp()`](https://ofceweb.github.io/ofceweb/reference/encrypt_wp.md)
-  : Active le chiffrement statique d'un document de travail
-- [`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)
-  : Désactive le chiffrement statique du site
-
 ## Blog
 
 Fonctions pour le blog OFCE bilingue (FR/EN). Gère le cache des posts,
@@ -138,32 +110,17 @@ Fonctions pour le site d’accueil OFCE.
 
 ## Déploiement & utilitaires
 
-Fonctions de bas niveau partagées entre les différents types de dépôts :
-push vers une branche de déploiement, déclenchement de workflows GitHub
-Actions avec inputs optionnels, téléchargement de fichiers depuis
-GitHub.
+Fonctions de bas niveau partagées entre les différents types de dépôts.
 
-- [`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
-  : Pousse un dossier de site rendu vers une branche Git
-- [`site2publish()`](https://ofceweb.github.io/ofceweb/reference/site2publish.md)
-  : Pousse un dossier de site rendu vers une branche Git, pour
-  publication
-- [`trigger_action()`](https://ofceweb.github.io/ofceweb/reference/trigger_action.md)
-  : Déclenche un workflow GitHub Actions via \`workflow_dispatch\`
+- [`preview_qmd()`](https://ofceweb.github.io/ofceweb/reference/preview_qmd.md)
+  : Prévisualise le document \`.qmd\` actif dans RStudio
+- [`update_navbar()`](https://ofceweb.github.io/ofceweb/reference/update_navbar.md)
+  : Met à jour la navbar du \`\_quarto.yml\` depuis la source
+  centralisée
+- [`check_fonts()`](https://ofceweb.github.io/ofceweb/reference/check_fonts.md)
+  : Vérifie (et installe) les polices Google utilisées par les thèmes
+  OFCE
 - [`download_gh_dir()`](https://ofceweb.github.io/ofceweb/reference/download_gh_dir.md)
   : Download a directory from a GitHub repository
 - [`download_gh_file()`](https://ofceweb.github.io/ofceweb/reference/download_gh_file.md)
   : Download a single file from a GitHub repository
-- [`update_navbar()`](https://ofceweb.github.io/ofceweb/reference/update_navbar.md)
-  : Met à jour la navbar du \`\_quarto.yml\` depuis la source
-  centralisée
-- [`scan_qmd_deps()`](https://ofceweb.github.io/ofceweb/reference/scan_qmd_deps.md)
-  : Scanne un .qmd pour identifier tous les fichiers nécessaires à sa
-  compilation
-- [`check_fonts()`](https://ofceweb.github.io/ofceweb/reference/check_fonts.md)
-  : Vérifie (et installe) les polices Google utilisées par les thèmes
-  OFCE
-- [`font_installed()`](https://ofceweb.github.io/ofceweb/reference/font_installed.md)
-  : Teste la présence de familles de polices sur le système
-- [`install_fonts()`](https://ofceweb.github.io/ofceweb/reference/install_fonts.md)
-  : Installe des polices Google

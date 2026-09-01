@@ -15,8 +15,6 @@ preview_qmd(
   as_job = FALSE,
   ...
 )
-
-preview_qmd_staging(daemon = TRUE, ...)
 ```
 
 ## Arguments
@@ -58,9 +56,3 @@ via \[quarto::quarto_inspect()\] :
 
 3.  Sans projet détecté ou sans \`output-dir\` configuré, le serveur
     pointe sur le dossier du \`.qmd\` lui-même.
-
-## Functions
-
-- `preview_qmd_staging()`: Raccourci pour \`preview_qmd(profile =
-  "staging")\`. Lance la prévisualisation du document \`.qmd\` actif
-  avec le profil Quarto \`"staging"\`, sans autre paramètre à préciser.

@@ -170,10 +170,8 @@
   [`render_prev()`](https://ofceweb.github.io/ofceweb/reference/render_prev.md),
   [`stage_prev()`](https://ofceweb.github.io/ofceweb/reference/stage_prev.md),
   [`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md)
-  et
-  [`render_prev_publish()`](https://ofceweb.github.io/ofceweb/reference/render_prev_publish.md)
-  (et l’appel à `check_repo_status()`) : le rendu Quarto ne dépend pas
-  de l’état du dépôt git, comme pour
+  et `render_prev_publish()` (et l’appel à `check_repo_status()`) : le
+  rendu Quarto ne dépend pas de l’état du dépôt git, comme pour
   [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md).
 
 - Nouveau diagnostic de connexion GitHub (`gh::gh("GET /user")`,
@@ -647,8 +645,7 @@ chemin FTP numéroté. Cela ferme deux failles de sécurité de la Phase 1
 - [`prev_version_up()`](https://ofceweb.github.io/ofceweb/reference/prev_version_up.md)
   — incrémente la version staging dans `_quarto-staging.yml` et met à
   jour `FTP_STAGING_DIR`.
-- [`render_prev_publish()`](https://ofceweb.github.io/ofceweb/reference/render_prev_publish.md)
-  — dépréciée, redirige vers
+- `render_prev_publish()` — dépréciée, redirige vers
   [`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md).
 
 ### Templates et ressources

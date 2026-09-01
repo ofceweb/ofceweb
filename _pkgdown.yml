@@ -58,7 +58,6 @@ reference:
   - push_prev_staging_redirect
   - render_prev_publish
   - preview_qmd
-  - preview_qmd_staging
 
 - title: Working papers
   desc: >

@@ -141,15 +141,6 @@ preview_qmd <- function(profile = NULL,
 }
 
 
-#' @describeIn preview_qmd Raccourci pour `preview_qmd(profile = "staging")`.
-#'   Lance la prévisualisation du document `.qmd` actif avec le profil Quarto
-#'   `"staging"`, sans autre paramètre à préciser.
-#' @export
-preview_qmd_staging <- function(daemon = TRUE, ...) {
-  preview_qmd(profile = "staging", daemon = daemon, ...)
-}
-
-
 # Remonte l'arborescence depuis le dossier du fichier à la recherche d'un
 # _quarto.yml. Renvoie le chemin absolu de la racine ou NULL si introuvable.
 .find_quarto_root <- function(file_path) {

@@ -156,7 +156,11 @@ Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 
 - **Brouillon** (`wp: null`) → `quarto publish gh-pages` (publie sur
   `ofce.github.io/{repo}/`) ou pousse en staging sur le site de l’ofce à
-  l’adresse `staging.ofce.fr/{repo}/{version}/`.
+  l’adresse `staging.ofce.fr/{repo}/{version}/`. Sur cette page staging,
+  le bandeau « Version préliminaire » complète automatiquement son texte
+  avec un compteur de déploiement (« · déploiement n°N »), tiré de
+  `github.run_number` à chaque exécution de `ftp_stage.yml` —
+  indépendant du numéro de `version` (`v0`, `v1`, …).
 - **Publié** (`wp: N`) →
   [`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
   vers `site-deploy`, puis le workflow FTP transfère vers

@@ -368,6 +368,13 @@ avant un embargo) :</p>
 GitHub <code>FTP_STAGING_DIR</code>. Le prochain déploiement staging
 atterrira dans un nouveau sous-dossier, laissant la version précédente
 intacte sur le FTP.</p>
+<p>Indépendamment de ce numéro de version, le bandeau « Version
+préliminaire » affiché sur les pages staging complète automatiquement
+son texte avec un compteur de déploiement (« · déploiement n°N »), tiré
+de <code>github.run_number</code> à chaque exécution de
+<code>ftp_deploy_staging.yml</code> — utile pour repérer si la dernière
+mise à jour a bien été poussée, sans avoir à changer
+<code>v0</code>/<code>v1</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="récapitulatif">8. Récapitulatif<a class="anchor" aria-label="anchor" href="#r%C3%A9capitulatif"></a>

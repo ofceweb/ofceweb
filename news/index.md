@@ -2,6 +2,23 @@
 
 ## ofceweb v0.10.6 (development)
 
+### Compteur de déploiement dans le bandeau « Version préliminaire »
+
+- Les workflows de staging (`ftp_deploy_staging.yml` pour les
+  prévisions, `ftp_stage.yml` pour les WPs) écrivent désormais
+  `push-count.json` (`{"count": <github.run_number>, ...}`) à la racine
+  du site déployé, à chaque exécution.
+- Le bandeau « Version préliminaire ($`version`$) » (extensions `ofce`
+  et `wp` de `ofce-quarto-extensions`) lit ce fichier côté client et
+  complète le bandeau avec « · déploiement n°N » — sans changer le
+  numéro de `version` ni le `site-path` (l’URL staging reste stable).
+  Absent du fichier (ex. pages publiées, pas de bandeau), le bandeau
+  reste inchangé.
+- Nécessite une mise à jour des extensions Quarto OFCE
+  (`ofce::setup_quarto()` / relancer
+  [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)/[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md))
+  et un nouveau rendu pour prendre effet.
+
 ### Redirection stable pour les prévisions en staging
 
 - Nouvelle fonction

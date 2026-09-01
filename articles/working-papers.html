@@ -283,7 +283,12 @@ Actions)</li>
 <strong>Brouillon</strong> (<code>wp: null</code>) →
 <code>quarto publish gh-pages</code> (publie sur
 <code>ofce.github.io/{repo}/</code>) ou pousse en staging sur le site de
-l’ofce à l’adresse <code>staging.ofce.fr/{repo}/{version}/</code>.</li>
+l’ofce à l’adresse <code>staging.ofce.fr/{repo}/{version}/</code>. Sur
+cette page staging, le bandeau « Version préliminaire » complète
+automatiquement son texte avec un compteur de déploiement (« ·
+déploiement n°N »), tiré de <code>github.run_number</code> à chaque
+exécution de <code>ftp_stage.yml</code> — indépendant du numéro de
+<code>version</code> (<code>v0</code>, <code>v1</code>, …).</li>
 <li>
 <strong>Publié</strong> (<code>wp: N</code>) →
 <code><a href="../reference/site2branch.html">site2branch()</a></code> vers <code>site-deploy</code>, puis le

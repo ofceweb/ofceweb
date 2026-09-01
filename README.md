@@ -17,13 +17,15 @@ Le package couvre les usages de plusieurs types d'utilisateurs.
 
 Le principe est d'avoir le document de travail dans un repo github, sur son compte personnel ou dans l'organisation OFCE.
 
-Le format du repo est assez libre, un _template_ est proposé, avec quelques éléments obligatoires pour la publication. Le _template_ est implémenté par `setup_wp()`, fonction non destructive qui préserve ce qui est déjà mis en place (yaml, fichiers). `check_wp()` diagnostique l'installation et pointe vers les problèmes non bloquants ou bloquants. 
+Le format du repo est assez libre, un _template_ est proposé, avec quelques éléments obligatoires pour la publication. Le _template_ est implémenté par `setup_wp()`, fonction non destructive qui préserve ce qui est déjà mis en place (yaml, fichiers). `check_wp()` diagnostique l'installation et pointe vers les problèmes non bloquants ou bloquants. `setup_wp()` peut être exécuté autant de fois que l'on veut.
 
-Tant que le document de travail est en phase _staging_, il est servi par github.com (`gh-pages`). Il est possible de le crypter afin d'en limiter l'accès à un public choisi. La mise en place du cryptage est faite par `encrypt_site()` et le cryptage est enlevé par `remove_encrypt()`. Pour le cryptage, il faut définir un mot de passe **qui ne doit pas être en clair dans le repo**. Pensez à utiliser `usethis::edit_r_environ()` pour définir une variable contenant le mot de passe ou assurez vous que le mot de passe est dans un fichier dans `.gitignore`.
+Tant que le document de travail est en phase _staging_, il est servi par github.com (`gh-pages`) ou sur le site `staging.ofce.fr`. Il est possible de le crypter afin d'en limiter l'accès à un public choisi. La mise en place du cryptage est faite par `encrypt_site()` et le cryptage est enlevé par `remove_encrypt()`. Pour le cryptage, il faut définir un mot de passe qui est sur `github.com`.
 
-La publication suppose la validation. il faut alors enlever le cryptage, définir un numéro de document de travail et le publier sur le site de l'OFCE. Cela suppose que les identifiants d'accès au site ftp de l'OFCE sont remplis. C'est automatique sur l'organisation OFCE sur github.com. Sinon, il faut demander à un administrateur de renseigner les secrets github sur le repo qui contient le document de travail.
+La publication suppose la validation. Celle-ci passe par la fonction `wp_registry_request()` et une validation par un administrateur. La validation est à la fois éditoriale et technique. Une fois validé, le numéro du document de travail est renseigné dasn un registre central sésame pour la mise en ligne. En exécutant `setup_wp()` la vérification est faite. La fonction `publish()` exécute également cette vérification. 
 
-Le document de travail peut être versionné, les différentes versions peuvent être conservées, une url stable est toujours disponible (www.ofce.fr/wp/{YYYY}/{NNN}) pour le document de travail de l'OFCE n°YYYY-NNN. L'url stable pointe vers la dernière version poussée sur le site.
+Pour être stagé ou publié sur le site de l'OFCE, la propriété du document de travail doit être transférée à l'organisation OFCE sur github.com (settings->Danger Zone->Transfer ownership sur github.com). Lors de son transfert, le dépôt doit être renommé. La convention de nommage est `wp-{initiales de l'auteur}-{nom court}`, le tout en MINUSCULES. Par exemple : `wp-xt-travail`.
+
+Le document de travail peut être versionné quand il est hébergé sur `staging.ofce.fr` ou `www.ofce.fr/wp`. Les différentes versions peuvent être conservées, une url stable est toujours disponible (www.ofce.fr/wp/{YYYY}/{NNN}) pour le document de travail de l'OFCE n°YYYY-NNN ou (staging.ofce.fr/{repo}/. L'url stable pointe vers la dernière version poussée sur le site. 
 
 Une fois le document de travail validé, les auteurs peuvent modifier le document de travail librement. En cas d'abus, cet accès peut être retiré.
 

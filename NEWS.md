@@ -1,4 +1,31 @@
-## ofceweb v0.10.6 (development)
+## ofceweb v0.10.7
+
+### `wp_registry_request()` : ouverture de PR via fork personnel
+
+* `wp_registry_request()` n'exige plus que l'auteur·e soit
+  collaborateur·rice avec droit d'écriture sur `ofceweb/wp-registry` :
+  la fonction crée (ou réutilise) désormais un **fork personnel** du
+  registre sous le compte GitHub associé au token utilisé, y pousse la
+  branche `request/{annee}/{wp}`, puis ouvre une pull request
+  **cross-repo** (`head = "{login}:{branche}"`) contre
+  `ofceweb/wp-registry`. Auparavant, la fonction poussait directement sur
+  `ofceweb/wp-registry`, ce qui échouait (`git push`, code 128 — *not
+  allowed to push*) pour tout·e auteur·e membre de l'organisation `ofce`
+  mais non ajouté·e comme collaborateur·rice sur le dépôt registre.
+* Ce changement aligne le comportement de la fonction sur le modèle de
+  gouvernance documenté (`note-equipe-publication-wp.md`) : seule la
+  **fusion** d'une PR dans `wp-registry` doit être protégée (branch
+  protection + `CODEOWNERS`), pas l'ouverture d'une PR.
+* Le login GitHub associé au token (`DEPLOY_PAT` ou identifiants
+  `gitcreds`) devient obligatoire pour ouvrir une PR (le fork vit sous ce
+  compte) ; il reste optionnel en mode `dry_run`, qui ne fait aucun appel
+  réseau vers le fork.
+* La sortie (`stdout`/`stderr`) de l'étape `git push` est désormais
+  capturée et affichée en cas d'échec, au lieu d'être silencieusement
+  ignorée — pour diagnostiquer plus facilement une future erreur de push.
+* Documentation : nouvelle section `@details` dans `wp_registry_request()`
+  décrivant le flux fork → push → PR cross-repo, et paragraphe
+  correspondant ajouté à la vignette `working-papers.Rmd`.
 
 ### Compteur de déploiement dans le bandeau « Version préliminaire »
 

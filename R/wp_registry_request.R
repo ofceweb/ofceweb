@@ -11,6 +11,46 @@
 #' `site-path`/`citation.*` depuis l'entrée confirmée, pour basculer du
 #' mode staging au mode publication.
 #'
+#' @details
+#' # Flux via fork
+#'
+#' L'ouverture de la PR passe par un **fork personnel** de
+#' `ofceweb/wp-registry`, créé (ou réutilisé s'il existe déjà) sous le
+#' compte GitHub associé au token utilisé — jamais par un push direct sur
+#' `ofceweb/wp-registry` lui-même :
+#'
+#' 1.  Résolution du login GitHub (`GET /user`) associé au token
+#'     (`DEPLOY_PAT` ou identifiants `gitcreds`).
+#' 2.  Vérification de l'existence d'un fork sous ce login
+#'     (`GET /repos/{login}/wp-registry`) ; sinon, création
+#'     (`POST /repos/ofceweb/wp-registry/forks`) et attente (jusqu'à
+#'     20 s) que GitHub le rende clonable.
+#' 3.  Clonage du fork, resynchronisation avec `upstream/main` (le fork
+#'     peut avoir pris du retard depuis sa création), puis création de la
+#'     branche `request/{annee}/{wp}` avec l'entrée proposée.
+#' 4.  Push de cette branche vers le fork (pas vers `ofceweb/wp-registry`).
+#' 5.  Ouverture d'une pull request **cross-repo** (`head =
+#'     "{login}:{branche}"`) contre `ofceweb/wp-registry`.
+#'
+#' Ce choix est déterminé par le modèle de gouvernance du registre (voir
+#' la note d'équipe `note-equipe-publication-wp.md`) : seule la
+#' **fusion** d'une PR dans `wp-registry` doit être protégée
+#' (branch protection + `CODEOWNERS` côté GitHub), pas l'ouverture d'une
+#' PR — n'importe quel·le auteur·e de l'organisation `ofce` doit pouvoir
+#' demander un numéro sans être collaborateur·rice avec droit d'écriture
+#' sur `wp-registry`. Un push direct exigerait ce droit d'écriture pour
+#' chaque auteur·e, ce qui n'est ni souhaitable (élargit inutilement les
+#' droits d'accès à l'infrastructure du registre) ni cohérent avec ce
+#' modèle. Le fork suit le flux standard de contribution externe sur
+#' GitHub : n'importe quel compte authentifié peut forker un dépôt
+#' public, sans droit d'écriture préalable sur celui-ci.
+#'
+#' Conséquence pratique : le token utilisé (`DEPLOY_PAT` ou identifiants
+#' `gitcreds`) doit au minimum permettre de résoudre `GET /user` et de
+#' forker un dépôt public — ce que n'importe quel PAT `repo`/`public_repo`
+#' d'un compte authentifié satisfait, sans configuration particulière côté
+#' `ofceweb/wp-registry`.
+#'
 #' @param path Chemin vers la racine du dépôt WP local. Défaut `"."`.
 #' @param annee Entier. Année du WP. Défaut : `annee` dans `_quarto.yml`
 #'   si présent, sinon l'année courante.
@@ -35,7 +75,7 @@
 #' @importFrom cli cli_h1 cli_h2 cli_abort cli_alert_success cli_alert_warning cli_alert_info cli_text cli_verbatim
 #' @importFrom yaml read_yaml
 #' @importFrom jsonlite fromJSON toJSON read_json
-#' @importFrom gert git_clone git_branch_create git_add git_commit git_signature
+#' @importFrom gert git_clone git_branch_create git_add git_commit git_signature git_remote_add git_fetch git_reset_hard
 #' @importFrom httr2 request req_url_path req_auth_bearer_token req_headers req_body_json req_perform resp_status resp_body_json
 #' @export
 wp_registry_request <- function(
@@ -139,6 +179,10 @@ wp_registry_request <- function(
   }
 
   # ---- 6. Token GitHub + login ---------------------------------------------
+  # Reste tol\u00e9rant ici (avertissement + NA) : ce login n'est qu'informatif
+  # pour l'entr\u00e9e propos\u00e9e et le mode `dry_run`, qui ne doivent pas exiger
+  # de r\u00e9seau fonctionnel. Il devient obligatoire plus loin (\u00e9tape 8), une
+  # fois qu'on sait qu'on va r\u00e9ellement pousser sur un fork sous ce login.
   token <- .registry_gh_token()
 
   registered_by <- tryCatch({
@@ -178,16 +222,87 @@ wp_registry_request <- function(
     return(invisible(list(entry = new_entry, pr_url = NULL)))
   }
 
-  # ---- 8. Clonage du registre dans un dossier temporaire ------------------
+  # ---- 8. Fork sous le compte de l'appelant --------------------------------
+  # Pousser directement sur `registry_repo` exigerait que chaque auteur·e
+  # soit collaborateur·rice avec droit d'\u00e9criture sur `wp-registry` — ce
+  # qui contredit le mod\u00e8le documente (seule la fusion doit \u00eatre prot\u00e9g\u00e9e,
+  # pas l'ouverture de PR). On passe donc par un fork personnel, standard
+  # pour les contributions externes sur GitHub : n'importe quel compte
+  # authentifi\u00e9 peut forker un d\u00e9p\u00f4t public, sans droit d'\u00e9criture pr\u00e9alable.
+  #
+  # Le login est maintenant obligatoire : le fork vit sous ce compte.
+  if (is.na(registered_by))
+    cli::cli_abort(c(
+      "Impossible de r\u00e9soudre le login GitHub associ\u00e9 au token.",
+      "i" = "Le fork n\u00e9cessaire \u00e0 l'ouverture de la PR vit sous ce compte \\
+             \u2014 v\u00e9rifier {.envvar DEPLOY_PAT} ou les identifiants \\
+             {.pkg gitcreds}."
+    ))
+
+  registry_name <- strsplit(registry_repo, "/", fixed = TRUE)[[1L]][[2L]]
+  fork_slug     <- sprintf("%s/%s", registered_by, registry_name)
+
+  fork_exists <- tryCatch({
+    httr2::request("https://api.github.com") |>
+      httr2::req_url_path(sprintf("/repos/%s", fork_slug)) |>
+      httr2::req_auth_bearer_token(token) |>
+      httr2::req_error(is_error = \(r) FALSE) |>
+      httr2::req_perform() |>
+      httr2::resp_status() |>
+      identical(200L)
+  }, error = function(e) FALSE)
+
+  if (!fork_exists) {
+    cli::cli_alert_info(
+      "Cr\u00e9ation d'un fork de {.val {registry_repo}} sous @{registered_by}...")
+    httr2::request("https://api.github.com") |>
+      httr2::req_url_path(sprintf("/repos/%s/forks", registry_repo)) |>
+      httr2::req_auth_bearer_token(token) |>
+      httr2::req_headers(
+        Accept                 = "application/vnd.github+json",
+        `X-GitHub-Api-Version` = "2022-11-28"
+      ) |>
+      httr2::req_perform()   # 202 Accepted — cr\u00e9ation asynchrone
+
+    # GitHub provisionne le fork de mani\u00e8re asynchrone : un 202 ne garantit
+    # pas qu'il soit d\u00e9j\u00e0 clonable. On patiente jusqu'\u00e0 10 x 2s.
+    fork_ready <- FALSE
+    for (i in 1:10) {
+      Sys.sleep(2)
+      status <- tryCatch({
+        httr2::request("https://api.github.com") |>
+          httr2::req_url_path(sprintf("/repos/%s", fork_slug)) |>
+          httr2::req_auth_bearer_token(token) |>
+          httr2::req_error(is_error = \(r) FALSE) |>
+          httr2::req_perform() |>
+          httr2::resp_status()
+      }, error = function(e) 0L)
+      if (identical(status, 200L)) { fork_ready <- TRUE; break }
+    }
+    if (!fork_ready)
+      cli::cli_abort(
+        "Le fork {.val {fork_slug}} n'est pas devenu disponible \\
+         \u00e0 temps \u2014 r\u00e9essayer dans quelques instants.")
+  }
+
+  # ---- 9. Clonage du fork dans un dossier temporaire -----------------------
   tmp <- fs::path(tempdir(),
                   paste0("wp-registry-", format(Sys.time(), "%Y%m%d%H%M%S")))
   on.exit(try(fs::dir_delete(tmp), silent = TRUE), add = TRUE)
 
   registry_https <- sprintf("https://github.com/%s.git", registry_repo)
-  cli::cli_alert_info("Clonage de {.val {registry_repo}}...")
-  gert::git_clone(url = registry_https, path = tmp, verbose = FALSE)
+  fork_https      <- sprintf("https://github.com/%s.git", fork_slug)
+  cli::cli_alert_info("Clonage du fork {.val {fork_slug}}...")
+  gert::git_clone(url = fork_https, path = tmp, verbose = FALSE)
 
-  # ---- 9. Modification de wp/{annee}.json et wp/index.json -----------------
+  # Le fork peut avoir pris du retard sur l'upstream entre sa cr\u00e9ation et
+  # cette demande : on le resynchronise avant de brancher, pour que la PR
+  # ne contienne qu'un diff propre par rapport \u00e0 `main`.
+  gert::git_remote_add(url = registry_https, name = "upstream", repo = tmp)
+  gert::git_fetch(remote = "upstream", repo = tmp, verbose = FALSE)
+  gert::git_reset_hard(ref = "upstream/main", repo = tmp)
+
+  # ---- 10. Modification de wp/{annee}.json et wp/index.json ----------------
   wp_dir <- fs::path(tmp, "wp")
   fs::dir_create(wp_dir, recurse = TRUE)
 
@@ -217,7 +332,7 @@ wp_registry_request <- function(
     index_path
   )
 
-  # ---- 10. Branche, commit, push -------------------------------------------
+  # ---- 11. Branche, commit, push vers le FORK -------------------------------
   branch_name <- sprintf("request/%d/%d", annee, wp)
   gert::git_branch_create(branch = branch_name, repo = tmp, checkout = TRUE)
   gert::git_add(c(sprintf("wp/%d.json", annee), "wp/index.json"), repo = tmp)
@@ -225,28 +340,33 @@ wp_registry_request <- function(
     message = sprintf("request: %d/%d \u2014 %s", annee, wp, source_repo),
     repo    = tmp,
     author  = gert::git_signature(
-      name  = registered_by %||% source_repo,
+      name  = registered_by,
       email = contact
     )
   )
 
+  # Le push cible le fork (sous le compte de l'appelant), pas `registry_repo`
+  # directement : n'importe quel token authentifi\u00e9 y a les droits d'\u00e9criture,
+  # sans devoir \u00eatre collaborateur·rice sur `wp-registry` lui-m\u00eame.
   push_url <- sub("https://",
                   sprintf("https://x-access-token:%s@", token),
-                  registry_https)
-  push_ret <- system2(
+                  fork_https)
+  push_out <- suppressWarnings(system2(
     "git",
     c("-C", shQuote(tmp),
       "-c", "credential.helper=",
       "push", push_url,
       sprintf("HEAD:refs/heads/%s", branch_name)),
-    stdout = FALSE, stderr = FALSE
-  )
-  if (!identical(push_ret, 0L))
-    cli::cli_abort(
-      "git push a \u00e9chou\u00e9 (code {push_ret}). \\
-       V\u00e9rifier que le token a les droits {.code repo} sur {.val {registry_repo}}.")
+    stdout = TRUE, stderr = TRUE
+  ))
+  push_status <- attr(push_out, "status") %||% 0L
+  if (!identical(push_status, 0L))
+    cli::cli_abort(c(
+      "git push vers le fork {.val {fork_slug}} a \u00e9chou\u00e9 (code {push_status}).",
+      "x" = paste(push_out, collapse = "\n")
+    ))
 
-  # ---- 11. Ouverture de la PR ----------------------------------------------
+  # ---- 12. Ouverture de la PR (cross-repo, depuis le fork) ------------------
   pr_title <- sprintf(
     "Enregistrement WP %d/%d \u2014 %s", annee, wp, source_repo)
   pr_body <- paste0(
@@ -257,14 +377,17 @@ wp_registry_request <- function(
     sprintf("| `type` | repo |\n"),
     sprintf("| `source-repo` | `%s` |\n", source_repo),
     sprintf("| `contact` | %s |\n", contact),
-    sprintf("| `registered-by` | %s |\n",
-            if (!is.na(registered_by)) registered_by else "_(non r\u00e9solu)_"),
+    sprintf("| `registered-by` | %s |\n", registered_by),
     if (new_year) sprintf(
       "\n_Premi\u00e8re demande pour %d : cr\u00e9e `wp/%d.json` et met \u00e0 jour `wp/index.json`._\n",
       annee, annee) else "",
-    "\n_Ouvert automatiquement par `ofceweb::wp_registry_request()`._"
+    sprintf(
+      "\n_Ouvert automatiquement par `ofceweb::wp_registry_request()` depuis le fork `%s`._",
+      fork_slug)
   )
 
+  # `head` au format "owner:branch" : c'est ce qui fait de la PR une PR
+  # cross-repo depuis le fork, plut\u00f4t qu'une branche du d\u00e9p\u00f4t cible.
   pr_resp <- httr2::request("https://api.github.com") |>
     httr2::req_url_path(sprintf("/repos/%s/pulls", registry_repo)) |>
     httr2::req_auth_bearer_token(token) |>
@@ -274,7 +397,7 @@ wp_registry_request <- function(
     ) |>
     httr2::req_body_json(list(
       title = pr_title,
-      head  = branch_name,
+      head  = sprintf("%s:%s", registered_by, branch_name),
       base  = "main",
       body  = pr_body
     )) |>

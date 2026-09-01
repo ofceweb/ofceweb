@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,15 +39,25 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.10.6" id="ofceweb-v0106-development">ofceweb v0.10.6 (development)<a class="anchor" aria-label="anchor" href="#ofceweb-v0106-development"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.10.7" id="ofceweb-v0107">ofceweb v0.10.7<a class="anchor" aria-label="anchor" href="#ofceweb-v0107"></a></h2>
 <div class="section level3">
-<h3 id="compteur-de-déploiement-dans-le-bandeau--version-préliminaire--0-10-6">Compteur de déploiement dans le bandeau « Version préliminaire »<a class="anchor" aria-label="anchor" href="#compteur-de-d%C3%A9ploiement-dans-le-bandeau--version-pr%C3%A9liminaire--0-10-6"></a></h3>
+<h3 id="wp_registry_request--ouverture-de-pr-via-fork-personnel-0-10-7">
+<code>wp_registry_request()</code> : ouverture de PR via fork personnel<a class="anchor" aria-label="anchor" href="#wp_registry_request--ouverture-de-pr-via-fork-personnel-0-10-7"></a></h3>
+<ul><li>
+<code><a href="../reference/wp_registry_request.html">wp_registry_request()</a></code> n’exige plus que l’auteur·e soit collaborateur·rice avec droit d’écriture sur <code>ofceweb/wp-registry</code> : la fonction crée (ou réutilise) désormais un <strong>fork personnel</strong> du registre sous le compte GitHub associé au token utilisé, y pousse la branche <code>request/{annee}/{wp}</code>, puis ouvre une pull request <strong>cross-repo</strong> (<code>head = "{login}:{branche}"</code>) contre <code>ofceweb/wp-registry</code>. Auparavant, la fonction poussait directement sur <code>ofceweb/wp-registry</code>, ce qui échouait (<code>git push</code>, code 128 — <em>not allowed to push</em>) pour tout·e auteur·e membre de l’organisation <code>ofce</code> mais non ajouté·e comme collaborateur·rice sur le dépôt registre.</li>
+<li>Ce changement aligne le comportement de la fonction sur le modèle de gouvernance documenté (<code>note-equipe-publication-wp.md</code>) : seule la <strong>fusion</strong> d’une PR dans <code>wp-registry</code> doit être protégée (branch protection + <code>CODEOWNERS</code>), pas l’ouverture d’une PR.</li>
+<li>Le login GitHub associé au token (<code>DEPLOY_PAT</code> ou identifiants <code>gitcreds</code>) devient obligatoire pour ouvrir une PR (le fork vit sous ce compte) ; il reste optionnel en mode <code>dry_run</code>, qui ne fait aucun appel réseau vers le fork.</li>
+<li>La sortie (<code>stdout</code>/<code>stderr</code>) de l’étape <code>git push</code> est désormais capturée et affichée en cas d’échec, au lieu d’être silencieusement ignorée — pour diagnostiquer plus facilement une future erreur de push.</li>
+<li>Documentation : nouvelle section <code>@details</code> dans <code><a href="../reference/wp_registry_request.html">wp_registry_request()</a></code> décrivant le flux fork → push → PR cross-repo, et paragraphe correspondant ajouté à la vignette <code>working-papers.Rmd</code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="compteur-de-déploiement-dans-le-bandeau--version-préliminaire--0-10-7">Compteur de déploiement dans le bandeau « Version préliminaire »<a class="anchor" aria-label="anchor" href="#compteur-de-d%C3%A9ploiement-dans-le-bandeau--version-pr%C3%A9liminaire--0-10-7"></a></h3>
 <ul><li>Les workflows de staging (<code>ftp_deploy_staging.yml</code> pour les prévisions, <code>ftp_stage.yml</code> pour les WPs) écrivent désormais <code>push-count.json</code> (<code>{"count": &lt;github.run_number&gt;, ...}</code>) à la racine du site déployé, à chaque exécution.</li>
 <li>Le bandeau « Version préliminaire (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mi>e</mi><mi>r</mi><mi>s</mi><mi>i</mi><mi>o</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">version</annotation></semantics></math>) » (extensions <code>ofce</code> et <code>wp</code> de <code>ofce-quarto-extensions</code>) lit ce fichier côté client et complète le bandeau avec « · déploiement n°N » — sans changer le numéro de <code>version</code> ni le <code>site-path</code> (l’URL staging reste stable). Absent du fichier (ex. pages publiées, pas de bandeau), le bandeau reste inchangé.</li>
 <li>Nécessite une mise à jour des extensions Quarto OFCE (<code>ofce::setup_quarto()</code> / relancer <code><a href="../reference/setup_prev.html">setup_prev()</a></code>/<code><a href="../reference/setup_wp.html">setup_wp()</a></code>) et un nouveau rendu pour prendre effet.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="redirection-stable-pour-les-prévisions-en-staging-0-10-6">Redirection stable pour les prévisions en staging<a class="anchor" aria-label="anchor" href="#redirection-stable-pour-les-pr%C3%A9visions-en-staging-0-10-6"></a></h3>
+<h3 id="redirection-stable-pour-les-prévisions-en-staging-0-10-7">Redirection stable pour les prévisions en staging<a class="anchor" aria-label="anchor" href="#redirection-stable-pour-les-pr%C3%A9visions-en-staging-0-10-7"></a></h3>
 <ul><li>Nouvelle fonction <code><a href="../reference/push_prev_staging_redirect.html">push_prev_staging_redirect()</a></code> : génère et déploie une page de redirection stable pour les prévisions en staging (<code>staging.ofce.fr/{prev_id}/</code>), analogues aux redirections existantes pour les WP en publication (<code>www.ofce.fr/wp/{annee}/{wp}/</code>) et les prévisions publiées (<code>www.ofce.fr/prev/derniere/</code>). Cela permet une URL stable quand plusieurs versions de la prévision existent en staging (v0, v1, v2, …), toujours pointant vers la dernière.</li>
 <li>Nouveau workflow <code>ftp_redirect_staging.yml</code> : déploie la redirection staging via FTP sur la branche <code>site-staging-redirect</code> (séparée du contenu en <code>site-staging</code>).</li>
 <li>
@@ -55,7 +65,7 @@
 <li>Mise à jour de <code>AGENTS.md</code> : documentation de <code>FTP_STAGING_REDIRECT_DIR</code>, branche <code>site-staging-redirect</code> et architecture des redirections staging.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="correctif--redirection-staging-auto-référente--url-doublée-sur-dépôts-non-migrés-0-10-6">Correctif : redirection staging auto-référente + URL doublée sur dépôts non migrés<a class="anchor" aria-label="anchor" href="#correctif--redirection-staging-auto-r%C3%A9f%C3%A9rente--url-doubl%C3%A9e-sur-d%C3%A9p%C3%B4ts-non-migr%C3%A9s-0-10-6"></a></h3>
+<h3 id="correctif--redirection-staging-auto-référente--url-doublée-sur-dépôts-non-migrés-0-10-7">Correctif : redirection staging auto-référente + URL doublée sur dépôts non migrés<a class="anchor" aria-label="anchor" href="#correctif--redirection-staging-auto-r%C3%A9f%C3%A9rente--url-doubl%C3%A9e-sur-d%C3%A9p%C3%B4ts-non-migr%C3%A9s-0-10-7"></a></h3>
 <ul><li>
 <code><a href="../reference/push_prev_staging_redirect.html">push_prev_staging_redirect()</a></code> générait une page de redirection auto-référente : la cible du méta-refresh/lien était calculée comme le répertoire <strong>parent</strong> (<code>/prev2609/</code>), identique à l’emplacement de la page de redirection elle-même — la redirection ne menait donc jamais à la version publiée. Corrigé pour utiliser une cible <strong>relative</strong> vers le sous-dossier de version (<code>v{N}/</code>, comme pour les WP via <code><a href="../reference/push_wp_redirect.html">push_wp_redirect()</a></code>), l’URL canonique restant absolue (<code>https://staging.ofce.fr/{prev_id}/v{N}/</code>).</li>
 <li>

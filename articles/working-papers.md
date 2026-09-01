@@ -192,6 +192,28 @@ wp_registry_request()
     Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
     n'attend pas la fusion (fire-and-forget).
 
+    La PR est ouverte depuis un **fork personnel** de
+    `ofceweb/wp-registry`, créé automatiquement (ou réutilisé s'il
+    existe déjà) sous le compte GitHub de l'auteur·e — jamais par un
+    push direct sur `ofceweb/wp-registry` lui-même. C'est volontaire :
+    seule la **fusion** d'une PR dans le registre est protégée
+    (branch protection + `CODEOWNERS`), pas le fait d'en ouvrir une —
+    n'importe quel·le auteur·e de l'organisation `ofce` doit pouvoir
+    demander un numéro sans être collaborateur·rice avec droit
+    d'écriture sur `wp-registry`. Cela suit le flux standard de
+    contribution externe sur GitHub (fork + PR cross-repo), plutôt que
+    d'exiger un droit d'écriture individuel sur le dépôt registre.
+
+    Prérequis : un token GitHub authentifié (`DEPLOY_PAT`, ou des
+    identifiants `gitcreds` déjà configurés) suffisant pour résoudre son
+    propre compte (`GET /user`) et forker un dépôt public — un PAT
+    classique avec la portée `repo` (ou `public_repo`) convient, sans
+    configuration particulière côté `ofceweb/wp-registry`. La première
+    invocation peut prendre quelques secondes de plus si le fork doit
+    être créé (`ofceweb/wp-registry` n'existe pas encore sous le compte
+    de l'auteur·e) : la fonction attend que GitHub le rende clonable
+    avant de continuer.
+
 2.  Une fois la PR fusionnée, relancer
     [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
     pour synchroniser `_quarto.yml` (`wp`, `annee`, `draft`,

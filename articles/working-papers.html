@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -321,6 +321,27 @@ fourni
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/wp_registry_request.html">wp_registry_request</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code>Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
 n'attend pas la fusion (fire-and-forget).</code></pre>
+<pre><code>La PR est ouverte depuis un **fork personnel** de
+`ofceweb/wp-registry`, créé automatiquement (ou réutilisé s'il
+existe déjà) sous le compte GitHub de l'auteur·e — jamais par un
+push direct sur `ofceweb/wp-registry` lui-même. C'est volontaire :
+seule la **fusion** d'une PR dans le registre est protégée
+(branch protection + `CODEOWNERS`), pas le fait d'en ouvrir une —
+n'importe quel·le auteur·e de l'organisation `ofce` doit pouvoir
+demander un numéro sans être collaborateur·rice avec droit
+d'écriture sur `wp-registry`. Cela suit le flux standard de
+contribution externe sur GitHub (fork + PR cross-repo), plutôt que
+d'exiger un droit d'écriture individuel sur le dépôt registre.
+
+Prérequis : un token GitHub authentifié (`DEPLOY_PAT`, ou des
+identifiants `gitcreds` déjà configurés) suffisant pour résoudre son
+propre compte (`GET /user`) et forker un dépôt public — un PAT
+classique avec la portée `repo` (ou `public_repo`) convient, sans
+configuration particulière côté `ofceweb/wp-registry`. La première
+invocation peut prendre quelques secondes de plus si le fork doit
+être créé (`ofceweb/wp-registry` n'existe pas encore sous le compte
+de l'auteur·e) : la fonction attend que GitHub le rende clonable
+avant de continuer.</code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li>Une fois la PR fusionnée, relancer <code><a href="../reference/setup_wp.html">setup_wp()</a></code> pour
 synchroniser <code>_quarto.yml</code> (<code>wp</code>,
@@ -329,12 +350,12 @@ synchroniser <code>_quarto.yml</code> (<code>wp</code>,
 les variables FTP (<code>FTP_SERVER_DIR</code>,
 <code>FTP_REDIRECT_DIR</code>) :</li>
 </ol>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/setup_wp.html">setup_wp</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Rendre et déployer :</li>
 </ol>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/render_wp.html">render_wp</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/deploy_wp.html">deploy_wp</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="../reference/publish_wp.html">publish_wp()</a></code> (qui enchaîne <code><a href="../reference/render_wp.html">render_wp()</a></code> et
@@ -365,11 +386,11 @@ tous les fichiers HTML avant l’envoi au serveur. Si le secret est
 absent, le déploiement s’effectue avec chiffrement en utilisant la
 valeur par défaut du mot de passe STATICRYPT_PASSWORD (voir les
 administrateurs pour cette valeur).</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Activer le chiffrement</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="ex">gh</span> secret set STATICRYPT_PASSWORD <span class="at">--repo</span> owner/mon-wp</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co"># Désactiver le chiffrement</span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="ex">gh</span> secret delete STATICRYPT_PASSWORD <span class="at">--repo</span> owner/mon-wp</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Activer le chiffrement</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="ex">gh</span> secret set STATICRYPT_PASSWORD <span class="at">--repo</span> owner/mon-wp</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># Désactiver le chiffrement</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="ex">gh</span> secret delete STATICRYPT_PASSWORD <span class="at">--repo</span> owner/mon-wp</span></code></pre></div>
 <p>Le rendu local (<code><a href="../reference/render_wp.html">render_wp()</a></code>) produit toujours du HTML en
 clair.</p>
 <hr>
@@ -377,7 +398,7 @@ clair.</p>
 <div class="section level2">
 <h2 id="incrémenter-la-version-après-une-révision">7. Incrémenter la version après une révision<a class="anchor" aria-label="anchor" href="#incr%C3%A9menter-la-version-apr%C3%A8s-une-r%C3%A9vision"></a>
 </h2>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/wp_version_up.html">wp_version_up</a></span><span class="op">(</span><span class="op">)</span>           <span class="co"># v0 -&gt; v1, v1 -&gt; v2, etc.</span></span>
 <span><span class="fu"><a href="../reference/wp_version_up.html">wp_version_up</a></span><span class="op">(</span>custom_version <span class="op">=</span> <span class="st">"v1_corr"</span><span class="op">)</span>   <span class="co"># version personnalisée</span></span></code></pre></div>
 <p><code><a href="../reference/wp_version_up.html">wp_version_up()</a></code> met à jour en cascade :</p>
@@ -393,7 +414,7 @@ clair.</p>
 <code>manifest.json</code> (via <code><a href="../reference/wp_manifest.html">wp_manifest()</a></code>)</li>
 </ol>
 <p>Après l’incrémentation, rendre et déployer à nouveau :</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/render_wp.html">render_wp</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/deploy_wp.html">deploy_wp</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <hr>
@@ -404,20 +425,20 @@ clair.</p>
 <p><code><a href="../reference/wp_manifest.html">wp_manifest()</a></code> (appelée automatiquement par
 <code><a href="../reference/render_wp.html">render_wp()</a></code>) génère <code>manifest.json</code> à la racine
 du dépôt et dans <code>_site/</code> :</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="dt">"title"</span><span class="fu">:</span> <span class="st">"Mon document de travail"</span><span class="fu">,</span></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="dt">"authors"</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span><span class="dt">"name"</span><span class="fu">:</span> <span class="st">"Prénom Nom"</span><span class="fu">,</span> <span class="dt">"affiliation"</span><span class="fu">:</span> <span class="st">"OFCE, Sciences Po Paris"</span><span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="dt">"abstract"</span><span class="fu">:</span> <span class="st">"Résumé..."</span><span class="fu">,</span></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="dt">"wp"</span><span class="fu">:</span> <span class="dv">6</span><span class="fu">,</span></span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="dt">"annee"</span><span class="fu">:</span> <span class="dv">2026</span><span class="fu">,</span></span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="dt">"version"</span><span class="fu">:</span> <span class="st">"v0"</span><span class="fu">,</span></span>
-<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>  <span class="dt">"date"</span><span class="fu">:</span> <span class="st">"2026-05-19"</span><span class="fu">,</span></span>
-<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>  <span class="dt">"date_modified"</span><span class="fu">:</span> <span class="st">"2026-05-31"</span><span class="fu">,</span></span>
-<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>  <span class="dt">"url"</span><span class="fu">:</span> <span class="st">"https://www.ofce.fr/wp/2026/6/v0/"</span><span class="fu">,</span></span>
-<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>  <span class="dt">"pdf"</span><span class="fu">:</span> <span class="st">"OFCEWP2026-6.pdf"</span><span class="fu">,</span></span>
-<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>  <span class="dt">"repo"</span><span class="fu">:</span> <span class="st">"https://github.com/ofce/mon-wp/"</span><span class="fu">,</span></span>
-<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>  <span class="dt">"lang"</span><span class="fu">:</span> <span class="st">"fr"</span></span>
-<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="dt">"title"</span><span class="fu">:</span> <span class="st">"Mon document de travail"</span><span class="fu">,</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="dt">"authors"</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span><span class="dt">"name"</span><span class="fu">:</span> <span class="st">"Prénom Nom"</span><span class="fu">,</span> <span class="dt">"affiliation"</span><span class="fu">:</span> <span class="st">"OFCE, Sciences Po Paris"</span><span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="dt">"abstract"</span><span class="fu">:</span> <span class="st">"Résumé..."</span><span class="fu">,</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="dt">"wp"</span><span class="fu">:</span> <span class="dv">6</span><span class="fu">,</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="dt">"annee"</span><span class="fu">:</span> <span class="dv">2026</span><span class="fu">,</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="dt">"version"</span><span class="fu">:</span> <span class="st">"v0"</span><span class="fu">,</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="dt">"date"</span><span class="fu">:</span> <span class="st">"2026-05-19"</span><span class="fu">,</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  <span class="dt">"date_modified"</span><span class="fu">:</span> <span class="st">"2026-05-31"</span><span class="fu">,</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="dt">"url"</span><span class="fu">:</span> <span class="st">"https://www.ofce.fr/wp/2026/6/v0/"</span><span class="fu">,</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>  <span class="dt">"pdf"</span><span class="fu">:</span> <span class="st">"OFCEWP2026-6.pdf"</span><span class="fu">,</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>  <span class="dt">"repo"</span><span class="fu">:</span> <span class="st">"https://github.com/ofce/mon-wp/"</span><span class="fu">,</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>  <span class="dt">"lang"</span><span class="fu">:</span> <span class="st">"fr"</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Ce manifeste est collecté par <code>webhome</code> via la GitHub API
 pour construire l’index des WPs de l’OFCE.</p>
 <hr>

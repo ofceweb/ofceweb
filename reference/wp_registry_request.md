@@ -66,6 +66,46 @@ wp_registry_request(
 Invisiblement, une liste avec \`entry\` (l'entrée proposée) et
 \`pr_url\` (URL de la PR ouverte, \`NULL\` en mode \`dry_run\`).
 
+## Details
+
+\# Flux via fork
+
+L'ouverture de la PR passe par un \*\*fork personnel\*\* de
+\`ofceweb/wp-registry\`, créé (ou réutilisé s'il existe déjà) sous le
+compte GitHub associé au token utilisé — jamais par un push direct sur
+\`ofceweb/wp-registry\` lui-même :
+
+1\. Résolution du login GitHub (\`GET /user\`) associé au token
+(\`DEPLOY_PAT\` ou identifiants \`gitcreds\`). 2. Vérification de
+l'existence d'un fork sous ce login (\`GET /repos/login/wp-registry\`) ;
+sinon, création (\`POST /repos/ofceweb/wp-registry/forks\`) et attente
+(jusqu'à 20 s) que GitHub le rende clonable. 3. Clonage du fork,
+resynchronisation avec \`upstream/main\` (le fork peut avoir pris du
+retard depuis sa création), puis création de la branche
+\`request/annee/wp\` avec l'entrée proposée. 4. Push de cette branche
+vers le fork (pas vers \`ofceweb/wp-registry\`). 5. Ouverture d'une pull
+request \*\*cross-repo\*\* (\`head = "login:branche"\`) contre
+\`ofceweb/wp-registry\`.
+
+Ce choix est déterminé par le modèle de gouvernance du registre (voir la
+note d'équipe \`note-equipe-publication-wp.md\`) : seule la
+\*\*fusion\*\* d'une PR dans \`wp-registry\` doit être protégée (branch
+protection + \`CODEOWNERS\` côté GitHub), pas l'ouverture d'une PR —
+n'importe quel·le auteur·e de l'organisation \`ofce\` doit pouvoir
+demander un numéro sans être collaborateur·rice avec droit d'écriture
+sur \`wp-registry\`. Un push direct exigerait ce droit d'écriture pour
+chaque auteur·e, ce qui n'est ni souhaitable (élargit inutilement les
+droits d'accès à l'infrastructure du registre) ni cohérent avec ce
+modèle. Le fork suit le flux standard de contribution externe sur GitHub
+: n'importe quel compte authentifié peut forker un dépôt public, sans
+droit d'écriture préalable sur celui-ci.
+
+Conséquence pratique : le token utilisé (\`DEPLOY_PAT\` ou identifiants
+\`gitcreds\`) doit au minimum permettre de résoudre \`GET /user\` et de
+forker un dépôt public — ce que n'importe quel PAT
+\`repo\`/\`public_repo\` d'un compte authentifié satisfait, sans
+configuration particulière côté \`ofceweb/wp-registry\`.
+
 ## See also
 
 \[setup_wp()\], \[render_wp()\], \[deploy_wp()\]

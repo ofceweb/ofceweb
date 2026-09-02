@@ -100,19 +100,19 @@ un ensemble explicite de droits (“scopes”).</p>
 <p>Deux variétés coexistent sur GitHub :</p>
 <ul>
 <li>
-<strong>Fine-grained PAT</strong> (recommandé) : portée limitée à
-des dépôts précis, permissions très granulaires, expiration
+<strong>Fine-grained PAT</strong> (complexe) : portée limitée à des
+dépôts précis, permissions très granulaires, expiration
 obligatoire.</li>
 <li>
-<strong>Classic PAT</strong> : scopes plus larges
+<strong>Classic PAT (</strong>recommandé) : scopes plus larges
 (<code>repo</code>, <code>workflow</code>, …), plus simple à créer,
 encore très utilisé.</li>
 </ul>
 <p><code>ofceweb</code> utilise deux variables d’environnement :</p>
 <table class="table">
 <colgroup>
-<col width="12%">
-<col width="87%">
+<col width="19%">
+<col width="80%">
 </colgroup>
 <thead><tr class="header">
 <th>Variable</th>
@@ -143,7 +143,24 @@ et <code>DEPLOY_PAT</code>.</p>
 <h2 id="créer-un-pat">2. Créer un PAT<a class="anchor" aria-label="anchor" href="#cr%C3%A9er-un-pat"></a>
 </h2>
 <div class="section level3">
-<h3 id="fine-grained-pat-recommandé">Fine-grained PAT (recommandé)<a class="anchor" aria-label="anchor" href="#fine-grained-pat-recommand%C3%A9"></a>
+<h3 id="classic-pat-recommandé">Classic PAT (recommandé)<a class="anchor" aria-label="anchor" href="#classic-pat-recommand%C3%A9"></a>
+</h3>
+<p>Le classic est plus simple, il est recommandé -&gt; <a href="https://github.com/settings/tokens" class="external-link uri">https://github.com/settings/tokens</a> → <em>Generate new
+token (classic)</em>.</p>
+<ol style="list-style-type: decimal">
+<li>
+<em>Note</em> : <code>ofceweb-deploy</code>. <em>Expiration</em> :
+<em>No expiration</em> si vous préférez ne pas avoir à renouveler, sinon
+une date au choix.</li>
+<li>Scopes : cocher <strong><code>repo</code></strong> (couvre push +
+lecture) et <strong><code>workflow</code></strong> (dispatcher un
+workflow).</li>
+<li>
+<em>Generate token</em> → copier la valeur.</li>
+</ol>
+</div>
+<div class="section level3">
+<h3 id="fine-grained-pat-plus-complexe">Fine-grained PAT (plus complexe)<a class="anchor" aria-label="anchor" href="#fine-grained-pat-plus-complexe"></a>
 </h3>
 <ol style="list-style-type: decimal">
 <li>Aller sur <a href="https://github.com/settings/tokens?type=beta" class="external-link uri">https://github.com/settings/tokens?type=beta</a> (ou :
@@ -191,26 +208,6 @@ souhaitez gérer le secret <code>STATICRYPT_PASSWORD</code> via
 <li>
 <strong>Copier la valeur affichée</strong> : elle ne sera plus
 jamais visible.</li>
-</ol>
-</div>
-<div class="section level3">
-<h3 id="classic-pat-fallback">Classic PAT (fallback)<a class="anchor" aria-label="anchor" href="#classic-pat-fallback"></a>
-</h3>
-<p>Si les fine-grained tokens ne sont pas approuvés par l’organisation,
-ou si vous voulez un seul token valable partout :</p>
-<ol style="list-style-type: decimal">
-<li>
-<a href="https://github.com/settings/tokens" class="external-link uri">https://github.com/settings/tokens</a> → <em>Generate new
-token (classic)</em>.</li>
-<li>
-<em>Note</em> : <code>ofceweb-deploy</code>. <em>Expiration</em> :
-<em>No expiration</em> si vous préférez ne pas avoir à renouveler, sinon
-une date au choix.</li>
-<li>Scopes : cocher <strong><code>repo</code></strong> (couvre push +
-lecture) et <strong><code>workflow</code></strong> (dispatcher un
-workflow).</li>
-<li>
-<em>Generate token</em> → copier la valeur.</li>
 </ol>
 </div>
 </div>

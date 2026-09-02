@@ -23,10 +23,10 @@ explicite de droits (“scopes”).
 
 Deux variétés coexistent sur GitHub :
 
-- **Fine-grained PAT** (recommandé) : portée limitée à des dépôts
-  précis, permissions très granulaires, expiration obligatoire.
-- **Classic PAT** : scopes plus larges (`repo`, `workflow`, …), plus
-  simple à créer, encore très utilisé.
+- **Fine-grained PAT** (complexe) : portée limitée à des dépôts précis,
+  permissions très granulaires, expiration obligatoire.
+- **Classic PAT (**recommandé) : scopes plus larges (`repo`, `workflow`,
+  …), plus simple à créer, encore très utilisé.
 
 `ofceweb` utilise deux variables d’environnement :
 
@@ -43,7 +43,18 @@ la même valeur dans `GITHUB_PAT` et `DEPLOY_PAT`.
 
 ## 2. Créer un PAT
 
-### Fine-grained PAT (recommandé)
+### Classic PAT (recommandé)
+
+Le classic est plus simple, il est recommandé -\>
+<https://github.com/settings/tokens> → *Generate new token (classic)*.
+
+1.  *Note* : `ofceweb-deploy`. *Expiration* : *No expiration* si vous
+    préférez ne pas avoir à renouveler, sinon une date au choix.
+2.  Scopes : cocher **`repo`** (couvre push + lecture) et **`workflow`**
+    (dispatcher un workflow).
+3.  *Generate token* → copier la valeur.
+
+### Fine-grained PAT (plus complexe)
 
 1.  Aller sur <https://github.com/settings/tokens?type=beta> (ou :
     avatar en haut à droite → *Settings* → *Developer settings* →
@@ -67,19 +78,6 @@ la même valeur dans `GITHUB_PAT` et `DEPLOY_PAT`.
       `STATICRYPT_PASSWORD` via `gh secret set` avec ce token).
 8.  *Generate token*.
 9.  **Copier la valeur affichée** : elle ne sera plus jamais visible.
-
-### Classic PAT (fallback)
-
-Si les fine-grained tokens ne sont pas approuvés par l’organisation, ou
-si vous voulez un seul token valable partout :
-
-1.  <https://github.com/settings/tokens> → *Generate new token
-    (classic)*.
-2.  *Note* : `ofceweb-deploy`. *Expiration* : *No expiration* si vous
-    préférez ne pas avoir à renouveler, sinon une date au choix.
-3.  Scopes : cocher **`repo`** (couvre push + lecture) et **`workflow`**
-    (dispatcher un workflow).
-4.  *Generate token* → copier la valeur.
 
 ## 3. Stocker `GITHUB_PAT` et `DEPLOY_PAT` dans l’environnement
 

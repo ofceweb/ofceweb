@@ -171,7 +171,21 @@ deploy_wp <- function(
 
   cli::cli_alert_success("WP publi\u00e9 sur gh-pages.")
 
-  gh_url <- yml$website$`site-url`
+  # `website.site-url` dans _quarto.yml n'est pas fiable ici : d\u00e8s que `wp`
+  # est assign\u00e9 (m\u00eame provisoirement, tant que `stage: TRUE`), setup_wp()
+  # y \u00e9crit toujours l'URL de production finale ("https://www.ofce.fr/"),
+  # pas l'URL GitHub Pages r\u00e9ellement servie par la commande
+  # `quarto publish gh-pages` qu'on vient d'ex\u00e9cuter. On la recalcule donc
+  # depuis le propri\u00e9taire GitHub *actuel* du d\u00e9p\u00f4t (m\u00eame logique que
+  # setup_wp(), via detect_gh_owner()) plut\u00f4t que de faire confiance \u00e0 la
+  # valeur (potentiellement p\u00e9rim\u00e9e) du fichier.
+  gh        <- detect_gh_owner(root)
+  repo_name <- if (is.na(gh$repo)) fs::path_file(root) else gh$repo
+  gh_url <- if (!is.na(gh$org)) {
+    sprintf("https://%s.github.io/%s/", gh$org, repo_name)
+  } else {
+    NULL
+  }
   if (!is.null(gh_url) && nzchar(gh_url))
     cli::cli_alert_success(
       "Disponible : {.url {sub('/$', '', gh_url)}}")

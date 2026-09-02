@@ -677,6 +677,26 @@ setup_wp <- function(
     }, error = function(e) {
       cli::cli_alert_warning("Impossible de patcher index.qmd : {conditionMessage(e)}")
     })
+
+    # format-links : le premier élément est le format PDF "de base" (moteur
+    # Quarto sous-jacent, sans le préfixe `wp-` -- p.ex. `typst` pour
+    # `wp-typst`, `pdf` pour `wp-pdf`), le second personnalise l'entrée pour
+    # le format `wp-*` effectivement actif avec le nom de fichier calculé
+    # ci-dessus. Recalculé à chaque appel pour rester synchronisé si le
+    # moteur ou le nom de fichier changent.
+    tryCatch({
+      yaml_patch_frontmatter_block(
+        dest_index,
+        "format-links",
+        list(
+          sub("^wp-", "", active_pdf_format),
+          list(format = active_pdf_format, text = pdf_output, icon = "file-pdf")
+        )
+      )
+      cli::cli_alert_success("format-links mis à jour dans {.file index.qmd}")
+    }, error = function(e) {
+      cli::cli_alert_warning("Impossible de patcher format-links dans index.qmd : {conditionMessage(e)}")
+    })
   }
 
   # ---- 11b. navbar (source centralisée du package) --------------------------

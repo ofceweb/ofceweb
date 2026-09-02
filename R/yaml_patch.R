@@ -402,3 +402,33 @@ yaml_patch_frontmatter_scalar <- function(path, key_path, value) {
   writeLines(c(before, fm, after), path)
   invisible(path)
 }
+
+#' Patch a structural value (list/sequence) inside a `.qmd`/`.Rmd` file's
+#' YAML frontmatter
+#'
+#' Like [yaml_patch_block()], but operates on the `---`-delimited
+#' frontmatter block of a file on disk: the document body, and any
+#' comments/layout in the frontmatter outside the patched key, are left
+#' untouched.
+#'
+#' @param path Path to a `.qmd`/`.Rmd` file with `---`-delimited frontmatter.
+#' @param key_path Dotted path to the key within the frontmatter.
+#' @param value An R list/vector to serialize as the new value, or `NULL`
+#'   to delete the key.
+#' @returns Invisibly, `path`.
+#' @keywords internal
+yaml_patch_frontmatter_block <- function(path, key_path, value) {
+  lines <- readLines(path, warn = FALSE)
+  delimiters <- grep("^---\\s*$", lines)
+  if (length(delimiters) < 2L)
+    stop("yaml_patch_frontmatter_block(): no YAML frontmatter delimiters found in ", path)
+
+  fm_range <- (delimiters[[1L]] + 1L):(delimiters[[2L]] - 1L)
+  fm <- if (length(fm_range) > 0L) lines[fm_range] else character(0)
+  fm <- yaml_patch_block(fm, key_path, value)
+
+  before <- lines[seq_len(delimiters[[1L]])]
+  after  <- lines[delimiters[[2L]]:length(lines)]
+  writeLines(c(before, fm, after), path)
+  invisible(path)
+}

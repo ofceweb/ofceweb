@@ -84,6 +84,47 @@ test_that("setup_wp() comments out wp-pdf (non-blocking warning) when both PDF f
   # output-file is patched on the surviving format (wp-typst), not re-added
   # under the freshly-commented-out wp-pdf key.
   expect_true(any(grepl("output-file: OFCEWP2026-5.pdf", idx_lines, fixed = TRUE)))
+  # format-links must follow the surviving engine (wp-typst), not the
+  # commented-out wp-pdf, and its `text` must match the computed
+  # output-file so the "Other Formats" link always points to the right
+  # PDF. The first (bare) entry is the underlying Quarto engine name
+  # without the `wp-` prefix.
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  links <- idx_yml$`format-links`
+  expect_true(any(vapply(links, identical, logical(1L), y = "typst")))
+  pdf_link <- links[[which(vapply(links, is.list, logical(1L)))]]
+  expect_equal(pdf_link$format, "wp-typst")
+  expect_equal(pdf_link$text, "OFCEWP2026-5.pdf")
+  expect_equal(pdf_link$icon, "file-pdf")
+})
+
+test_that("setup_wp() syncs format-links to the active PDF engine and computed output-file", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 24L,
+    annee   = 2025L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-html: default",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  links <- idx_yml$`format-links`
+  expect_true(any(vapply(links, identical, logical(1L), y = "pdf")))
+  pdf_link <- links[[which(vapply(links, is.list, logical(1L)))]]
+  expect_equal(pdf_link$format, "wp-pdf")
+  expect_equal(pdf_link$text, "OFCEWP2025-24.pdf")
+  expect_equal(pdf_link$icon, "file-pdf")
 })
 
 test_that("setup_wp() adds fig-format: png and warns when rsvg-convert is absent and wp-pdf is the sole format", {

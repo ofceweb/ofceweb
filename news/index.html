@@ -41,6 +41,14 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.8" id="ofceweb-v0108">ofceweb v0.10.8<a class="anchor" aria-label="anchor" href="#ofceweb-v0108"></a></h2>
 <div class="section level3">
+<h3 id="wp_registry_request--push-direct-sur-wp-registry-quand-lappelante-y-a-déjà-des-droits-décriture-0-10-8">
+<code>wp_registry_request()</code> : push direct sur <code>wp-registry</code> quand l’appelant·e y a déjà des droits d’écriture<a class="anchor" aria-label="anchor" href="#wp_registry_request--push-direct-sur-wp-registry-quand-lappelante-y-a-d%C3%A9j%C3%A0-des-droits-d%C3%A9criture-0-10-8"></a></h3>
+<ul><li>Corrige un bug dans <code><a href="../reference/wp_registry_request.html">wp_registry_request()</a></code> : la fonction échouait systématiquement (<code>"Le fork [...] n'est pas devenu disponible à temps"</code>, sans ouverture de PR) pour un token GitHub qui dispose déjà d’un accès en écriture sur <code>ofceweb/wp-registry</code> (ex. compte admin/maintainer du registre). GitHub refuse silencieusement de forker un dépôt vers un compte qui y a déjà accès en écriture : la demande de fork renvoie bien <code>202 Accepted</code>, mais le fork n’apparaît ensuite jamais, quel que soit le délai d’attente.</li>
+<li>
+<code><a href="../reference/wp_registry_request.html">wp_registry_request()</a></code> vérifie désormais les droits du token sur <code>registry_repo</code> (<code>GET /repos/{registry_repo}</code>, champ <code>permissions.push</code>) avant de recourir à un fork. Si l’accès en écriture est présent, la fonction travaille directement sur <code>registry_repo</code> : clonage direct (sans resynchronisation <code>upstream</code>), push de la branche <code>request/{annee}/{wp}</code> sur <code>registry_repo</code> lui-même, puis ouverture d’une pull request <strong>intra-dépôt</strong> (<code>head</code> = nom de branche seul).</li>
+<li>Pour tous les autres appelant·e·s (l’immense majorité, sans droit d’écriture sur <code>wp-registry</code>), le comportement est inchangé : flux par <strong>fork personnel</strong>, comme documenté précédemment.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="stage-target-auto-persiste-désormais-tel-quel-dans-_quartoyml-0-10-8">
 <code>stage-target: auto</code> persiste désormais tel quel dans <code>_quarto.yml</code>
 <a class="anchor" aria-label="anchor" href="#stage-target-auto-persiste-d%C3%A9sormais-tel-quel-dans-_quartoyml-0-10-8"></a></h3>

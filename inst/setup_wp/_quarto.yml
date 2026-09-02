@@ -52,6 +52,8 @@ format:
 
 ofce_wp: true
 
+stage-target: auto
+
 citation:
   type: article-journal
   container-title: "Document de travail de l'OFCE"

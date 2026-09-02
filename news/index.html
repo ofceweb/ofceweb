@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,10 +39,10 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.10.7" id="ofceweb-v0107">ofceweb v0.10.7<a class="anchor" aria-label="anchor" href="#ofceweb-v0107"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.10.8" id="ofceweb-v0108">ofceweb v0.10.8<a class="anchor" aria-label="anchor" href="#ofceweb-v0108"></a></h2>
 <div class="section level3">
-<h3 id="setup_wp--correction-de-lurl-github-pages--stage-target-sans-remote-0-10-7">
-<code>setup_wp()</code> : correction de l’URL GitHub Pages / <code>stage-target</code> sans remote<a class="anchor" aria-label="anchor" href="#setup_wp--correction-de-lurl-github-pages--stage-target-sans-remote-0-10-7"></a></h3>
+<h3 id="setup_wp--correction-de-lurl-github-pages--stage-target-sans-remote-0-10-8">
+<code>setup_wp()</code> : correction de l’URL GitHub Pages / <code>stage-target</code> sans remote<a class="anchor" aria-label="anchor" href="#setup_wp--correction-de-lurl-github-pages--stage-target-sans-remote-0-10-8"></a></h3>
 <ul><li>Corrige un bug dans <code><a href="../reference/setup_wp.html">setup_wp()</a></code> : en l’absence de remote git <code>origin</code> (nouveau dépôt local, pas encore poussé), la fonction présumait silencieusement que le dépôt appartiendrait à l’organisation <code>ofce</code>. Deux conséquences erronées en découlaient :
 <ul><li>
 <code>stage-target: auto</code> se résolvait à tort en <code>"ftp"</code> (staging OFCE) au lieu de <code>"gh-pages"</code>, pour n’importe quel nouveau dépôt local sans remote, qu’il soit destiné à <code>ofce</code> ou non ;</li>
@@ -52,8 +52,8 @@
 <li>Pour rappel, la résolution <code>stage-target: "auto"</code> (<code>"ftp"</code> pour l’organisation <code>ofce</code>, <code>"gh-pages"</code> sinon), ainsi que l’alias hérité <code>"ofce"</code> pour <code>"ftp"</code>, existaient déjà (<code>resolve_stage_target()</code>) — ce correctif ne fait que réparer leur résolution en l’absence de remote, qui n’avait jusqu’ici aucune couverture de tests.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="wp_registry_request--ouverture-de-pr-via-fork-personnel-0-10-7">
-<code>wp_registry_request()</code> : ouverture de PR via fork personnel<a class="anchor" aria-label="anchor" href="#wp_registry_request--ouverture-de-pr-via-fork-personnel-0-10-7"></a></h3>
+<h3 id="wp_registry_request--ouverture-de-pr-via-fork-personnel-0-10-8">
+<code>wp_registry_request()</code> : ouverture de PR via fork personnel<a class="anchor" aria-label="anchor" href="#wp_registry_request--ouverture-de-pr-via-fork-personnel-0-10-8"></a></h3>
 <ul><li>
 <code><a href="../reference/wp_registry_request.html">wp_registry_request()</a></code> n’exige plus que l’auteur·e soit collaborateur·rice avec droit d’écriture sur <code>ofceweb/wp-registry</code> : la fonction crée (ou réutilise) désormais un <strong>fork personnel</strong> du registre sous le compte GitHub associé au token utilisé, y pousse la branche <code>request/{annee}/{wp}</code>, puis ouvre une pull request <strong>cross-repo</strong> (<code>head = "{login}:{branche}"</code>) contre <code>ofceweb/wp-registry</code>. Auparavant, la fonction poussait directement sur <code>ofceweb/wp-registry</code>, ce qui échouait (<code>git push</code>, code 128 — <em>not allowed to push</em>) pour tout·e auteur·e membre de l’organisation <code>ofce</code> mais non ajouté·e comme collaborateur·rice sur le dépôt registre.</li>
 <li>Ce changement aligne le comportement de la fonction sur le modèle de gouvernance documenté (<code>note-equipe-publication-wp.md</code>) : seule la <strong>fusion</strong> d’une PR dans <code>wp-registry</code> doit être protégée (branch protection + <code>CODEOWNERS</code>), pas l’ouverture d’une PR.</li>
@@ -61,6 +61,9 @@
 <li>La sortie (<code>stdout</code>/<code>stderr</code>) de l’étape <code>git push</code> est désormais capturée et affichée en cas d’échec, au lieu d’être silencieusement ignorée — pour diagnostiquer plus facilement une future erreur de push.</li>
 <li>Documentation : nouvelle section <code>@details</code> dans <code><a href="../reference/wp_registry_request.html">wp_registry_request()</a></code> décrivant le flux fork → push → PR cross-repo, et paragraphe correspondant ajouté à la vignette <code>working-papers.Rmd</code>.</li>
 </ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.7" id="ofceweb-v0107">ofceweb v0.10.7<a class="anchor" aria-label="anchor" href="#ofceweb-v0107"></a></h2>
 <div class="section level3">
 <h3 id="compteur-de-déploiement-dans-le-bandeau--version-préliminaire--0-10-7">Compteur de déploiement dans le bandeau « Version préliminaire »<a class="anchor" aria-label="anchor" href="#compteur-de-d%C3%A9ploiement-dans-le-bandeau--version-pr%C3%A9liminaire--0-10-7"></a></h3>
 <ul><li>Les workflows de staging (<code>ftp_deploy_staging.yml</code> pour les prévisions, <code>ftp_stage.yml</code> pour les WPs) écrivent désormais <code>push-count.json</code> (<code>{"count": &lt;github.run_number&gt;, ...}</code>) à la racine du site déployé, à chaque exécution.</li>

@@ -41,6 +41,17 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.7" id="ofceweb-v0107">ofceweb v0.10.7<a class="anchor" aria-label="anchor" href="#ofceweb-v0107"></a></h2>
 <div class="section level3">
+<h3 id="setup_wp--correction-de-lurl-github-pages--stage-target-sans-remote-0-10-7">
+<code>setup_wp()</code> : correction de l’URL GitHub Pages / <code>stage-target</code> sans remote<a class="anchor" aria-label="anchor" href="#setup_wp--correction-de-lurl-github-pages--stage-target-sans-remote-0-10-7"></a></h3>
+<ul><li>Corrige un bug dans <code><a href="../reference/setup_wp.html">setup_wp()</a></code> : en l’absence de remote git <code>origin</code> (nouveau dépôt local, pas encore poussé), la fonction présumait silencieusement que le dépôt appartiendrait à l’organisation <code>ofce</code>. Deux conséquences erronées en découlaient :
+<ul><li>
+<code>stage-target: auto</code> se résolvait à tort en <code>"ftp"</code> (staging OFCE) au lieu de <code>"gh-pages"</code>, pour n’importe quel nouveau dépôt local sans remote, qu’il soit destiné à <code>ofce</code> ou non ;</li>
+<li>l’URL de brouillon <code>website.site-url</code> calculée pour <code>gh-pages</code> était fixée à <code>https://ofce.github.io/{repo}/</code>, ce qui est faux dès que le dépôt n’appartient pas à l’organisation OFCE.</li>
+</ul></li>
+<li>La résolution de repli utilise désormais le compte <code>gh</code> authentifié (<code>check_gh_login()</code>) comme meilleure estimation du propriétaire GitHub — au lieu de présumer <code>ofce</code>. Si ni remote ni compte <code>gh</code> authentifié ne sont disponibles, <code>website.site-url</code> n’est plus fabriquée à tort : <code><a href="../reference/setup_wp.html">setup_wp()</a></code> laisse le champ inchangé et affiche un avertissement invitant à relancer la fonction une fois un remote <code>origin</code> ajouté (ou <code>gh auth login</code> effectué).</li>
+<li>Pour rappel, la résolution <code>stage-target: "auto"</code> (<code>"ftp"</code> pour l’organisation <code>ofce</code>, <code>"gh-pages"</code> sinon), ainsi que l’alias hérité <code>"ofce"</code> pour <code>"ftp"</code>, existaient déjà (<code>resolve_stage_target()</code>) — ce correctif ne fait que réparer leur résolution en l’absence de remote, qui n’avait jusqu’ici aucune couverture de tests.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="wp_registry_request--ouverture-de-pr-via-fork-personnel-0-10-7">
 <code>wp_registry_request()</code> : ouverture de PR via fork personnel<a class="anchor" aria-label="anchor" href="#wp_registry_request--ouverture-de-pr-via-fork-personnel-0-10-7"></a></h3>
 <ul><li>

@@ -2,6 +2,34 @@
 
 ## ofceweb v0.10.7
 
+### `setup_wp()` : correction de l’URL GitHub Pages / `stage-target` sans remote
+
+- Corrige un bug dans
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  : en l’absence de remote git `origin` (nouveau dépôt local, pas encore
+  poussé), la fonction présumait silencieusement que le dépôt
+  appartiendrait à l’organisation `ofce`. Deux conséquences erronées en
+  découlaient :
+  - `stage-target: auto` se résolvait à tort en `"ftp"` (staging OFCE)
+    au lieu de `"gh-pages"`, pour n’importe quel nouveau dépôt local
+    sans remote, qu’il soit destiné à `ofce` ou non ;
+  - l’URL de brouillon `website.site-url` calculée pour `gh-pages` était
+    fixée à `https://ofce.github.io/{repo}/`, ce qui est faux dès que le
+    dépôt n’appartient pas à l’organisation OFCE.
+- La résolution de repli utilise désormais le compte `gh` authentifié
+  (`check_gh_login()`) comme meilleure estimation du propriétaire GitHub
+  — au lieu de présumer `ofce`. Si ni remote ni compte `gh` authentifié
+  ne sont disponibles, `website.site-url` n’est plus fabriquée à tort :
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  laisse le champ inchangé et affiche un avertissement invitant à
+  relancer la fonction une fois un remote `origin` ajouté (ou
+  `gh auth login` effectué).
+- Pour rappel, la résolution `stage-target: "auto"` (`"ftp"` pour
+  l’organisation `ofce`, `"gh-pages"` sinon), ainsi que l’alias hérité
+  `"ofce"` pour `"ftp"`, existaient déjà (`resolve_stage_target()`) — ce
+  correctif ne fait que réparer leur résolution en l’absence de remote,
+  qui n’avait jusqu’ici aucune couverture de tests.
+
 ### `wp_registry_request()` : ouverture de PR via fork personnel
 
 - [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md)

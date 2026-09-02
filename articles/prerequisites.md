@@ -54,6 +54,8 @@ Le classic est plus simple, il est recommandé -\>
     (dispatcher un workflow).
 3.  *Generate token* → copier la valeur.
 
+![](images/clipboard-2349015468.png)![](images/clipboard-613778951.png)![](images/clipboard-958754411.png)
+
 ### Fine-grained PAT (plus complexe)
 
 1.  Aller sur <https://github.com/settings/tokens?type=beta> (ou :
@@ -255,6 +257,24 @@ brew install gh        # macOS
 # ou : winget install --id GitHub.cli   (Windows)
 gh auth login          # suivre le prompt, HTTPS + web browser
 gh auth status         # vérification
+```
+
+## Vérification automatique
+
+[`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md),
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
+[`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
+et
+[`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
+exécutent tous un diagnostic automatique de ces pré-requis (CLI `gh`
+installé et authentifié, jeton `DEPLOY_PAT`/`gitcreds` disponible,
+identité git `user.name`/`user.email` configurée). Chaque défaut
+déclenche un simple avertissement (non bloquant) qui renvoie vers ce
+vignette :
+
+``` r
+
+nchar(Sys.getenv("DEPLOY_PAT"))   # doit être > 0
 ```
 
 Ensuite, voir [*Construire un site avec

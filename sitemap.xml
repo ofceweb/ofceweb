@@ -14,6 +14,7 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/check_fonts.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/check_prev.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/check_quarto_version.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/check_rsvg_convert.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/check_stray_ofce_extensions.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/check_wp.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/complete_wp.html</loc></url>
@@ -73,6 +74,9 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/wp_manifest.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/wp_registry_request.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/wp_version_up.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_comment_out.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_comment_out_file.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_comment_out_frontmatter.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_patch_block.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_patch_delete.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_patch_frontmatter_scalar.html</loc></url>

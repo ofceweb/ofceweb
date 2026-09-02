@@ -41,6 +41,18 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.8" id="ofceweb-v0108">ofceweb v0.10.8<a class="anchor" aria-label="anchor" href="#ofceweb-v0108"></a></h2>
 <div class="section level3">
+<h3 id="stage-target-auto-persiste-désormais-tel-quel-dans-_quartoyml-0-10-8">
+<code>stage-target: auto</code> persiste désormais tel quel dans <code>_quarto.yml</code>
+<a class="anchor" aria-label="anchor" href="#stage-target-auto-persiste-d%C3%A9sormais-tel-quel-dans-_quartoyml-0-10-8"></a></h3>
+<ul><li>Corrige un bug dans <code><a href="../reference/setup_wp.html">setup_wp()</a></code> : <code>stage-target: auto</code> était résolu une fois pour toutes en <code>"gh-pages"</code> ou <code>"ftp"</code> selon le propriétaire GitHub <em>au moment de l’appel de <code><a href="../reference/setup_wp.html">setup_wp()</a></code></em>, puis cette valeur concrète était réécrite dans <code>_quarto.yml</code> — <code>"auto"</code> ne persistait donc jamais. Un transfert ultérieur du dépôt vers (ou hors de) l’organisation <code>ofce</code> n’était alors plus pris en compte sans relancer <code><a href="../reference/setup_wp.html">setup_wp()</a></code>.</li>
+<li>
+<code><a href="../reference/setup_wp.html">setup_wp()</a></code> écrit désormais <code>"auto"</code> littéralement dans <code>_quarto.yml</code> lorsque c’est la valeur effective (par défaut pour un nouveau dépôt, ou déjà présente telle quelle dans un <code>_quarto.yml</code> existant) ; les valeurs explicites <code>"gh-pages"</code>/<code>"ftp"</code>/<code>"ofce"</code> restent, elles, écrites telles quelles (<code>"ofce"</code> normalisé en <code>"ftp"</code>).</li>
+<li>
+<code><a href="../reference/deploy_wp.html">deploy_wp()</a></code> réévalue maintenant <code>"auto"</code> à <strong>chaque déploiement</strong>, selon le propriétaire GitHub actuel du dépôt (nouvelle fonction interne partagée <code>detect_gh_owner()</code>) — au lieu de le lire comme une valeur déjà figée. Un transfert de propriété vers <code>ofce</code> (ou une fork/duplication vers un compte personnel) change donc la destination du déploiement dès le prochain <code><a href="../reference/deploy_wp.html">deploy_wp()</a></code>, sans repasser par <code><a href="../reference/setup_wp.html">setup_wp()</a></code> et sans modifier les workflows GitHub Actions.</li>
+<li>
+<code><a href="../reference/setup_wp.html">setup_wp()</a></code> continue de calculer une valeur résolue concrète (<code>gh-pages</code>/<code>ftp</code>) pour ses propres besoins internes (URL de brouillon <code>website.site-url</code>, résumé affiché en console), mais celle-ci n’est jamais celle persistée dans <code>_quarto.yml</code> quand la valeur effective est <code>"auto"</code>.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="setup_wp--correction-de-lurl-github-pages--stage-target-sans-remote-0-10-8">
 <code>setup_wp()</code> : correction de l’URL GitHub Pages / <code>stage-target</code> sans remote<a class="anchor" aria-label="anchor" href="#setup_wp--correction-de-lurl-github-pages--stage-target-sans-remote-0-10-8"></a></h3>
 <ul><li>Corrige un bug dans <code><a href="../reference/setup_wp.html">setup_wp()</a></code> : en l’absence de remote git <code>origin</code> (nouveau dépôt local, pas encore poussé), la fonction présumait silencieusement que le dépôt appartiendrait à l’organisation <code>ofce</code>. Deux conséquences erronées en découlaient :

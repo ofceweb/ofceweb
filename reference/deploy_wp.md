@@ -1,22 +1,29 @@
 # Déploie un document de travail (WP) OFCE
 
 Route le déploiement selon l' du registre (\`stage\` dans
-\`manifest.json\`) et le param \`target\` :
+\`manifest.json\`) et, avant publication, selon \`stage-target\` dans
+\`\_quarto.yml\` (positionn9 par \[setup_wp()\]) :
 
-- \*\*Publi9\*\* (\`stage: false\`) : toujours vers FTP production
-  (\`ftp_deploy.yml\`), quel que soit \`target\`.
+- \*\*Publi9\*\* (\`stage: FALSE\`) : toujours vers FTP production
+  (\`ftp_deploy.yml\`), quelle que soit la valeur de \`stage-target\`.
 
-- \*\*Non encore publi9\*\* (\`stage: true\` ou \`stage\` absent) :
-  destination choisie par \`target\` :
+- \*\*Non encore publi9\*\* (\`stage: TRUE\` ou \`stage\` absent) :
+  destination lue depuis \`stage-target\` :
 
-  - \`"auto"\` (d) : FTP staging si \`stage = TRUE\` (demande de num
-    soumise), GitHub Pages sinon.
+  - \`"auto"\` : r99 0 \*\*chaque appel\*\* de \`deploy_wp()\`, selon le
+    propri GitHub \*actuel\* du d – \`"ftp"\` (staging OFCE,
+    \`ftp_stage.yml\`, branche \`site-staging\`) pour l'organisation
+    \`ofce\`, \`"gh-pages"\` (\`quarto publish gh-pages\`) sinon.
+    \`"auto"\` est conserv9 litt dans \`\_quarto.yml\` par
+    \[setup_wp()\] – un transfert de propri9 du d vers (ou hors de)
+    \`ofce\` change donc la destination d le prochain \`deploy_wp()\`,
+    sans repasser par \[setup_wp()\].
 
   - \`"ftp"\` : FTP staging (\`ftp_stage.yml\`, branche
-    \`site-staging\`) ind de l' du registre.
+    \`site-staging\`) ind du propri actuel du d.
 
-  - \`"gh-pages"\` : GitHub Pages (\`quarto publish gh-pages\`) ind de
-    l' du registre.
+  - \`"gh-pages"\` : GitHub Pages (\`quarto publish gh-pages\`) ind du
+    propri actuel du d.
 
 ## Usage
 

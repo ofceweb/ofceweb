@@ -79,6 +79,7 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_comment_out_frontmatter.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_patch_block.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_patch_delete.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_patch_frontmatter_block.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_patch_frontmatter_scalar.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_patch_scalar.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/yaml_patch_scalar_or_delete.html</loc></url>

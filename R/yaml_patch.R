@@ -298,6 +298,83 @@ yaml_patch_block <- function(lines, path, value) {
   }
 }
 
+#' Comment out a key (and its subtree) at a dotted YAML path
+#'
+#' Prefixes every line of the key's own line and its value/subtree with
+#' `# ` (respecting each line's existing indentation), disabling it without
+#' deleting its content — a human can later restore it by removing the
+#' `# ` prefixes. No-op if `path` doesn't exist, or if its first line is
+#' already commented out.
+#'
+#' @param lines Character vector of file lines.
+#' @param path Dotted path to the key, e.g. `"format.wp-pdf"`.
+#' @returns The updated character vector of lines.
+#' @keywords internal
+yaml_comment_out <- function(lines, path) {
+  loc <- yaml_locate(lines, path)
+  if (!isTRUE(loc$found)) return(lines)
+  if (grepl("^\\s*#", lines[[loc$line]])) return(lines)  # already commented out
+
+  rng <- loc$line:loc$end
+  commented <- vapply(lines[rng], function(l) {
+    if (!nzchar(trimws(l))) return(l)
+    indent <- yaml_indent_of(l)
+    paste0(strrep(" ", indent), "# ", substring(l, indent + 1L))
+  }, character(1))
+
+  before <- if (loc$line > 1L) lines[seq_len(loc$line - 1L)] else character(0)
+  after  <- if (loc$end < length(lines)) lines[(loc$end + 1L):length(lines)] else character(0)
+  c(before, unname(commented), after)
+}
+
+#' Comment out a key inside a plain YAML file on disk
+#'
+#' Like [yaml_comment_out()], but reads/writes `path` directly — for a
+#' project-level file such as `_quarto.yml`, as opposed to a `.qmd`/`.Rmd`
+#' frontmatter block (see [yaml_comment_out_frontmatter()]).
+#'
+#' @param path Path to a plain YAML file.
+#' @param key_path Dotted path to the key.
+#' @returns Invisibly, `TRUE` if the file was changed, `FALSE` otherwise
+#'   (key absent, or already commented out).
+#' @keywords internal
+yaml_comment_out_file <- function(path, key_path) {
+  lines <- readLines(path, warn = FALSE)
+  new_lines <- yaml_comment_out(lines, key_path)
+  if (identical(lines, new_lines)) return(invisible(FALSE))
+  writeLines(new_lines, path)
+  invisible(TRUE)
+}
+
+#' Comment out a key inside a `.qmd`/`.Rmd` file's YAML frontmatter
+#'
+#' Like [yaml_patch_frontmatter_scalar()], but comments the key out (see
+#' [yaml_comment_out()]) rather than setting a new scalar value. The
+#' document body, and any comments/layout in the frontmatter outside the
+#' commented key, are left untouched.
+#'
+#' @param path Path to a `.qmd`/`.Rmd` file with `---`-delimited frontmatter.
+#' @param key_path Dotted path to the key within the frontmatter.
+#' @returns Invisibly, `TRUE` if the file was changed, `FALSE` otherwise
+#'   (key absent, or already commented out).
+#' @keywords internal
+yaml_comment_out_frontmatter <- function(path, key_path) {
+  lines <- readLines(path, warn = FALSE)
+  delimiters <- grep("^---\\s*$", lines)
+  if (length(delimiters) < 2L)
+    stop("yaml_comment_out_frontmatter(): no YAML frontmatter delimiters found in ", path)
+
+  fm_range <- (delimiters[[1L]] + 1L):(delimiters[[2L]] - 1L)
+  fm <- if (length(fm_range) > 0L) lines[fm_range] else character(0)
+  new_fm <- yaml_comment_out(fm, key_path)
+  if (identical(fm, new_fm)) return(invisible(FALSE))
+
+  before <- lines[seq_len(delimiters[[1L]])]
+  after  <- lines[delimiters[[2L]]:length(lines)]
+  writeLines(c(before, new_fm, after), path)
+  invisible(TRUE)
+}
+
 #' Patch a scalar inside a `.qmd`/`.Rmd` file's YAML frontmatter
 #'
 #' Like [yaml_patch_scalar()], but operates on the `---`-delimited

@@ -80,6 +80,12 @@ check_prev <- function(path = ".", verbose = TRUE) {
              "Non connecté à GitHub (gh::gh('GET /user') a échoué). Les opérations staging et registry seront indisponibles.")
   }
 
+  # ---- gh CLI / DEPLOY_PAT / identite git ----------------------------------
+  gh_setup_diag <- check_gh_setup(root, verbose = FALSE)
+  for (i in seq_len(nrow(gh_setup_diag))) {
+    add_diag(gh_setup_diag$field[i], gh_setup_diag$status[i], gh_setup_diag$message[i])
+  }
+
   # ---- 1. Nom du dossier ---------------------------------------------------
   project <- fs::path_file(root) |> as.character()
   if (grepl("^prev[0-9]{2}0[39]$", project)) {

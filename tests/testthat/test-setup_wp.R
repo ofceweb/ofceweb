@@ -57,6 +57,83 @@ test_that("setup_wp() computes a missing site-path from an existing wp/annee, wi
   expect_equal(yml$website$`site-url`, "https://www.ofce.fr/")
 })
 
+test_that("setup_wp() comments out wp-pdf (non-blocking warning) when both PDF formats are declared", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf",
+    "  wp-typst:",
+    "    output-file: OFCEWP-draft-typst.pdf"
+  ))
+
+  expect_message(setup_wp(dir), "wp-pdf.*wp-typst|wp-typst.*wp-pdf")
+
+  idx_lines <- readLines(fs::path(dir, "index.qmd"))
+  expect_true(any(grepl("# wp-pdf:", idx_lines, fixed = TRUE)))
+  expect_true(any(grepl("wp-typst:", idx_lines, fixed = TRUE) & !grepl("#", idx_lines, fixed = TRUE)))
+  # output-file is patched on the surviving format (wp-typst), not re-added
+  # under the freshly-commented-out wp-pdf key.
+  expect_true(any(grepl("output-file: OFCEWP2026-5.pdf", idx_lines, fixed = TRUE)))
+})
+
+test_that("setup_wp() adds fig-format: png and warns when rsvg-convert is absent and wp-pdf is the sole format", {
+  local_stub_wp_side_effects()
+  local_mocked_bindings(check_rsvg_convert = function(...) invisible(FALSE))
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  expect_message(setup_wp(dir), "rsvg-convert")
+
+  idx_lines <- readLines(fs::path(dir, "index.qmd"))
+  expect_true(any(grepl("fig-format: png", idx_lines, fixed = TRUE)))
+})
+
+test_that("setup_wp() does not touch fig-format when rsvg-convert is present", {
+  local_stub_wp_side_effects()
+  local_mocked_bindings(check_rsvg_convert = function(...) invisible(TRUE))
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+
+  idx_lines <- readLines(fs::path(dir, "index.qmd"))
+  expect_false(any(grepl("fig-format", idx_lines, fixed = TRUE)))
+})
+
 test_that("setup_wp() computes citation.issue and citation.url for a published WP", {
   local_stub_wp_side_effects()
   dir <- withr::local_tempdir()
@@ -211,4 +288,83 @@ test_that("setup_wp() warns about legacy stray extensions left on disk", {
   expect_true(any(grepl("_extensions/wp", msgs, fixed = TRUE)))
   # No automatic deletion.
   expect_true(fs::file_exists(fs::path(legacy_ext, "_extension.yml")))
+})
+
+
+# Minimal draft (unpublished, wp = NULL) WP repo -- used to exercise the
+# stage-target "auto" resolution and the draft website.site-url computation.
+build_draft_wp_repo <- function(dir) {
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    lang    = "fr"
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = "title: Brouillon")
+  invisible(dir)
+}
+
+test_that("setup_wp() does not assume the ofce org when no git remote is configured and gh is not authenticated", {
+  local_stub_wp_side_effects()
+  local_mocked_bindings(check_gh_login = function(...) invisible(NA_character_))
+  dir <- withr::local_tempdir()
+  build_draft_wp_repo(dir)
+
+  expect_message(setup_wp(dir), "URL GitHub Pages")
+
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  # No remote and no gh account to guess from: stage-target must default to
+  # gh-pages (never silently "ftp", which would wrongly assume the ofce
+  # org), and site-url must not be fabricated as https://ofce.github.io/...
+  expect_equal(yml$`stage-target`, "gh-pages")
+  expect_false(identical(yml$website$`site-url`, sprintf("https://ofce.github.io/%s/", fs::path_file(dir))))
+})
+
+test_that("setup_wp() uses the authenticated gh account (not 'ofce') for the draft GitHub Pages URL when there is no remote", {
+  local_stub_wp_side_effects()
+  local_mocked_bindings(check_gh_login = function(...) invisible("someuser"))
+  dir <- withr::local_tempdir()
+  build_draft_wp_repo(dir)
+
+  suppressMessages(setup_wp(dir))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$`stage-target`, "gh-pages")
+  expect_equal(yml$website$`site-url`, sprintf("https://someuser.github.io/%s/", fs::path_file(dir)))
+})
+
+test_that("setup_wp() resolves stage-target to ftp and skips the GitHub Pages URL when the remote is under the ofce org", {
+  local_stub_wp_side_effects()
+  local_mocked_bindings(
+    git_remote_list = function(...) data.frame(
+      name = "origin",
+      url  = "https://github.com/ofce/wp-example.git"
+    ),
+    .package = "gert"
+  )
+  dir <- withr::local_tempdir()
+  build_draft_wp_repo(dir)
+
+  suppressMessages(setup_wp(dir))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$`stage-target`, "ftp")
+  expect_match(yml$website$`site-url`, "^https://staging\\.ofce\\.fr/")
+})
+
+test_that("setup_wp() resolves stage-target to gh-pages and uses the real owner for a non-ofce remote", {
+  local_stub_wp_side_effects()
+  local_mocked_bindings(
+    git_remote_list = function(...) data.frame(
+      name = "origin",
+      url  = "https://github.com/someoneelse/wp-example.git"
+    ),
+    .package = "gert"
+  )
+  dir <- withr::local_tempdir()
+  build_draft_wp_repo(dir)
+
+  suppressMessages(setup_wp(dir))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$`stage-target`, "gh-pages")
+  expect_equal(yml$website$`site-url`, "https://someoneelse.github.io/wp-example/")
 })

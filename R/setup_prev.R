@@ -74,8 +74,8 @@ setup_prev <- function(
 
   check_quarto_version()
 
-  # ---- 0. connexion GitHub -------------------------------------------------
-  check_gh_login()
+  # ---- 0. connexion GitHub / DEPLOY_PAT / identite git ---------------------
+  check_gh_setup(root)
 
   # ---- 1. Résolution de l'identifiant prev ---------------------------------
   project <- fs::path_file(root) |> as.character()
@@ -260,8 +260,8 @@ setup_prev <- function(
 
   # favicon : asset géré par le package — toujours resynchronisé, même sur
   # un _quarto.yml existant.
-  yml$website$favicon <- "www/fofce.png"
-  lines <- yaml_patch_scalar(lines, "website.favicon", "www/fofce.png")
+  yml$website$favicon <- "www/fofce-prev.png"
+  lines <- yaml_patch_scalar(lines, "website.favicon", "www/fofce-prev.png")
 
   # draft-mode : toujours resynchronisé, même sur un _quarto.yml existant qui
   # aurait été créé avant l’introduction de cette clé.

@@ -44,7 +44,7 @@ Deux variétés coexistent sur GitHub :
 `ofceweb` utilise deux variables d'environnement :
 
 | Variable | À quoi ça sert |
-|--------------|----------------------------------------------------------|
+|------------------|------------------------------------------------------|
 | `GITHUB_PAT` | Variable historique lue par `usethis`, `gh`, `gitcreds`, … pour les appels API GitHub usuels. |
 | `DEPLOY_PAT` | Lue **en priorité** par `site2branch()` / `trigger_action()` pour pousser sur la branche de déploiement et dispatcher le workflow `ftp_deploy.yml`. |
 
@@ -66,6 +66,10 @@ Le classic est plus simple, il est recommandé -\>
 2.  Scopes : cocher **`repo`** (couvre push + lecture) et **`workflow`**
     (dispatcher un workflow).
 3.  *Generate token* → copier la valeur.
+
+![](images/clipboard-2349015468.png){width="150"}
+![](images/clipboard-613778951.png){width="248"}
+![](images/clipboard-958754411.png){width="333"}
 
 ### Fine-grained PAT (plus complexe)
 
@@ -211,7 +215,7 @@ gh auth login
 Réponses recommandées au prompt interactif :
 
 | Question | Réponse |
-|---------------------------------------------|--------------------------|
+|---------------------------------------------|---------------------------|
 | What account do you want to log into? | **GitHub.com** |
 | What is your preferred protocol for Git operations? | **HTTPS** |
 | Authenticate Git with your GitHub credentials? | **Y** (Yes) |
@@ -266,6 +270,18 @@ brew install gh        # macOS
 # ou : winget install --id GitHub.cli   (Windows)
 gh auth login          # suivre le prompt, HTTPS + web browser
 gh auth status         # vérification
+```
+
+## Vérification automatique
+
+`setup_prev()`, `setup_wp()`, `check_prev()` et `check_wp()` exécutent
+tous un diagnostic automatique de ces pré-requis (CLI `gh` installé et
+authentifié, jeton `DEPLOY_PAT`/`gitcreds` disponible, identité git
+`user.name`/`user.email` configurée). Chaque défaut déclenche un simple
+avertissement (non bloquant) qui renvoie vers ce vignette :
+
+``` r
+nchar(Sys.getenv("DEPLOY_PAT"))   # doit être > 0
 ```
 
 Ensuite, voir [*Construire un site avec ofceweb*](build-a-site.html)

@@ -301,6 +301,143 @@ check_gh_login <- function(verbose = TRUE) {
   invisible(NA_character_)
 }
 
+#' Vérifie les pré-requis d'authentification GitHub / git
+#'
+#' Diagnostic partagé par [setup_prev()], [setup_wp()], [check_prev()] et
+#' [check_wp()] : vérifie que le CLI `gh` est installé et authentifié,
+#' qu'un jeton de déploiement (`DEPLOY_PAT`, ou à défaut `gitcreds`) est
+#' disponible, et qu'une identité git (`user.name` / `user.email`) est
+#' configurée — locale au dépôt ou globale. Chaque défaut renvoie vers le
+#' vignette \emph{prerequisites} (`vignette("prerequisites", package =
+#' "ofceweb")`), sans jamais bloquer l'exécution (avertissements uniquement).
+#'
+#' @param root Chemin du dépôt, utilisé pour résoudre l'identité git locale.
+#' @param verbose Logique. Si `TRUE` (défaut), affiche chaque résultat via
+#'   [cli::cli_alert_success()] / [cli::cli_alert_warning()].
+#' @return Un `data.frame` invisible avec les colonnes `field`, `status`
+#'   (`"ok"` / `"warning"`) et `message` — un enregistrement par vérification
+#'   (`gh:cli`, `gh:auth`, `gh:deploy_pat`, `git:identity`).
+#' @keywords internal
+#' @noRd
+check_gh_setup <- function(root = ".", verbose = TRUE) {
+  see_vignette <- "Voir vignette(\"prerequisites\", package = \"ofceweb\") pour la configuration."
+
+  rows <- list()
+  add <- function(field, ok, msg) {
+    status <- if (ok) "ok" else "warning"
+    full_msg <- if (ok) msg else paste(msg, see_vignette)
+    rows[[length(rows) + 1L]] <<- list(field = field, status = status, message = full_msg)
+    if (verbose) {
+      if (ok) cli::cli_alert_success(msg)
+      else cli::cli_alert_warning(c(msg, "i" = see_vignette))
+    }
+  }
+
+  # ---- CLI gh installé -------------------------------------------------
+  gh_bin <- Sys.which("gh")
+  add(
+    "gh:cli", nzchar(gh_bin),
+    if (nzchar(gh_bin))
+      "CLI `gh` d\u00e9tect\u00e9 sur le PATH."
+    else
+      "CLI `gh` introuvable sur le PATH."
+  )
+
+  # ---- CLI gh authentifi\u00e9 (gh auth status) --------------------------
+  gh_auth_ok <- FALSE
+  if (nzchar(gh_bin)) {
+    gh_auth_ok <- identical(
+      tryCatch(
+        system2("gh", c("auth", "status"), stdout = FALSE, stderr = FALSE),
+        error = function(e) 1L
+      ),
+      0L
+    )
+  }
+  add(
+    "gh:auth", gh_auth_ok,
+    if (gh_auth_ok)
+      "CLI `gh` authentifi\u00e9 (`gh auth status`)."
+    else
+      "CLI `gh` non authentifi\u00e9 (`gh auth status` a \u00e9chou\u00e9, ou `gh` absent)."
+  )
+
+  # ---- Jeton de d\u00e9ploiement : DEPLOY_PAT, sinon gitcreds -------------
+  token <- Sys.getenv("DEPLOY_PAT", "")
+  token_source <- "DEPLOY_PAT"
+  if (!nchar(token)) {
+    token <- tryCatch(
+      gitcreds::gitcreds_get("https://github.com")$password,
+      error = function(e) ""
+    )
+    token_source <- "gitcreds"
+  }
+  add(
+    "gh:deploy_pat", nchar(token) > 0,
+    if (nchar(token) > 0)
+      sprintf("Jeton GitHub disponible (source : %s).", token_source)
+    else
+      "Aucun jeton GitHub trouv\u00e9 (`DEPLOY_PAT` non d\u00e9fini, `gitcreds` vide)."
+  )
+
+  # ---- Identit\u00e9 git : user.name / user.email (locale ou globale) ----
+  get_identity <- function(name) {
+    val <- tryCatch(gert::git_config_get(name, repo = root), error = function(e) NULL)
+    if (is.null(val) || !nzchar(trimws(val)))
+      val <- tryCatch(gert::git_config_global_get(name), error = function(e) NULL)
+    val
+  }
+  user_name  <- get_identity("user.name")
+  user_email <- get_identity("user.email")
+  identity_ok <- !is.null(user_name) && nzchar(trimws(user_name)) &&
+    !is.null(user_email) && nzchar(trimws(user_email))
+  add(
+    "git:identity", identity_ok,
+    if (identity_ok)
+      sprintf("Identit\u00e9 git configur\u00e9e : %s <%s>.", user_name, user_email)
+    else
+      "Identit\u00e9 git incompl\u00e8te (`user.name` / `user.email` absents, local et global)."
+  )
+
+  df <- data.frame(
+    field   = vapply(rows, `[[`, character(1), "field"),
+    status  = vapply(rows, `[[`, character(1), "status"),
+    message = vapply(rows, `[[`, character(1), "message"),
+    stringsAsFactors = FALSE
+  )
+  invisible(df)
+}
+
+#' Résout une valeur `stage-target` vers sa forme canonique (`gh-pages`/`ftp`)
+#'
+#' Partagée par [setup_wp()] et [deploy_wp()] pour interpréter la valeur
+#' saisie par l'utilisateur ou lue depuis `_quarto.yml` :
+#' \itemize{
+#'   \item `"gh-pages"` / `"ftp"` : formes canoniques, renvoyées telles quelles.
+#'   \item `"ofce"` : alias historique de `"ftp"` (ancienne convention de
+#'     nommage du staging OFCE) — accepté pour compatibilité avec des
+#'     `_quarto.yml` plus anciens.
+#'   \item `"auto"` : résolu selon `org` — `"ftp"` si le dépôt appartient à
+#'     l'organisation GitHub `ofce` (comparaison insensible à la casse),
+#'     sinon `"gh-pages"` (cas des dépôts personnels, sans accès au staging
+#'     FTP de l'OFCE).
+#' }
+#'
+#' @param value Chaîne : `"auto"`, `"gh-pages"`, `"ofce"` ou `"ftp"`.
+#' @param org Chaîne ou `NA` : organisation/propriétaire GitHub du dépôt.
+#'   Utilisé uniquement pour résoudre `"auto"` ; ignoré sinon.
+#' @return `"gh-pages"` ou `"ftp"`.
+#' @keywords internal
+#' @noRd
+resolve_stage_target <- function(value, org = NA_character_) {
+  value <- match.arg(value, c("auto", "gh-pages", "ofce", "ftp"))
+  if (identical(value, "ofce")) return("ftp")
+  if (identical(value, "auto")) {
+    return(if (!is.na(org) && identical(tolower(org), "ofce")) "ftp" else "gh-pages")
+  }
+  value
+}
+
 check_repo_status <- function(repo = ".", prompt = TRUE, timeout = 10) {
   # Fetch latest refs from remote (no merge).
   # Runs in a callr subprocess so the timeout is enforced cross-platform.

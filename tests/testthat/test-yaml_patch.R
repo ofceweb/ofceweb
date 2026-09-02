@@ -192,6 +192,80 @@ test_that("yaml_patch_frontmatter_scalar() patches a .qmd frontmatter key, prese
   expect_true("Body text." %in% lines)
 })
 
+test_that("yaml_comment_out() comments out a scalar leaf, preserving indentation", {
+  lines <- c("format:", "  wp-html: default", "  wp-pdf: default")
+  out <- yaml_comment_out(lines, "format.wp-pdf")
+  expect_equal(out, c("format:", "  wp-html: default", "  # wp-pdf: default"))
+})
+
+test_that("yaml_comment_out() comments out every line of a mapping subtree", {
+  lines <- c(
+    "format:",
+    "  wp-html: default",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf",
+    "    toc: true",
+    "  wp-typst: default"
+  )
+  out <- yaml_comment_out(lines, "format.wp-pdf")
+  expect_equal(out, c(
+    "format:",
+    "  wp-html: default",
+    "  # wp-pdf:",
+    "    # output-file: OFCEWP-draft.pdf",
+    "    # toc: true",
+    "  wp-typst: default"
+  ))
+})
+
+test_that("yaml_comment_out() is a no-op when the path doesn't exist", {
+  lines <- c("format:", "  wp-html: default")
+  out <- yaml_comment_out(lines, "format.wp-pdf")
+  expect_identical(out, lines)
+})
+
+test_that("yaml_comment_out() is a no-op when already commented out", {
+  lines <- c("format:", "  wp-html: default", "  # wp-pdf: default")
+  out <- yaml_comment_out(lines, "format.wp-pdf")
+  expect_identical(out, lines)
+})
+
+test_that("yaml_comment_out_file() writes only when a change occurred", {
+  path <- withr::local_tempfile(fileext = ".yml")
+  writeLines(c("format:", "  wp-html: default", "  wp-pdf: default"), path)
+
+  expect_true(yaml_comment_out_file(path, "format.wp-pdf"))
+  expect_equal(readLines(path), c("format:", "  wp-html: default", "  # wp-pdf: default"))
+
+  expect_false(yaml_comment_out_file(path, "format.wp-pdf"))
+  expect_false(yaml_comment_out_file(path, "format.wp-typst"))
+})
+
+test_that("yaml_comment_out_frontmatter() comments a key inside .qmd frontmatter, preserving the body", {
+  path <- withr::local_tempfile(fileext = ".qmd")
+  writeLines(c(
+    "---",
+    "title: WP",
+    "format:",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf",
+    "  wp-typst:",
+    "    output-file: OFCEWP-draft-typst.pdf",
+    "---",
+    "",
+    "Body text."
+  ), path)
+
+  expect_true(yaml_comment_out_frontmatter(path, "format.wp-pdf"))
+  lines <- readLines(path)
+
+  expect_true(any(grepl("# wp-pdf:", lines, fixed = TRUE)))
+  expect_true(any(grepl("wp-typst:", lines, fixed = TRUE) & !grepl("#", lines, fixed = TRUE)))
+  expect_true("Body text." %in% lines)
+
+  expect_false(yaml_comment_out_frontmatter(path, "format.wp-pdf"))
+})
+
 test_that("a realistic multi-field _quarto.yml patch sequence preserves unrelated comments and layout", {
   lines <- c(
     "# Quarto config for this working paper",

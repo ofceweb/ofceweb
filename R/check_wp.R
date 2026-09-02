@@ -66,6 +66,12 @@ check_wp <- function(path = ".", verbose = TRUE) {
              "Non connecté à GitHub (gh::gh('GET /user') a échoué). Les opérations staging et registry seront indisponibles.")
   }
 
+  # ---- gh CLI / DEPLOY_PAT / identite git ----------------------------------
+  gh_setup_diag <- check_gh_setup(root, verbose = FALSE)
+  for (i in seq_len(nrow(gh_setup_diag))) {
+    add_diag(gh_setup_diag$field[i], gh_setup_diag$status[i], gh_setup_diag$message[i])
+  }
+
   # ---- _quarto.yml ---------------------------------------------------------
   yml_path <- fs::path(root, "_quarto.yml")
   if (!fs::file_exists(yml_path)) {
@@ -177,10 +183,16 @@ check_wp <- function(path = ".", verbose = TRUE) {
       add_diag("format:wp-html", "error", "Format wp-html non déclaré (ni dans _quarto.yml ni dans index.qmd).")
     }
 
-    has_pdf <- any(c("wp-pdf", "wp-typst") %in% all_formats)
-    if (has_pdf) {
-      pdf_fmt <- intersect(c("wp-pdf", "wp-typst"), all_formats)[[1]]
-      add_diag("format:pdf", "ok", sprintf("Format PDF déclaré : %s.", pdf_fmt))
+    pdf_fmts <- intersect(c("wp-pdf", "wp-typst"), all_formats)
+    if (length(pdf_fmts) == 2L) {
+      add_diag("format:pdf", "error",
+               "Deux formats PDF déclarés simultanément (wp-pdf ET wp-typst) — choisir un seul moteur (LaTeX ou Typst).")
+    } else if (length(pdf_fmts) == 1L) {
+      add_diag("format:pdf", "ok", sprintf("Format PDF déclaré : %s.", pdf_fmts))
+      if (identical(pdf_fmts, "wp-pdf") && !isTRUE(check_rsvg_convert(verbose = FALSE))) {
+        add_diag("pdf:rsvg-convert", "warning",
+                 "`rsvg-convert` introuvable — les figures SVG ne peuvent pas être rastérisées nativement pour LaTeX ; utiliser `format.wp-pdf.fig-format: png` (setup_wp() l'ajoute automatiquement) ou installer `rsvg-convert`, sinon les PDF produits seront probablement plus volumineux.")
+      }
     } else {
       add_diag("format:pdf", "error",
                "Aucun format PDF (wp-pdf ou wp-typst) déclaré (ni dans _quarto.yml ni dans index.qmd).")
@@ -385,8 +397,28 @@ check_wp <- function(path = ".", verbose = TRUE) {
   }
 
   # document-level
+  project_format_names <- names(yml$format)
   for (qmd in all_qmds) {
     qy <- tryCatch(get_yaml(qmd), error = function(e) NULL)
+    doc_format_names <- if (!is.null(qy) && is.list(qy) && is.list(qy$format)) names(qy$format) else character()
+
+    # conflit wp-pdf / wp-typst simultanés pour un même document (hérité
+    # du niveau projet ou déclaré localement) -- index.qmd déjà couvert
+    # ci-dessus via le diag `format:pdf`.
+    if (tolower(fs::path_file(qmd)) != "index.qmd") {
+      doc_effective_formats <- union(project_format_names, doc_format_names)
+      if (all(c("wp-pdf", "wp-typst") %in% doc_effective_formats)) {
+        add_diag(
+          sprintf("format:pdf-conflict:%s", fs::path_file(qmd)),
+          "error",
+          sprintf(
+            "%s : deux formats PDF déclarés simultanément (wp-pdf ET wp-typst) — choisir un seul moteur (LaTeX ou Typst).",
+            fs::path_file(qmd)
+          )
+        )
+      }
+    }
+
     if (is.null(qy) || !is.list(qy) || is.null(qy$format) || !is.list(qy$format)) next
     for (fmt in c("wp-pdf", "wp-typst")) {
       fmt_val <- qy$format[[fmt]]

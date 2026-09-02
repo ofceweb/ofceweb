@@ -63,6 +63,14 @@
 #' @param hypothesis Logique. Active les commentaires Hypothesis. Défaut `FALSE`.
 #' @param versionning Logique. Si `TRUE` et WP publié (`wp` non `NULL`),
 #'   ajoute `/v0` au `site-path`.
+#' @param stage_target Chaîne. Destination de pré-publication (brouillon,
+#'   `wp` non encore attribué) : `"auto"` (défaut pour un nouveau dépôt) se
+#'   résout en `"ftp"` (staging OFCE) pour les dépôts de l'organisation
+#'   GitHub `ofce`, et en `"gh-pages"` sinon. `"gh-pages"` et `"ftp"` forcent
+#'   explicitement la destination. `"ofce"` est un alias hérité de `"ftp"`,
+#'   accepté pour compatibilité avec d'anciens `_quarto.yml`. Une valeur déjà
+#'   présente dans `_quarto.yml` est toujours conservée telle quelle — la
+#'   résolution automatique ne s'applique qu'à un dépôt sans `stage-target`.
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @seealso [render_wp()], [deploy_wp()], [wp_version_up()], [update_navbar()]
@@ -89,6 +97,9 @@ setup_wp <- function(
   cli::cli_h1("setup_wp dans {.path {fs::path_file(root)}}")
 
   check_quarto_version()
+
+  # ---- 0. connexion GitHub / DEPLOY_PAT / identite git ---------------------
+  check_gh_setup(root)
 
   # Détecter les arguments fournis explicitement (avant toute modification)
   lang_provided       <- !missing(lang)
@@ -154,16 +165,68 @@ setup_wp <- function(
   if(hypothesis_provided){
       hypothesis <- isTRUE(hypothesis)
     }
+  # ---- infos dépôt git (calculé tôt : nécessaire pour résoudre
+  # stage-target = "auto" ci-dessous selon l'organisation GitHub) -----------
+  remotes <- tryCatch(gert::git_remote_list(repo = root),
+                      error = function(e) NULL)
+  origin_url <- NULL
+  if (!is.null(remotes) && nrow(remotes) > 0) {
+    o <- remotes[remotes$name == "origin", , drop = FALSE]
+    if (nrow(o) > 0) origin_url <- o$url[[1]]
+    else origin_url <- remotes$url[[1]]
+  }
+
+  parse_remote_wp <- function(url) {
+    if (is.null(url)) return(list(owner = NA_character_, repo = NA_character_))
+    url2 <- sub("\\.git$", "", url)
+    if (grepl("^git@", url2)) {
+      m <- regmatches(url2, regexec("git@[^:]+:([^/]+)/(.+)$", url2))[[1]]
+    } else {
+      m <- regmatches(url2, regexec("https?://[^/]+/([^/]+)/(.+)$", url2))[[1]]
+    }
+    if (length(m) < 3) return(list(owner = NA_character_, repo = NA_character_))
+    list(owner = m[[2]], repo = m[[3]])
+  }
+
+  gh     <- parse_remote_wp(origin_url)
+  repo_name <- if (is.na(gh$repo)) fs::path_file(root) else gh$repo
+  # Sans remote git (nouveau dépôt local, pas encore poussé), on ne peut pas
+  # savoir sous quel compte/organisation il finira -- présumer silencieusement
+  # "ofce" ferait choisir "ftp" par erreur pour la résolution "auto" de
+  # stage-target (section suivante) et produirait une URL GitHub Pages
+  # erronée (https://ofce.github.io/...) pour un dépôt personnel. On
+  # retombe donc sur le compte `gh` authentifié (le cas le plus probable
+  # pour un premier push), ou `NA` si `gh` n'est pas non plus authentifié.
+  gh_org <- if (!is.na(gh$owner)) gh$owner else check_gh_login(verbose = FALSE)
+
+  # Avertissement si le dépôt n'est pas dans l'organisation ofce.
+  # Le rendu local fonctionne, mais la publication FTP nécessite d'être dans
+  # `ofce` : les secrets FTP y sont stockés et l'accès au registre central
+  # (wp_registry_request()) est réservé aux dépôts de cette organisation.
+  if (!is.na(gh$owner) && !identical(tolower(gh_org), "ofce")) {
+    cli::cli_alert_info(
+      "Ce dépôt est sous {.strong {gh_org}}, pas sous {.strong ofce}.
+      Le rendu fonctionne, mais la publication FTP ne sera pas possible
+      avant un transfert de propriété vers l'organisation {.strong ofce}
+      GitHub → Settings → Danger Zone → Transfer repository).")
+  }
+
+  # ---- stage-target : gh-pages, ftp, ofce (alias hérité de ftp) ou auto ---
+  # "auto" (défaut pour un nouveau dépôt) se résout en "ftp" pour les dépôts
+  # de l'organisation ofce (accès au staging FTP), et "gh-pages" sinon. Une
+  # valeur déjà présente dans _quarto.yml (y compris l'alias hérité "ofce")
+  # est toujours respectée telle quelle -- seul un nouveau dépôt sans
+  # stage-target bénéficie de la résolution automatique.
   if (!is.null(yml[["stage-target"]]) && !stage_target_provided) {
     stage_target_provided <- TRUE
     stage_target <- yml[["stage-target"]]
   }
   if (is.null(yml[["stage-target"]]) && !stage_target_provided) {
     stage_target_provided <- TRUE
-    stage_target <- "gh-pages"
+    stage_target <- "auto"
   }
   if (stage_target_provided)
-    stage_target <- match.arg(stage_target, c("gh-pages", "ftp"))
+    stage_target <- resolve_stage_target(stage_target, org = gh_org)
 
   version <- yml[["version"]]
   if(version_provided & is.null(yml[["version"]]) & isTRUE(versionning))
@@ -192,44 +255,6 @@ setup_wp <- function(
 
   # ---- 1. branche gh-pages (toujours pour les WPs) -------------------------
   init_gh_pages_branch(root)
-
-  # ---- 2. infos dépôt git --------------------------------------------------
-  remotes <- tryCatch(gert::git_remote_list(repo = root),
-                      error = function(e) NULL)
-  origin_url <- NULL
-  if (!is.null(remotes) && nrow(remotes) > 0) {
-    o <- remotes[remotes$name == "origin", , drop = FALSE]
-    if (nrow(o) > 0) origin_url <- o$url[[1]]
-    else origin_url <- remotes$url[[1]]
-  }
-
-  parse_remote_wp <- function(url) {
-    if (is.null(url)) return(list(owner = NA_character_, repo = NA_character_))
-    url2 <- sub("\\.git$", "", url)
-    if (grepl("^git@", url2)) {
-      m <- regmatches(url2, regexec("git@[^:]+:([^/]+)/(.+)$", url2))[[1]]
-    } else {
-      m <- regmatches(url2, regexec("https?://[^/]+/([^/]+)/(.+)$", url2))[[1]]
-    }
-    if (length(m) < 3) return(list(owner = NA_character_, repo = NA_character_))
-    list(owner = m[[2]], repo = m[[3]])
-  }
-
-  gh     <- parse_remote_wp(origin_url)
-  repo_name <- if (is.na(gh$repo)) fs::path_file(root) else gh$repo
-  gh_org    <- if (is.na(gh$owner)) "ofce" else gh$owner
-
-  # Avertissement si le dépôt n'est pas dans l'organisation ofce.
-  # Le rendu local fonctionne, mais la publication FTP nécessite d'être dans
-  # `ofce` : les secrets FTP y sont stockés et l'accès au registre central
-  # (wp_registry_request()) est réservé aux dépôts de cette organisation.
-  if (!is.na(gh$owner) && !identical(tolower(gh_org), "ofce")) {
-    cli::cli_alert_info(
-      "Ce dépôt est sous {.strong {gh_org}}, pas sous {.strong ofce}.
-      Le rendu fonctionne, mais la publication FTP ne sera pas possible
-      avant un transfert de propriété vers l'organisation {.strong ofce}
-      GitHub → Settings → Danger Zone → Transfer repository).")
-  }
 
   # ---- 3. titre du WP -------------------------------------------------------
   final_title <- if (!is.null(website_title) && nzchar(website_title)) {
@@ -268,6 +293,58 @@ setup_wp <- function(
     cli::cli_alert_success("Copie de {.file index.qmd}")
   } else {
     cli::cli_alert_info("{.file index.qmd} déjà présent — non écrasé.")
+  }
+
+  # ---- 6b. format PDF : wp-pdf et wp-typst sont mutuellement exclusifs -----
+  # Relit `_quarto.yml` depuis le disque : le gabarit vient potentiellement
+  # d'être copié à l'étape 5 et le `yml` capturé plus haut (avant copie)
+  # peut ne pas encore refléter son contenu ; `index_yml`, lui, est déjà à
+  # jour (rafraîchi à l'étape 6 ci-dessus si le fichier venait d'être créé).
+  project_format_names <- names(
+    tryCatch(yaml::read_yaml(dest_yaml), error = function(e) list())[["format"]]
+  )
+  pdf_formats_declared <- intersect(
+    c("wp-pdf", "wp-typst"),
+    union(project_format_names, names(index_yml[["format"]]))
+  )
+
+  if (length(pdf_formats_declared) > 1L) {
+    # Les deux moteurs ne peuvent pas coexister : on commente wp-pdf (LaTeX)
+    # automatiquement -- sans supprimer son contenu -- et on garde wp-typst
+    # actif. `check_wp()` renverrait sinon une erreur bloquante sur ce conflit.
+    commented_project <- tryCatch(
+      yaml_comment_out_file(dest_yaml, "format.wp-pdf"),
+      error = function(e) FALSE
+    )
+    commented_index <- tryCatch(
+      yaml_comment_out_frontmatter(dest_index, "format.wp-pdf"),
+      error = function(e) FALSE
+    )
+    if (isTRUE(commented_project) || isTRUE(commented_index)) {
+      yml$format$`wp-pdf` <- NULL
+      index_yml$format$`wp-pdf` <- NULL
+      cli::cli_alert_warning(c(
+        "Deux formats PDF étaient déclarés simultanément ({.field wp-pdf} ET {.field wp-typst}).",
+        "i" = "{.field wp-pdf} a été commenté automatiquement -- {.field wp-typst} reste actif.",
+        "x" = "Décommenter {.field wp-pdf} à la main (et recommenter {.field wp-typst}) pour revenir au moteur LaTeX ; les deux ne peuvent pas coexister."
+      ))
+      pdf_formats_declared <- "wp-typst"
+    }
+  } else if (identical(pdf_formats_declared, "wp-pdf") && !isTRUE(check_rsvg_convert(verbose = FALSE))) {
+    # wp-pdf (LaTeX) est le seul moteur déclaré mais `rsvg-convert` est
+    # absent : Quarto ne peut pas rastériser nativement les figures SVG pour
+    # LaTeX. On force `fig-format: png` pour éviter un échec de rendu, au
+    # prix d'un PDF plus volumineux (figures rasterisées plutôt que
+    # vectorielles) -- d'où l'avertissement ci-dessous.
+    tryCatch({
+      yaml_patch_frontmatter_scalar(dest_index, "format.wp-pdf.fig-format", "png")
+      index_yml$format$`wp-pdf`$`fig-format` <- "png"
+    }, error = function(e) NULL)
+    cli::cli_alert_warning(c(
+      "{.code rsvg-convert} introuvable : Quarto ne peut pas rastériser nativement les figures SVG pour LaTeX ({.field wp-pdf}).",
+      "i" = "{.field format.wp-pdf.fig-format: png} a été ajouté dans {.file index.qmd} pour contourner le problème.",
+      "x" = "Les fichiers PDF produits seront probablement {.strong plus volumineux} (figures rasterisées en PNG plutôt que vectorielles)."
+    ))
   }
 
   # ---- 7. copie annexes.qmd et news.qmd (si absents) -----------------------
@@ -510,11 +587,23 @@ setup_wp <- function(
       ver_seg <- if (!is.null(version) && nzchar(as.character(version)))
         paste0(version, "/") else ""
       sprintf("https://staging.ofce.fr/%s/%s", repo_name, ver_seg)
-    } else {
+    } else if (!is.na(gh_org)) {
       sprintf("https://%s.github.io/%s/", gh_org, repo_name)
+    } else {
+      # Ni remote git, ni compte `gh` authentifié : impossible de deviner le
+      # compte/organisation GitHub Pages définitif — mieux vaut ne rien
+      # écrire qu'une URL fausse (ex. https://ofce.github.io/... pour un
+      # dépôt qui n'a rien à voir avec l'organisation OFCE).
+      cli::cli_alert_warning(
+        "Impossible de d\u00e9terminer l'URL GitHub Pages (pas de remote {.code origin}, \\
+         pas de compte {.code gh} authentifi\u00e9) \u2014 {.field website.site-url} laiss\u00e9 \\
+         inchang\u00e9. Ajouter un remote {.code origin} (ou lancer {.code gh auth login}) \\
+         puis relancer {.run setup_wp()}."
+      )
+      yml$website$`site-url`
     }
     yml$website$`site-url`  <- draft_site_url
-    lines <- yaml_patch_scalar(lines, "website.site-url", draft_site_url)
+    lines <- yaml_patch_scalar_or_delete(lines, "website.site-url", draft_site_url)
   }
 
   # citation.url / citation.issue : valeurs dérivées, toujours mises à jour
@@ -548,10 +637,12 @@ setup_wp <- function(
   }
 
   # output-file PDF : uniquement si wp ou annee sont déjà connus (yml existant
-  # ou registre) ET si le format wp-pdf ou wp-typst est déjà déclaré dans le
-  # YAML (ne pas injecter un format que le WP n'utilise pas)
-  uses_wp_pdf <- is.list(index_yml$format) &&
-    (is.list(index_yml$format$`wp-pdf`) || is.list(index_yml$format$`wp-typst`))
+  # ou registre) ET si un format PDF est effectivement actif (wp-pdf OU
+  # wp-typst -- jamais les deux, cf. section 6b ci-dessus qui a déjà
+  # résolu un éventuel conflit) -- ne pas injecter un format que le WP
+  # n'utilise pas, ni recréer une clé qui vient d'être commentée.
+  active_pdf_format <- if (length(pdf_formats_declared) == 1L) pdf_formats_declared else NA_character_
+  uses_wp_pdf <- !is.na(active_pdf_format)
   if ((wp_provided || annee_provided) && uses_wp_pdf) {
     effective_wp    <- if (wp_provided)    wp    else yml$wp
     effective_annee <- if (annee_provided) annee else as.integer(yml$annee)
@@ -560,9 +651,10 @@ setup_wp <- function(
     } else {
       "OFCEWP-draft.pdf"
     }
+  } else if (uses_wp_pdf) {
+    pdf_output <- index_yml$format[[active_pdf_format]]$`output-file` %||% NA_character_
   } else {
-    pdf_output <- index_yml$format$`wp-pdf`$`output-file` %||%
-      index_yml$format$`wp-typst`$`output-file` %||% NA_character_
+    pdf_output <- NA_character_
   }
 
   # N'écrire le fichier que si le contenu a réellement changé — évite le
@@ -575,13 +667,20 @@ setup_wp <- function(
   }
 
   # Met aussi à jour l'output-file dans index.qmd (patch ciblé, préserve le
-  # reste du frontmatter et le corps du document)
-  tryCatch({
-    yaml_patch_frontmatter_scalar(dest_index, "format.wp-pdf.output-file", pdf_output)
-    cli::cli_alert_success("output-file mis à jour dans {.file index.qmd}")
-  }, error = function(e) {
-    cli::cli_alert_warning("Impossible de patcher index.qmd : {conditionMessage(e)}")
-  })
+  # reste du frontmatter et le corps du document) -- uniquement pour le
+  # format PDF effectivement actif.
+  if (uses_wp_pdf && !is.na(pdf_output)) {
+    tryCatch({
+      yaml_patch_frontmatter_scalar(
+        dest_index,
+        sprintf("format.%s.output-file", active_pdf_format),
+        pdf_output
+      )
+      cli::cli_alert_success("output-file mis à jour dans {.file index.qmd}")
+    }, error = function(e) {
+      cli::cli_alert_warning("Impossible de patcher index.qmd : {conditionMessage(e)}")
+    })
+  }
 
   # ---- 11b. navbar (source centralisée du package) --------------------------
   tryCatch(
@@ -651,7 +750,14 @@ setup_wp <- function(
   cli::cli_li("site-url    : {yml$website$`site-url`}")
   if (!is.null(yml$website$`site-path`))
     cli::cli_li("site-path   : {yml$website$`site-path`}")
-  cli::cli_li("staging url : https://staging.ofce.fr/{staging_dir}")
+  # L'URL de brouillon effective dépend du stage-target : gh-pages sert
+  # depuis site-url (déjà correct plus haut) ; ftp sert depuis
+  # staging.ofce.fr/{staging_dir}. Ne montrer l'URL FTP que lorsqu'elle est
+  # effectivement le canal utilisé -- sinon le résumé affiche une URL où
+  # le site n'est jamais publié.
+  if (is.null(yml$wp) && identical(stage_target, "ftp")) {
+    cli::cli_li("staging url : https://staging.ofce.fr/{staging_dir}")
+  }
   cli::cli_li("stage-target: {stage_target}")
   cli::cli_li("draft       : {if (is.null(registry_state) || isTRUE(registry_state$network_error)) '(non consulte)' else registry_state$stage}")
   if (!is.null(yml$citation$issue))

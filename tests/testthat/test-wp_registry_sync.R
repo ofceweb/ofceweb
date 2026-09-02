@@ -56,7 +56,7 @@ test_that("sync_wp_registry_state() clears wp/annee and sets draft when unmatche
   expect_true(yml$draft)
 })
 
-test_that("sync_wp_registry_state() is fail-soft on a registry fetch error", {
+test_that("sync_wp_registry_state() clears wp/annee and forces draft on a registry fetch error", {
   dir <- withr::local_tempdir()
   build_sync_repo(dir, wp = 9L, annee = 2026L)
 
@@ -67,13 +67,14 @@ test_that("sync_wp_registry_state() is fail-soft on a registry fetch error", {
   result <- sync_wp_registry_state(dir, quiet = TRUE)
 
   expect_true(result$network_error)
-  expect_true(is.na(result$stage))
+  expect_true(result$stage)
+  expect_null(result$registry_entry)
 
-  # _quarto.yml is left completely untouched on a registry fetch failure —
-  # an already-published WP must not lose its wp/annee because of a
-  # transient network error.
+  # Verification is impossible on a registry fetch failure, so wp/annee are
+  # cleared and draft is forced to TRUE — an unverified WP must never be
+  # treated as confirmed for production, even if it was previously published.
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
-  expect_equal(yml$wp, 9L)
-  expect_equal(yml$annee, 2026L)
-  expect_null(yml$draft)
+  expect_null(yml$wp)
+  expect_null(yml$annee)
+  expect_true(yml$draft)
 })

@@ -214,7 +214,19 @@ publish_wp <- function(
     NULL
   })
 
-  if (!is.null(reg) && !isTRUE(reg$network_error)) {
+  if (!is.null(reg) && isTRUE(reg$network_error)) {
+    # Vérification impossible : sync_wp_registry_state() a déjà effacé
+    # wp/annee et forcé draft: true dans _quarto.yml (l'état ne peut pas
+    # être traité comme confirmé sans consultation du registre). render_wp()
+    # va donc traiter ce WP comme un brouillon ci-dessous, quel que soit son
+    # état réel -- on prévient explicitement si un numéro était déjà connu.
+    if (!is.null(wp_before))
+      cli::cli_alert_warning(
+        "Registre inaccessible \u2014 {.field wp}/{.field annee} effac\u00e9s de \\
+         {.file _quarto.yml} (\u00e9tait {.val {wp_before}}), {.code draft: true} forc\u00e9. \\
+         Ce rendu sera trait\u00e9 comme un brouillon. Relancer {.run ofceweb::publish_wp()} \\
+         une fois le registre de nouveau accessible pour publier en production.")
+  } else if (!is.null(reg) && !isTRUE(reg$network_error)) {
     wp_after <- if (!is.null(reg$registry_entry)) as.integer(reg$registry_entry$wp) else NULL
     if (!is.null(wp_after) && !identical(wp_before, wp_after)) {
       cli::cli_alert_warning(

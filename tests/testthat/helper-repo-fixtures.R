@@ -56,16 +56,21 @@ diag_status <- function(df, field) {
 
 # setup_wp() touches git, the GitHub API, and (via ofce::setup_quarto())
 # the network; those calls are stubbed so the tests exercise only the
-# _quarto.yml editing logic. fetch_wp_entries() is stubbed to simulate a
-# registry lookup failure (NULL) -- the fail-soft path of
-# sync_wp_registry_state() -- so setup_wp() leaves draft/wp/annee untouched
-# and tests keep exercising only the yaml-driven editing logic (setup_wp()
-# has no wp=/annee=/website_title= arguments).
+# _quarto.yml editing logic. sync_wp_registry_state() itself is stubbed to
+# error out -- setup_wp()/publish_wp() catch that error and leave
+# `registry_state`/`reg` NULL, so draft/wp/annee are left completely
+# untouched by registry logic and tests keep exercising only the
+# yaml-driven editing logic (setup_wp() has no wp=/annee=/website_title=
+# arguments). Stubbing the lower-level fetch_wp_entries() to simulate a
+# network failure would NOT be isolation-safe here: sync_wp_registry_state()
+# treats a failed registry check as "verification impossible" and clears
+# wp/annee (and forces draft: true) rather than leaving them untouched --
+# by design, since an unverified WP must never be treated as confirmed.
 local_stub_wp_side_effects <- function(env = parent.frame()) {
   local_mocked_bindings(
-    init_gh_pages_branch = function(...) invisible(NULL),
-    set_gh_var           = function(...) invisible(NULL),
-    fetch_wp_entries     = function(...) NULL,
+    init_gh_pages_branch   = function(...) invisible(NULL),
+    set_gh_var             = function(...) invisible(NULL),
+    sync_wp_registry_state = function(...) stop("registry lookup stubbed out for this test"),
     .env = env
   )
   local_mocked_bindings(

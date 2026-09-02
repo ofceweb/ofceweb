@@ -470,8 +470,9 @@ setup_wp <- function(
   # cet appel, sans attendre render_wp(). Une entrée confirmée pour ce dépôt
   # (source-repo correspondant) l'emporte toujours sur la valeur déjà présente
   # dans _quarto.yml : celle-ci ne reste utile que pour un dépôt pas encore
-  # enregistré. En cas d'échec réseau, fail-soft : draft/wp/annee ne sont pas
-  # modifiés et les valeurs existantes du YAML font foi ci-dessous.
+  # enregistré. En cas d'échec réseau, la vérification est impossible :
+  # draft est forcé à TRUE et wp/annee sont effacés (voir bloc ci-dessous)
+  # plutôt que de laisser une valeur non revalidée faire foi.
   cli::cli_h2("Registre central")
   registry_state <- tryCatch(
     sync_wp_registry_state(root),
@@ -480,7 +481,26 @@ setup_wp <- function(
       NULL
     }
   )
-  if (!is.null(registry_state) && !isTRUE(registry_state$network_error) &&
+  if (!is.null(registry_state) && isTRUE(registry_state$network_error)) {
+    # Vérification impossible : sync_wp_registry_state() a déjà effacé
+    # wp/annee et forcé draft: true sur disque -- il faut répercuter le
+    # même effacement sur les variables en mémoire (capturées plus haut,
+    # avant l'appel au registre), sans quoi les sections suivantes
+    # (site-path, citation.*, FTP_SERVER_DIR) recalculeraient encore tout
+    # à partir de l'ancien numéro, non revalidé.
+    if (!is.null(wp) || !is.null(yml$wp))
+      cli::cli_alert_warning(
+        "{.field wp}/{.field annee} non revalid\u00e9s par le registre \u2014 \\
+         trait\u00e9s comme absents pour cet appel (site-path, citation.*, \\
+         FTP_SERVER_DIR non recalcul\u00e9s sur l'ancien num\u00e9ro)."
+      )
+    wp             <- NULL
+    yml$wp         <- NULL
+    yml$annee      <- NULL
+    wp_provided    <- FALSE
+    annee_provided <- FALSE
+    annee          <- as.integer(format(Sys.Date(), "%Y"))
+  } else if (!is.null(registry_state) && !isTRUE(registry_state$network_error) &&
       !is.null(registry_state$registry_entry)) {
     wp             <- as.integer(registry_state$registry_entry$wp)
     annee          <- as.integer(registry_state$registry_entry$annee)
@@ -778,7 +798,7 @@ setup_wp <- function(
   cli::cli_li(
     "stage-target: {stage_target}{if (identical(stage_target, 'auto')) paste0(' (\u2192 ', stage_target_resolved, ' pour ', gh_org, ')') else ''}"
   )
-  cli::cli_li("draft       : {if (is.null(registry_state) || isTRUE(registry_state$network_error)) '(non consulte)' else registry_state$stage}")
+  cli::cli_li("draft       : {if (is.null(registry_state)) '(non consult\u00e9)' else if (isTRUE(registry_state$network_error)) 'TRUE (forc\u00e9 -- registre inaccessible, wp/annee effac\u00e9s)' else registry_state$stage}")
   if (!is.null(yml$citation$issue))
     cli::cli_li("citation issue: {yml$citation$issue}")
   if (!is.null(yml$citation$url))

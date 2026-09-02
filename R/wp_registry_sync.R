@@ -11,10 +11,15 @@
 #' laissée à la charge de l'auteur·e une fois le dépôt enregistré.
 #'
 #' En cas d'échec de consultation du registre (réseau, `wp/index.json`
-#' inaccessible), la fonction est **fail-soft** : elle n'écrit rien dans
-#' `_quarto.yml` (les valeurs déjà présentes sont conservées telles
-#' quelles) et retourne `network_error = TRUE`, plutôt que de forcer
-#' `draft: true` et d'effacer `wp`/`annee` d'un WP déjà publié.
+#' inaccessible), l'état ne peut pas être vérifié -- la fonction force
+#' alors `draft: true` et efface `wp`/`annee` de `_quarto.yml`, même pour
+#' un dépôt déjà publié : une vérification impossible ne doit jamais être
+#' traitée comme une confirmation implicite du statu quo, sous peine de
+#' publier en production un WP dont le numéro n'a en réalité pas pu être
+#' revalidé. La fonction retourne `network_error = TRUE` pour que les
+#' appelants ([setup_wp()], [publish_wp()]) puissent avertir
+#' l'utilisateur·rice et l'inviter à relancer l'opération une fois le
+#' registre de nouveau accessible.
 #'
 #' Utilisée par [setup_wp()] (pour que `_quarto.yml` soit déjà correct après
 #' l'appel) et par [publish_wp()] (pour rattraper un enregistrement survenu
@@ -24,8 +29,9 @@
 #' @param quiet Logique. Si `TRUE`, supprime les messages `cli`. Défaut
 #'   `FALSE`.
 #' @return Liste `list(stage, registry_entry, source_repo, network_error)`.
-#'   `stage` est `NA` si `network_error` est `TRUE` (état indéterminé,
-#'   `_quarto.yml` non modifié).
+#'   Si `network_error` est `TRUE`, `stage` vaut `TRUE` (brouillon forcé) et
+#'   `wp`/`annee` ont été effacés de `_quarto.yml` -- l'état n'a pas pu être
+#'   vérifié et n'est donc jamais traité comme publié.
 #' @keywords internal
 #' @noRd
 sync_wp_registry_state <- function(root = ".", quiet = FALSE) {
@@ -40,11 +46,27 @@ sync_wp_registry_state <- function(root = ".", quiet = FALSE) {
   entries     <- fetch_wp_entries()
 
   if (is.null(entries)) {
+    # Verification impossible : on ne peut pas garantir que ce wp/annee
+    # est toujours valide (ex. numero repris entre-temps, depot jamais
+    # enregistre). Plutot que de conserver silencieusement une valeur non
+    # revalidee, on l'efface et on force le brouillon -- evite qu'un WP non
+    # verifie soit deploye en production (deploy_wp() route sur stage/wp).
     warn(
-      "Registre inaccessible ({.url wp/index.json}) \u2014 {.code draft}/{.code wp}/\\
-       {.code annee} laiss\u00e9s inchang\u00e9s dans {.file _quarto.yml}.")
+      "Registre inaccessible ({.url wp/index.json}) — vérification \\
+       impossible : {.code wp}/{.code annee} effacés de {.file _quarto.yml} \\
+       et {.code draft: true} forcé. Relancer une fois le registre accessible.")
+    tryCatch({
+      lines <- readLines(qyml_path, warn = FALSE)
+      lines <- yaml_patch_scalar(lines, "draft", TRUE)
+      lines <- yaml_patch_delete(lines, "annee")
+      lines <- yaml_patch_delete(lines, "wp")
+      writeLines(lines, qyml_path)
+    }, error = function(e)
+      warn(
+        "Clés {.code draft}/{.code wp}/{.code annee} non écrites dans \\
+         {.file _quarto.yml} : {conditionMessage(e)}"))
     return(list(
-      stage = NA, registry_entry = NULL,
+      stage = TRUE, registry_entry = NULL,
       source_repo = source_repo, network_error = TRUE
     ))
   }

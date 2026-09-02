@@ -1,4 +1,4 @@
-## ofceweb v0.10.7
+## ofceweb v0.10.8
 
 ### `setup_wp()` : correction de l'URL GitHub Pages / `stage-target` sans remote
 
@@ -51,6 +51,8 @@
 * Documentation : nouvelle section `@details` dans `wp_registry_request()`
   décrivant le flux fork → push → PR cross-repo, et paragraphe
   correspondant ajouté à la vignette `working-papers.Rmd`.
+
+## ofceweb v0.10.7
 
 ### Compteur de déploiement dans le bandeau « Version préliminaire »
 

@@ -1,5 +1,26 @@
 ## ofceweb v0.10.8
 
+### `wp_registry_request()` : push direct sur `wp-registry` quand l'appelant·e y a déjà des droits d'écriture
+
+* Corrige un bug dans `wp_registry_request()` : la fonction échouait
+  systématiquement (`"Le fork [...] n'est pas devenu disponible à temps"`,
+  sans ouverture de PR) pour un token GitHub qui dispose déjà d'un accès en
+  écriture sur `ofceweb/wp-registry` (ex. compte admin/maintainer du
+  registre). GitHub refuse silencieusement de forker un dépôt vers un
+  compte qui y a déjà accès en écriture : la demande de fork renvoie bien
+  `202 Accepted`, mais le fork n'apparaît ensuite jamais, quel que soit le
+  délai d'attente.
+* `wp_registry_request()` vérifie désormais les droits du token sur
+  `registry_repo` (`GET /repos/{registry_repo}`, champ `permissions.push`)
+  avant de recourir à un fork. Si l'accès en écriture est présent, la
+  fonction travaille directement sur `registry_repo` : clonage direct
+  (sans resynchronisation `upstream`), push de la branche
+  `request/{annee}/{wp}` sur `registry_repo` lui-même, puis ouverture d'une
+  pull request **intra-dépôt** (`head` = nom de branche seul).
+* Pour tous les autres appelant·e·s (l'immense majorité, sans droit
+  d'écriture sur `wp-registry`), le comportement est inchangé : flux par
+  **fork personnel**, comme documenté précédemment.
+
 ### `stage-target: auto` persiste désormais tel quel dans `_quarto.yml`
 
 * Corrige un bug dans `setup_wp()` : `stage-target: auto` était résolu une

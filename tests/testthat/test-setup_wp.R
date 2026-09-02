@@ -311,10 +311,13 @@ test_that("setup_wp() does not assume the ofce org when no git remote is configu
   expect_message(setup_wp(dir), "URL GitHub Pages")
 
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
-  # No remote and no gh account to guess from: stage-target must default to
-  # gh-pages (never silently "ftp", which would wrongly assume the ofce
-  # org), and site-url must not be fabricated as https://ofce.github.io/...
-  expect_equal(yml$`stage-target`, "gh-pages")
+  # No remote and no gh account to guess from: stage-target is written back
+  # literally as "auto" (so a later transfer to the ofce org resolves
+  # correctly at the next deploy_wp() call, without rerunning setup_wp()),
+  # but the resolution used for the draft URL must never silently assume
+  # "ftp" (the ofce org) -- site-url must not be fabricated as
+  # https://ofce.github.io/...
+  expect_equal(yml$`stage-target`, "auto")
   expect_false(identical(yml$website$`site-url`, sprintf("https://ofce.github.io/%s/", fs::path_file(dir))))
 })
 
@@ -327,7 +330,9 @@ test_that("setup_wp() uses the authenticated gh account (not 'ofce') for the dra
   suppressMessages(setup_wp(dir))
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
 
-  expect_equal(yml$`stage-target`, "gh-pages")
+  # stage-target stays "auto" literally in _quarto.yml -- only the
+  # resolved draft URL reflects the authenticated gh account.
+  expect_equal(yml$`stage-target`, "auto")
   expect_equal(yml$website$`site-url`, sprintf("https://someuser.github.io/%s/", fs::path_file(dir)))
 })
 
@@ -346,7 +351,9 @@ test_that("setup_wp() resolves stage-target to ftp and skips the GitHub Pages UR
   suppressMessages(setup_wp(dir))
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
 
-  expect_equal(yml$`stage-target`, "ftp")
+  # stage-target stays "auto" literally in _quarto.yml -- only the
+  # resolved draft URL reflects the ofce-owned remote.
+  expect_equal(yml$`stage-target`, "auto")
   expect_match(yml$website$`site-url`, "^https://staging\\.ofce\\.fr/")
 })
 
@@ -365,6 +372,8 @@ test_that("setup_wp() resolves stage-target to gh-pages and uses the real owner 
   suppressMessages(setup_wp(dir))
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
 
-  expect_equal(yml$`stage-target`, "gh-pages")
+  # stage-target stays "auto" literally in _quarto.yml -- only the
+  # resolved draft URL reflects the non-ofce remote owner.
+  expect_equal(yml$`stage-target`, "auto")
   expect_equal(yml$website$`site-url`, "https://someoneelse.github.io/wp-example/")
 })

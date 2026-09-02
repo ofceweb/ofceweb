@@ -55,7 +55,7 @@ Le numéro et l'année sont désormais **attribués par le registre**, non par l
 1. setup_wp()                      Initialise le dépôt (une fois)
 2. [rédaction du WP]
 3. render_wp()                     Rendu + prévisualisation locale
-4. deploy_wp()                     → cible lue depuis stage-target (gh-pages par défaut)
+4. deploy_wp()                     → cible lue depuis stage-target (auto par défaut)
 
         — quand le WP est prêt pour la numérotation —
 
@@ -71,13 +71,13 @@ Le numéro et l'année sont désormais **attribués par le registre**, non par l
 
 Les étapes 6–7 peuvent être répétées autant de fois que nécessaire pendant la relecture (chaque `wp_version_up()` incrémente la version et crée une nouvelle URL de staging).
 
-**Important (changement depuis la v0.9.4)** : `deploy_wp()` n'a plus de paramètre `target`. La destination (avant publication) est désormais lue directement dans `_quarto.yml`, clé `stage-target: gh-pages` ou `stage-target: ftp`. Pour changer de cible, relancer :
+**Important (changement depuis la v0.9.4)** : `deploy_wp()` n'a plus de paramètre `target`. La destination (avant publication) est désormais lue directement dans `_quarto.yml`, clé `stage-target: auto` (valeur par défaut), `stage-target: gh-pages` ou `stage-target: ftp`. Pour forcer une cible, relancer :
 
 ``` r
 setup_wp(stage_target = "ftp")       # ou "gh-pages"
 ```
 
-`setup_wp()` écrit systématiquement cette clé (valeur par défaut `gh-pages` pour un nouveau WP) et recalcule `website.site-url` en conséquence. Une fois le WP confirmé dans le registre (`stage = FALSE`), `stage-target` est ignoré et le déploiement va toujours vers FTP production.
+`setup_wp()` écrit systématiquement cette clé et recalcule `website.site-url` en conséquence. Par défaut, elle vaut `"auto"` — et le reste littéralement dans `_quarto.yml` : `deploy_wp()` la réévalue à **chaque déploiement**, selon le propriétaire GitHub *actuel* du dépôt (`"ftp"` pour l'organisation `ofce`, `"gh-pages"` sinon). Un transfert de propriété vers `ofce` change donc la destination dès le prochain `deploy_wp()`, sans repasser par `setup_wp()`. Seules les valeurs explicites `"ftp"`/`"gh-pages"` fixent la destination indépendamment du propriétaire. Une fois le WP confirmé dans le registre (`stage = FALSE`), `stage-target` est ignoré et le déploiement va toujours vers FTP production.
 
 ------------------------------------------------------------------------
 

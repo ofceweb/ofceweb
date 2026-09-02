@@ -438,6 +438,45 @@ resolve_stage_target <- function(value, org = NA_character_) {
   value
 }
 
+#' Détecte le propriétaire (organisation ou compte) GitHub d'un dépôt local
+#'
+#' Partagée par [setup_wp()] et [deploy_wp()] pour résoudre un
+#' `stage-target` valant `"auto"` -- toujours réévaluée à l'appel plutôt que
+#' figée une fois pour toutes, car le propriétaire du dépôt peut changer
+#' (ex. transfert vers l'organisation `ofce`) sans que `_quarto.yml` soit
+#' retouché.
+#'
+#' @param root Chemin racine du dépôt git.
+#' @return Liste avec `owner`/`repo` (déduits du remote `origin`, `NA` si
+#'   absent) et `org` (owner du remote, ou compte `gh` authentifié en repli,
+#'   ou `NA` si aucun des deux n'est disponible).
+#' @keywords internal
+#' @noRd
+detect_gh_owner <- function(root) {
+  remotes <- tryCatch(gert::git_remote_list(repo = root), error = function(e) NULL)
+  origin_url <- NULL
+  if (!is.null(remotes) && nrow(remotes) > 0) {
+    o <- remotes[remotes$name == "origin", , drop = FALSE]
+    origin_url <- if (nrow(o) > 0) o$url[[1]] else remotes$url[[1]]
+  }
+  owner <- NA_character_
+  repo_slug  <- NA_character_
+  if (!is.null(origin_url)) {
+    url2 <- sub("\\.git$", "", origin_url)
+    m <- if (grepl("^git@", url2)) {
+      regmatches(url2, regexec("git@[^:]+:([^/]+)/(.+)$", url2))[[1]]
+    } else {
+      regmatches(url2, regexec("https?://[^/]+/([^/]+)/(.+)$", url2))[[1]]
+    }
+    if (length(m) >= 3) {
+      owner <- m[[2]]
+      repo_slug <- m[[3]]
+    }
+  }
+  org <- if (!is.na(owner)) owner else check_gh_login(verbose = FALSE)
+  list(owner = owner, repo = repo_slug, org = org)
+}
+
 check_repo_status <- function(repo = ".", prompt = TRUE, timeout = 10) {
   # Fetch latest refs from remote (no merge).
   # Runs in a callr subprocess so the timeout is enforced cross-platform.

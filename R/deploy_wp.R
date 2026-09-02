@@ -1,19 +1,27 @@
 #' Déploie un document de travail (WP) OFCE
 #'
 #' Route le déploiement selon l'\u00e9tat du registre (`stage` dans
-#' `manifest.json`) et le param\u00e8tre `target` :
+#' `manifest.json`) et, avant publication, selon `stage-target` dans
+#' `_quarto.yml` (positionn\u00e9 par [setup_wp()]) :
 #' \itemize{
-#'   \item **Publi\u00e9** (`stage: false`) : toujours vers FTP production
-#'     (`ftp_deploy.yml`), quel que soit `target`.
-#'   \item **Non encore publi\u00e9** (`stage: true` ou `stage` absent) :
-#'     destination choisie par `target` :
+#'   \item **Publi\u00e9** (`stage: FALSE`) : toujours vers FTP production
+#'     (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`.
+#'   \item **Non encore publi\u00e9** (`stage: TRUE` ou `stage` absent) :
+#'     destination lue depuis `stage-target` :
 #'     \itemize{
-#'       \item `"auto"` (d\u00e9faut) : FTP staging si `stage = TRUE`
-#'         (demande de num\u00e9ro soumise), GitHub Pages sinon.
+#'       \item `"auto"` : r\u00e9\u00e9valu\u00e9 \u00e0 **chaque appel** de
+#'         `deploy_wp()`, selon le propri\u00e9taire GitHub *actuel* du
+#'         d\u00e9p\u00f4t -- `"ftp"` (staging OFCE, `ftp_stage.yml`, branche
+#'         `site-staging`) pour l'organisation `ofce`, `"gh-pages"`
+#'         (`quarto publish gh-pages`) sinon. `"auto"` est conserv\u00e9
+#'         litt\u00e9ralement dans `_quarto.yml` par [setup_wp()] -- un
+#'         transfert de propri\u00e9t\u00e9 du d\u00e9p\u00f4t vers (ou hors de)
+#'         `ofce` change donc la destination d\u00e8s le prochain
+#'         `deploy_wp()`, sans repasser par [setup_wp()].
 #'       \item `"ftp"` : FTP staging (`ftp_stage.yml`, branche `site-staging`)
-#'         ind\u00e9pendamment de l'\u00e9tat du registre.
+#'         ind\u00e9pendamment du propri\u00e9taire actuel du d\u00e9p\u00f4t.
 #'       \item `"gh-pages"` : GitHub Pages (`quarto publish gh-pages`)
-#'         ind\u00e9pendamment de l'\u00e9tat du registre.
+#'         ind\u00e9pendamment du propri\u00e9taire actuel du d\u00e9p\u00f4t.
 #'     }
 #' }
 #'
@@ -100,12 +108,15 @@ deploy_wp <- function(
   }
 
   # ---- D\u00e9termination de la cible effective (non-publi\u00e9) ---------------------
-  # Source de v\u00e9rit\u00e9 : stage-target dans _quarto.yml (gh-pages ou ftp).
+  # Source de v\u00e9rit\u00e9 : stage-target dans _quarto.yml. Peut valoir "auto"
+  # (pr\u00e9serv\u00e9 litt\u00e9ralement par setup_wp()) -- il est alors r\u00e9\u00e9valu\u00e9 ici,
+  # \u00e0 chaque d\u00e9ploiement, selon le propri\u00e9taire GitHub *actuel* du d\u00e9p\u00f4t
+  # (detect_gh_owner(), partag\u00e9 avec setup_wp()) : "ftp" pour l'organisation
+  # ofce, "gh-pages" sinon. Cela permet \u00e0 un transfert de propri\u00e9t\u00e9 vers
+  # ofce de changer la destination sans repasser par setup_wp().
   # Ignor\u00e9 si le WP est confirm\u00e9 dans le registre (stage = FALSE, ci-dessus).
-  effective_target <- match.arg(
-    yml[["stage-target"]] %||% "gh-pages",
-    c("gh-pages", "ftp")
-  )
+  raw_target <- yml[["stage-target"]] %||% "auto"
+  effective_target <- resolve_stage_target(raw_target, org = detect_gh_owner(root)$org)
 
   # ---- FTP staging ----------------------------------------------------------
   if (effective_target == "ftp") {

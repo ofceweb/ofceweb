@@ -21,6 +21,20 @@ setup_wp(
 
 \item{versionning}{Logique. Si `TRUE` et WP publié (`wp` non `NULL`),
 ajoute `/v0` au `site-path`.}
+
+\item{stage_target}{Chaîne. Destination de pré-publication (brouillon,
+`wp` non encore attribué) : `"auto"` (défaut pour un nouveau dépôt) est
+écrit littéralement dans `_quarto.yml` et réévalué à chaque appel de
+[deploy_wp()] selon le propriétaire GitHub *au moment du déploiement* —
+`"ftp"` (staging OFCE) pour les dépôts de l'organisation `ofce`,
+`"gh-pages"` sinon. Cela permet à un transfert de propriété vers `ofce`
+de changer la destination sans repasser par `setup_wp()`. `"gh-pages"`
+et `"ftp"` forcent explicitement la destination (écrits tels quels,
+plus jamais réévalués). `"ofce"` est un alias hérité de `"ftp"`,
+accepté pour compatibilité avec d'anciens `_quarto.yml` mais normalisé
+en `"ftp"` à l'écriture. Une valeur déjà présente dans `_quarto.yml` est
+toujours conservée telle quelle — la résolution automatique ne
+s'applique qu'à un dépôt sans `stage-target`.}
 }
 \value{
 Invisible `NULL`. Appelée pour ses effets de bord.

@@ -1,5 +1,31 @@
 ## ofceweb v0.10.8
 
+### `stage-target: auto` persiste désormais tel quel dans `_quarto.yml`
+
+* Corrige un bug dans `setup_wp()` : `stage-target: auto` était résolu une
+  fois pour toutes en `"gh-pages"` ou `"ftp"` selon le propriétaire GitHub
+  *au moment de l'appel de `setup_wp()`*, puis cette valeur concrète était
+  réécrite dans `_quarto.yml` — `"auto"` ne persistait donc jamais. Un
+  transfert ultérieur du dépôt vers (ou hors de) l'organisation `ofce`
+  n'était alors plus pris en compte sans relancer `setup_wp()`.
+* `setup_wp()` écrit désormais `"auto"` littéralement dans `_quarto.yml`
+  lorsque c'est la valeur effective (par défaut pour un nouveau dépôt, ou
+  déjà présente telle quelle dans un `_quarto.yml` existant) ; les valeurs
+  explicites `"gh-pages"`/`"ftp"`/`"ofce"` restent, elles, écrites telles
+  quelles (`"ofce"` normalisé en `"ftp"`).
+* `deploy_wp()` réévalue maintenant `"auto"` à **chaque déploiement**, selon
+  le propriétaire GitHub actuel du dépôt (nouvelle fonction interne
+  partagée `detect_gh_owner()`) — au lieu de le lire comme une valeur déjà
+  figée. Un transfert de propriété vers `ofce` (ou une fork/duplication
+  vers un compte personnel) change donc la destination du déploiement dès
+  le prochain `deploy_wp()`, sans repasser par `setup_wp()` et sans
+  modifier les workflows GitHub Actions.
+* `setup_wp()` continue de calculer une valeur résolue concrète
+  (`gh-pages`/`ftp`) pour ses propres besoins internes (URL de brouillon
+  `website.site-url`, résumé affiché en console), mais celle-ci n'est
+  jamais celle persistée dans `_quarto.yml` quand la valeur effective est
+  `"auto"`.
+
 ### `setup_wp()` : correction de l'URL GitHub Pages / `stage-target` sans remote
 
 * Corrige un bug dans `setup_wp()` : en l'absence de remote git `origin`

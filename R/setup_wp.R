@@ -64,13 +64,18 @@
 #' @param versionning Logique. Si `TRUE` et WP publié (`wp` non `NULL`),
 #'   ajoute `/v0` au `site-path`.
 #' @param stage_target Chaîne. Destination de pré-publication (brouillon,
-#'   `wp` non encore attribué) : `"auto"` (défaut pour un nouveau dépôt) se
-#'   résout en `"ftp"` (staging OFCE) pour les dépôts de l'organisation
-#'   GitHub `ofce`, et en `"gh-pages"` sinon. `"gh-pages"` et `"ftp"` forcent
-#'   explicitement la destination. `"ofce"` est un alias hérité de `"ftp"`,
-#'   accepté pour compatibilité avec d'anciens `_quarto.yml`. Une valeur déjà
-#'   présente dans `_quarto.yml` est toujours conservée telle quelle — la
-#'   résolution automatique ne s'applique qu'à un dépôt sans `stage-target`.
+#'   `wp` non encore attribué) : `"auto"` (défaut pour un nouveau dépôt) est
+#'   écrit littéralement dans `_quarto.yml` et réévalué à chaque appel de
+#'   [deploy_wp()] selon le propriétaire GitHub *au moment du déploiement* —
+#'   `"ftp"` (staging OFCE) pour les dépôts de l'organisation `ofce`,
+#'   `"gh-pages"` sinon. Cela permet à un transfert de propriété vers `ofce`
+#'   de changer la destination sans repasser par `setup_wp()`. `"gh-pages"`
+#'   et `"ftp"` forcent explicitement la destination (écrits tels quels,
+#'   plus jamais réévalués). `"ofce"` est un alias hérité de `"ftp"`,
+#'   accepté pour compatibilité avec d'anciens `_quarto.yml` mais normalisé
+#'   en `"ftp"` à l'écriture. Une valeur déjà présente dans `_quarto.yml` est
+#'   toujours conservée telle quelle — la résolution automatique ne
+#'   s'applique qu'à un dépôt sans `stage-target`.
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @seealso [render_wp()], [deploy_wp()], [wp_version_up()], [update_navbar()]
@@ -167,29 +172,6 @@ setup_wp <- function(
     }
   # ---- infos dépôt git (calculé tôt : nécessaire pour résoudre
   # stage-target = "auto" ci-dessous selon l'organisation GitHub) -----------
-  remotes <- tryCatch(gert::git_remote_list(repo = root),
-                      error = function(e) NULL)
-  origin_url <- NULL
-  if (!is.null(remotes) && nrow(remotes) > 0) {
-    o <- remotes[remotes$name == "origin", , drop = FALSE]
-    if (nrow(o) > 0) origin_url <- o$url[[1]]
-    else origin_url <- remotes$url[[1]]
-  }
-
-  parse_remote_wp <- function(url) {
-    if (is.null(url)) return(list(owner = NA_character_, repo = NA_character_))
-    url2 <- sub("\\.git$", "", url)
-    if (grepl("^git@", url2)) {
-      m <- regmatches(url2, regexec("git@[^:]+:([^/]+)/(.+)$", url2))[[1]]
-    } else {
-      m <- regmatches(url2, regexec("https?://[^/]+/([^/]+)/(.+)$", url2))[[1]]
-    }
-    if (length(m) < 3) return(list(owner = NA_character_, repo = NA_character_))
-    list(owner = m[[2]], repo = m[[3]])
-  }
-
-  gh     <- parse_remote_wp(origin_url)
-  repo_name <- if (is.na(gh$repo)) fs::path_file(root) else gh$repo
   # Sans remote git (nouveau dépôt local, pas encore poussé), on ne peut pas
   # savoir sous quel compte/organisation il finira -- présumer silencieusement
   # "ofce" ferait choisir "ftp" par erreur pour la résolution "auto" de
@@ -197,7 +179,12 @@ setup_wp <- function(
   # erronée (https://ofce.github.io/...) pour un dépôt personnel. On
   # retombe donc sur le compte `gh` authentifié (le cas le plus probable
   # pour un premier push), ou `NA` si `gh` n'est pas non plus authentifié.
-  gh_org <- if (!is.na(gh$owner)) gh$owner else check_gh_login(verbose = FALSE)
+  # detect_gh_owner() (git_utils.R) est partagée avec deploy_wp(), qui doit
+  # refaire cette même détection à chaque déploiement pour réévaluer
+  # "auto" (cf. section stage-target ci-dessous).
+  gh        <- detect_gh_owner(root)
+  repo_name <- if (is.na(gh$repo)) fs::path_file(root) else gh$repo
+  gh_org    <- gh$org
 
   # Avertissement si le dépôt n'est pas dans l'organisation ofce.
   # Le rendu local fonctionne, mais la publication FTP nécessite d'être dans
@@ -225,8 +212,18 @@ setup_wp <- function(
     stage_target_provided <- TRUE
     stage_target <- "auto"
   }
-  if (stage_target_provided)
-    stage_target <- resolve_stage_target(stage_target, org = gh_org)
+  # `stage_target` (écrit dans _quarto.yml plus bas) conserve la valeur
+  # brute -- notamment "auto" littéral, qui doit rester "auto" dans le
+  # fichier pour être réévalué à chaque déploiement par deploy_wp() : le
+  # propriétaire du dépôt peut changer (transfert vers l'organisation
+  # ofce) sans qu'on relance setup_wp(). `stage_target_resolved` est la
+  # valeur concrète ("gh-pages"/"ftp"), calculée avec le propriétaire
+  # actuel, utilisée seulement pour les calculs d'URL ci-dessous.
+  if (stage_target_provided) {
+    stage_target <- match.arg(stage_target, c("auto", "gh-pages", "ofce", "ftp"))
+    if (identical(stage_target, "ofce")) stage_target <- "ftp"
+  }
+  stage_target_resolved <- resolve_stage_target(stage_target, org = gh_org)
 
   version <- yml[["version"]]
   if(version_provided & is.null(yml[["version"]]) & isTRUE(versionning))
@@ -583,7 +580,7 @@ setup_wp <- function(
     # Brouillon / staging — toujours recalculé depuis stage-target.
     yml$website$`site-path` <- NULL
     lines <- yaml_patch_delete(lines, "website.site-path")
-    draft_site_url <- if (identical(stage_target, "ftp")) {
+    draft_site_url <- if (identical(stage_target_resolved, "ftp")) {
       ver_seg <- if (!is.null(version) && nzchar(as.character(version)))
         paste0(version, "/") else ""
       sprintf("https://staging.ofce.fr/%s/%s", repo_name, ver_seg)
@@ -755,10 +752,12 @@ setup_wp <- function(
   # staging.ofce.fr/{staging_dir}. Ne montrer l'URL FTP que lorsqu'elle est
   # effectivement le canal utilisé -- sinon le résumé affiche une URL où
   # le site n'est jamais publié.
-  if (is.null(yml$wp) && identical(stage_target, "ftp")) {
+  if (is.null(yml$wp) && identical(stage_target_resolved, "ftp")) {
     cli::cli_li("staging url : https://staging.ofce.fr/{staging_dir}")
   }
-  cli::cli_li("stage-target: {stage_target}")
+  cli::cli_li(
+    "stage-target: {stage_target}{if (identical(stage_target, 'auto')) paste0(' (\u2192 ', stage_target_resolved, ' pour ', gh_org, ')') else ''}"
+  )
   cli::cli_li("draft       : {if (is.null(registry_state) || isTRUE(registry_state$network_error)) '(non consulte)' else registry_state$stage}")
   if (!is.null(yml$citation$issue))
     cli::cli_li("citation issue: {yml$citation$issue}")

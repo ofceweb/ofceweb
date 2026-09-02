@@ -1,6 +1,36 @@
 # Changelog
 
-## ofceweb v0.10.8
+## ofceweb v0.10.9
+
+### `sync_wp_registry_state()` : une vérification impossible efface `wp`/`annee` au lieu de les conserver
+
+- Corrige un bug de conception dans `sync_wp_registry_state()` (partagée
+  par
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  et
+  [`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md))
+  : lorsque le registre central (`ofceweb/wp-registry`) était
+  inaccessible (réseau, `wp/index.json` introuvable), la fonction était
+  **fail-soft** — elle laissait `draft`/`wp`/ `annee` inchangés dans
+  `_quarto.yml`. Une vérification échouée était donc silencieusement
+  traitée comme une confirmation implicite du statu quo, avec le risque
+  qu’un WP publié sur un numéro jamais réellement revalidé (ex. numéro
+  repris entre-temps par un autre dépôt) parte malgré tout en production
+  au prochain
+  [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md).
+- En cas d’échec de consultation du registre, `sync_wp_registry_state()`
+  efface désormais `wp`/`annee` de `_quarto.yml` et force `draft: true`
+  — une vérification impossible n’est jamais traitée comme une
+  publication confirmée. La fonction continue de signaler
+  `network_error = TRUE` à ses appelant·e·s.
+- [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  répercute cet effacement sur les valeurs déjà lues en mémoire
+  (site-path, `citation.*`, `FTP_SERVER_DIR` ne sont donc plus
+  recalculés à partir de l’ancien numéro non revalidé) et avertit
+  explicitement dans ce cas.
+  [`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md)
+  avertit de même et invite à relancer une fois le registre de nouveau
+  accessible.
 
 ### `wp_registry_request()` : push direct sur `wp-registry` quand l’appelant·e y a déjà des droits d’écriture
 
@@ -62,6 +92,8 @@
   `website.site-url`, résumé affiché en console), mais celle-ci n’est
   jamais celle persistée dans `_quarto.yml` quand la valeur effective
   est `"auto"`.
+
+## ofceweb v0.10.8
 
 ### `setup_wp()` : correction de l’URL GitHub Pages / `stage-target` sans remote
 

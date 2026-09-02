@@ -51,7 +51,7 @@ jobs:
         run: |
           echo "{\"count\": ${{ github.run_number }}, \"run_id\": \"${{ github.run_id }}\", \"updated\": \"$(date -u +%FT%TZ)\"}" > push-count.json
 
-      - name: FTP deploy (staging)
+      - name: FTP deploy -> staging
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server:   ${{ secrets.FTP_SERVER }}

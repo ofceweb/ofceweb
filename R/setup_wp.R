@@ -525,6 +525,11 @@ setup_wp <- function(
   if (wp_provided)    { yml$wp    <- wp;    lines <- yaml_patch_scalar_or_delete(lines, "wp", wp) }
   if (annee_provided) { yml$annee <- annee; lines <- yaml_patch_scalar(lines, "annee", annee) }
   if (lang_provided)  { yml$lang  <- lang;  lines <- yaml_patch_scalar(lines, "lang", lang) }
+  # On enlève les wp/anne de l'index si jamais
+  if(!is.null(index_yml$wp))
+    yaml_comment_out_frontmatter(dest_index, "wp")
+  if(!is.null(index_yml$annee))
+    yaml_comment_out_frontmatter(dest_index, "annee")
   # website.title : plus jamais écrit (cf. update_navbar(), qui supprime la
   # clé si elle est encore présente d'un appel antérieur) — le titre du WP
   # reste porté par la clé `title` au niveau racine, pas par `website.title`.

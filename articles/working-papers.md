@@ -192,27 +192,22 @@ wp_registry_request()
     Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
     n'attend pas la fusion (fire-and-forget).
 
-    La PR est ouverte depuis un **fork personnel** de
-    `ofceweb/wp-registry`, créé automatiquement (ou réutilisé s'il
-    existe déjà) sous le compte GitHub de l'auteur·e — jamais par un
-    push direct sur `ofceweb/wp-registry` lui-même. C'est volontaire :
-    seule la **fusion** d'une PR dans le registre est protégée
+    La PR est ouverte directement sur une branche de
+    `ofceweb/wp-registry` (PR intra-dépôt) — pas de fork personnel.
+    C'est volontaire : le dépôt registre est configuré pour autoriser
+    les membres de l'organisation `ofce` à pousser des branches et
+    ouvrir des PR sans être collaborateur·rice avec droit d'écriture.
+    Seule la **fusion** d'une PR dans le registre est protégée
     (branch protection + `CODEOWNERS`), pas le fait d'en ouvrir une —
     n'importe quel·le auteur·e de l'organisation `ofce` doit pouvoir
-    demander un numéro sans être collaborateur·rice avec droit
-    d'écriture sur `wp-registry`. Cela suit le flux standard de
-    contribution externe sur GitHub (fork + PR cross-repo), plutôt que
-    d'exiger un droit d'écriture individuel sur le dépôt registre.
+    demander un numéro.
 
     Prérequis : un token GitHub authentifié (`DEPLOY_PAT`, ou des
-    identifiants `gitcreds` déjà configurés) suffisant pour résoudre son
-    propre compte (`GET /user`) et forker un dépôt public — un PAT
-    classique avec la portée `repo` (ou `public_repo`) convient, sans
-    configuration particulière côté `ofceweb/wp-registry`. La première
-    invocation peut prendre quelques secondes de plus si le fork doit
-    être créé (`ofceweb/wp-registry` n'existe pas encore sous le compte
-    de l'auteur·e) : la fonction attend que GitHub le rende clonable
-    avant de continuer.
+    identifiants `gitcreds` déjà configurés) suffisant pour résoudre
+    son propre compte (`GET /user`) et pousser une branche sur
+    `ofceweb/wp-registry` — un PAT classique avec la portée `repo`
+    (ou `public_repo`) d'un compte membre de l'organisation `ofce`
+    convient.
 
 2.  Une fois la PR fusionnée, relancer
     [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
@@ -308,7 +303,55 @@ deploy_wp()
 
 ------------------------------------------------------------------------
 
-## 8. Manifeste JSON
+## 8. Une note sur la taille des pdf et l’accessibilité
+
+Il est important que les fichiers pdf produits soient conformes aux
+meilleures pratiques. Outre la qualité du texte et des illustrations, la
+structure ou la pertinence du sujet et de son argumentation, deux
+aspects doivent être pris en compte :
+
+- **la taille** : pour garder les pdf dans des tailles raisonnables, il
+  faut que le format des images soit en `fig-format: svg`. C’est mis par
+  défaut, sauf quand le pdf est généré par `latex` (`format: wp-pdf`) et
+  que le convertisseur `rsvg-convert` n’est installé. Sur MacOS c’est
+  facile (`brew install rsvg-convert`), sur win c’est un peu plus
+  pénible (sauf si vous avez installé `choco` auquel cas c’est
+  `choco install rsvg-convert`). Si `rsvg-convert` n’est pas installé,
+  le format des images sera `png` et le pdf très volumineux.
+  Alternativement, `format: wp-typst` fonctionne toujours et donc est
+  plus sûr.
+
+- **l’accessibilité** : pour être conforme au RGAA et aux critères
+  d’accessibilité pour les personnes aveugles, malvoyantes ou
+  daltioniennes, il faut générer un document qui suit un certain nombre
+  de règles (voir
+  [ici](https://design.numerique.gouv.fr/outils/checklist-pdf/)). Pour
+  que les pdf générés soient conformes et vérifiés, il faut que
+  [veraPDF](https://verapdf.org/home/) soit installé pour `quarto` (par,
+  dans le terminal, `quarto install verapdf` ; si java n’est pas
+  installé installez le
+  [ici](https://www.java.com/fr/download/help/download_options.html)).
+  Une fois installé et ajouté dans le format du pdf la clef
+  `pdf-standard: ua1`, un diagnostic s’affichera et vous donnera le
+  niveau de validation. La validation échouera probablement au premier
+  passage, toutes vos illustrations devant avoir un `alt-text`. Dans un
+  `.qmd`, pour un chunk de code, il faut ajouter systématiquement dans
+  les attributs du chunk `#| fig-alt: "une description du graphique"`.
+  Pour le moment, ces tests ne sont pas imposés, mais ils vont devenir
+  obligatoires.
+
+- **l’accessibilité en html** : Un diagnostic d’accessibilité est
+  produit systématiquement.
+
+``` r
+---
+format:
+  wp-typst:
+    pdf-standard: ua1
+---
+```
+
+## 9. Manifeste JSON
 
 [`wp_manifest()`](https://ofceweb.github.io/ofceweb/reference/wp_manifest.md)
 (appelée automatiquement par

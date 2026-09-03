@@ -321,27 +321,22 @@ fourni
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/wp_registry_request.html">wp_registry_request</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code>Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
 n'attend pas la fusion (fire-and-forget).</code></pre>
-<pre><code>La PR est ouverte depuis un **fork personnel** de
-`ofceweb/wp-registry`, créé automatiquement (ou réutilisé s'il
-existe déjà) sous le compte GitHub de l'auteur·e — jamais par un
-push direct sur `ofceweb/wp-registry` lui-même. C'est volontaire :
-seule la **fusion** d'une PR dans le registre est protégée
+<pre><code>La PR est ouverte directement sur une branche de
+`ofceweb/wp-registry` (PR intra-dépôt) — pas de fork personnel.
+C'est volontaire : le dépôt registre est configuré pour autoriser
+les membres de l'organisation `ofce` à pousser des branches et
+ouvrir des PR sans être collaborateur·rice avec droit d'écriture.
+Seule la **fusion** d'une PR dans le registre est protégée
 (branch protection + `CODEOWNERS`), pas le fait d'en ouvrir une —
 n'importe quel·le auteur·e de l'organisation `ofce` doit pouvoir
-demander un numéro sans être collaborateur·rice avec droit
-d'écriture sur `wp-registry`. Cela suit le flux standard de
-contribution externe sur GitHub (fork + PR cross-repo), plutôt que
-d'exiger un droit d'écriture individuel sur le dépôt registre.
+demander un numéro.
 
 Prérequis : un token GitHub authentifié (`DEPLOY_PAT`, ou des
-identifiants `gitcreds` déjà configurés) suffisant pour résoudre son
-propre compte (`GET /user`) et forker un dépôt public — un PAT
-classique avec la portée `repo` (ou `public_repo`) convient, sans
-configuration particulière côté `ofceweb/wp-registry`. La première
-invocation peut prendre quelques secondes de plus si le fork doit
-être créé (`ofceweb/wp-registry` n'existe pas encore sous le compte
-de l'auteur·e) : la fonction attend que GitHub le rende clonable
-avant de continuer.</code></pre>
+identifiants `gitcreds` déjà configurés) suffisant pour résoudre
+son propre compte (`GET /user`) et pousser une branche sur
+`ofceweb/wp-registry` — un PAT classique avec la portée `repo`
+(ou `public_repo`) d'un compte membre de l'organisation `ofce`
+convient.</code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li>Une fois la PR fusionnée, relancer <code><a href="../reference/setup_wp.html">setup_wp()</a></code> pour
 synchroniser <code>_quarto.yml</code> (<code>wp</code>,
@@ -420,25 +415,71 @@ clair.</p>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="manifeste-json">8. Manifeste JSON<a class="anchor" aria-label="anchor" href="#manifeste-json"></a>
+<h2 id="une-note-sur-la-taille-des-pdf-et-laccessibilité">8. Une note sur la taille des pdf et l’accessibilité<a class="anchor" aria-label="anchor" href="#une-note-sur-la-taille-des-pdf-et-laccessibilit%C3%A9"></a>
+</h2>
+<p>Il est important que les fichiers pdf produits soient conformes aux
+meilleures pratiques. Outre la qualité du texte et des illustrations, la
+structure ou la pertinence du sujet et de son argumentation, deux
+aspects doivent être pris en compte :</p>
+<ul>
+<li><p><strong>la taille</strong> : pour garder les pdf dans des tailles
+raisonnables, il faut que le format des images soit en
+<code>fig-format: svg</code>. C’est mis par défaut, sauf quand le pdf
+est généré par <code>latex</code> (<code>format: wp-pdf</code>) et que
+le convertisseur <code>rsvg-convert</code> n’est installé. Sur MacOS
+c’est facile (<code>brew install rsvg-convert</code>), sur win c’est un
+peu plus pénible (sauf si vous avez installé <code>choco</code> auquel
+cas c’est <code>choco install rsvg-convert</code>). Si
+<code>rsvg-convert</code> n’est pas installé, le format des images sera
+<code>png</code> et le pdf très volumineux. Alternativement,
+<code>format: wp-typst</code> fonctionne toujours et donc est plus
+sûr.</p></li>
+<li><p><strong>l’accessibilité</strong> : pour être conforme au RGAA et
+aux critères d’accessibilité pour les personnes aveugles, malvoyantes ou
+daltioniennes, il faut générer un document qui suit un certain nombre de
+règles (voir <a href="https://design.numerique.gouv.fr/outils/checklist-pdf/" class="external-link">ici</a>).
+Pour que les pdf générés soient conformes et vérifiés, il faut que <a href="https://verapdf.org/home/" class="external-link">veraPDF</a> soit installé pour
+<code>quarto</code> (par, dans le terminal,
+<code>quarto install verapdf</code> ; si java n’est pas installé
+installez le <a href="https://www.java.com/fr/download/help/download_options.html" class="external-link">ici</a>).
+Une fois installé et ajouté dans le format du pdf la clef
+<code>pdf-standard: ua1</code>, un diagnostic s’affichera et vous
+donnera le niveau de validation. La validation échouera probablement au
+premier passage, toutes vos illustrations devant avoir un
+<code>alt-text</code>. Dans un <code>.qmd</code>, pour un chunk de code,
+il faut ajouter systématiquement dans les attributs du chunk
+<code>#| fig-alt: "une description du graphique"</code>. Pour le moment,
+ces tests ne sont pas imposés, mais ils vont devenir
+obligatoires.</p></li>
+<li><p><strong>l’accessibilité en html</strong> : Un diagnostic
+d’accessibilité est produit systématiquement.</p></li>
+</ul>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="sc">---</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>format<span class="sc">:</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  wp<span class="sc">-</span>typst<span class="sc">:</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>    pdf<span class="sc">-</span>standard<span class="sc">:</span> ua1</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="sc">---</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="manifeste-json">9. Manifeste JSON<a class="anchor" aria-label="anchor" href="#manifeste-json"></a>
 </h2>
 <p><code><a href="../reference/wp_manifest.html">wp_manifest()</a></code> (appelée automatiquement par
 <code><a href="../reference/render_wp.html">render_wp()</a></code>) génère <code>manifest.json</code> à la racine
 du dépôt et dans <code>_site/</code> :</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="dt">"title"</span><span class="fu">:</span> <span class="st">"Mon document de travail"</span><span class="fu">,</span></span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="dt">"authors"</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span><span class="dt">"name"</span><span class="fu">:</span> <span class="st">"Prénom Nom"</span><span class="fu">,</span> <span class="dt">"affiliation"</span><span class="fu">:</span> <span class="st">"OFCE, Sciences Po Paris"</span><span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="dt">"abstract"</span><span class="fu">:</span> <span class="st">"Résumé..."</span><span class="fu">,</span></span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="dt">"wp"</span><span class="fu">:</span> <span class="dv">6</span><span class="fu">,</span></span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="dt">"annee"</span><span class="fu">:</span> <span class="dv">2026</span><span class="fu">,</span></span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="dt">"version"</span><span class="fu">:</span> <span class="st">"v0"</span><span class="fu">,</span></span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="dt">"date"</span><span class="fu">:</span> <span class="st">"2026-05-19"</span><span class="fu">,</span></span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  <span class="dt">"date_modified"</span><span class="fu">:</span> <span class="st">"2026-05-31"</span><span class="fu">,</span></span>
-<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="dt">"url"</span><span class="fu">:</span> <span class="st">"https://www.ofce.fr/wp/2026/6/v0/"</span><span class="fu">,</span></span>
-<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>  <span class="dt">"pdf"</span><span class="fu">:</span> <span class="st">"OFCEWP2026-6.pdf"</span><span class="fu">,</span></span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>  <span class="dt">"repo"</span><span class="fu">:</span> <span class="st">"https://github.com/ofce/mon-wp/"</span><span class="fu">,</span></span>
-<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>  <span class="dt">"lang"</span><span class="fu">:</span> <span class="st">"fr"</span></span>
-<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="dt">"title"</span><span class="fu">:</span> <span class="st">"Mon document de travail"</span><span class="fu">,</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="dt">"authors"</span><span class="fu">:</span> <span class="ot">[</span><span class="fu">{</span><span class="dt">"name"</span><span class="fu">:</span> <span class="st">"Prénom Nom"</span><span class="fu">,</span> <span class="dt">"affiliation"</span><span class="fu">:</span> <span class="st">"OFCE, Sciences Po Paris"</span><span class="fu">}</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="dt">"abstract"</span><span class="fu">:</span> <span class="st">"Résumé..."</span><span class="fu">,</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="dt">"wp"</span><span class="fu">:</span> <span class="dv">6</span><span class="fu">,</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  <span class="dt">"annee"</span><span class="fu">:</span> <span class="dv">2026</span><span class="fu">,</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>  <span class="dt">"version"</span><span class="fu">:</span> <span class="st">"v0"</span><span class="fu">,</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>  <span class="dt">"date"</span><span class="fu">:</span> <span class="st">"2026-05-19"</span><span class="fu">,</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>  <span class="dt">"date_modified"</span><span class="fu">:</span> <span class="st">"2026-05-31"</span><span class="fu">,</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>  <span class="dt">"url"</span><span class="fu">:</span> <span class="st">"https://www.ofce.fr/wp/2026/6/v0/"</span><span class="fu">,</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>  <span class="dt">"pdf"</span><span class="fu">:</span> <span class="st">"OFCEWP2026-6.pdf"</span><span class="fu">,</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a>  <span class="dt">"repo"</span><span class="fu">:</span> <span class="st">"https://github.com/ofce/mon-wp/"</span><span class="fu">,</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>  <span class="dt">"lang"</span><span class="fu">:</span> <span class="st">"fr"</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Ce manifeste est collecté par <code>webhome</code> via la GitHub API
 pour construire l’index des WPs de l’OFCE.</p>
 <hr>

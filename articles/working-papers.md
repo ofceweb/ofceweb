@@ -14,7 +14,11 @@ souhaite (code, explications de code, de données, etc…).
 
 ### Cycle de vie
 
-[TABLE]
+| État | `wp` dans `_quarto.yml` | Hébergement | URL |  |
+|----|----|----|----|----|
+| Brouillon repo personnel | `null` | GitHub Pages | `ofce.github.io/{repo}/` |  |
+| Préliminaire repo sur OFCE | `null` | OFCE staging | `staging.ofce.fr/{repo}/{version}` |  |
+| Publié | `YYYY - N` | Serveur OFCE FTP | `www.ofce.fr/wp/{annee}/{N}/{version}/` |  |
 
 Lorsque le docuement de travail est *stagé* sur le site staging.ofce.fr,
 il est possible de versionner. Le versionnage est impossible sur github
@@ -182,32 +186,32 @@ toute valeur passée en argument ou déjà présente dans `_quarto.yml`.
     qui calcule le numéro (auto-incrémenté, ou fourni via `wp =`) et
     ouvre une PR contre `ofce/wp-registry` — `annee` est lu depuis
     `_quarto.yml` si absent, et `contact` depuis `git config user.email`
-    si non fourni :
+    si non fourni
+
+    :
 
 ``` r
 
 wp_registry_request()
 ```
 
-    Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
-    n'attend pas la fusion (fire-and-forget).
+Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
+n’attend pas la fusion (fire-and-forget).
 
-    La PR est ouverte directement sur une branche de
-    `ofce/wp-registry` (PR intra-dépôt) — pas de fork personnel.
-    C'est volontaire : le dépôt registre est configuré pour autoriser
-    les membres de l'organisation `ofce` à pousser des branches et
-    ouvrir des PR sans être collaborateur·rice avec droit d'écriture.
-    Seule la **fusion** d'une PR dans le registre est protégée
-    (branch protection + `CODEOWNERS`), pas le fait d'en ouvrir une —
-    n'importe quel·le auteur·e de l'organisation `ofce` doit pouvoir
-    demander un numéro.
+La PR est ouverte directement sur une branche de `ofce/wp-registry` (PR
+intra-dépôt) — pas de fork personnel. C’est volontaire : le dépôt
+registre est configuré pour autoriser les membres de l’organisation
+`ofce` à pousser des branches et ouvrir des PR sans être
+collaborateur·rice avec droit d’écriture. Seule la **fusion** d’une PR
+dans le registre est protégée (branch protection + `CODEOWNERS`), pas le
+fait d’en ouvrir une — n’importe quel·le auteur·e de l’organisation
+`ofce` doit pouvoir demander un numéro.
 
-    Prérequis : un token GitHub authentifié (`DEPLOY_PAT`, ou des
-    identifiants `gitcreds` déjà configurés) suffisant pour résoudre
-    son propre compte (`GET /user`) et pousser une branche sur
-    `ofce/wp-registry` — un PAT classique avec la portée `repo`
-    (ou `public_repo`) d'un compte membre de l'organisation `ofce`
-    convient.
+Prérequis : un token GitHub authentifié (`DEPLOY_PAT`, ou des
+identifiants `gitcreds` déjà configurés) suffisant pour résoudre son
+propre compte (`GET /user`) et pousser une branche sur
+`ofce/wp-registry` — un PAT classique avec la portée `repo` (ou
+`public_repo`) d’un compte membre de l’organisation `ofce` convient.
 
 2.  Une fois la PR fusionnée, relancer
     [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)

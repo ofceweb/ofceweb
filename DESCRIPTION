@@ -48,7 +48,7 @@ Imports:
     future,
     future.mirai,
     futurize,
-    gert,
+    gert (>= 2.4.1),
     gh,
     gitcreds,
     glue,

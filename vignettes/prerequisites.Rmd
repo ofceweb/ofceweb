@@ -44,7 +44,7 @@ Deux variétés coexistent sur GitHub :
 `ofceweb` utilise deux variables d'environnement :
 
 | Variable | À quoi ça sert |
-|------------------|------------------------------------------------------|
+|----|----|
 | `GITHUB_PAT` | Variable historique lue par `usethis`, `gh`, `gitcreds`, … pour les appels API GitHub usuels. |
 | `DEPLOY_PAT` | Lue **en priorité** par `site2branch()` / `trigger_action()` pour pousser sur la branche de déploiement et dispatcher le workflow `ftp_deploy.yml`. |
 
@@ -215,7 +215,7 @@ gh auth login
 Réponses recommandées au prompt interactif :
 
 | Question | Réponse |
-|---------------------------------------------|---------------------------|
+|----|----|
 | What account do you want to log into? | **GitHub.com** |
 | What is your preferred protocol for Git operations? | **HTTPS** |
 | Authenticate Git with your GitHub credentials? | **Y** (Yes) |

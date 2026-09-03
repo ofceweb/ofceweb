@@ -1,9 +1,9 @@
 # Demande d'enregistrement d'un WP dans le registre central
 
 Calcule le triplet \`annee, wp, source-repo\` pour le dépôt WP local et
-ouvre une pull request contre \`ofceweb/wp-registry\` proposant
-d'ajouter l'entrée correspondante à \`wp/annee.json\` (et, si c'est la
-première demande pour cette année, crée ce fichier et met à jour
+ouvre une pull request contre \`ofce/wp-registry\` proposant d'ajouter
+l'entrée correspondante à \`wp/annee.json\` (et, si c'est la première
+demande pour cette année, crée ce fichier et met à jour
 \`wp/index.json\` dans le même commit). N'attend pas la fusion
 (fire-and-forget) — un·e admin doit approuver manuellement. Relancer
 \[setup_wp()\] une fois la PR fusionnée : c'est \`setup_wp()\` (pas
@@ -20,7 +20,7 @@ wp_registry_request(
   annee = NULL,
   wp = NULL,
   contact = NULL,
-  registry_repo = "ofceweb/wp-registry",
+  registry_repo = "ofce/wp-registry",
   dry_run = FALSE
 )
 ```
@@ -54,7 +54,7 @@ wp_registry_request(
 - registry_repo:
 
   Slug \`"owner/repo"\` du dépôt registre. Défaut
-  \`"ofceweb/wp-registry"\`.
+  \`"ofce/wp-registry"\`.
 
 - dry_run:
 
@@ -68,51 +68,29 @@ Invisiblement, une liste avec \`entry\` (l'entrée proposée) et
 
 ## Details
 
-\# Flux : push direct si possible, sinon fork
+\# Flux : push d'une branche puis PR intra-dépôt
 
-L'ouverture de la PR se fait, selon les droits du token utilisé, soit
-par un push direct d'une branche sur \`ofceweb/wp-registry\` (PR
-intra-dépôt), soit — pour l'immense majorité des appelant·e·s, qui n'ont
-aucun accès en écriture sur ce dépôt — via un \*\*fork personnel\*\*,
-créé (ou réutilisé s'il existe déjà) sous le compte GitHub associé au
-token :
+Le dépôt \`ofce/wp-registry\` est configuré pour autoriser les membres
+de l'organisation \`ofce\` à pousser des branches et ouvrir des pull
+requests sans être collaborateur·rice avec droit d'écriture (seule la
+\*\*fusion\*\* reste protégée : branch protection + \`CODEOWNERS\`). La
+fonction exploite cette configuration — pas de fork personnel :
 
 1\. Résolution du login GitHub (\`GET /user\`) associé au token
-(\`DEPLOY_PAT\` ou identifiants \`gitcreds\`). 2. Vérification des
-droits sur \`ofceweb/wp-registry\` (\`GET /repos/ofceweb/wp-registry\`,
-champ \`permissions.push\`). - Si le token a un accès en écriture (ex.
-compte admin/maintainer du registre) : pas de fork — on travaille
-directement sur \`ofceweb/wp-registry\`. C'est nécessaire car GitHub
-refuse silencieusement de forker un dépôt vers un compte qui y a déjà
-accès en écriture (aucune erreur immediate, mais le fork n'apparaît
-jamais). - Sinon : vérification de l'existence d'un fork sous ce login
-(\`GET /repos/login/wp-registry\`) ; sinon, création (\`POST
-/repos/ofceweb/wp-registry/forks\`) et attente (jusqu'à 20 s) que GitHub
-le rende clonable. 3. Clonage (du fork, ou de \`ofceweb/wp-registry\`
-directement). Pour un fork, resynchronisation avec \`upstream/main\` (le
-fork peut avoir pris du retard depuis sa création). Puis création de la
-branche \`request/annee/wp\` avec l'entrée proposée. 4. Push de cette
-branche vers le fork, ou vers \`ofceweb/wp-registry\` selon le cas. 5.
-Ouverture d'une pull request : \*\*cross-repo\*\* (\`head =
-"login:branche"\`) depuis un fork, ou \*\*intra-dépôt\*\* (\`head =
-"branche"\`) en cas de push direct.
+(\`DEPLOY_PAT\` ou identifiants \`gitcreds\`). 2. Clonage de
+\`ofce/wp-registry\`, création de la branche \`request/annee/wp\` avec
+l'entrée proposée. 3. Push de cette branche vers \`ofce/wp-registry\`.
+4. Ouverture d'une pull request intra-dépôt (\`head = "branche"\`,
+\`base = "main"\`).
 
-Le flux par fork reste le défaut car il est déterminé par le modèle de
-gouvernance du registre (voir la note d'équipe
-\`note-equipe-publication-wp.md\`) : seule la \*\*fusion\*\* d'une PR
-dans \`wp-registry\` doit être protégée (branch protection +
-\`CODEOWNERS\` côté GitHub), pas l'ouverture d'une PR — n'importe
-quel·le auteur·e de l'organisation \`ofce\` doit pouvoir demander un
-numéro sans être collaborateur·rice avec droit d'écriture sur
-\`wp-registry\`. Le fork suit le flux standard de contribution externe
-sur GitHub : n'importe quel compte authentifié peut forker un dépôt
-public, sans droit d'écriture préalable sur celui-ci.
+Si le push échoue (droits insuffisants ou token non membre de
+l'organisation \`ofce\`), la fonction s'arrête avec une erreur
+explicite.
 
-Conséquence pratique : le token utilisé (\`DEPLOY_PAT\` ou identifiants
-\`gitcreds\`) doit au minimum permettre de résoudre \`GET /user\` et de
-forker un dépôt public — ce que n'importe quel PAT
-\`repo\`/\`public_repo\` d'un compte authentifié satisfait, sans
-configuration particulière côté \`ofceweb/wp-registry\`.
+Le token utilisé (\`DEPLOY_PAT\` ou identifiants \`gitcreds\`) doit
+permettre de résoudre \`GET /user\` et de pousser une branche sur
+\`ofce/wp-registry\` — un PAT classique avec la portée \`repo\` (ou
+\`public_repo\`) d'un compte membre de l'organisation \`ofce\` convient.
 
 ## See also
 

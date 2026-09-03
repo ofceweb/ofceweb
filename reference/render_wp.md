@@ -5,9 +5,9 @@ vérification de la structure WP, lecture de l'état \`stage\` (staging ou
 publié) depuis la clé \`draft\` de \`\_quarto.yml\` (lue par les
 extensions \`ofce-quarto-extensions\` pour le bandeau « Version
 provisoire »). \*\*La consultation du registre central
-(\`ofceweb/wp-registry\`) ne se fait plus ici\*\* : elle a lieu en
-amont, dans \[setup_wp()\] (et à nouveau dans \[publish_wp()\] juste
-avant l'appel à \`render_wp()\`) — \`render_wp()\` suppose que
+(\`ofce/wp-registry\`) ne se fait plus ici\*\* : elle a lieu en amont,
+dans \[setup_wp()\] (et à nouveau dans \[publish_wp()\] juste avant
+l'appel à \`render_wp()\`) — \`render_wp()\` suppose que
 \`draft\`/\`wp\`/\`annee\` sont déjà synchronisés dans \`\_quarto.yml\`
 et se contente de les lire, sans accès réseau. Suivent le nettoyage de
 \`\_site/\`, le rendu Quarto (HTML + PDF), construction du sitemap,

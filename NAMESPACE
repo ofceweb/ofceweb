@@ -28,6 +28,7 @@ export(rescan_wp)
 export(setup_prev)
 export(setup_site)
 export(setup_wp)
+export(site2branch)
 export(site_version_up)
 export(stage_prev)
 export(stage_site)
@@ -95,7 +96,6 @@ importFrom(gert,
   git_remote_add,
   git_remote_list,
   git_remote_set_url,
-  git_reset_hard,
   git_signature,
   git_signature_default,
   git_status
@@ -108,6 +108,7 @@ importFrom(httr2,
   req_headers,
   req_perform,
   req_url_path,
+  req_url_query,
   request,
   resp_body_json,
   resp_status

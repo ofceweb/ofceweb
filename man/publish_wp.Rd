@@ -34,7 +34,7 @@ push. Défaut `TRUE`.}
 Invisible `NULL`.
 }
 \description{
-Rafraîchit l'état du registre central (`ofceweb/wp-registry`, via
+Rafraîchit l'état du registre central (`ofce/wp-registry`, via
 `sync_wp_registry_state()`) — pour rattraper un enregistrement survenu
 depuis le dernier [setup_wp()] — puis enchaîne [render_wp()] et
 [deploy_wp()] : rend le WP, pousse `_site/` vers la branche de

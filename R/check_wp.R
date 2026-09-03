@@ -143,7 +143,7 @@ check_wp <- function(path = ".", verbose = TRUE) {
   }
 
   # wp : attribué par le registre central, pas par l'auteur·e — absent en staging,
-  # c'est le cas normal avant fusion de la PR dans ofceweb/wp-registry.
+  # c'est le cas normal avant fusion de la PR dans ofce/wp-registry.
   if (!is.null(yml$annee) && is.null(yml$wp)) {
     add_diag("wp", "warning",
              "Champ `wp` absent — normal en staging (numéro attribué par le registre après wp_registry_request()).")

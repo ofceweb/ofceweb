@@ -556,7 +556,7 @@ check_repo_status <- function(repo = ".", prompt = TRUE, timeout = 10) {
 #'   disposition `wp/`).
 #' @keywords internal
 #' @noRd
-fetch_wp_index <- function(registry_repo = "ofceweb/wp-registry") {
+fetch_wp_index <- function(registry_repo = "ofce/wp-registry") {
   index_url <- sprintf(
     "https://raw.githubusercontent.com/%s/main/wp/index.json", registry_repo)
   tryCatch({
@@ -573,7 +573,7 @@ fetch_wp_index <- function(registry_repo = "ofceweb/wp-registry") {
 #'   introuvable ou illisible (année pas encore créée, ou erreur réseau).
 #' @keywords internal
 #' @noRd
-fetch_wp_year <- function(annee, registry_repo = "ofceweb/wp-registry") {
+fetch_wp_year <- function(annee, registry_repo = "ofce/wp-registry") {
   year_url <- sprintf(
     "https://raw.githubusercontent.com/%s/main/wp/%d.json",
     registry_repo, as.integer(annee))
@@ -596,7 +596,7 @@ fetch_wp_year <- function(annee, registry_repo = "ofceweb/wp-registry") {
 #'   registre lu avec succès mais sans années ou sans entrées).
 #' @keywords internal
 #' @noRd
-fetch_wp_entries <- function(registry_repo = "ofceweb/wp-registry") {
+fetch_wp_entries <- function(registry_repo = "ofce/wp-registry") {
   years <- fetch_wp_index(registry_repo)
   if (is.null(years)) return(NULL)
 

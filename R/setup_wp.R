@@ -30,7 +30,7 @@
 #'
 #' `wp` et `annee` ne sont **pas** des arguments : ils sont soit lus depuis un
 #' `_quarto.yml` déjà existant, soit écrasés par une entrée confirmée du
-#' registre central (`ofceweb/wp-registry`), jamais choisis librement par
+#' registre central (`ofce/wp-registry`), jamais choisis librement par
 #' l'appelant. Un dépôt sans `_quarto.yml` et sans entrée de registre reste un
 #' brouillon (`wp` absent) ; pour obtenir un numéro, utiliser
 #' [wp_registry_request()] puis relancer `setup_wp()` une fois la PR
@@ -465,7 +465,7 @@ setup_wp <- function(
   }
 
   # ---- 10d. registre central (source de vérité pour wp/annee/draft) --------
-  # Consulte ofceweb/wp-registry (sync_wp_registry_state(), partagée avec
+  # Consulte ofce/wp-registry (sync_wp_registry_state(), partagée avec
   # publish_wp()) pour que _quarto.yml soit déjà correct et cohérent après
   # cet appel, sans attendre render_wp(). Une entrée confirmée pour ce dépôt
   # (source-repo correspondant) l'emporte toujours sur la valeur déjà présente

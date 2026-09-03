@@ -4,7 +4,7 @@
 #' vérification de la structure WP, lecture de l'état `stage` (staging ou
 #' publié) depuis la clé `draft` de `_quarto.yml` (lue par les extensions
 #' `ofce-quarto-extensions` pour le bandeau « Version provisoire »). **La
-#' consultation du registre central (`ofceweb/wp-registry`) ne se fait plus
+#' consultation du registre central (`ofce/wp-registry`) ne se fait plus
 #' ici** : elle a lieu en amont, dans [setup_wp()] (et à nouveau dans
 #' [publish_wp()] juste avant l'appel à `render_wp()`) — `render_wp()`
 #' suppose que `draft`/`wp`/`annee` sont déjà synchronisés dans
@@ -81,7 +81,7 @@ render_wp <- function(
   servr::daemon_stop()
 
   # ---- 2.5. état registre : lu directement depuis _quarto.yml --------------
-  # La consultation du registre central (ofceweb/wp-registry) et la
+  # La consultation du registre central (ofce/wp-registry) et la
   # synchronisation de `draft`/`wp`/`annee` se font désormais en amont, dans
   # setup_wp() et publish_wp() (sync_wp_registry_state()) — pas ici. render_wp()
   # se contente de lire l'état déjà persisté, sans accès réseau : `draft`
@@ -169,7 +169,7 @@ render_wp <- function(
 
 #' Rendu et déploiement complet d'un document de travail (WP) OFCE
 #'
-#' Rafraîchit l'état du registre central (`ofceweb/wp-registry`, via
+#' Rafraîchit l'état du registre central (`ofce/wp-registry`, via
 #' `sync_wp_registry_state()`) — pour rattraper un enregistrement survenu
 #' depuis le dernier [setup_wp()] — puis enchaîne [render_wp()] et
 #' [deploy_wp()] : rend le WP, pousse `_site/` vers la branche de

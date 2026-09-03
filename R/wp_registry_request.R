@@ -1,7 +1,7 @@
 #' Demande d'enregistrement d'un WP dans le registre central
 #'
 #' Calcule le triplet `{annee, wp, source-repo}` pour le dépôt WP local et
-#' ouvre une pull request contre `ofceweb/wp-registry` proposant d'ajouter
+#' ouvre une pull request contre `ofce/wp-registry` proposant d'ajouter
 #' l'entrée correspondante à `wp/{annee}.json` (et, si c'est la première
 #' demande pour cette année, crée ce fichier et met à jour `wp/index.json`
 #' dans le même commit). N'attend pas la fusion (fire-and-forget) — un·e
@@ -14,7 +14,7 @@
 #' @details
 #' # Flux : push d'une branche puis PR intra-dépôt
 #'
-#' Le dépôt `ofceweb/wp-registry` est configuré pour autoriser les
+#' Le dépôt `ofce/wp-registry` est configuré pour autoriser les
 #' membres de l'organisation `ofce` à pousser des branches et ouvrir des
 #' pull requests sans être collaborateur·rice avec droit d'écriture
 #' (seule la **fusion** reste protégée : branch protection +
@@ -23,9 +23,9 @@
 #'
 #' 1.  Résolution du login GitHub (`GET /user`) associé au token
 #'     (`DEPLOY_PAT` ou identifiants `gitcreds`).
-#' 2.  Clonage de `ofceweb/wp-registry`, création de la branche
+#' 2.  Clonage de `ofce/wp-registry`, création de la branche
 #'     `request/{annee}/{wp}` avec l'entrée proposée.
-#' 3.  Push de cette branche vers `ofceweb/wp-registry`.
+#' 3.  Push de cette branche vers `ofce/wp-registry`.
 #' 4.  Ouverture d'une pull request intra-dépôt (`head = "{branche}"`,
 #'     `base = "main"`).
 #'
@@ -35,7 +35,7 @@
 #'
 #' Le token utilisé (`DEPLOY_PAT` ou identifiants `gitcreds`) doit
 #' permettre de résoudre `GET /user` et de pousser une branche sur
-#' `ofceweb/wp-registry` — un PAT classique avec la portée `repo` (ou
+#' `ofce/wp-registry` — un PAT classique avec la portée `repo` (ou
 #' `public_repo`) d'un compte membre de l'organisation `ofce` convient.
 #'
 #' @param path Chemin vers la racine du dépôt WP local. Défaut `"."`.
@@ -51,7 +51,7 @@
 #'   `git config user.email` pour ce dépôt (config locale avec repli sur la
 #'   globale). La fonction échoue si aucune valeur ne peut être résolue.
 #' @param registry_repo Slug `"owner/repo"` du dépôt registre.
-#'   Défaut `"ofceweb/wp-registry"`.
+#'   Défaut `"ofce/wp-registry"`.
 #' @param dry_run Si `TRUE`, calcule et affiche l'entrée proposée sans ouvrir
 #'   de pull request. Défaut `FALSE`.
 #'
@@ -70,7 +70,7 @@ wp_registry_request <- function(
     annee         = NULL,
     wp            = NULL,
     contact       = NULL,
-    registry_repo = "ofceweb/wp-registry",
+    registry_repo = "ofce/wp-registry",
     dry_run       = FALSE) {
 
   root <- path |>

@@ -1,5 +1,5 @@
 # sync_wp_registry_state() is the shared helper behind setup_wp() and
-# publish_wp() that consults ofceweb/wp-registry and persists
+# publish_wp() that consults ofce/wp-registry and persists
 # draft/wp/annee into _quarto.yml. See R/wp_registry_sync.R.
 
 build_sync_repo <- function(dir, wp = NULL, annee = 2026L) {

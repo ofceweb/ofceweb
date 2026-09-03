@@ -56,3 +56,15 @@ report.md
 manifest.json
 docs
 .posit/assistant
+.positai
+/.quarto/
+**/*.quarto_ipynb
+_freeze
+.quarto
+_site
+.DS_Store
+.crossrefs
+# FTP differential deploy state (main branch only — committed on deploy branches)
+.ftp-deploy-sync-state.json
+/.luarc.json
+*.pdf

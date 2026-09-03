@@ -1,6 +1,6 @@
 #' Consulte le registre central et synchronise `draft`/`wp`/`annee`
 #'
-#' Interroge `ofceweb/wp-registry` (via [fetch_wp_entries()]) pour savoir si
+#' Interroge `ofce/wp-registry` (via [fetch_wp_entries()]) pour savoir si
 #' le dépôt courant a une entrée confirmée (`type == "repo"` avec
 #' `source-repo` correspondant au remote `origin` local). Le résultat
 #' (`stage = FALSE` si publié, `TRUE` si staging) est écrit dans la clé

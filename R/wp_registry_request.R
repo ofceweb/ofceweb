@@ -63,7 +63,7 @@
 #' @importFrom yaml read_yaml
 #' @importFrom jsonlite fromJSON toJSON read_json
 #' @importFrom gert git_clone git_branch_create git_add git_commit git_signature
-#' @importFrom httr2 request req_url_path req_auth_bearer_token req_headers req_body_json req_perform resp_status resp_body_json
+#' @importFrom httr2 request req_url_path req_url_query req_auth_bearer_token req_headers req_body_json req_perform resp_status resp_body_json
 #' @export
 wp_registry_request <- function(
     path          = ".",
@@ -298,9 +298,37 @@ wp_registry_request <- function(
              autorise la cr\u00e9ation de branches."
     ))
 
-  # ---- 11. Ouverture de la PR (intra-d\u00e9p\u00f4t) --------------------------------
-  pr_title <- sprintf(
-    "Enregistrement WP %d/%d \u2014 %s", annee, wp, source_repo)
+  # ---- 11. Recherche d'une PR existante puis ouverture -----------------------
+  # La branche request/{annee}/{wp} est d\u00e9terministe : si la fonction est
+  # relanc\u00e9e (ex. apr\u00e8s correction de l'entr\u00e9e), la force-push met \u00e0 jour
+  # la branche distante mais une PR peut d\u00e9j\u00e0 \u00eatre ouverte. On la
+  # r\u00e9utilise plut\u00f4t que d'en cr\u00e9er une nouvelle (GitHub renverrait 422).
+  existing_prs <- httr2::request("https://api.github.com") |>
+    httr2::req_url_path(sprintf("/repos/%s/pulls", registry_repo)) |>
+    httr2::req_url_query(
+      state = "open",
+      head  = branch_name
+    ) |>
+    httr2::req_auth_bearer_token(token) |>
+    httr2::req_headers(
+      Accept                 = "application/vnd.github+json",
+      `X-GitHub-Api-Version` = "2022-11-28"
+    ) |>
+    httr2::req_perform() |>
+    httr2::resp_body_json()
+
+  if (length(existing_prs) > 0L) {
+    pr_url <- existing_prs[[1L]]$html_url
+    cli::cli_alert_info(
+      "Une PR existe d\u00e9j\u00e0 pour {.val {annee}/{wp}} : {.url {pr_url}}")
+    cli::cli_text(
+      "Attendre la fusion par un\u00b7e admin, puis relancer \\
+       {.run ofceweb::setup_wp()}.")
+    return(invisible(list(entry = new_entry, pr_url = pr_url)))
+  }
+
+  # ---- 12. Ouverture de la PR (intra-d\u00e9p\u00f4t) --------------------------------
+  pr_title <- sprintf("Enregistrement WP \u2014 %s", source_repo)
   pr_body <- paste0(
     "## Demande d\u2019enregistrement WP\n\n",
     "| Champ | Valeur |\n|---|---|\n",

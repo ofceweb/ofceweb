@@ -1,3 +1,7 @@
+## ofceweb v0.10.10
+
+*  traite le cas de PR dupliquées
+
 ## ofceweb v0.10.9
 
 ### `sync_wp_registry_state()` : une vérification impossible efface `wp`/`annee` au lieu de les conserver

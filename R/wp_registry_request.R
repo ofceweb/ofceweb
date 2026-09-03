@@ -273,6 +273,10 @@ wp_registry_request <- function(
     )
   )
 
+  # --force : la branche request/{annee}/{wp} est r\u00e9g\u00e9n\u00e9r\u00e9e from
+  # scratch depuis main \u00e0 chaque appel ; un push pr\u00e9c\u00e9dent (ex. appel
+  # interrompu, PR ferm\u00e9e et rouverte) laisse une branche distante qu'il
+  # faut \u00e9craser.
   push_url <- sub("https://",
                   sprintf("https://x-access-token:%s@", token),
                   registry_https)
@@ -280,7 +284,7 @@ wp_registry_request <- function(
     "git",
     c("-C", shQuote(tmp),
       "-c", "credential.helper=",
-      "push", push_url,
+      "push", "--force", push_url,
       sprintf("HEAD:refs/heads/%s", branch_name)),
     stdout = TRUE, stderr = TRUE
   ))

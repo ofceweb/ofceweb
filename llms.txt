@@ -292,6 +292,8 @@ Fonctions de bas niveau partagées entre les différents types de dépôts.
   : Download a directory from a GitHub repository
 - [`download_gh_file()`](https://ofceweb.github.io/ofceweb/reference/download_gh_file.md)
   : Download a single file from a GitHub repository
+- [`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
+  : Pousse un dossier de site rendu vers une branche Git
 
 # Articles
 

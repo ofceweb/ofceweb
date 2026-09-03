@@ -72,7 +72,7 @@ setup_wp(
     manuellement
 6.  Adapte `_quarto.yml` avec le titre, l’URL, le numéro WP, l’année, la
     langue
-7.  Consulte le registre central `ofceweb/wp-registry` (accès réseau
+7.  Consulte le registre central `ofce/wp-registry` (accès réseau
     nécessaire) : si le dépôt y a une entrée confirmée, `wp`/`annee`
     sont synchronisés depuis cette entrée et `draft` est positionné en
     conséquence — voir « 5. Passer de brouillon à publié » ci-dessous ;
@@ -171,8 +171,8 @@ Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 ## 5. Passer de brouillon à publié
 
 Le numéro WP (`wp`) et l’année (`annee`) sont la propriété du **registre
-central** `ofceweb/wp-registry`, pas de l’auteur·e : dès que le dépôt y
-a une entrée confirmée,
+central** `ofce/wp-registry`, pas de l’auteur·e : dès que le dépôt y a
+une entrée confirmée,
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
 synchronise `wp`/`annee` (et `draft`) depuis cette entrée, en écrasant
 toute valeur passée en argument ou déjà présente dans `_quarto.yml`.
@@ -180,7 +180,7 @@ toute valeur passée en argument ou déjà présente dans `_quarto.yml`.
 1.  Demander un numéro via
     [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md),
     qui calcule le numéro (auto-incrémenté, ou fourni via `wp =`) et
-    ouvre une PR contre `ofceweb/wp-registry` — `annee` est lu depuis
+    ouvre une PR contre `ofce/wp-registry` — `annee` est lu depuis
     `_quarto.yml` si absent, et `contact` depuis `git config user.email`
     si non fourni :
 
@@ -193,7 +193,7 @@ wp_registry_request()
     n'attend pas la fusion (fire-and-forget).
 
     La PR est ouverte directement sur une branche de
-    `ofceweb/wp-registry` (PR intra-dépôt) — pas de fork personnel.
+    `ofce/wp-registry` (PR intra-dépôt) — pas de fork personnel.
     C'est volontaire : le dépôt registre est configuré pour autoriser
     les membres de l'organisation `ofce` à pousser des branches et
     ouvrir des PR sans être collaborateur·rice avec droit d'écriture.
@@ -205,7 +205,7 @@ wp_registry_request()
     Prérequis : un token GitHub authentifié (`DEPLOY_PAT`, ou des
     identifiants `gitcreds` déjà configurés) suffisant pour résoudre
     son propre compte (`GET /user`) et pousser une branche sur
-    `ofceweb/wp-registry` — un PAT classique avec la portée `repo`
+    `ofce/wp-registry` — un PAT classique avec la portée `repo`
     (ou `public_repo`) d'un compte membre de l'organisation `ofce`
     convient.
 
@@ -303,7 +303,7 @@ deploy_wp()
 
 ------------------------------------------------------------------------
 
-## 8. Une note sur la taille des pdf et l’accessibilité
+## 8. Une note sur la taille des pdf et l’accessibilité (en pdf et html)
 
 Il est important que les fichiers pdf produits soient conformes aux
 meilleures pratiques. Outre la qualité du texte et des illustrations, la
@@ -341,7 +341,7 @@ aspects doivent être pris en compte :
   obligatoires.
 
 - **l’accessibilité en html** : Un diagnostic d’accessibilité est
-  produit systématiquement.
+  produit en activant `axe: true` dans le format html
 
 ``` r
 ---

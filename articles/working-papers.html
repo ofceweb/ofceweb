@@ -180,7 +180,7 @@ extensions Quarto OFCE (<code>_extensions/</code>) via
 doivent pas être édités manuellement</li>
 <li>Adapte <code>_quarto.yml</code> avec le titre, l’URL, le numéro WP,
 l’année, la langue</li>
-<li>Consulte le registre central <code>ofceweb/wp-registry</code> (accès
+<li>Consulte le registre central <code>ofce/wp-registry</code> (accès
 réseau nécessaire) : si le dépôt y a une entrée confirmée,
 <code>wp</code>/<code>annee</code> sont synchronisés depuis cette entrée
 et <code>draft</code> est positionné en conséquence — voir « 5. Passer
@@ -303,16 +303,16 @@ workflow FTP transfère vers
 </h2>
 <p>Le numéro WP (<code>wp</code>) et l’année (<code>annee</code>) sont
 la propriété du <strong>registre central</strong>
-<code>ofceweb/wp-registry</code>, pas de l’auteur·e : dès que le dépôt y
-a une entrée confirmée, <code><a href="../reference/setup_wp.html">setup_wp()</a></code> synchronise
+<code>ofce/wp-registry</code>, pas de l’auteur·e : dès que le dépôt y a
+une entrée confirmée, <code><a href="../reference/setup_wp.html">setup_wp()</a></code> synchronise
 <code>wp</code>/<code>annee</code> (et <code>draft</code>) depuis cette
 entrée, en écrasant toute valeur passée en argument ou déjà présente
 dans <code>_quarto.yml</code>.</p>
 <ol style="list-style-type: decimal">
 <li>Demander un numéro via <code><a href="../reference/wp_registry_request.html">wp_registry_request()</a></code>, qui
 calcule le numéro (auto-incrémenté, ou fourni via <code>wp =</code>) et
-ouvre une PR contre <code>ofceweb/wp-registry</code> —
-<code>annee</code> est lu depuis <code>_quarto.yml</code> si absent, et
+ouvre une PR contre <code>ofce/wp-registry</code> — <code>annee</code>
+est lu depuis <code>_quarto.yml</code> si absent, et
 <code>contact</code> depuis <code>git config user.email</code> si non
 fourni
 :</li>
@@ -322,7 +322,7 @@ fourni
 <pre><code>Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
 n'attend pas la fusion (fire-and-forget).</code></pre>
 <pre><code>La PR est ouverte directement sur une branche de
-`ofceweb/wp-registry` (PR intra-dépôt) — pas de fork personnel.
+`ofce/wp-registry` (PR intra-dépôt) — pas de fork personnel.
 C'est volontaire : le dépôt registre est configuré pour autoriser
 les membres de l'organisation `ofce` à pousser des branches et
 ouvrir des PR sans être collaborateur·rice avec droit d'écriture.
@@ -334,7 +334,7 @@ demander un numéro.
 Prérequis : un token GitHub authentifié (`DEPLOY_PAT`, ou des
 identifiants `gitcreds` déjà configurés) suffisant pour résoudre
 son propre compte (`GET /user`) et pousser une branche sur
-`ofceweb/wp-registry` — un PAT classique avec la portée `repo`
+`ofce/wp-registry` — un PAT classique avec la portée `repo`
 (ou `public_repo`) d'un compte membre de l'organisation `ofce`
 convient.</code></pre>
 <ol start="2" style="list-style-type: decimal">
@@ -415,7 +415,8 @@ clair.</p>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="une-note-sur-la-taille-des-pdf-et-laccessibilité">8. Une note sur la taille des pdf et l’accessibilité<a class="anchor" aria-label="anchor" href="#une-note-sur-la-taille-des-pdf-et-laccessibilit%C3%A9"></a>
+<h2 id="une-note-sur-la-taille-des-pdf-et-laccessibilité-en-pdf-et-html">8. Une note sur la taille des pdf et l’accessibilité (en pdf et
+html)<a class="anchor" aria-label="anchor" href="#une-note-sur-la-taille-des-pdf-et-laccessibilit%C3%A9-en-pdf-et-html"></a>
 </h2>
 <p>Il est important que les fichiers pdf produits soient conformes aux
 meilleures pratiques. Outre la qualité du texte et des illustrations, la
@@ -452,7 +453,8 @@ il faut ajouter systématiquement dans les attributs du chunk
 ces tests ne sont pas imposés, mais ils vont devenir
 obligatoires.</p></li>
 <li><p><strong>l’accessibilité en html</strong> : Un diagnostic
-d’accessibilité est produit systématiquement.</p></li>
+d’accessibilité est produit en activant <code>axe: true</code> dans le
+format html</p></li>
 </ul>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="sc">---</span></span>
 <span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>format<span class="sc">:</span></span>

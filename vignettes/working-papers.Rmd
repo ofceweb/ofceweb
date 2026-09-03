@@ -28,32 +28,34 @@ souhaite (code, explications de code, de données, etc...).
 
 ### Cycle de vie
 
-+-------------+---------------+-------------+-----------------------------------------+
-| État        | `wp` dans     | Hébergement | URL                                     |
-|             | `_quarto.yml` |             |                                         |
-+=============+===============+=============+=========================================+
-| Brouillon   | `null`        | GitHub      | `ofce.github.io/{repo}/`                |
-|             |               | Pages ou    |                                         |
-|             |               |             | `staging.ofce.fr/{repo}/{version}`      |
-|             |               | OFCE        |                                         |
-|             |               | staging     |                                         |
-+-------------+---------------+-------------+-----------------------------------------+
-| Publié      | `N` (entier)  | Serveur     | `www.ofce.fr/wp/{annee}/{N}/{version}/` |
-|             |               | OFCE FTP    |                                         |
-+-------------+---------------+-------------+-----------------------------------------+
+| État | `wp` dans `_quarto.yml` | Hébergement | URL |   |
+|-----------|-----------|-----------|--------------------------|-----------|
+| Brouillon  repo personnel | `null` | GitHub Pages | `ofce.github.io/{repo}/` |  |
+| Préliminaire repo sur OFCE| `null` | OFCE staging | `staging.ofce.fr/{repo}/{version}`  | 
+| Publié | `YYYY - N` | Serveur OFCE FTP | `www.ofce.fr/wp/{annee}/{N}/{version}/` |  |
 
-Lorsque le docuement de travail est *stagé* sur le site staging.ofce.fr, il est possible de versionner. Le versionnage est impossible sur github gh-pages.
+Lorsque le docuement de travail est *stagé* sur le site staging.ofce.fr,
+il est possible de versionner. Le versionnage est impossible sur github
+gh-pages.
 
-Pour être *stagé* sur le site ofce.fr ou publié, la propriété du dépôt doit être transférée à l'organisation OFCE. On recommande la convention de nommage suitante : `wp-{initiales de l'auteur.e}-{nom court du projet}`, le TOUT EN MINUSCULE. Par exemple `wp-gaxt-trec`.
+Pour être *stagé* sur le site ofce.fr ou publié, la propriété du dépôt
+doit être transférée à l'organisation OFCE. On recommande la convention
+de nommage suitante :
+`wp-{initiales de l'auteur.e}-{nom court du projet}`, le TOUT EN
+MINUSCULE. Par exemple `wp-gaxt-trec`.
 
 ------------------------------------------------------------------------
 
 ## 1. Initialiser un nouveau WP
 
-Il suffit de lancer `setup_wp()` dans un dépôt git qui contient (ou non) le matériau pour le document de travail. Le document principal s'appelle `index.qmd` (c'est obligatoire). `setup_wp()` crée le document s'il n'existe pas, ne le change pas s'il existe. On peut donc exécuter autant de fois que nécessaire `setup_wp()`, en particulier lors d'un problème ou d'un rendu non satisfaisant.
+Il suffit de lancer `setup_wp()` dans un dépôt git qui contient (ou non)
+le matériau pour le document de travail. Le document principal s'appelle
+`index.qmd` (c'est obligatoire). `setup_wp()` crée le document s'il
+n'existe pas, ne le change pas s'il existe. On peut donc exécuter autant
+de fois que nécessaire `setup_wp()`, en particulier lors d'un problème
+ou d'un rendu non satisfaisant.
 
 Il est possible de copier coller des contenus dans les document créés.
-
 
 ```{r}
 library(ofceweb)
@@ -84,9 +86,9 @@ setup_wp(
     langue
 7.  Consulte le registre central `ofce/wp-registry` (accès réseau
     nécessaire) : si le dépôt y a une entrée confirmée, `wp`/`annee`
-    sont synchronisés depuis cette entrée et `draft` est positionné en conséquence —
-    voir « 5. Passer de brouillon à publié » ci-dessous ; en cas d'échec
-    réseau, ces clés sont laissées inchangées.
+    sont synchronisés depuis cette entrée et `draft` est positionné en
+    conséquence — voir « 5. Passer de brouillon à publié » ci-dessous ;
+    en cas d'échec réseau, ces clés sont laissées inchangées.
 
 Après `setup_wp()`, `_quarto.yml` est déjà correct et cohérent (`draft`,
 `wp`, `annee`, `site-path`, `citation.*`) : éditez-le ainsi que
@@ -156,11 +158,12 @@ deploy_wp()
 Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 
 - **Brouillon** (`wp: null`) → `quarto publish gh-pages` (publie sur
-  `ofce.github.io/{repo}/`) ou pousse en staging sur le site de l'ofce à l'adresse `staging.ofce.fr/{repo}/{version}/`.
-  Sur cette page staging, le bandeau « Version préliminaire » complète
-  automatiquement son texte avec un compteur de déploiement (« ·
-  déploiement n°N »), tiré de `github.run_number` à chaque exécution de
-  `ftp_stage.yml` — indépendant du numéro de `version` (`v0`, `v1`, …).
+  `ofce.github.io/{repo}/`) ou pousse en staging sur le site de l'ofce à
+  l'adresse `staging.ofce.fr/{repo}/{version}/`. Sur cette page staging,
+  le bandeau « Version préliminaire » complète automatiquement son texte
+  avec un compteur de déploiement (« · déploiement n°N »), tiré de
+  `github.run_number` à chaque exécution de `ftp_stage.yml` —
+  indépendant du numéro de `version` (`v0`, `v1`, …).
 - **Publié** (`wp: N`) → `site2branch()` vers `site-deploy`, puis le
   workflow FTP transfère vers `www.ofce.fr/wp/{annee}/{N}/{version}/`
 
@@ -169,42 +172,41 @@ Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
 ## 5. Passer de brouillon à publié
 
 Le numéro WP (`wp`) et l'année (`annee`) sont la propriété du **registre
-central** `ofce/wp-registry`, pas de l'auteur·e : dès que le dépôt y
-a une entrée confirmée, `setup_wp()` synchronise `wp`/`annee` (et
-`draft`) depuis cette entrée, en écrasant toute valeur passée en
-argument ou déjà présente dans `_quarto.yml`.
+central** `ofce/wp-registry`, pas de l'auteur·e : dès que le dépôt y a
+une entrée confirmée, `setup_wp()` synchronise `wp`/`annee` (et `draft`)
+depuis cette entrée, en écrasant toute valeur passée en argument ou déjà
+présente dans `_quarto.yml`.
 
 1.  Demander un numéro via `wp_registry_request()`, qui calcule le
     numéro (auto-incrémenté, ou fourni via `wp =`) et ouvre une PR
-    contre `ofce/wp-registry` — `annee` est lu depuis `_quarto.yml`
-    si absent, et `contact` depuis `git config user.email` si non fourni
+    contre `ofce/wp-registry` — `annee` est lu depuis `_quarto.yml` si
+    absent, et `contact` depuis `git config user.email` si non fourni
+
     :
 
 ```{r}
 wp_registry_request()
 ```
 
-```         
 Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
 n'attend pas la fusion (fire-and-forget).
-```
 
-    La PR est ouverte directement sur une branche de
-    `ofce/wp-registry` (PR intra-dépôt) — pas de fork personnel.
-    C'est volontaire : le dépôt registre est configuré pour autoriser
-    les membres de l'organisation `ofce` à pousser des branches et
-    ouvrir des PR sans être collaborateur·rice avec droit d'écriture.
-    Seule la **fusion** d'une PR dans le registre est protégée
-    (branch protection + `CODEOWNERS`), pas le fait d'en ouvrir une —
-    n'importe quel·le auteur·e de l'organisation `ofce` doit pouvoir
-    demander un numéro.
+La PR est ouverte directement sur une branche de
+`ofce/wp-registry` (PR intra-dépôt) — pas de fork personnel.
+C'est volontaire : le dépôt registre est configuré pour autoriser
+les membres de l'organisation `ofce` à pousser des branches et
+ouvrir des PR sans être collaborateur·rice avec droit d'écriture.
+Seule la **fusion** d'une PR dans le registre est protégée
+(branch protection + `CODEOWNERS`), pas le fait d'en ouvrir une —
+n'importe quel·le auteur·e de l'organisation `ofce` doit pouvoir
+demander un numéro.
 
-    Prérequis : un token GitHub authentifié (`DEPLOY_PAT`, ou des
-    identifiants `gitcreds` déjà configurés) suffisant pour résoudre
-    son propre compte (`GET /user`) et pousser une branche sur
-    `ofce/wp-registry` — un PAT classique avec la portée `repo`
-    (ou `public_repo`) d'un compte membre de l'organisation `ofce`
-    convient.
+Prérequis : un token GitHub authentifié (`DEPLOY_PAT`, ou des
+identifiants `gitcreds` déjà configurés) suffisant pour résoudre
+son propre compte (`GET /user`) et pousser une branche sur
+`ofce/wp-registry` — un PAT classique avec la portée `repo`
+(ou `public_repo`) d'un compte membre de l'organisation `ofce`
+convient.
 
 2.  Une fois la PR fusionnée, relancer `setup_wp()` pour synchroniser
     `_quarto.yml` (`wp`, `annee`, `draft`, `site-path`,
@@ -232,8 +234,8 @@ nouveau.
 
 Pour un dépôt **pas encore enregistré**, `wp=`/`annee=` restent les
 seuls arguments qui pilotent `_quarto.yml` — utile pour un brouillon en
-attente de numéro (le bandeau « Version préliminaire » reste affiché tant
-que le registre ne confirme rien).
+attente de numéro (le bandeau « Version préliminaire » reste affiché
+tant que le registre ne confirme rien).
 
 ------------------------------------------------------------------------
 
@@ -245,7 +247,8 @@ avant le transfert FTP. Aucune manipulation locale n'est requise.
 Si le secret `STATICRYPT_PASSWORD` est défini sur le dépôt, le workflow
 `ftp_deploy.yml` chiffre automatiquement tous les fichiers HTML avant
 l'envoi au serveur. Si le secret est absent, le déploiement s'effectue
-avec chiffrement en utilisant la valeur par défaut du mot de passe STATICRYPT_PASSWORD (voir les administrateurs pour cette valeur).
+avec chiffrement en utilisant la valeur par défaut du mot de passe
+STATICRYPT_PASSWORD (voir les administrateurs pour cette valeur).
 
 ``` sh
 # Activer le chiffrement
@@ -284,13 +287,43 @@ deploy_wp()
 
 ## 8. Une note sur la taille des pdf et l'accessibilité (en pdf et html)
 
-Il est important que les fichiers pdf produits soient conformes aux meilleures pratiques. Outre la qualité du texte et des illustrations, la structure ou la pertinence du sujet et de son argumentation, deux aspects doivent être pris en compte :
+Il est important que les fichiers pdf produits soient conformes aux
+meilleures pratiques. Outre la qualité du texte et des illustrations, la
+structure ou la pertinence du sujet et de son argumentation, deux
+aspects doivent être pris en compte :
 
--    **la taille** : pour garder les pdf dans des tailles raisonnables, il faut que le format des images soit en `fig-format: svg`. C'est mis par défaut, sauf quand le pdf est généré par `latex` (`format: wp-pdf`) et que le convertisseur `rsvg-convert` n'est installé. Sur MacOS c'est facile (`brew install rsvg-convert`), sur win c'est un peu plus pénible (sauf si vous avez installé `choco` auquel cas c'est `choco install rsvg-convert`). Si `rsvg-convert` n'est pas installé, le format des images sera `png` et le pdf très volumineux. Alternativement, `format: wp-typst` fonctionne toujours et donc est plus sûr.
+- **la taille** : pour garder les pdf dans des tailles raisonnables, il
+  faut que le format des images soit en `fig-format: svg`. C'est mis par
+  défaut, sauf quand le pdf est généré par `latex` (`format: wp-pdf`) et
+  que le convertisseur `rsvg-convert` n'est installé. Sur MacOS c'est
+  facile (`brew install rsvg-convert`), sur win c'est un peu plus
+  pénible (sauf si vous avez installé `choco` auquel cas c'est
+  `choco install rsvg-convert`). Si `rsvg-convert` n'est pas installé,
+  le format des images sera `png` et le pdf très volumineux.
+  Alternativement, `format: wp-typst` fonctionne toujours et donc est
+  plus sûr.
 
--   **l'accessibilité** : pour être conforme au RGAA et aux critères d'accessibilité pour les personnes aveugles, malvoyantes ou daltioniennes, il faut générer un document qui suit un certain nombre de règles (voir [ici](https://design.numerique.gouv.fr/outils/checklist-pdf/)). Pour que les pdf générés soient conformes et vérifiés, il faut que [veraPDF](https://verapdf.org/home/) soit installé pour `quarto` (par, dans le terminal, `quarto install verapdf` ; si java n'est pas installé installez le [ici](https://www.java.com/fr/download/help/download_options.html)). Une fois installé et ajouté dans le format du pdf la clef `pdf-standard: ua1`, un diagnostic s'affichera et vous donnera le niveau de validation. La validation échouera probablement au premier passage, toutes vos illustrations devant avoir un `alt-text`. Dans un `.qmd`, pour un chunk de code, il faut ajouter systématiquement dans les attributs du chunk `#| fig-alt: "une description du graphique"`. Pour le moment, ces tests ne sont pas imposés, mais ils vont devenir obligatoires.
+- **l'accessibilité** : pour être conforme au RGAA et aux critères
+  d'accessibilité pour les personnes aveugles, malvoyantes ou
+  daltioniennes, il faut générer un document qui suit un certain nombre
+  de règles (voir
+  [ici](https://design.numerique.gouv.fr/outils/checklist-pdf/)). Pour
+  que les pdf générés soient conformes et vérifiés, il faut que
+  [veraPDF](https://verapdf.org/home/) soit installé pour `quarto` (par,
+  dans le terminal, `quarto install verapdf` ; si java n'est pas
+  installé installez le
+  [ici](https://www.java.com/fr/download/help/download_options.html)).
+  Une fois installé et ajouté dans le format du pdf la clef
+  `pdf-standard: ua1`, un diagnostic s'affichera et vous donnera le
+  niveau de validation. La validation échouera probablement au premier
+  passage, toutes vos illustrations devant avoir un `alt-text`. Dans un
+  `.qmd`, pour un chunk de code, il faut ajouter systématiquement dans
+  les attributs du chunk `#| fig-alt: "une description du graphique"`.
+  Pour le moment, ces tests ne sont pas imposés, mais ils vont devenir
+  obligatoires.
 
--   **l'accessibilité en html** : Un diagnostic d'accessibilité est produit en activant `axe: true` dans le format html
+- **l'accessibilité en html** : Un diagnostic d'accessibilité est
+  produit en activant `axe: true` dans le format html
 
 ```{r}
 ---

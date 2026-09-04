@@ -62,6 +62,7 @@ docs
 _freeze
 .quarto
 _site
+*/.DS_Store
 .DS_Store
 .crossrefs
 # FTP differential deploy state (main branch only — committed on deploy branches)

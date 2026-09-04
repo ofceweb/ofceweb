@@ -1,0 +1,515 @@
+#' Vérifie la structure d'un dépôt de policy brief (PB)
+#'
+#' Inspecte le `_quarto.yml` et les fichiers `.qmd` à la racine du dépôt pour
+#' détecter les problèmes bloquants (erreurs) et les situations à corriger
+#' (warnings) avant un rendu ou un déploiement.
+#'
+#' Contrôles effectués :
+#' \itemize{
+#'   \item Présence et validité de `_quarto.yml` (champs `annee`, `author`,
+#'     `date`, `citation` — erreur bloquante si absents)
+#'   \item `project.type: ofce-website` présent dans `_quarto.yml` (warning)
+#'   \item `index.qmd` présent, déclare `pb-html` et `pb-pdf` / `pb-typst`
+#'   \item `references.bib` présent (warning)
+#'   \item `news.qmd` présent (warning)
+#'   \item Si PB publié (`pb` non nul) : `annee` entier valide, cohérence
+#'     `version` / dernier segment de `site-path`
+#'   \item Nom du dépôt conforme à `pb-{initiale}-{nom court}` (minuscules)
+#'     lorsque l'org GitHub est `OFCE` (warning non bloquant)
+#'   \item Tous les `.qmd` non-index référencés dans `website.other-links`
+#'     (warning)
+#'   \item Unicité des `output-file` PDF à travers tous les `.qmd` (erreur)
+#' }
+#'
+#' @param path Chemin vers la racine du dépôt. Défaut `"."`.
+#' @param verbose Logique. Si `TRUE` (défaut), affiche les diagnostics avec
+#'   [cli::cli_alert_success()], [cli::cli_alert_warning()] et
+#'   [cli::cli_alert_danger()].
+#'
+#' @returns Un data frame (invisible) à trois colonnes : `field` (chr), `status`
+#'   (`"ok"`, `"warning"`, `"error"`) et `message` (chr). [render_pb()] appelle
+#'   cette fonction et abandonne si des erreurs bloquantes sont présentes.
+#' @seealso [render_pb()], [setup_pb()]
+#' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists dir_ls path_ext_remove path_rel
+#' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_danger cli_rule cli_alert_info
+#' @importFrom yaml read_yaml
+#' @importFrom glue glue
+#' @importFrom gh gh
+#' @export
+check_pb <- function(path = ".", verbose = TRUE) {
+
+  root <- path |>
+    fs::path_expand() |>
+    fs::path_abs() |>
+    fs::path_norm()
+
+  diags <- list()
+
+  add_diag <- function(field, status, message) {
+    n <- length(diags) + 1L
+    diags[[n]] <<- list(
+      field   = as.character(field),
+      status  = as.character(status),
+      message = as.character(message)
+    )
+  }
+
+  if (verbose) cli::cli_h1("check_pb : {fs::path_file(root)}")
+
+  # ---- connexion GitHub -------------------------------------------------------
+  gh_login <- check_gh_login(verbose = FALSE)
+  if (!is.na(gh_login)) {
+    add_diag("gh:login", "ok",
+             sprintf("Connecté à GitHub en tant que @%s.", gh_login))
+  } else {
+    add_diag("gh:login", "warning",
+             "Non connecté à GitHub (gh::gh('GET /user') a échoué). Les opérations staging et registry seront indisponibles.")
+  }
+
+  # ---- gh CLI / DEPLOY_PAT / identite git ----------------------------------
+  gh_setup_diag <- check_gh_setup(root, verbose = FALSE)
+  for (i in seq_len(nrow(gh_setup_diag))) {
+    add_diag(gh_setup_diag$field[i], gh_setup_diag$status[i], gh_setup_diag$message[i])
+  }
+
+  # ---- _quarto.yml ---------------------------------------------------------
+  yml_path <- fs::path(root, "_quarto.yml")
+  if (!fs::file_exists(yml_path)) {
+    add_diag("_quarto.yml", "error", "Fichier absent. Lancer setup_pb() d'abord.")
+    df <- if (length(diags) > 0) {
+      data.frame(
+        field   = sapply(diags, `[[`, "field"),
+        status  = sapply(diags, `[[`, "status"),
+        message = sapply(diags, `[[`, "message"),
+        stringsAsFactors = FALSE
+      )
+    } else {
+      data.frame(field = character(), status = character(), message = character(), stringsAsFactors = FALSE)
+    }
+    if (verbose) print_pb_diags(df, root)
+    return(invisible(df))
+  }
+
+  yml <- tryCatch(yaml::read_yaml(yml_path),
+                  error = function(e) {
+                    add_diag("_quarto.yml", "error",
+                             paste0("Impossible de lire le YAML : ", conditionMessage(e)))
+                    NULL
+                  })
+  if (is.null(yml)) {
+    df <- if (length(diags) > 0) {
+      data.frame(
+        field   = sapply(diags, `[[`, "field"),
+        status  = sapply(diags, `[[`, "status"),
+        message = sapply(diags, `[[`, "message"),
+        stringsAsFactors = FALSE
+      )
+    } else {
+      data.frame(field = character(), status = character(), message = character(), stringsAsFactors = FALSE)
+    }
+    if (verbose) print_pb_diags(df, root)
+    return(invisible(df))
+  }
+
+  if (!isTRUE(yml$ofce_pb)) {
+    add_diag("ofce_pb", "warning",
+             "Champ `ofce_pb: true` absent — ce dépôt n'a peut-être pas été initialisé via setup_pb().")
+  }
+
+  # Champs obligatoires dans _quarto.yml
+  # (annee sera vérifié plus précisément si PB publié)
+  if (is.null(yml[["date"]])) {
+    add_diag("date", "error", "Champ `date` absent de _quarto.yml.")
+  } else {
+    add_diag("date", "ok", "Champ `date` présent.")
+  }
+
+  # citation : non requis en staging (pas de pb/annee définis) ;
+  # calculé automatiquement par setup_pb() quand pb/annee sont fournis,
+  # donc son absence n'est jamais un bloquant pour le rendu.
+  if (!is.null(yml$pb)) {
+    if (is.null(yml[["citation"]])) {
+      add_diag("citation", "warning",
+               "Champ `citation` absent — relancer setup_pb() pour le recalculer.")
+    } else {
+      add_diag("citation", "ok", "Champ `citation` présent.")
+    }
+  }
+
+  # annee : calculé par setup_pb() (année courante par défaut) — non bloquant
+  if (is.null(yml$annee)) {
+    add_diag("annee", "warning",
+             "Champ `annee` absent de _quarto.yml — relancer setup_pb() pour le définir.")
+  }
+
+  # pb : attribué par le registre central, pas par l'auteur·e — absent en staging,
+  # c'est le cas normal avant fusion de la PR dans ofce/pb-registry.
+  if (!is.null(yml$annee) && is.null(yml$pb)) {
+    add_diag("pb", "warning",
+             "Champ `pb` absent — normal en staging (numéro attribué par le registre après pb_registry_request()).")
+  }
+
+  if (is.null(yml$author) && is.null(yml$authors)) {
+    add_diag("author", "error", "Champ `author` absent de _quarto.yml.")
+  } else {
+    add_diag("author", "ok", "Champ `author` présent.")
+  }
+
+  # ---- project.type: ofce-website -------------------------------------------
+  if (identical(yml$project$type, "ofce-website")) {
+    add_diag("project.type", "ok",
+             "`project.type: ofce-website` présent dans _quarto.yml.")
+  } else {
+    add_diag("project.type", "warning",
+             sprintf("`project.type` vaut `%s` — attendu `ofce-website`. Lancer setup_pb().",
+                     yml$project$type %||% "(absent)"))
+  }
+
+  # ---- index.qmd -----------------------------------------------------------
+  idx_path <- fs::path(root, "index.qmd")
+  if (!fs::file_exists(idx_path)) {
+    add_diag("index.qmd", "error", "index.qmd absent.")
+  } else {
+    add_diag("index.qmd", "ok", "index.qmd présent.")
+
+    idx_yml <- tryCatch(get_yaml(idx_path), error = function(e) NULL)
+    project_formats <- names(yml$format)
+    idx_formats     <- names(if (!is.null(idx_yml)) idx_yml$format else NULL)
+    all_formats     <- union(project_formats, idx_formats)
+
+    if ("pb-html" %in% all_formats) {
+      add_diag("format:pb-html", "ok", "Format pb-html déclaré.")
+    } else {
+      add_diag("format:pb-html", "error", "Format pb-html non déclaré (ni dans _quarto.yml ni dans index.qmd).")
+    }
+
+    pdf_fmts <- intersect(c("pb-pdf", "pb-typst"), all_formats)
+    if (length(pdf_fmts) == 2L) {
+      add_diag("format:pdf", "error",
+               "Deux formats PDF déclarés simultanément (pb-pdf ET pb-typst) — choisir un seul moteur (LaTeX ou Typst).")
+    } else if (length(pdf_fmts) == 1L) {
+      add_diag("format:pdf", "ok", sprintf("Format PDF déclaré : %s.", pdf_fmts))
+      if (identical(pdf_fmts, "pb-pdf") && !isTRUE(check_rsvg_convert(verbose = FALSE))) {
+        add_diag("pdf:rsvg-convert", "warning",
+                 "`rsvg-convert` introuvable — les figures SVG ne peuvent pas être rastérisées nativement pour LaTeX ; utiliser `format.pb-pdf.fig-format: png` (setup_pb() l'ajoute automatiquement) ou installer `rsvg-convert`, sinon les PDF produits seront probablement plus volumineux.")
+      }
+    } else {
+      add_diag("format:pdf", "error",
+               "Aucun format PDF (pb-pdf ou pb-typst) déclaré (ni dans _quarto.yml ni dans index.qmd).")
+    }
+  }
+
+  # ---- references.bib (warning) --------------------------------------------
+  if (fs::file_exists(fs::path(root, "references.bib"))) {
+    add_diag("references.bib", "ok", "references.bib présent.")
+  } else {
+    add_diag("references.bib", "warning", "references.bib absent — les citations ne fonctionneront pas.")
+  }
+
+  # ---- news.qmd (warning) --------------------------------------------------
+  if (fs::file_exists(fs::path(root, "news.qmd"))) {
+    add_diag("news.qmd", "ok", "news.qmd présent.")
+  } else {
+    add_diag("news.qmd", "warning", "news.qmd absent — pas d'historique des révisions.")
+  }
+
+  # ---- .github/workflows (error) -----------------------------------------
+  workflows_dir <- fs::path(root, ".github", "workflows")
+  if (fs::dir_exists(workflows_dir)) {
+    ftp_deploy_path <- fs::path(workflows_dir, "ftp_deploy.yml")
+    if (fs::file_exists(ftp_deploy_path)) {
+      add_diag(".github/workflows", "ok", ".github/workflows/ et ftp_deploy.yml présents.")
+    } else {
+      add_diag(".github/workflows", "error",
+               ".github/workflows/ présent mais ftp_deploy.yml absent — lancer setup_pb() d'abord.")
+    }
+  } else {
+    add_diag(".github/workflows", "error",
+             ".github/workflows/ absent — lancer setup_pb() d'abord.")
+  }
+
+  # ---- renv.lock (warning — requis pour le rendu CI) ----------------------
+  if (fs::file_exists(fs::path(root, "renv.lock"))) {
+    add_diag("renv.lock", "ok",
+             "renv.lock présent — rendu CI (render_and_deploy.yml) opérationnel.")
+  } else {
+    add_diag("renv.lock", "warning",
+             "renv.lock absent — le rendu en CI (render_and_deploy.yml) échouera sans renv. Initialiser avec renv::init().")
+  }
+
+  # ---- convention de nommage du dépôt (org OFCE) ---------------------------
+  # Non bloquant : simple suggestion de convention, pas une règle imposée.
+  repo_slug <- gh_slug_from_remote(root)
+  if (!is.na(repo_slug)) {
+    slug_parts <- strsplit(repo_slug, "/", fixed = TRUE)[[1]]
+    if (length(slug_parts) == 2L && tolower(slug_parts[[1]]) == "ofce") {
+      repo_name <- slug_parts[[2]]
+      follows_convention <- grepl("^pb-[a-z]+-[a-z0-9|_|-]+$", repo_name)
+      if (follows_convention) {
+        add_diag("repo-name", "ok",
+                 sprintf("Nom du dépôt `%s` suit la convention `pb-{initiale}-{nom court}`.", repo_name))
+      } else {
+        add_diag("repo-name", "warning",
+                 sprintf(
+                   "Nom du dépôt `%s` (org OFCE) ne suit pas la convention recommandée `pb-{initiale de l'auteur·e}-{nom court}`, tout en minuscules (ex. `pb-xt-monpb`).",
+                   repo_name))
+      }
+    }
+  }
+
+  # ---- Contrôles spécifiques PB publié -------------------------------------
+  if (!is.null(yml$pb)) {
+    # annee : validation plus stricte pour PB publié
+    if (!is.null(yml$annee)) {
+      annee_ok <- !is.na(suppressWarnings(as.integer(yml$annee))) &&
+                  as.integer(yml$annee) > 1990L
+      if (annee_ok) {
+        add_diag("annee", "ok", sprintf("annee = %s valide pour un PB publié.", yml$annee))
+      } else {
+        add_diag("annee", "error",
+                 sprintf("annee `%s` invalide pour un PB publié (entier > 1990 attendu).", yml$annee))
+      }
+    }
+
+    # site-path : présence et cohérence structurelle (pb/YYYY/N[/vX])
+    # site-path est entièrement calculé par setup_pb() — toute incohérence
+    # se résout en relançant setup_pb(). Jamais bloquant pour le rendu.
+    sp      <- yml$website$`site-path`
+    version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
+
+    if (is.null(sp) || !nzchar(sp)) {
+      add_diag("site-path", "warning",
+               "site-path absent de _quarto.yml — relancer setup_pb() pour le calculer.")
+    } else {
+      segs <- strsplit(sp, "/", fixed = TRUE)[[1]]
+      n    <- length(segs)
+
+      # Structure attendue : YYYY/N  ou  YYYY/N/vX
+      struct_ok <- n %in% c(2L, 3L)
+
+      if (!struct_ok) {
+        add_diag("site-path", "warning",
+                 sprintf(
+                   "site-path `%s` mal formé (attendu : `YYYY/N` ou `YYYY/N/vX`) — relancer setup_pb().",
+                   sp))
+      } else {
+        # Segment YYYY
+        annee_seg <- suppressWarnings(as.integer(segs[1L]))
+        annee_yml <- suppressWarnings(as.integer(yml$annee))
+        if (!is.na(annee_seg) && !is.na(annee_yml) && annee_seg == annee_yml) {
+          add_diag("site-path/annee", "ok",
+                   sprintf("Segment année `%s` cohérent avec annee.", segs[1L]))
+        } else {
+          add_diag("site-path/annee", "warning",
+                   sprintf(
+                     "Segment année `%s` dans site-path incohérent avec annee = `%s` — relancer setup_pb().",
+                     segs[1L], yml$annee))
+        }
+
+        # Segment N (numéro PB, non zéro-padé)
+        pb_seg <- suppressWarnings(as.integer(segs[2L]))
+        pb_yml <- suppressWarnings(as.integer(yml$pb))
+        if (!is.na(pb_seg) && !is.na(pb_yml) && pb_seg == pb_yml) {
+          add_diag("site-path/pb", "ok",
+                   sprintf("Segment numéro PB `%s` cohérent avec pb.", segs[2L]))
+        } else {
+          add_diag("site-path/pb", "warning",
+                   sprintf(
+                     "Segment numéro PB `%s` dans site-path incohérent avec pb = `%s` — relancer setup_pb().",
+                     segs[2L], yml$pb))
+        }
+
+        # Segment version (optionnel)
+        if (!is.null(version) && nzchar(version)) {
+          if (n == 3L) {
+            if (identical(segs[3L], version)) {
+              add_diag("site-path/version", "ok",
+                       sprintf("Segment version `%s` cohérent avec version.", segs[3L]))
+            } else {
+              add_diag("site-path/version", "warning",
+                       sprintf(
+                         "Segment version `%s` dans site-path incohérent avec version = `%s` — relancer setup_pb().",
+                         segs[3L], version))
+            }
+          } else {
+            # n == 2 : version définie dans le YAML mais absente du chemin
+            add_diag("site-path/version", "warning",
+                     sprintf(
+                       "version `%s` définie dans le YAML mais absente de site-path `%s` — relancer setup_pb().",
+                       version, sp))
+          }
+        } else if (n == 3L) {
+          # segment version présent dans le chemin mais yml$version absent
+          add_diag("site-path/version", "warning",
+                   sprintf(
+                     "Segment version `%s` présent dans site-path mais `version` absente du YAML.",
+                     segs[3L]))
+        }
+      }
+    }
+  }
+
+  # ---- .qmd non-index : référencés dans other-links ? ---------------------
+  all_qmds <- fs::dir_ls(root, glob = "*.qmd", type = "file")
+  all_qmds <- all_qmds[!grepl("^_", fs::path_file(all_qmds))]
+
+  other_qmds <- all_qmds[
+    !tolower(fs::path_file(all_qmds)) %in% c("index.qmd")
+  ]
+
+  other_links <- yml$website$`other-links`
+  other_links_stems <- vapply(
+    if (is.null(other_links)) list() else other_links,
+    function(x) {
+      href <- x$href
+      if (is.null(href) || !nzchar(href)) return("")
+      # strip possible absolute URL prefix, keep filename stem
+      href_file <- sub(".*[/\\\\]", "", href)
+      fs::path_ext_remove(href_file)
+    },
+    character(1L)
+  )
+
+  for (qmd in other_qmds) {
+    stem <- fs::path_ext_remove(fs::path_file(qmd))
+    if (stem %in% other_links_stems) {
+      add_diag(fs::path_file(qmd), "ok",
+               sprintf("%s référencé dans website.other-links.", fs::path_file(qmd)))
+    } else {
+      add_diag(fs::path_file(qmd), "warning",
+               sprintf("%s non référencé dans website.other-links (page inaccessible depuis la navigation).",
+                       fs::path_file(qmd)))
+    }
+  }
+
+  # ---- unicité des output-file PDF ----------------------------------------
+  all_pdf_outputs <- character()
+
+  # project-level
+  if (!is.null(yml$format)) {
+    for (fmt in c("pb-pdf", "pb-typst")) {
+      fmt_val <- yml$format[[fmt]]
+      if (is.list(fmt_val)) {
+        of <- fmt_val$`output-file`
+        if (!is.null(of) && nzchar(of)) all_pdf_outputs <- c(all_pdf_outputs, of)
+      }
+    }
+  }
+
+  # document-level
+  project_format_names <- names(yml$format)
+  for (qmd in all_qmds) {
+    qy <- tryCatch(get_yaml(qmd), error = function(e) NULL)
+    doc_format_names <- if (!is.null(qy) && is.list(qy) && is.list(qy$format)) names(qy$format) else character()
+
+    # conflit pb-pdf / pb-typst simultanés pour un même document (hérité
+    # du niveau projet ou déclaré localement) -- index.qmd déjà couvert
+    # ci-dessus via le diag `format:pdf`.
+    if (tolower(fs::path_file(qmd)) != "index.qmd") {
+      doc_effective_formats <- union(project_format_names, doc_format_names)
+      if (all(c("pb-pdf", "pb-typst") %in% doc_effective_formats)) {
+        add_diag(
+          sprintf("format:pdf-conflict:%s", fs::path_file(qmd)),
+          "error",
+          sprintf(
+            "%s : deux formats PDF déclarés simultanément (pb-pdf ET pb-typst) — choisir un seul moteur (LaTeX ou Typst).",
+            fs::path_file(qmd)
+          )
+        )
+      }
+    }
+
+    if (is.null(qy) || !is.list(qy) || is.null(qy$format) || !is.list(qy$format)) next
+    for (fmt in c("pb-pdf", "pb-typst")) {
+      fmt_val <- qy$format[[fmt]]
+      if (is.list(fmt_val)) {
+        of <- fmt_val$`output-file`
+        if (!is.null(of) && nzchar(of)) all_pdf_outputs <- c(all_pdf_outputs, of)
+      }
+    }
+  }
+
+  dupes <- all_pdf_outputs[duplicated(all_pdf_outputs)]
+  if (length(dupes) == 0L) {
+    if (length(all_pdf_outputs) > 0L)
+      add_diag("output-file", "ok",
+               sprintf("output-file PDF unique : %s.", paste(all_pdf_outputs, collapse = ", ")))
+  } else {
+    add_diag("output-file", "error",
+             sprintf("output-file en double détecté : %s.", paste(unique(dupes), collapse = ", ")))
+  }
+
+  # ---- Résumé --------------------------------------------------------------
+  df <- if (length(diags) > 0) {
+    tdiag <- purrr::transpose(diags)
+    data.frame(
+      field   = tdiag[["field"]] |> unlist(),
+      status  = tdiag[["status"]] |> unlist(),
+      message = tdiag[["message"]] |> unlist(),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    data.frame(field = character(), status = character(), message = character(), stringsAsFactors = FALSE)
+  }
+
+  if (verbose) print_pb_diags(df, root)
+
+  invisible(df)
+}
+
+# Affiche les diagnostics check_pb() dans la console.
+print_pb_diags <- function(df, root = NULL) {
+  if (nrow(df) == 0L) return(invisible(NULL))
+
+  cli::cli_rule("Diagnostics check_pb()")
+  for (i in seq_len(nrow(df))) {
+    switch(df$status[i],
+      "error"   = cli::cli_alert_danger(
+        "{.strong {df$field[i]}} : {df$message[i]}"),
+      "warning" = cli::cli_alert_warning(
+        "{df$field[i]} : {df$message[i]}"),
+      cli::cli_alert_success(
+        "{df$field[i]} : {df$message[i]}")
+    )
+  }
+
+  n_err  <- sum(df$status == "error")
+  n_warn <- sum(df$status == "warning")
+
+  cli::cli_rule()
+  if (n_err > 0L) {
+    cli::cli_alert_danger(
+      "{n_err} erreur{?s} bloquante{?s}, {n_warn} avertissement{?s}.")
+  } else {
+    cli::cli_alert_success(
+      "Aucune erreur bloquante. {n_warn} avertissement{?s}.")
+  }
+
+  # Build the path parameter for suggestions
+  run_path <- if (!is.null(root) && !identical(root, getwd())) {
+    fs::path_rel(root, getwd())
+  } else {
+    "."
+  }
+
+  # Check if .github/workflows is missing and suggest setup_pb()
+  workflows_missing <- df[df$field == ".github/workflows" & df$status == "error", ]
+  if (nrow(workflows_missing) > 0L) {
+    cli::cli_rule()
+    msg <- glue::glue("Dossier .github/workflows/ manquant. Exécutez {{.run setup_pb('{run_path}')}} pour initialiser le dépôt.")
+    cli::cli_alert_info(msg)
+    return(invisible(NULL))
+  }
+
+  # Check if there are missing required fields and suggest complete_pb_yaml()
+  missing_required_fields <- c("date", "annee", "author", "citation")
+  rows_missing <- df[df$field %in% missing_required_fields & df$status == "error", ]
+
+  if (nrow(rows_missing) > 0L) {
+    cli::cli_rule()
+    msg <- glue::glue("Des champs obligatoires manquent. Exécutez {{.run complete_pb_yaml('{run_path}')}} pour les remplir automatiquement.")
+    cli::cli_alert_info(msg)
+  }
+
+  invisible(NULL)
+}

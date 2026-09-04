@@ -89,6 +89,11 @@ Après
 renseigner les métadonnées définitives (auteurs, résumé, date) et bien
 sûr le contenu avant de commiter.
 
+Vous trouverez dans le package `{ofce}` de nombreux outils pour
+faciliter le travail de rédaction et de mise en page. le [site de
+référence du package `{ofce}`](https://ofce.github.io/ofce) documente
+les meilleurs pratiques.
+
 ------------------------------------------------------------------------
 
 ## 2. Vérifier la structure avant rendu

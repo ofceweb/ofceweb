@@ -7,7 +7,7 @@ version: v0
 # gh-pages = GitHub Pages (brouillon) ; ftp = staging FTP OFCE (en attente d'enregistrement).
 stage-target: gh-pages
 # Écrite/synchronisée automatiquement par render_pb() d'après le registre
-# central (ofce/pb-registry) ; lue par les extensions
+# central (ofce/wp-registry, sous-dossier pb/) ; lue par les extensions
 # ofce-quarto-extensions pour le bandeau "Version provisoire — non publiée".
 draft: true
 author:

@@ -1,3 +1,61 @@
+## ofceweb v0.10.11
+
+### Nouvelle famille `pb_*` — policy briefs OFCE
+
+Nouveau type de dépôt supporté, en plus des WP/prévisions/blog/sites : les
+**policy briefs** (PB). Le patron suit celui déjà établi pour `prev_*` et
+`wp_*` — duplication préfixée plutôt que paramétrisation d'une fonction
+unique — et réutilise tous les helpers déjà génériques
+(`site2branch()`, `resolve_stage_target()`, `detect_gh_owner()`,
+`update_navbar()`, `encrypt_site()`, tous les `yaml_patch_*()`, etc.).
+
+* `setup_pb()` — équivalent PB de `setup_wp()`. Copie les gabarits embarqués
+  (`inst/setup_pb/`), installe l'extension Quarto `_extensions/ofce/pb`
+  (formats `pb-html`/`pb-pdf`/`pb-typst`), pose le drapeau `ofce_pb: true`,
+  calcule les champs dérivés (`site-url`, `site-path`, `citation.*`,
+  `FTP_SERVER_DIR`/`FTP_STAGING_DIR`/`FTP_REDIRECT_DIR`) et synchronise
+  `pb`/`annee`/`draft` depuis le registre central. Refuse un dépôt déjà
+  marqué `ofce_wp`/`ofce_prev`, et réciproquement côté `setup_wp()`.
+* `check_pb()` — diagnostics bloquants/avertissements avant rendu (formats
+  `pb-html` + `pb-pdf`/`pb-typst`, drapeau `ofce_pb`, cohérence `site-path`,
+  etc.), équivalent PB de `check_wp()`.
+* `render_pb()` / `publish_pb()` — orchestration du rendu (`check_pb()` →
+  nettoyage `_site/` → `quarto render` → sitemap → `pb_manifest()` →
+  resynchronisation `FTP_SERVER_DIR`) et publication (resynchronisation du
+  registre + `render_pb()` + `deploy_pb()`), équivalents PB de `render_wp()`/
+  `publish_wp()`.
+* `deploy_pb()` — routage identique à `deploy_wp()` selon `stage`
+  (registre) et `stage-target` : publié → FTP production
+  (`www.ofce.fr/pb/{annee}/{N}/`) + redirection stable (`push_pb_redirect()`,
+  interne) ; sinon → FTP staging ou GitHub Pages selon `stage-target`/
+  propriétaire GitHub.
+* `pb_version_up()` — incrémente la version d'un PB versionné (`/vN`),
+  équivalent PB de `wp_version_up()`.
+* `rescan_pb()` — alias de `rescan_site()` pour les dépôts PB, équivalent PB
+  de `rescan_wp()` (comportement identique, aucune logique PB-spécifique).
+* `pb_registry_request()` — ouvre une pull request proposant l'entrée
+  `{annee, pb, source-repo}` pour le dépôt PB local. **Le registre est
+  partagé avec les WP** : pas de dépôt `pb-registry` séparé — les entrées
+  PB vivent dans le sous-dossier `pb/` d'`ofceweb/wp-registry` (`wp/` pour
+  les WP), avec le même mécanisme d'auto-numérotation
+  (`max(pb existants pour l'année) + 1`), la même gouvernance (branch
+  protection + `CODEOWNERS` sur `wp-registry`), et le même filet de
+  sécurité réseau que `wp_registry_request()`/`sync_wp_registry_state()`
+  (`sync_pb_registry_state()`, interne : une vérification impossible efface
+  `pb`/`annee` et force `draft: true`, jamais traitée comme une confirmation
+  implicite). Pour éviter toute collision de nom de branche avec
+  `wp_registry_request()` dans ce dépôt désormais partagé, les branches de
+  demande PB sont préfixées : `request/pb/{annee}/{pb}` (WP :
+  `request/{annee}/{wp}`).
+* PDF de sortie : `OFCEPB{annee}-{pb}.pdf` (publié) / `OFCEPB-draft.pdf`
+  (brouillon), par analogie avec `OFCEWP{annee}-{wp}.pdf`.
+* Espace de noms disjoint du legacy `/pdf/pbrief/{annee}/` : le pipeline PB
+  n'écrit jamais sous ce chemin, uniquement sous `pb/{annee}/{N}/` — aucune
+  redirection ni migration n'est requise entre les deux.
+* Nouvelle section *Policy briefs* dans la référence pkgdown, listant
+  `setup_pb`, `check_pb`, `render_pb`, `publish_pb`, `deploy_pb`,
+  `rescan_pb`, `pb_version_up` et `pb_registry_request`.
+
 ## ofceweb v0.10.10
 
 *  traite le cas de PR dupliquées

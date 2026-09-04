@@ -1,15 +1,18 @@
-#' Liste des années disponibles dans `pb-registry` (`pb/index.json`)
+#' Liste des années disponibles dans le sous-dossier `pb/` de `wp-registry`
+#' (`pb/index.json`)
 #'
 #' Télécharge `pb/index.json` (lecture publique, non authentifiée) du dépôt
-#' registre des policy briefs. Utilisé pour savoir quels fichiers
-#' `pb/{année}.json` interroger. Équivalent PB de [fetch_wp_index()].
+#' registre central. Les PB partagent le même dépôt que les WP
+#' (`ofce/wp-registry`) — sous le sous-dossier `pb/`, distinct de `wp/` — il
+#' n'existe pas de dépôt `pb-registry` séparé. Utilisé pour savoir quels
+#' fichiers `pb/{année}.json` interroger. Équivalent PB de [fetch_wp_index()].
 #'
 #' @param registry_repo Slug `"owner/repo"` du dépôt registre.
 #' @return Vecteur entier des années, ou `NULL` si `pb/index.json` est
 #'   inaccessible (registre indisponible).
 #' @keywords internal
 #' @noRd
-fetch_pb_index <- function(registry_repo = "ofce/pb-registry") {
+fetch_pb_index <- function(registry_repo = "ofce/wp-registry") {
   index_url <- sprintf(
     "https://raw.githubusercontent.com/%s/main/pb/index.json", registry_repo)
   tryCatch({
@@ -29,7 +32,7 @@ fetch_pb_index <- function(registry_repo = "ofce/pb-registry") {
 #'   introuvable ou illisible (année pas encore créée, ou erreur réseau).
 #' @keywords internal
 #' @noRd
-fetch_pb_year <- function(annee, registry_repo = "ofce/pb-registry") {
+fetch_pb_year <- function(annee, registry_repo = "ofce/wp-registry") {
   year_url <- sprintf(
     "https://raw.githubusercontent.com/%s/main/pb/%d.json",
     registry_repo, as.integer(annee))
@@ -39,7 +42,7 @@ fetch_pb_year <- function(annee, registry_repo = "ofce/pb-registry") {
   )
 }
 
-#' Fusionne toutes les entrées du registre central `pb-registry`
+#' Fusionne toutes les entrées du sous-dossier `pb/` de `wp-registry`
 #'
 #' Équivalent PB de [fetch_wp_entries()]. Télécharge `pb/index.json` puis
 #' chaque `pb/{année}.json` qui y est listé, et fusionne toutes les entrées
@@ -52,7 +55,7 @@ fetch_pb_year <- function(annee, registry_repo = "ofce/pb-registry") {
 #'   lu avec succès mais sans années ou sans entrées).
 #' @keywords internal
 #' @noRd
-fetch_pb_entries <- function(registry_repo = "ofce/pb-registry") {
+fetch_pb_entries <- function(registry_repo = "ofce/wp-registry") {
   years <- fetch_pb_index(registry_repo)
   if (is.null(years)) return(NULL)
 
@@ -71,14 +74,18 @@ fetch_pb_entries <- function(registry_repo = "ofce/pb-registry") {
 
 #' Consulte le registre central PB et synchronise `draft`/`pb`/`annee`
 #'
-#' Équivalent PB de [sync_wp_registry_state()]. Interroge `ofce/pb-registry`
-#' (via [fetch_pb_entries()]) pour savoir si le dépôt courant a une entrée
-#' confirmée (`type == "repo"` avec `source-repo` correspondant au remote
-#' `origin` local). Le résultat (`stage = FALSE` si publié, `TRUE` si staging)
-#' est écrit dans la clé `draft` de `_quarto.yml` (lue par
-#' `ofce-quarto-extensions` pour le bandeau « Version provisoire »), et les
-#' clés `pb`/`annee` sont synchronisées depuis l'entrée trouvée (dépôt publié)
-#' ou effacées (staging, pas encore de numéro attribué).
+#' Équivalent PB de [sync_wp_registry_state()]. Interroge le sous-dossier
+#' `pb/` de `ofce/wp-registry` (via [fetch_pb_entries()]) pour savoir si le
+#' dépôt courant a une entrée confirmée (`type == "repo"` avec `source-repo`
+#' correspondant au remote `origin` local). Le résultat (`stage = FALSE` si
+#' publié, `TRUE` si staging) est écrit dans la clé `draft` de `_quarto.yml`
+#' (lue par `ofce-quarto-extensions` pour le bandeau « Version provisoire »),
+#' et les clés `pb`/`annee` sont synchronisées depuis l'entrée trouvée (dépôt
+#' publié) ou effacées (staging, pas encore de numéro attribué).
+#'
+#' Les PB partagent le même dépôt registre que les WP (`ofce/wp-registry`) —
+#' sous `pb/`, distinct de `wp/` — il n'existe pas de dépôt `pb-registry`
+#' séparé.
 #'
 #' En cas d'échec de consultation du registre (réseau, `pb/index.json`
 #' inaccessible), l'état ne peut pas être vérifié -- la fonction force alors
@@ -92,14 +99,14 @@ fetch_pb_entries <- function(registry_repo = "ofce/pb-registry") {
 #' @param quiet Logique. Si `TRUE`, supprime les messages `cli`. Défaut
 #'   `FALSE`.
 #' @param registry_repo Slug `"owner/repo"` du dépôt registre.
-#'   Défaut `"ofce/pb-registry"`.
+#'   Défaut `"ofce/wp-registry"`.
 #' @return Liste `list(stage, registry_entry, source_repo, network_error)`.
 #'   Si `network_error` est `TRUE`, `stage` vaut `TRUE` (brouillon forcé) et
 #'   `pb`/`annee` ont été effacés de `_quarto.yml`.
 #' @keywords internal
 #' @noRd
 sync_pb_registry_state <- function(root = ".", quiet = FALSE,
-                                   registry_repo = "ofce/pb-registry") {
+                                   registry_repo = "ofce/wp-registry") {
   qyml_path <- fs::path(root, "_quarto.yml")
   if (!fs::file_exists(qyml_path))
     cli::cli_abort("Pas de {.file _quarto.yml} dans {.path {root}}.")

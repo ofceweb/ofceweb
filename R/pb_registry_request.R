@@ -1,20 +1,22 @@
 #' Demande d'enregistrement d'un PB dans le registre central
 #'
 #' Calcule le triplet `{annee, pb, source-repo}` pour le dépôt PB local et
-#' ouvre une pull request contre `ofce/pb-registry` proposant d'ajouter
+#' ouvre une pull request contre `ofce/wp-registry` proposant d'ajouter
 #' l'entrée correspondante à `pb/{annee}.json` (et, si c'est la première
 #' demande pour cette année, crée ce fichier et met à jour `pb/index.json`
-#' dans le même commit). N'attend pas la fusion (fire-and-forget) — un·e
-#' admin doit approuver manuellement. Relancer [setup_pb()] une fois la PR
-#' fusionnée : c'est `setup_pb()` (pas `render_pb()`, qui ne consulte plus
-#' le registre) qui synchronise `pb`/`annee`/`draft` et recalcule
-#' `site-path`/`citation.*` depuis l'entrée confirmée, pour basculer du
-#' mode staging au mode publication.
+#' dans le même commit). Les PB partagent le même dépôt registre que les WP
+#' (`ofce/wp-registry`) — sous le sous-dossier `pb/`, distinct de `wp/` — il
+#' n'existe pas de dépôt `pb-registry` séparé. N'attend pas la fusion
+#' (fire-and-forget) — un·e admin doit approuver manuellement. Relancer
+#' [setup_pb()] une fois la PR fusionnée : c'est `setup_pb()` (pas
+#' `render_pb()`, qui ne consulte plus le registre) qui synchronise
+#' `pb`/`annee`/`draft` et recalcule `site-path`/`citation.*` depuis
+#' l'entrée confirmée, pour basculer du mode staging au mode publication.
 #'
 #' @details
 #' # Flux : push d'une branche puis PR intra-dépôt
 #'
-#' Le dépôt `ofce/pb-registry` est configuré pour autoriser les
+#' Le dépôt `ofce/wp-registry` est configuré pour autoriser les
 #' membres de l'organisation `ofce` à pousser des branches et ouvrir des
 #' pull requests sans être collaborateur·rice avec droit d'écriture
 #' (seule la **fusion** reste protégée : branch protection +
@@ -23,9 +25,11 @@
 #'
 #' 1.  Résolution du login GitHub (`GET /user`) associé au token
 #'     (`DEPLOY_PAT` ou identifiants `gitcreds`).
-#' 2.  Clonage de `ofce/pb-registry`, création de la branche
-#'     `request/{annee}/{pb}` avec l'entrée proposée.
-#' 3.  Push de cette branche vers `ofce/pb-registry`.
+#' 2.  Clonage de `ofce/wp-registry`, création de la branche
+#'     `request/pb/{annee}/{pb}` avec l'entrée proposée. Le préfixe `pb/`
+#'     évite toute collision avec les branches `request/{annee}/{wp}`
+#'     ouvertes par [wp_registry_request()] dans le même dépôt partagé.
+#' 3.  Push de cette branche vers `ofce/wp-registry`.
 #' 4.  Ouverture d'une pull request intra-dépôt (`head = "{branche}"`,
 #'     `base = "main"`).
 #'
@@ -35,7 +39,7 @@
 #'
 #' Le token utilisé (`DEPLOY_PAT` ou identifiants `gitcreds`) doit
 #' permettre de résoudre `GET /user` et de pousser une branche sur
-#' `ofce/pb-registry` — un PAT classique avec la portée `repo` (ou
+#' `ofce/wp-registry` — un PAT classique avec la portée `repo` (ou
 #' `public_repo`) d'un compte membre de l'organisation `ofce` convient.
 #'
 #' @param path Chemin vers la racine du dépôt PB local. Défaut `"."`.
@@ -51,7 +55,7 @@
 #'   `git config user.email` pour ce dépôt (config locale avec repli sur la
 #'   globale). La fonction échoue si aucune valeur ne peut être résolue.
 #' @param registry_repo Slug `"owner/repo"` du dépôt registre.
-#'   Défaut `"ofce/pb-registry"`.
+#'   Défaut `"ofce/wp-registry"`.
 #' @param dry_run Si `TRUE`, calcule et affiche l'entrée proposée sans ouvrir
 #'   de pull request. Défaut `FALSE`.
 #'
@@ -70,7 +74,7 @@ pb_registry_request <- function(
     annee         = NULL,
     pb            = NULL,
     contact       = NULL,
-    registry_repo = "ofce/pb-registry",
+    registry_repo = "ofce/wp-registry",
     dry_run       = FALSE) {
 
   root <- path |>
@@ -224,7 +228,7 @@ pb_registry_request <- function(
   registry_https <- sprintf("https://github.com/%s.git", registry_repo)
 
   tmp <- fs::path(tempdir(),
-                  paste0("pb-registry-", format(Sys.time(), "%Y%m%d%H%M%S")))
+                  paste0("wp-registry-pb-", format(Sys.time(), "%Y%m%d%H%M%S")))
   on.exit(try(fs::dir_delete(tmp), silent = TRUE), add = TRUE)
 
   cli::cli_alert_info("Clonage de {.val {registry_repo}}...")
@@ -261,11 +265,15 @@ pb_registry_request <- function(
   )
 
   # ---- 10. Branche, commit, push vers registry_repo -----------------------
-  branch_name <- sprintf("request/%d/%d", annee, pb)
+  # Préfixe pb/ : registry_repo est désormais partagé avec les WP
+  # (ofce/wp-registry) -- wp_registry_request() nomme ses branches
+  # request/{annee}/{wp} ; sans préfixe, un WP et un PB portant le même
+  # {annee, numero} produiraient le même nom de branche.
+  branch_name <- sprintf("request/pb/%d/%d", annee, pb)
   gert::git_branch_create(branch = branch_name, repo = tmp, checkout = TRUE)
   gert::git_add(c(sprintf("pb/%d.json", annee), "pb/index.json"), repo = tmp)
   gert::git_commit(
-    message = sprintf("request: %d/%d — %s", annee, pb, source_repo),
+    message = sprintf("request(pb): %d/%d — %s", annee, pb, source_repo),
     repo    = tmp,
     author  = gert::git_signature(
       name  = registered_by,
@@ -299,7 +307,7 @@ pb_registry_request <- function(
     ))
 
   # ---- 11. Recherche d'une PR existante puis ouverture -----------------------
-  # La branche request/{annee}/{pb} est déterministe : si la fonction est
+  # La branche request/pb/{annee}/{pb} est déterministe : si la fonction est
   # relancée (ex. après correction de l'entrée), la force-push met à jour
   # la branche distante mais une PR peut déjà être ouverte. On la
   # réutilise plutôt que d'en créer une nouvelle (GitHub renverrait 422).

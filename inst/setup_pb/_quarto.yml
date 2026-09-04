@@ -1,0 +1,62 @@
+# Ces champs sont obligatoires et doivent être remplis
+title: "Titre du policy brief"
+# respecter le format pour la date
+date: "YYYY-MM-DD"
+version: v0
+# Destination de déploiement pour les PBs non encore publiés :
+# gh-pages = GitHub Pages (brouillon) ; ftp = staging FTP OFCE (en attente d'enregistrement).
+stage-target: gh-pages
+# Écrite/synchronisée automatiquement par render_pb() d'après le registre
+# central (ofce/wp-registry, sous-dossier pb/) ; lue par les extensions
+# ofce-quarto-extensions pour le bandeau "Version provisoire — non publiée".
+draft: true
+author:
+  - name: "Prénom Nom"
+    email: "prenom.nom@sciencespo.fr"
+    affiliation: "OFCE, Sciences Po Paris"
+    affiliation-url: "https://www.ofce.fr"
+
+lang: fr
+
+date-modified: last-modified
+
+
+# Activer pour les commentaires
+comments:
+  hypothesis: false
+
+# Ce qui suit sera principalement imposé par setup_pb()
+project:
+  type: ofce-website
+
+execute:
+  freeze: auto
+
+website:
+  site-url: "https://ofce.github.io/REPO/"
+  repo-url: "https://github.com/ofce/REPO/"
+  page-navigation: true
+  bread-crumbs: true
+  favicon: www/fofce-wp.png
+  draft-mode: visible
+  other-links:
+    - text: Annexes
+      icon: file-bar-graph
+      href: annexes.html
+    - text: "Historique des changements"
+      icon: newspaper
+      href: news.html
+
+format:
+  pb-html: default
+
+ofce_pb: true
+
+stage-target: auto
+
+citation:
+  type: article-journal
+  container-title: "Policy Brief de l'OFCE"
+  # issue et url sont calculés automatiquement par setup_pb() une fois `pb`
+  # renseigné (ex. issue: "2026-12", url: "https://www.ofce.fr/2026/12/") —
+  # ne pas les renseigner manuellement.

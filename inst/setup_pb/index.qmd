@@ -1,0 +1,33 @@
+---
+title: "Titre du policy brief"
+abstract: |
+  Résumé du policy brief. Remplacer ce texte par le résumé
+  (environ 150 mots). Il apparaîtra sur la page HTML et dans le PDF.
+
+format:
+  pb-html: default
+  pb-typst:
+    output-file: "OFCEPB-draft.pdf"
+format-links:
+  - typst
+  - format: pb-typst
+    text: "OFCEPB-draft.pdf"
+    icon: file-pdf
+---
+
+## Introduction
+
+Remplacer ce texte par le corps du policy brief.
+
+Les références bibliographiques sont gérées via `references.bib`.
+Citer avec `[@clé]`.
+
+## Section 1
+
+...
+
+## Conclusion
+
+...
+
+## Références {.unnumbered}

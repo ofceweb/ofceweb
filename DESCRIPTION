@@ -1,7 +1,7 @@
 Package: ofceweb
 Type: Package
 Title: Tous les outils pour le fonctionnement du web OFCE
-Version: 0.10.10
+Version: 0.10.11
 Authors@R: c(
     person(
       "Xavier", "Timbeau",
@@ -48,7 +48,7 @@ Imports:
     future,
     future.mirai,
     futurize,
-    gert (>= 2.4.1),
+    gert,
     gh,
     gitcreds,
     glue,

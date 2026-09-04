@@ -1,0 +1,101 @@
+---
+title: "Policy brief (PB) feature: design and implementation report"
+---
+
+::: {.callout-note}
+This report was generated using AI under general human direction. At the time of generation, the contents have not been comprehensively reviewed by a human analyst.
+
+<!--
+To indicate human review: Delete the line above about contents not being reviewed, and replace this comment with:
+The contents have been reviewed and validated by [Your Name], [Your Role] on [Date].
+-->
+:::
+
+# Introduction
+
+The `ofceweb` package proposes a new document type, **policy briefs (PB)**, on the `dev_pb` branch. The PB workflow is modeled closely on the existing **working paper (WP)** workflow, with equivalent functions for setup, rendering, checking, and deployment (`setup_pb()`, `render_pb()`, `check_pb()`, `deploy_pb()`, `publish_pb()`, `pb_version_up()`), plus the associated Quarto templates and GitHub Actions workflows under `inst/setup_pb/`.
+
+This report summarizes the key design decision behind the PB registry and the changes made to implement it consistently across the codebase.
+
+# Key design decision: shared registry
+
+Working papers rely on a metadata registry — a repository (`ofce/wp-registry`) that tracks each WP's assigned number, year, and publication status, and that setup/render functions consult to validate and derive fields like `citation.*` and FTP deployment paths.
+
+For policy briefs, the initial implementation defaulted to a **separate** `ofce/pb-registry` repository, mirroring the WP registry structure one-to-one. This was reconsidered in favor of a single shared registry: **PB entries live in a `pb/` subfolder of the existing `ofce/wp-registry` repo**, alongside the `wp/` subfolder for working papers.
+
+Rationale:
+
+- Avoids provisioning, permissioning, and maintaining a second GitHub repository purely to hold a small, structurally identical metadata store.
+- Both document types already share nearly all of the surrounding tooling (setup, render, check, deploy logic), so sharing the registry keeps the "single source of truth" pattern intact rather than fragmenting it.
+- The two subfolders (`wp/`, `pb/`) keep entries namespaced and independently addressable, so there's no risk of ID collisions between the two document types.
+
+The one consequence of this merge is that **PR branch names** created by the registry request flow needed their own namespace to avoid colliding with WP branches now living in the same repo. Branches changed from `request/{annee}/{wp-or-pb}` (implicitly WP-only) to an explicit `request/pb/{annee}/{pb}` for policy briefs, leaving WP's `request/{annee}/{wp}` untouched.
+
+# Changes implemented
+
+## Registry retargeting
+
+- `R/pb_registry_sync.R`: `fetch_pb_index()`, `fetch_pb_year()`, `fetch_pb_entries()`, and `sync_pb_registry_state()` were retargeted from `registry_repo = "ofce/pb-registry"` to `"ofce/wp-registry"`, with docstrings updated to describe the shared registry and its `pb/` subfolder.
+- `R/pb_registry_request.R`: retargeted to `"ofce/wp-registry"`; PR branch names namespaced to `request/pb/{annee}/{pb}`; commit message updated to `request(pb): ...`; temp clone directory prefix changed to `wp-registry-pb-`.
+- `R/setup_pb.R`, `R/render_pb.R`, `inst/setup_pb/_quarto.yml`: in-code comments updated to reference the shared registry and its subfolder structure.
+
+### Diff excerpt: branch naming in `pb_registry_request.R`
+
+The change most directly motivated by the registry merge is the branch-name prefix. Before the merge, PB branches mirrored the WP pattern exactly (`request/{annee}/{pb}`), which was safe only because PB and WP lived in separate registry repos. Once PB moved into the shared `ofce/wp-registry` repo, that pattern would collide with WP's own `request/{annee}/{wp}` branches whenever `pb` and `wp` happened to share the same numeric ID for the same year. The fix adds an explicit `pb/` segment:
+
+```diff
+-  registry_repo = "ofce/pb-registry",
++  registry_repo = "ofce/wp-registry",
+```
+
+```diff
+   # ---- 10. Branche, commit, push vers registry_repo -----------------------
+-  branch_name <- sprintf("request/%d/%d", annee, pb)
++  # Préfixe pb/ : registry_repo est désormais partagé avec les WP
++  # (request/{annee}/{wp}) — le préfixe pb/ évite toute collision d'ID.
++  branch_name <- sprintf("request/pb/%d/%d", annee, pb)
+    gert::git_branch_create(branch = branch_name, repo = tmp, checkout = TRUE)
+```
+
+The current implementation reflects the "after" state shown above (`R/pb_registry_request.R:77`, `R/pb_registry_request.R:268-272`).
+
+## Test coverage
+
+Two new test files were added, mirroring the existing WP test suite:
+
+- `tests/testthat/test-pb_registry_sync.R` — covers `sync_pb_registry_state()` syncing `draft`/`pb`/`annee` from a matched entry, clearing those fields when unmatched, and forcing `draft: true` with cleared fields on a registry fetch error (the network-failure safety net).
+- `tests/testthat/test-pb_registry_request.R` — covers acceptance of OFCE-cased (uppercase) remote owners and rejection of remote owners outside the `ofce` organization.
+
+All five new tests pass against the retargeted implementation.
+
+## Documentation
+
+- `_pkgdown.yml`: added a "Policy briefs" reference section (placed after "Working papers"), listing `setup_pb`, `check_pb`, `render_pb`, `publish_pb`, `deploy_pb`, `rescan_pb`, `pb_version_up`, and `pb_registry_request`, with a description of the shared-registry design and URL/path conventions (`www.ofce.fr/pb/{annee}/{N}/`).
+- `NEWS.md`: added a `v0.10.11` entry documenting the full `pb_*` function family, the shared-registry rationale, the `request/pb/{annee}/{pb}` branch namespace, PDF naming conventions (`OFCEPB{annee}-{pb}.pdf` published / `OFCEPB-draft.pdf` draft), and confirmation that the legacy `/pdf/pbrief/{annee}/` namespace is disjoint from the new PB paths (no collision, no migration needed).
+
+## `rescan_pb()` alias
+
+- `R/rescan_pb.R` (new file): a `...`-forwarding wrapper around `rescan_site()`, added for parity with `rescan_wp()`. It's implemented as a wrapper rather than a direct alias because `rescan_pb.R` sorts alphabetically before `rescan_site.R`, so `rescan_site` would not yet exist at load time for a direct assignment.
+- `NAMESPACE`: added `export(rescan_pb)`.
+- `_pkgdown.yml` and `NEWS.md`: updated to reference the new export.
+
+## Version reconciliation
+
+- `DESCRIPTION`: `Version:` bumped from the stale `0.10.7` to `0.10.11`, matching the leading `NEWS.md` entry.
+
+# Verification
+
+The package loads cleanly and all newly added tests pass:
+
+| Test file | Tests | Result |
+|---|---|---|
+| `test-pb_registry_sync.R` | 3 | Pass |
+| `test-pb_registry_request.R` | 2 | Pass |
+
+# Remaining follow-ups
+
+These are optional and not required for the current change to be considered complete:
+
+- End-to-end integration test of the full PB lifecycle (`setup_pb()` → `pb_registry_request()` → `render_pb()` → `deploy_pb()`) against a real repository.
+- PB visual identity: the Quarto theme currently inherits from WP (`pb.scss` was noted as a candidate for future refinement, not a blocker).
+- Any external documentation or team wiki pages referencing the PB workflow.

@@ -44,7 +44,7 @@
 #'   Défaut une liste vide.
 #'
 #' @return Renvoie invisiblement `NULL`. Appelée pour ses effets de bord.
-#' @export
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #' # Pousser _site/ et déclencher le workflow FTP
@@ -180,7 +180,7 @@ site2branch <- function(
       trigger_action(root = root, workflow = workflow, inputs = inputs),
       error = function(e) {
         cli::cli_warn("FTP dispatch \u00e9chou\u00e9 : {e$message}")
-        cli::cli_warn("... relancer manuellement avec trigger_action() ou vérifier que la branche main a été poussée sur github.com.")
+        cli::cli_warn("... relancer manuellement avec trigger_action() ou vérifier que la branche par défaut a été poussée sur github.com.")
       }
     )
   }

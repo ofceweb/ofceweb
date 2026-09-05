@@ -59,6 +59,31 @@ appliqué par le workflow GitHub Actions — pas localement.
 - [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md)
   : Demande d'enregistrement d'un WP dans le registre central
 
+## Policy briefs
+
+Fonctions pour les dépôts de policy briefs OFCE (PB). Équivalent PB des
+fonctions *Working papers* ci-dessus : un PB peut être en mode brouillon
+(déployé sur GitHub Pages ou en staging FTP) ou publié (déployé via FTP
+sur `www.ofce.fr/pb/{annee}/{N}/`). Le registre central est partagé avec
+les WP (`ofceweb/wp-registry`, sous-dossier `pb/`).
+
+- [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  : Initialise un dépôt de policy brief (PB) OFCE
+- [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+  : Vérifie la structure d'un dépôt de policy brief (PB)
+- [`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md)
+  : Rendu complet d'un policy brief (PB) OFCE
+- [`publish_pb()`](https://ofceweb.github.io/ofceweb/reference/publish_pb.md)
+  : Rendu et déploiement complet d'un policy brief (PB) OFCE
+- [`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md)
+  : Déploie un policy brief (PB) OFCE
+- [`rescan_pb()`](https://ofceweb.github.io/ofceweb/reference/rescan_pb.md)
+  : Rescanne les pages d'un policy brief
+- [`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md)
+  : Incrémente la version d'un policy brief OFCE publié
+- [`pb_registry_request()`](https://ofceweb.github.io/ofceweb/reference/pb_registry_request.md)
+  : Demande d'enregistrement d'un PB dans le registre central
+
 ## Sites génériques
 
 Fonctions pour les sites Quarto génériques hébergés sur `www.ofce.fr`.

@@ -244,7 +244,7 @@ check_pb <- function(path = ".", verbose = TRUE) {
     slug_parts <- strsplit(repo_slug, "/", fixed = TRUE)[[1]]
     if (length(slug_parts) == 2L && tolower(slug_parts[[1]]) == "ofce") {
       repo_name <- slug_parts[[2]]
-      follows_convention <- grepl("^pb-[a-z]+-[a-z0-9|_|-]+$", repo_name)
+      follows_convention <- grepl("^pb-[a-z]+-[a-z0-9_-]+$", repo_name)
       if (follows_convention) {
         add_diag("repo-name", "ok",
                  sprintf("Nom du dépôt `%s` suit la convention `pb-{initiale}-{nom court}`.", repo_name))

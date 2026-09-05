@@ -9,7 +9,7 @@ pb_registry_request(
   annee = NULL,
   pb = NULL,
   contact = NULL,
-  registry_repo = "ofce/pb-registry",
+  registry_repo = "ofce/wp-registry",
   dry_run = FALSE
 )
 }
@@ -31,7 +31,7 @@ localement en cas de conflit.}
 globale). La fonction échoue si aucune valeur ne peut être résolue.}
 
 \item{registry_repo}{Slug `"owner/repo"` du dépôt registre.
-Défaut `"ofce/pb-registry"`.}
+Défaut `"ofce/wp-registry"`.}
 
 \item{dry_run}{Si `TRUE`, calcule et affiche l'entrée proposée sans ouvrir
 de pull request. Défaut `FALSE`.}
@@ -42,20 +42,22 @@ Invisiblement, une liste avec `entry` (l'entrée proposée) et
 }
 \description{
 Calcule le triplet `{annee, pb, source-repo}` pour le dépôt PB local et
-ouvre une pull request contre `ofce/pb-registry` proposant d'ajouter
+ouvre une pull request contre `ofce/wp-registry` proposant d'ajouter
 l'entrée correspondante à `pb/{annee}.json` (et, si c'est la première
 demande pour cette année, crée ce fichier et met à jour `pb/index.json`
-dans le même commit). N'attend pas la fusion (fire-and-forget) — un·e
-admin doit approuver manuellement. Relancer [setup_pb()] une fois la PR
-fusionnée : c'est `setup_pb()` (pas `render_pb()`, qui ne consulte plus
-le registre) qui synchronise `pb`/`annee`/`draft` et recalcule
-`site-path`/`citation.*` depuis l'entrée confirmée, pour basculer du
-mode staging au mode publication.
+dans le même commit). Les PB partagent le même dépôt registre que les WP
+(`ofce/wp-registry`) — sous le sous-dossier `pb/`, distinct de `wp/` — il
+n'existe pas de dépôt `pb-registry` séparé. N'attend pas la fusion
+(fire-and-forget) — un·e admin doit approuver manuellement. Relancer
+[setup_pb()] une fois la PR fusionnée : c'est `setup_pb()` (pas
+`render_pb()`, qui ne consulte plus le registre) qui synchronise
+`pb`/`annee`/`draft` et recalcule `site-path`/`citation.*` depuis
+l'entrée confirmée, pour basculer du mode staging au mode publication.
 }
 \details{
 # Flux : push d'une branche puis PR intra-dépôt
 
-Le dépôt `ofce/pb-registry` est configuré pour autoriser les
+Le dépôt `ofce/wp-registry` est configuré pour autoriser les
 membres de l'organisation `ofce` à pousser des branches et ouvrir des
 pull requests sans être collaborateur·rice avec droit d'écriture
 (seule la **fusion** reste protégée : branch protection +
@@ -64,9 +66,11 @@ personnel :
 
 1.  Résolution du login GitHub (`GET /user`) associé au token
     (`DEPLOY_PAT` ou identifiants `gitcreds`).
-2.  Clonage de `ofce/pb-registry`, création de la branche
-    `request/{annee}/{pb}` avec l'entrée proposée.
-3.  Push de cette branche vers `ofce/pb-registry`.
+2.  Clonage de `ofce/wp-registry`, création de la branche
+    `request/pb/{annee}/{pb}` avec l'entrée proposée. Le préfixe `pb/`
+    évite toute collision avec les branches `request/{annee}/{wp}`
+    ouvertes par [wp_registry_request()] dans le même dépôt partagé.
+3.  Push de cette branche vers `ofce/wp-registry`.
 4.  Ouverture d'une pull request intra-dépôt (`head = "{branche}"`,
     `base = "main"`).
 
@@ -76,7 +80,7 @@ explicite.
 
 Le token utilisé (`DEPLOY_PAT` ou identifiants `gitcreds`) doit
 permettre de résoudre `GET /user` et de pousser une branche sur
-`ofce/pb-registry` — un PAT classique avec la portée `repo` (ou
+`ofce/wp-registry` — un PAT classique avec la portée `repo` (ou
 `public_repo`) d'un compte membre de l'organisation `ofce` convient.
 }
 \seealso{

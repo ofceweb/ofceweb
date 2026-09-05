@@ -3,9 +3,6 @@ title: "Titre du policy brief"
 # respecter le format pour la date
 date: "YYYY-MM-DD"
 version: v0
-# Destination de déploiement pour les PBs non encore publiés :
-# gh-pages = GitHub Pages (brouillon) ; ftp = staging FTP OFCE (en attente d'enregistrement).
-stage-target: gh-pages
 # Écrite/synchronisée automatiquement par render_pb() d'après le registre
 # central (ofce/wp-registry, sous-dossier pb/) ; lue par les extensions
 # ofce-quarto-extensions pour le bandeau "Version provisoire — non publiée".
@@ -37,7 +34,7 @@ website:
   repo-url: "https://github.com/ofce/REPO/"
   page-navigation: true
   bread-crumbs: true
-  favicon: www/fofce-wp.png
+  favicon: www/fofce-pb.png
   draft-mode: visible
   other-links:
     - text: Annexes

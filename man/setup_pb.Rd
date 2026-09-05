@@ -48,7 +48,7 @@ En revanche, les **workflows GitHub Actions** (`.github/workflows/`) sont
 
 `pb` et `annee` ne sont **pas** des arguments : ils sont soit lus depuis un
 `_quarto.yml` déjà existant, soit écrasés par une entrée confirmée du
-registre central (`ofce/pb-registry`), jamais choisis librement par
+registre central (`ofce/wp-registry`, sous-dossier `pb/`), jamais choisis librement par
 l'appelant. Un dépôt sans `_quarto.yml` et sans entrée de registre reste un
 brouillon (`pb` absent) ; pour obtenir un numéro, utiliser
 [pb_registry_request()] puis relancer `setup_pb()` une fois la PR fusionnée.

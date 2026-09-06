@@ -32,8 +32,6 @@ Champs complétés si absents :
 
 - \`date\` : date du jour (format \`YYYY-MM-DD\`)
 
-- \`annee\` : extraite depuis \`date\` ou année courante
-
 - \`author\` : structure minimale si \`author\` et \`authors\` sont
   absents
 

@@ -19,17 +19,17 @@ publish(path = ".", type = NULL, ...)
 
 - type:
 
-  Force le type de dépôt (\`"wp"\`, \`"site"\`, \`"prev"\` ou
+  Force le type de dépôt (\`"wp"\`, \`"site"\`, \`"prev"\`, \`"pb"\` ou
   \`"blog"\`) plutôt que de le détecter automatiquement. Défaut \`NULL\`
   (détection automatique).
 
 - ...:
 
   Arguments supplémentaires transmis à la fonction de publication
-  choisie (\[publish_wp()\], \[publish_prev()\], \[publish_blog()\] ou
-  \[stage_site()\]). Ces fonctions n'ont pas toutes la même signature ;
-  passer un argument non reconnu par la fonction cible provoquera une
-  erreur R standard ("unused argument").
+  choisie (\[publish_wp()\], \[publish_prev()\], \[publish_pb()\],
+  \[publish_blog()\] ou \[stage_site()\]). Ces fonctions n'ont pas
+  toutes la même signature ; passer un argument non reconnu par la
+  fonction cible provoquera une erreur R standard ("unused argument").
 
 ## Value
 
@@ -45,9 +45,12 @@ La détection se fait, dans l'ordre :
 2.  \`ofce_wp: true\` dans \`\_quarto.yml\` → document de travail
     (\[publish_wp()\])
 
-3.  présence d'un dossier \`posts/\` → blog (\[publish_blog()\])
+3.  \`ofce_pb: true\` dans \`\_quarto.yml\` → policy brief
+    (\[publish_pb()\])
 
-4.  présence d'un \`\_quarto.yml\` (sans marqueur ci-dessus) → site
+4.  présence d'un dossier \`posts/\` → blog (\[publish_blog()\])
+
+5.  présence d'un \`\_quarto.yml\` (sans marqueur ci-dessus) → site
     générique (\[stage_site()\])
 
 Si rien de tout cela n'est détecté, la fonction s'arrête avec un message
@@ -60,5 +63,6 @@ tient lieu.
 
 ## See also
 
-\[publish_wp()\], \[publish_prev()\], \[publish_blog()\],
-\[stage_site()\], \[render()\], \[detect_repo_type()\]
+\[publish_wp()\], \[publish_prev()\], \[publish_pb()\],
+\[publish_blog()\], \[stage_site()\], \[render()\],
+\[detect_repo_type()\]

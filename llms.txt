@@ -73,6 +73,50 @@ Une fois le document de travail validé, les auteurs peuvent modifier le
 document de travail librement. En cas d’abus, cet accès peut être
 retiré.
 
+## Publier un policy brief en phase *staging* ou *publication*
+
+Le principe est le même que pour un document de travail : le policy
+brief vit dans un repo github, sur son compte personnel ou dans
+l’organisation OFCE. Le *template* est implémenté par
+[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md),
+fonction non destructive équivalente à
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
+qui peut être exécutée autant de fois que l’on veut.
+[`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+diagnostique l’installation.
+
+Tant que le policy brief est en phase *staging*, il est servi par
+github.com (`gh-pages`) ou sur le site `staging.ofce.fr`, avec la même
+possibilité de cryptage que pour un document de travail
+([`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
+/
+[`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)).
+
+La publication passe par
+[`pb_registry_request()`](https://ofceweb.github.io/ofceweb/reference/pb_registry_request.md)
+et une validation par un administrateur, avec la même logique de
+registre central que les documents de travail. La différence : les
+policy briefs **partagent** ce registre central avec les documents de
+travail (`ofce/wp-registry`, sous-dossier `pb/`), mais leur numérotation
+est **séquentielle depuis l’origine et indépendante de l’année** —
+contrairement aux documents de travail, numérotés par année. Le champ
+`annee` n’intervient donc jamais pour un policy brief. En exécutant
+[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+la vérification est faite ;
+[`publish_pb()`](https://ofceweb.github.io/ofceweb/reference/publish_pb.md)
+l’exécute également.
+
+Pour être stagé ou publié sur le site de l’OFCE, la propriété du policy
+brief doit être transférée à l’organisation OFCE sur github.com, avec un
+renommage du dépôt selon la convention
+`pb-{initiale de l'auteur}-{nom court}`, le tout en MINUSCULES. Par
+exemple : `pb-xt-relance`.
+
+Comme le document de travail, le policy brief peut être versionné une
+fois hébergé sur `staging.ofce.fr` ou `www.ofce.fr/pb`. Une url stable
+est toujours disponible (`www.ofce.fr/pb/{NNN}`) pour le policy brief de
+l’OFCE n°NNN, et pointe vers la dernière version poussée sur le site.
+
 ## Publier un mini-site en phase *staging* ou *publication*
 
 Un mini-site ressemble beaucoup à un document de travail, à ceci près
@@ -232,8 +276,9 @@ appliqué par le workflow GitHub Actions — pas localement.
 Fonctions pour les dépôts de policy briefs OFCE (PB). Équivalent PB des
 fonctions *Working papers* ci-dessus : un PB peut être en mode brouillon
 (déployé sur GitHub Pages ou en staging FTP) ou publié (déployé via FTP
-sur `www.ofce.fr/pb/{annee}/{N}/`). Le registre central est partagé avec
-les WP (`ofceweb/wp-registry`, sous-dossier `pb/`).
+sur `www.ofce.fr/pb/{N}/`, numérotation séquentielle indépendante de
+l’année). Le registre central est partagé avec les WP
+(`ofceweb/wp-registry`, sous-dossier `pb/`, fichier plat `pb/pb.json`).
 
 - [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
   : Initialise un dépôt de policy brief (PB) OFCE
@@ -326,6 +371,8 @@ Fonctions de bas niveau partagées entre les différents types de dépôts.
 
 - [Construire un site avec
   ofceweb](https://ofceweb.github.io/ofceweb/articles/build-a-site.md):
+- [Policy briefs
+  (PB)](https://ofceweb.github.io/ofceweb/articles/policy-briefs.md):
 - [Pré-requis : PAT GitHub, gh CLI, variables
   d'environnement](https://ofceweb.github.io/ofceweb/articles/prerequisites.md):
 - [Prévisions OFCE : initialisation, rendu et

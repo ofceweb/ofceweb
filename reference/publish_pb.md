@@ -4,10 +4,10 @@
 (\`ofce/wp-registry\`, sous-dossier \`pb/\`, via
 \`sync_pb_registry_state()\`) — pour rattraper un enregistrement survenu
 depuis le dernier \[setup_pb()\] — puis enchaîne \[render_pb()\] et
-\[deploy_pb()\]. Ce rafraîchissement ne recalcule que
-\`draft\`/\`pb\`/\`annee\` ; si le numéro PB change à cette étape, un
-avertissement invite à relancer \[setup_pb()\] pour recalculer les
-champs dérivés (\`site-path\`, \`citation.\*\`, \`FTP_SERVER_DIR\`).
+\[deploy_pb()\]. Ce rafraîchissement ne recalcule que \`draft\`/\`pb\` ;
+si le numéro PB change à cette étape, un avertissement invite à relancer
+\[setup_pb()\] pour recalculer les champs dérivés (\`site-path\`,
+\`citation.\*\`, \`FTP_SERVER_DIR\`).
 
 ## Usage
 

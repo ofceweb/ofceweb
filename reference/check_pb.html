@@ -11,7 +11,7 @@ détecter les problèmes bloquants (erreurs) et les situations à corriger
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.12</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,6 +24,7 @@ détecter les problèmes bloquants (erreurs) et les situations à corriger
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/prerequisites.html">Prérequis (authentification gh, github)</a></li>
     <li><a class="dropdown-item" href="../articles/working-papers.html">Faire un document de travail</a></li>
+    <li><a class="dropdown-item" href="../articles/policy-briefs.html">Policy briefs</a></li>
     <li><a class="dropdown-item" href="../articles/build-a-site.html">Faire un mini-site</a></li>
     <li><a class="dropdown-item" href="../articles/previsions.html">Faire une prévision</a></li>
   </ul></li>
@@ -76,14 +77,15 @@ détecter les problèmes bloquants (erreurs) et les situations à corriger
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Contrôles effectués :</p><ul><li><p>Présence et validité de `_quarto.yml` (champs `annee`, `author`,
+    <p>Contrôles effectués :</p><ul><li><p>Présence et validité de `_quarto.yml` (champs `author`,
     `date`, `citation` — erreur bloquante si absents)</p></li>
 <li><p>`project.type: ofce-website` présent dans `_quarto.yml` (warning)</p></li>
 <li><p>`index.qmd` présent, déclare `pb-html` et `pb-pdf` / `pb-typst`</p></li>
 <li><p>`references.bib` présent (warning)</p></li>
 <li><p>`news.qmd` présent (warning)</p></li>
-<li><p>Si PB publié (`pb` non nul) : `annee` entier valide, cohérence
-    `version` / dernier segment de `site-path`</p></li>
+<li><p>Si PB publié (`pb` non nul) : cohérence `version` / dernier
+    segment de `site-path` (`N` ou `N/vX` ; `annee` n'est pas utilisé
+    pour les PB, numérotés séquentiellement depuis l'origine)</p></li>
 <li><p>Nom du dépôt conforme à `pb-initiale-nom court` (minuscules)
     lorsque l'org GitHub est `OFCE` (warning non bloquant)</p></li>
 <li><p>Tous les `.qmd` non-index référencés dans `website.other-links`

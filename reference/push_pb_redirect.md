@@ -4,7 +4,7 @@
 redirection pointant vers la version courante du PB (champ \`version\`
 de \`\_quarto.yml\`), le pousse sur la branche \`site-redirect\`, puis
 déclenche le workflow \`ftp_redirect.yml\` pour le déployer à l'URL
-stable \`www.ofce.fr/pb/annee/pb/\`.
+stable \`www.ofce.fr/pb/pb/\`.
 
 ## Usage
 

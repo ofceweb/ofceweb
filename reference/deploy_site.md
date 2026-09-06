@@ -2,8 +2,11 @@
 
 Lit la clé \`ofce_host\` du \`\_quarto.yml\` à la racine du dépôt. Si
 \`TRUE\`, délègue à \[site2branch()\] (push de \`\_site\` vers la
-branche de déploiement FTP). Si \`FALSE\`, lance \`quarto publish
-gh-pages\`.
+branche de déploiement FTP) et affiche l'URL finale déduite de
+\`website.site-url\`/\`site-path\`. Si \`FALSE\`, lance \`quarto publish
+gh-pages\` et affiche l'URL GitHub Pages réellement servie, recalculée
+depuis le remote \`origin\` du dépôt (et non \`website.site-url\`, qui
+décrit l'hébergement OFCE cible et non l'URL GitHub Pages).
 
 ## Usage
 

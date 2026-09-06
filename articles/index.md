@@ -4,6 +4,8 @@
 
 - [Construire un site avec
   ofceweb](https://ofceweb.github.io/ofceweb/articles/build-a-site.md):
+- [Policy briefs
+  (PB)](https://ofceweb.github.io/ofceweb/articles/policy-briefs.md):
 - [Pré-requis : PAT GitHub, gh CLI, variables
   d'environnement](https://ofceweb.github.io/ofceweb/articles/prerequisites.md):
 - [Prévisions OFCE : initialisation, rendu et

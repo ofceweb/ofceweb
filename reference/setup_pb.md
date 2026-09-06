@@ -60,13 +60,15 @@ En revanche, les \*\*workflows GitHub Actions\*\*
 (\`.github/workflows/\`) sont \*\*toujours mis à jour\*\* depuis la
 version de référence du package.
 
-\`pb\` et \`annee\` ne sont \*\*pas\*\* des arguments : ils sont soit
-lus depuis un \`\_quarto.yml\` déjà existant, soit écrasés par une
-entrée confirmée du registre central (\`ofce/wp-registry\`, sous-dossier
-\`pb/\`), jamais choisis librement par l'appelant. Un dépôt sans
-\`\_quarto.yml\` et sans entrée de registre reste un brouillon (\`pb\`
-absent) ; pour obtenir un numéro, utiliser \[pb_registry_request()\]
-puis relancer \`setup_pb()\` une fois la PR fusionnée.
+\`pb\` n'est \*\*pas\*\* un argument : il est soit lu depuis un
+\`\_quarto.yml\` déjà existant, soit écrasé par une entrée confirmée du
+registre central (\`ofce/wp-registry\`, sous-dossier \`pb/\`), jamais
+choisi librement par l'appelant. Un dépôt sans \`\_quarto.yml\` et sans
+entrée de registre reste un brouillon (\`pb\` absent) ; pour obtenir un
+numéro, utiliser \[pb_registry_request()\] puis relancer \`setup_pb()\`
+une fois la PR fusionnée. Le champ \`annee\` n'est pas utilisé pour les
+PB : les numéros sont attribués séquentiellement depuis l'origine,
+indépendamment de l'année de publication.
 
 Les extensions Quarto OFCE (\`\_extensions/\`) sont installées/mises à
 jour via \[ofce::setup_quarto()\], qui les récupère depuis le dépôt

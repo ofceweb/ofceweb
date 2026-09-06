@@ -33,8 +33,8 @@ bloquantes sont présentes.
 
 Contrôles effectués :
 
-- Présence et validité de \`\_quarto.yml\` (champs \`annee\`,
-  \`author\`, \`date\`, \`citation\` — erreur bloquante si absents)
+- Présence et validité de \`\_quarto.yml\` (champs \`author\`, \`date\`,
+  \`citation\` — erreur bloquante si absents)
 
 - \`project.type: ofce-website\` présent dans \`\_quarto.yml\` (warning)
 
@@ -45,8 +45,9 @@ Contrôles effectués :
 
 - \`news.qmd\` présent (warning)
 
-- Si PB publié (\`pb\` non nul) : \`annee\` entier valide, cohérence
-  \`version\` / dernier segment de \`site-path\`
+- Si PB publié (\`pb\` non nul) : cohérence \`version\` / dernier
+  segment de \`site-path\` (\`N\` ou \`N/vX\` ; \`annee\` n'est pas
+  utilisé pour les PB, numérotés séquentiellement depuis l'origine)
 
 - Nom du dépôt conforme à \`pb-initiale-nom court\` (minuscules) lorsque
   l'org GitHub est \`OFCE\` (warning non bloquant)

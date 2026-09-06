@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.12</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,6 +46,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/prerequisites.html">Prérequis (authentification gh, github)</a></li>
     <li><a class="dropdown-item" href="articles/working-papers.html">Faire un document de travail</a></li>
+    <li><a class="dropdown-item" href="articles/policy-briefs.html">Policy briefs</a></li>
     <li><a class="dropdown-item" href="articles/build-a-site.html">Faire un mini-site</a></li>
     <li><a class="dropdown-item" href="articles/previsions.html">Faire une prévision</a></li>
   </ul>
@@ -91,6 +92,16 @@
 <p>Pour être stagé ou publié sur le site de l’OFCE, la propriété du document de travail doit être transférée à l’organisation OFCE sur github.com (settings-&gt;Danger Zone-&gt;Transfer ownership sur github.com). Lors de son transfert, le dépôt doit être renommé. La convention de nommage est <code>wp-{initiales de l'auteur}-{nom court}</code>, le tout en MINUSCULES. Par exemple : <code>wp-xt-travail</code>.</p>
 <p>Le document de travail peut être versionné quand il est hébergé sur <code>staging.ofce.fr</code> ou <code>www.ofce.fr/wp</code>. Les différentes versions peuvent être conservées, une url stable est toujours disponible (www.ofce.fr/wp/{YYYY}/{NNN}) pour le document de travail de l’OFCE n°YYYY-NNN ou (staging.ofce.fr/{repo}/. L’url stable pointe vers la dernière version poussée sur le site.</p>
 <p>Une fois le document de travail validé, les auteurs peuvent modifier le document de travail librement. En cas d’abus, cet accès peut être retiré.</p>
+</div>
+<div class="section level2">
+<h2 id="publier-un-policy-brief-en-phase-staging-ou-publication">Publier un policy brief en phase <em>staging</em> ou <em>publication</em>
+<a class="anchor" aria-label="anchor" href="#publier-un-policy-brief-en-phase-staging-ou-publication"></a>
+</h2>
+<p>Le principe est le même que pour un document de travail : le policy brief vit dans un repo github, sur son compte personnel ou dans l’organisation OFCE. Le <em>template</em> est implémenté par <code><a href="reference/setup_pb.html">setup_pb()</a></code>, fonction non destructive équivalente à <code><a href="reference/setup_wp.html">setup_wp()</a></code>, qui peut être exécutée autant de fois que l’on veut. <code><a href="reference/check_pb.html">check_pb()</a></code> diagnostique l’installation.</p>
+<p>Tant que le policy brief est en phase <em>staging</em>, il est servi par github.com (<code>gh-pages</code>) ou sur le site <code>staging.ofce.fr</code>, avec la même possibilité de cryptage que pour un document de travail (<code><a href="reference/encrypt_site.html">encrypt_site()</a></code> / <code><a href="reference/remove_encrypt.html">remove_encrypt()</a></code>).</p>
+<p>La publication passe par <code><a href="reference/pb_registry_request.html">pb_registry_request()</a></code> et une validation par un administrateur, avec la même logique de registre central que les documents de travail. La différence : les policy briefs <strong>partagent</strong> ce registre central avec les documents de travail (<code>ofce/wp-registry</code>, sous-dossier <code>pb/</code>), mais leur numérotation est <strong>séquentielle depuis l’origine et indépendante de l’année</strong> — contrairement aux documents de travail, numérotés par année. Le champ <code>annee</code> n’intervient donc jamais pour un policy brief. En exécutant <code><a href="reference/setup_pb.html">setup_pb()</a></code> la vérification est faite ; <code><a href="reference/publish_pb.html">publish_pb()</a></code> l’exécute également.</p>
+<p>Pour être stagé ou publié sur le site de l’OFCE, la propriété du policy brief doit être transférée à l’organisation OFCE sur github.com, avec un renommage du dépôt selon la convention <code>pb-{initiale de l'auteur}-{nom court}</code>, le tout en MINUSCULES. Par exemple : <code>pb-xt-relance</code>.</p>
+<p>Comme le document de travail, le policy brief peut être versionné une fois hébergé sur <code>staging.ofce.fr</code> ou <code>www.ofce.fr/pb</code>. Une url stable est toujours disponible (<code>www.ofce.fr/pb/{NNN}</code>) pour le policy brief de l’OFCE n°NNN, et pointe vers la dernière version poussée sur le site.</p>
 </div>
 <div class="section level2">
 <h2 id="publier-un-mini-site-en-phase-staging-ou-publication">Publier un mini-site en phase <em>staging</em> ou <em>publication</em>

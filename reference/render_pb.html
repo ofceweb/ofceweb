@@ -4,7 +4,7 @@ vérification du dépôt git, vérification de la structure PB, lecture de l'ét
 `stage` (staging ou publié) depuis la clé `draft` de `_quarto.yml`. **La
 consultation du registre central (`ofce/wp-registry`, sous-dossier `pb/`) ne se fait plus ici** :
 elle a lieu en amont, dans [setup_pb()] (et à nouveau dans [publish_pb()]) —
-`render_pb()` suppose que `draft`/`pb`/`annee` sont déjà synchronisés dans
+`render_pb()` suppose que `draft`/`pb` sont déjà synchronisés dans
 `_quarto.yml` et se contente de les lire, sans accès réseau. Suivent le
 nettoyage de `_site/`, le rendu Quarto (HTML + PDF), la construction du
 sitemap, l'écriture du manifeste, la synchronisation de `FTP_SERVER_DIR`
@@ -14,7 +14,7 @@ vérification du dépôt git, vérification de la structure PB, lecture de l'ét
 `stage` (staging ou publié) depuis la clé `draft` de `_quarto.yml`. **La
 consultation du registre central (`ofce/wp-registry`, sous-dossier `pb/`) ne se fait plus ici** :
 elle a lieu en amont, dans [setup_pb()] (et à nouveau dans [publish_pb()]) —
-`render_pb()` suppose que `draft`/`pb`/`annee` sont déjà synchronisés dans
+`render_pb()` suppose que `draft`/`pb` sont déjà synchronisés dans
 `_quarto.yml` et se contente de les lire, sans accès réseau. Suivent le
 nettoyage de `_site/`, le rendu Quarto (HTML + PDF), la construction du
 sitemap, l'écriture du manifeste, la synchronisation de `FTP_SERVER_DIR`
@@ -27,7 +27,7 @@ prévisualisation locale."><meta property="og:image" content="https://ofceweb.gi
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.12</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,7 @@ prévisualisation locale."><meta property="og:image" content="https://ofceweb.gi
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/prerequisites.html">Prérequis (authentification gh, github)</a></li>
     <li><a class="dropdown-item" href="../articles/working-papers.html">Faire un document de travail</a></li>
+    <li><a class="dropdown-item" href="../articles/policy-briefs.html">Policy briefs</a></li>
     <li><a class="dropdown-item" href="../articles/build-a-site.html">Faire un mini-site</a></li>
     <li><a class="dropdown-item" href="../articles/previsions.html">Faire une prévision</a></li>
   </ul></li>
@@ -65,7 +66,7 @@ vérification du dépôt git, vérification de la structure PB, lecture de l'ét
 `stage` (staging ou publié) depuis la clé `draft` de `_quarto.yml`. **La
 consultation du registre central (`ofce/wp-registry`, sous-dossier `pb/`) ne se fait plus ici** :
 elle a lieu en amont, dans [setup_pb()] (et à nouveau dans [publish_pb()]) —
-`render_pb()` suppose que `draft`/`pb`/`annee` sont déjà synchronisés dans
+`render_pb()` suppose que `draft`/`pb` sont déjà synchronisés dans
 `_quarto.yml` et se contente de les lire, sans accès réseau. Suivent le
 nettoyage de `_site/`, le rendu Quarto (HTML + PDF), la construction du
 sitemap, l'écriture du manifeste, la synchronisation de `FTP_SERVER_DIR`

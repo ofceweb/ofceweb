@@ -13,7 +13,7 @@ selon ce qui est détecté."><meta property="og:image" content="https://ofceweb.
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.12</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,6 +26,7 @@ selon ce qui est détecté."><meta property="og:image" content="https://ofceweb.
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/prerequisites.html">Prérequis (authentification gh, github)</a></li>
     <li><a class="dropdown-item" href="../articles/working-papers.html">Faire un document de travail</a></li>
+    <li><a class="dropdown-item" href="../articles/policy-briefs.html">Policy briefs</a></li>
     <li><a class="dropdown-item" href="../articles/build-a-site.html">Faire un mini-site</a></li>
     <li><a class="dropdown-item" href="../articles/previsions.html">Faire une prévision</a></li>
   </ul></li>
@@ -66,14 +67,14 @@ selon ce qui est détecté.</p>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
-<dd><p>Force le type de dépôt (`"wp"`, `"site"`, `"prev"` ou
+<dd><p>Force le type de dépôt (`"wp"`, `"site"`, `"prev"`, `"pb"` ou
 `"blog"`) plutôt que de le détecter automatiquement. Défaut `NULL`
 (détection automatique).</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Arguments supplémentaires transmis à la fonction de
-publication choisie ([publish_wp()], [publish_prev()],
+publication choisie ([publish_wp()], [publish_prev()], [publish_pb()],
 [publish_blog()] ou [stage_site()]). Ces fonctions n'ont pas toutes la
 même signature ; passer un argument non reconnu par la fonction cible
 provoquera une erreur R standard ("unused argument").</p></dd>
@@ -87,6 +88,7 @@ provoquera une erreur R standard ("unused argument").</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>La détection se fait, dans l'ordre :</p><ol><li><p>`ofce_prev: true` dans `_quarto.yml` → prévision ([publish_prev()])</p></li>
 <li><p>`ofce_wp: true` dans `_quarto.yml` → document de travail ([publish_wp()])</p></li>
+<li><p>`ofce_pb: true` dans `_quarto.yml` → policy brief ([publish_pb()])</p></li>
 <li><p>présence d'un dossier `posts/` → blog ([publish_blog()])</p></li>
 <li><p>présence d'un `_quarto.yml` (sans marqueur ci-dessus) → site
     générique ([stage_site()])</p></li>
@@ -99,8 +101,8 @@ lieu.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p>[publish_wp()], [publish_prev()], [publish_blog()],
-  [stage_site()], [render()], [detect_repo_type()]</p></div>
+    <div class="dont-index"><p>[publish_wp()], [publish_prev()], [publish_pb()],
+  [publish_blog()], [stage_site()], [render()], [detect_repo_type()]</p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

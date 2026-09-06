@@ -64,8 +64,9 @@ appliqué par le workflow GitHub Actions — pas localement.
 Fonctions pour les dépôts de policy briefs OFCE (PB). Équivalent PB des
 fonctions *Working papers* ci-dessus : un PB peut être en mode brouillon
 (déployé sur GitHub Pages ou en staging FTP) ou publié (déployé via FTP
-sur `www.ofce.fr/pb/{annee}/{N}/`). Le registre central est partagé avec
-les WP (`ofceweb/wp-registry`, sous-dossier `pb/`).
+sur `www.ofce.fr/pb/{N}/`, numérotation séquentielle indépendante de
+l’année). Le registre central est partagé avec les WP
+(`ofceweb/wp-registry`, sous-dossier `pb/`, fichier plat `pb/pb.json`).
 
 - [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
   : Initialise un dépôt de policy brief (PB) OFCE

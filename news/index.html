@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.12</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,6 +20,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/prerequisites.html">Prérequis (authentification gh, github)</a></li>
     <li><a class="dropdown-item" href="../articles/working-papers.html">Faire un document de travail</a></li>
+    <li><a class="dropdown-item" href="../articles/policy-briefs.html">Policy briefs</a></li>
     <li><a class="dropdown-item" href="../articles/build-a-site.html">Faire un mini-site</a></li>
     <li><a class="dropdown-item" href="../articles/previsions.html">Faire une prévision</a></li>
   </ul></li>
@@ -38,6 +39,29 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.12" id="ofceweb-v01012">ofceweb v0.10.12<a class="anchor" aria-label="anchor" href="#ofceweb-v01012"></a></h2>
+<div class="section level3">
+<h3 id="annee-supprimé-de-la-famille-pb_--numérotation-pb-strictement-séquentielle-0-10-12">
+<code>annee</code> supprimé de la famille <code>pb_*</code> — numérotation PB strictement séquentielle<a class="anchor" aria-label="anchor" href="#annee-supprim%C3%A9-de-la-famille-pb_--num%C3%A9rotation-pb-strictement-s%C3%A9quentielle-0-10-12"></a></h3>
+<p>Contrairement aux WP (numérotés <code>{annee}/{wp}</code>), les policy briefs sont numérotés de manière strictement séquentielle depuis l’origine, indépendamment de l’année de publication (confirmé par le registre central : les PB 140 à 152 couvrent 2025, 153 à 157 couvrent 2026, sans redémarrage à 1 en 2026). Le champ <code>annee</code> n’avait donc aucune valeur d’indexation pour les PB et a été retiré de l’ensemble du pipeline <code>pb_*</code>.</p>
+<ul><li>
+<code>site-path</code> / URLs : <code>{pb}[/vX]</code> au lieu de <code>{annee}/{pb}[/vX]</code> — ex. <code>www.ofce.fr/pb/153/</code> au lieu de <code>www.ofce.fr/pb/2026/153/</code>.</li>
+<li>
+<code>citation.issue</code> devient simplement <code>"{pb}"</code> (au lieu de <code>"{annee}-{pb}"</code>).</li>
+<li>PDF de sortie : <code>OFCEPB{pb}.pdf</code> (au lieu de <code>OFCEPB{annee}-{pb}.pdf</code>).</li>
+<li>Registre central : <code>pb/pb.json</code> remplace le sharding par année (<code>pb/{annee}.json</code> + <code>pb/index.json</code>) — fichier plat unique, numérotation auto = <code>max(pb existants) + 1</code> toutes années confondues. Migration des entrées existantes (140–157) effectuée via une PR contre <code>ofce/wp-registry</code>.</li>
+<li>Branches de demande d’enregistrement : <code>request/pb/{pb}</code> (au lieu de <code>request/pb/{annee}/{pb}</code>).</li>
+<li>
+<code><a href="../reference/check_pb.html">check_pb()</a></code> : n’exige/ne valide plus <code>annee</code> ; <code>site-path</code> attendu au format <code>N</code> ou <code>N/vX</code>.</li>
+<li>
+<code><a href="../reference/complete_pb_yaml.html">complete_pb_yaml()</a></code> : ne complète plus <code>annee</code>.</li>
+<li>
+<code><a href="../reference/pb_registry_request.html">pb_registry_request()</a></code> : perd l’argument <code>annee</code> ; <code><a href="../reference/pb_manifest.html">pb_manifest()</a></code>, <code><a href="../reference/deploy_pb.html">deploy_pb()</a></code>, <code><a href="../reference/push_pb_redirect.html">push_pb_redirect()</a></code> ne lisent/écrivent plus <code>annee</code>.</li>
+<li>
+<strong>Rupture de compatibilité</strong> : un <code>_quarto.yml</code> PB existant avec <code>annee</code> résiduel n’est pas affecté (le champ est simplement ignoré) ; relancer <code><a href="../reference/setup_pb.html">setup_pb()</a></code> pour recalculer <code>site-path</code>/<code>citation.*</code> sur le nouveau format.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.11" id="ofceweb-v01011">ofceweb v0.10.11<a class="anchor" aria-label="anchor" href="#ofceweb-v01011"></a></h2>
 <div class="section level3">

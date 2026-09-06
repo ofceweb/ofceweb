@@ -29,8 +29,8 @@ construire l'index des policy briefs OFCE.
 Inclut un champ \`source-repo\` (\`"owner/repo"\`, résolu depuis le
 remote \`origin\` local) utilisé par le workflow \`ftp_deploy.yml\` pour
 détecter qu'un autre dépôt tente de publier sous le même numéro de PB
-(même \`annee\`/\`pb\`) et bloquer ce déploiement avant d'écraser le PB
-existant.
+(même \`pb\` — numérotation séquentielle depuis l'origine, indépendante
+de l'année) et bloquer ce déploiement avant d'écraser le PB existant.
 
 ## See also
 

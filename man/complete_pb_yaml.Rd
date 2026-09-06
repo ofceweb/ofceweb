@@ -24,7 +24,6 @@ elle ne modifie aucun champ existant et ne crée que les champs qui manquent.
 Champs complétés si absents :
 \itemize{
   \item `date` : date du jour (format `YYYY-MM-DD`)
-  \item `annee` : extraite depuis `date` ou année courante
   \item `author` : structure minimale si `author` et `authors` sont absents
   \item `citation` : structure minimale (`type: article-journal`,
     `container-title: "Policy Brief de l'OFCE"`)

@@ -9,8 +9,9 @@
 #'
 #' Inclut un champ `source-repo` (`"owner/repo"`, résolu depuis le remote
 #' `origin` local) utilisé par le workflow `ftp_deploy.yml` pour détecter
-#' qu'un autre dépôt tente de publier sous le même numéro de PB (même
-#' `annee`/`pb`) et bloquer ce déploiement avant d'écraser le PB existant.
+#' qu'un autre dépôt tente de publier sous le même numéro de PB (même `pb` —
+#' numérotation séquentielle depuis l'origine, indépendante de l'année) et
+#' bloquer ce déploiement avant d'écraser le PB existant.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #'
@@ -36,7 +37,6 @@ pb_manifest <- function(path = ".", stage = NULL) {
 
   # Champs de base
   pb      <- yml$pb       # NULL ou integer
-  annee   <- if (!is.null(yml$annee)) as.integer(yml$annee) else NULL
   version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
   lang    <- if (!is.null(yml$lang))    as.character(yml$lang)    else "fr"
   title   <- if (!is.null(yml$title))   as.character(yml$title)   else ""
@@ -77,17 +77,17 @@ pb_manifest <- function(path = ".", stage = NULL) {
 
   # URL de déploiement
   ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
-  url <- if (isFALSE(stage) && !is.null(pb) && !is.null(annee)) {
+  url <- if (isFALSE(stage) && !is.null(pb)) {
     # Publié : URL FTP production numérotée
-    sprintf("https://www.ofce.fr/pb/%d/%d/%s", annee, pb, ver_seg)
+    sprintf("https://www.ofce.fr/pb/%d/%s", pb, ver_seg)
   } else if (isTRUE(stage)) {
     # Staging FTP : URL de pré-publication (avant enregistrement dans le registre)
     repo_slug <- if (!is.null(source_repo) && !is.na(source_repo))
       basename(source_repo) else fs::path_file(root)
     sprintf("https://staging.ofce.fr/%s/%s", repo_slug, ver_seg)
-  } else if (!is.null(pb) && !is.null(annee)) {
+  } else if (!is.null(pb)) {
     # Compatibilité : stage NULL mais pb renseigné (appels antérieurs sans stage)
-    sprintf("https://www.ofce.fr/pb/%d/%d/%s", annee, pb, ver_seg)
+    sprintf("https://www.ofce.fr/pb/%d/%s", pb, ver_seg)
   } else {
     # Brouillon initial : GitHub Pages
     su <- yml$website$`site-url`
@@ -118,7 +118,6 @@ pb_manifest <- function(path = ".", stage = NULL) {
     authors       = authors,
     abstract      = abstract,
     pb            = pb,
-    annee         = annee,
     version       = version,
     stage         = stage,
     date          = date_val,

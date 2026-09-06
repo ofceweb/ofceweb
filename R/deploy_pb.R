@@ -54,7 +54,6 @@ deploy_pb <- function(
   }
 
   stage   <- manifest$stage
-  annee   <- manifest$annee %||% yml$annee
   pb      <- manifest$pb    %||% yml$pb
   version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
 
@@ -64,13 +63,13 @@ deploy_pb <- function(
 
   # ---- Publié : FTP production (toujours, target ignoré) -------------------
   if (isFALSE(stage)) {
-    stable_url <- sprintf("https://www.ofce.fr/pb/%d/%d", annee, pb)
+    stable_url <- sprintf("https://www.ofce.fr/pb/%d", pb)
     ver_seg    <- if (!is.null(version)) paste0(version, "/") else ""
-    final_url  <- sprintf("https://www.ofce.fr/pb/%d/%d/%s", annee, pb, ver_seg)
+    final_url  <- sprintf("https://www.ofce.fr/pb/%d/%s", pb, ver_seg)
 
     cli::cli_h2("Déploiement PB publié (site2branch → FTP production)")
     cli::cli_text(
-      "PB {pb}/{annee}{if (!is.null(version)) paste0(' / ', version) else ''} → {.url {stable_url}}")
+      "PB {pb}{if (!is.null(version)) paste0(' / ', version) else ''} → {.url {stable_url}}")
 
     res <- site2branch(
       path        = root,

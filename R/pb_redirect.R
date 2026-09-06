@@ -4,7 +4,7 @@
 #' pointant vers la version courante du PB (champ `version` de `_quarto.yml`),
 #' le pousse sur la branche `site-redirect`, puis déclenche le workflow
 #' `ftp_redirect.yml` pour le déployer à l'URL stable
-#' `www.ofce.fr/pb/{annee}/{pb}/`.
+#' `www.ofce.fr/pb/{pb}/`.
 #'
 #' Met également à jour la variable GitHub Actions `FTP_REDIRECT_DIR` avec le
 #' répertoire parent du `site-path`.
@@ -69,7 +69,6 @@ push_pb_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
 
   # ---- Génération du HTML de redirection -----------------------------------
   lang     <- yml$lang %||% "fr"
-  annee    <- yml$annee %||% ""
   pb_num   <- yml$pb
   site_url <- yml$website$`site-url` %||% ""
   if (!grepl("/$", site_url)) site_url <- paste0(site_url, "/")
@@ -84,7 +83,7 @@ push_pb_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
   <meta charset="utf-8">
   <meta http-equiv="refresh" content="0; url=%s/">
   <link rel="canonical" href="%s">
-  <title>PB %s-%s — redirection</title>
+  <title>PB %s — redirection</title>
 </head>
 <body>
   <p>Redirection vers <a href="%s/">la dernière version (%s)</a>…</p>
@@ -92,7 +91,7 @@ push_pb_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
 </body>
 </html>',
     lang, version, canonical,
-    annee, pb_num,
+    pb_num,
     version, version, version
   )
 

@@ -5,7 +5,7 @@
 #' `stage` (staging ou publié) depuis la clé `draft` de `_quarto.yml`. **La
 #' consultation du registre central (`ofce/wp-registry`, sous-dossier `pb/`) ne se fait plus ici** :
 #' elle a lieu en amont, dans [setup_pb()] (et à nouveau dans [publish_pb()]) —
-#' `render_pb()` suppose que `draft`/`pb`/`annee` sont déjà synchronisés dans
+#' `render_pb()` suppose que `draft`/`pb` sont déjà synchronisés dans
 #' `_quarto.yml` et se contente de les lire, sans accès réseau. Suivent le
 #' nettoyage de `_site/`, le rendu Quarto (HTML + PDF), la construction du
 #' sitemap, l'écriture du manifeste, la synchronisation de `FTP_SERVER_DIR`
@@ -163,7 +163,7 @@ render_pb <- function(
 #' (`ofce/wp-registry`, sous-dossier `pb/`, via `sync_pb_registry_state()`) — pour rattraper un
 #' enregistrement survenu depuis le dernier [setup_pb()] — puis enchaîne
 #' [render_pb()] et [deploy_pb()]. Ce rafraîchissement ne recalcule que
-#' `draft`/`pb`/`annee` ; si le numéro PB change à cette étape, un avertissement
+#' `draft`/`pb` ; si le numéro PB change à cette étape, un avertissement
 #' invite à relancer [setup_pb()] pour recalculer les champs dérivés
 #' (`site-path`, `citation.*`, `FTP_SERVER_DIR`).
 #'
@@ -200,7 +200,7 @@ publish_pb <- function(
   if (!is.null(reg) && isTRUE(reg$network_error)) {
     if (!is.null(pb_before))
       cli::cli_alert_warning(
-        "Registre inaccessible — {.field pb}/{.field annee} effacés de \\
+        "Registre inaccessible — {.field pb} effacé de \\
          {.file _quarto.yml} (était {.val {pb_before}}), {.code draft: true} forcé. \\
          Ce rendu sera traité comme un brouillon. Relancer {.run ofceweb::publish_pb()} \\
          une fois le registre de nouveau accessible pour publier en production.")

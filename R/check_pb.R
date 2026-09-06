@@ -6,14 +6,15 @@
 #'
 #' Contrôles effectués :
 #' \itemize{
-#'   \item Présence et validité de `_quarto.yml` (champs `annee`, `author`,
+#'   \item Présence et validité de `_quarto.yml` (champs `author`,
 #'     `date`, `citation` — erreur bloquante si absents)
 #'   \item `project.type: ofce-website` présent dans `_quarto.yml` (warning)
 #'   \item `index.qmd` présent, déclare `pb-html` et `pb-pdf` / `pb-typst`
 #'   \item `references.bib` présent (warning)
 #'   \item `news.qmd` présent (warning)
-#'   \item Si PB publié (`pb` non nul) : `annee` entier valide, cohérence
-#'     `version` / dernier segment de `site-path`
+#'   \item Si PB publié (`pb` non nul) : cohérence `version` / dernier
+#'     segment de `site-path` (`N` ou `N/vX` ; `annee` n'est pas utilisé
+#'     pour les PB, numérotés séquentiellement depuis l'origine)
 #'   \item Nom du dépôt conforme à `pb-{initiale}-{nom court}` (minuscules)
 #'     lorsque l'org GitHub est `OFCE` (warning non bloquant)
 #'   \item Tous les `.qmd` non-index référencés dans `website.other-links`
@@ -117,16 +118,15 @@ check_pb <- function(path = ".", verbose = TRUE) {
   }
 
   # Champs obligatoires dans _quarto.yml
-  # (annee sera vérifié plus précisément si PB publié)
   if (is.null(yml[["date"]])) {
     add_diag("date", "error", "Champ `date` absent de _quarto.yml.")
   } else {
     add_diag("date", "ok", "Champ `date` présent.")
   }
 
-  # citation : non requis en staging (pas de pb/annee définis) ;
-  # calculé automatiquement par setup_pb() quand pb/annee sont fournis,
-  # donc son absence n'est jamais un bloquant pour le rendu.
+  # citation : non requis en staging (pas de pb défini) ; calculé
+  # automatiquement par setup_pb() quand pb est fourni, donc son absence
+  # n'est jamais un bloquant pour le rendu.
   if (!is.null(yml$pb)) {
     if (is.null(yml[["citation"]])) {
       add_diag("citation", "warning",
@@ -134,22 +134,14 @@ check_pb <- function(path = ".", verbose = TRUE) {
     } else {
       add_diag("citation", "ok", "Champ `citation` présent.")
     }
-  }
-
-  # annee : calculé par setup_pb() (année courante par défaut) — non bloquant
-  if (is.null(yml$annee)) {
-    add_diag("annee", "warning",
-             "Champ `annee` absent de _quarto.yml — relancer setup_pb() pour le définir.")
-  }
-
-  # pb : attribué par le registre central, pas par l'auteur·e — absent en staging,
-  # c'est le cas normal avant fusion de la PR dans ofce/pb-registry.
-  if (!is.null(yml$annee) && is.null(yml$pb)) {
+  } else {
+    # pb : attribué par le registre central, pas par l'auteur·e — absent en
+    # staging, c'est le cas normal avant fusion de la PR dans ofce/wp-registry.
     add_diag("pb", "warning",
              "Champ `pb` absent — normal en staging (numéro attribué par le registre après pb_registry_request()).")
   }
 
-  if (is.null(yml$author) && is.null(yml$authors)) {
+  if (is.null(yml[["author"]]) && is.null(yml[["authors"]])) {
     add_diag("author", "error", "Champ `author` absent de _quarto.yml.")
   } else {
     add_diag("author", "ok", "Champ `author` présent.")
@@ -259,21 +251,11 @@ check_pb <- function(path = ".", verbose = TRUE) {
 
   # ---- Contrôles spécifiques PB publié -------------------------------------
   if (!is.null(yml$pb)) {
-    # annee : validation plus stricte pour PB publié
-    if (!is.null(yml$annee)) {
-      annee_ok <- !is.na(suppressWarnings(as.integer(yml$annee))) &&
-                  as.integer(yml$annee) > 1990L
-      if (annee_ok) {
-        add_diag("annee", "ok", sprintf("annee = %s valide pour un PB publié.", yml$annee))
-      } else {
-        add_diag("annee", "error",
-                 sprintf("annee `%s` invalide pour un PB publié (entier > 1990 attendu).", yml$annee))
-      }
-    }
-
-    # site-path : présence et cohérence structurelle (pb/YYYY/N[/vX])
+    # site-path : présence et cohérence structurelle (N[/vX])
     # site-path est entièrement calculé par setup_pb() — toute incohérence
     # se résout en relançant setup_pb(). Jamais bloquant pour le rendu.
+    # `annee` n'intervient pas ici : les PB sont numérotés séquentiellement
+    # depuis l'origine, indépendamment de l'année de publication.
     sp      <- yml$website$`site-path`
     version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
 
@@ -284,66 +266,53 @@ check_pb <- function(path = ".", verbose = TRUE) {
       segs <- strsplit(sp, "/", fixed = TRUE)[[1]]
       n    <- length(segs)
 
-      # Structure attendue : YYYY/N  ou  YYYY/N/vX
-      struct_ok <- n %in% c(2L, 3L)
+      # Structure attendue : N  ou  N/vX
+      struct_ok <- n %in% c(1L, 2L)
 
       if (!struct_ok) {
         add_diag("site-path", "warning",
                  sprintf(
-                   "site-path `%s` mal formé (attendu : `YYYY/N` ou `YYYY/N/vX`) — relancer setup_pb().",
+                   "site-path `%s` mal formé (attendu : `N` ou `N/vX`) — relancer setup_pb().",
                    sp))
       } else {
-        # Segment YYYY
-        annee_seg <- suppressWarnings(as.integer(segs[1L]))
-        annee_yml <- suppressWarnings(as.integer(yml$annee))
-        if (!is.na(annee_seg) && !is.na(annee_yml) && annee_seg == annee_yml) {
-          add_diag("site-path/annee", "ok",
-                   sprintf("Segment année `%s` cohérent avec annee.", segs[1L]))
-        } else {
-          add_diag("site-path/annee", "warning",
-                   sprintf(
-                     "Segment année `%s` dans site-path incohérent avec annee = `%s` — relancer setup_pb().",
-                     segs[1L], yml$annee))
-        }
-
         # Segment N (numéro PB, non zéro-padé)
-        pb_seg <- suppressWarnings(as.integer(segs[2L]))
+        pb_seg <- suppressWarnings(as.integer(segs[1L]))
         pb_yml <- suppressWarnings(as.integer(yml$pb))
         if (!is.na(pb_seg) && !is.na(pb_yml) && pb_seg == pb_yml) {
           add_diag("site-path/pb", "ok",
-                   sprintf("Segment numéro PB `%s` cohérent avec pb.", segs[2L]))
+                   sprintf("Segment numéro PB `%s` cohérent avec pb.", segs[1L]))
         } else {
           add_diag("site-path/pb", "warning",
                    sprintf(
                      "Segment numéro PB `%s` dans site-path incohérent avec pb = `%s` — relancer setup_pb().",
-                     segs[2L], yml$pb))
+                     segs[1L], yml$pb))
         }
 
         # Segment version (optionnel)
         if (!is.null(version) && nzchar(version)) {
-          if (n == 3L) {
-            if (identical(segs[3L], version)) {
+          if (n == 2L) {
+            if (identical(segs[2L], version)) {
               add_diag("site-path/version", "ok",
-                       sprintf("Segment version `%s` cohérent avec version.", segs[3L]))
+                       sprintf("Segment version `%s` cohérent avec version.", segs[2L]))
             } else {
               add_diag("site-path/version", "warning",
                        sprintf(
                          "Segment version `%s` dans site-path incohérent avec version = `%s` — relancer setup_pb().",
-                         segs[3L], version))
+                         segs[2L], version))
             }
           } else {
-            # n == 2 : version définie dans le YAML mais absente du chemin
+            # n == 1 : version définie dans le YAML mais absente du chemin
             add_diag("site-path/version", "warning",
                      sprintf(
                        "version `%s` définie dans le YAML mais absente de site-path `%s` — relancer setup_pb().",
                        version, sp))
           }
-        } else if (n == 3L) {
+        } else if (n == 2L) {
           # segment version présent dans le chemin mais yml$version absent
           add_diag("site-path/version", "warning",
                    sprintf(
                      "Segment version `%s` présent dans site-path mais `version` absente du YAML.",
-                     segs[3L]))
+                     segs[2L]))
         }
       }
     }
@@ -502,7 +471,7 @@ print_pb_diags <- function(df, root = NULL) {
   }
 
   # Check if there are missing required fields and suggest complete_pb_yaml()
-  missing_required_fields <- c("date", "annee", "author", "citation")
+  missing_required_fields <- c("date", "author", "citation")
   rows_missing <- df[df$field %in% missing_required_fields & df$status == "error", ]
 
   if (nrow(rows_missing) > 0L) {

@@ -26,14 +26,15 @@ détecter les problèmes bloquants (erreurs) et les situations à corriger
 \details{
 Contrôles effectués :
 \itemize{
-  \item Présence et validité de `_quarto.yml` (champs `annee`, `author`,
+  \item Présence et validité de `_quarto.yml` (champs `author`,
     `date`, `citation` — erreur bloquante si absents)
   \item `project.type: ofce-website` présent dans `_quarto.yml` (warning)
   \item `index.qmd` présent, déclare `pb-html` et `pb-pdf` / `pb-typst`
   \item `references.bib` présent (warning)
   \item `news.qmd` présent (warning)
-  \item Si PB publié (`pb` non nul) : `annee` entier valide, cohérence
-    `version` / dernier segment de `site-path`
+  \item Si PB publié (`pb` non nul) : cohérence `version` / dernier
+    segment de `site-path` (`N` ou `N/vX` ; `annee` n'est pas utilisé
+    pour les PB, numérotés séquentiellement depuis l'origine)
   \item Nom du dépôt conforme à `pb-{initiale}-{nom court}` (minuscules)
     lorsque l'org GitHub est `OFCE` (warning non bloquant)
   \item Tous les `.qmd` non-index référencés dans `website.other-links`

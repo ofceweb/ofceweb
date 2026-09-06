@@ -8,7 +8,6 @@
 #' Champs complétés si absents :
 #' \itemize{
 #'   \item `date` : date du jour (format `YYYY-MM-DD`)
-#'   \item `annee` : extraite depuis `date` ou année courante
 #'   \item `author` : structure minimale si `author` et `authors` sont absents
 #'   \item `citation` : structure minimale (`type: article-journal`,
 #'     `container-title: "Policy Brief de l'OFCE"`)
@@ -62,23 +61,6 @@ complete_pb_yaml <- function(path = ".", verbose = TRUE) {
   if (is.null(yml$date)) {
     yml$date <- format(Sys.Date(), "%Y-%m-%d")
     completed_fields <- c(completed_fields, "date")
-  }
-
-  # ---- annee ----
-  if (is.null(yml$annee)) {
-    if (!is.null(yml$date)) {
-      annee_from_date <- suppressWarnings(
-        as.integer(substr(as.character(yml$date), 1, 4))
-      )
-      if (!is.na(annee_from_date) && annee_from_date > 1990) {
-        yml$annee <- annee_from_date
-      } else {
-        yml$annee <- as.integer(format(Sys.Date(), "%Y"))
-      }
-    } else {
-      yml$annee <- as.integer(format(Sys.Date(), "%Y"))
-    }
-    completed_fields <- c(completed_fields, "annee")
   }
 
   # ---- author ----

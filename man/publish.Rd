@@ -9,12 +9,12 @@ publish(path = ".", type = NULL, ...)
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
 
-\item{type}{Force le type de dépôt (`"wp"`, `"site"`, `"prev"` ou
+\item{type}{Force le type de dépôt (`"wp"`, `"site"`, `"prev"`, `"pb"` ou
 `"blog"`) plutôt que de le détecter automatiquement. Défaut `NULL`
 (détection automatique).}
 
 \item{...}{Arguments supplémentaires transmis à la fonction de
-publication choisie ([publish_wp()], [publish_prev()],
+publication choisie ([publish_wp()], [publish_prev()], [publish_pb()],
 [publish_blog()] ou [stage_site()]). Ces fonctions n'ont pas toutes la
 même signature ; passer un argument non reconnu par la fonction cible
 provoquera une erreur R standard ("unused argument").}
@@ -33,6 +33,7 @@ La détection se fait, dans l'ordre :
 \enumerate{
   \item `ofce_prev: true` dans `_quarto.yml` → prévision ([publish_prev()])
   \item `ofce_wp: true` dans `_quarto.yml` → document de travail ([publish_wp()])
+  \item `ofce_pb: true` dans `_quarto.yml` → policy brief ([publish_pb()])
   \item présence d'un dossier `posts/` → blog ([publish_blog()])
   \item présence d'un `_quarto.yml` (sans marqueur ci-dessus) → site
     générique ([stage_site()])
@@ -46,6 +47,6 @@ comme les prévisions, donc [stage_site()] (rendu + déploiement) en tient
 lieu.
 }
 \seealso{
-[publish_wp()], [publish_prev()], [publish_blog()],
-  [stage_site()], [render()], [detect_repo_type()]
+[publish_wp()], [publish_prev()], [publish_pb()],
+  [publish_blog()], [stage_site()], [render()], [detect_repo_type()]
 }

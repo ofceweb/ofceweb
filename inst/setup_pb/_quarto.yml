@@ -55,5 +55,7 @@ citation:
   type: article-journal
   container-title: "Policy Brief de l'OFCE"
   # issue et url sont calculés automatiquement par setup_pb() une fois `pb`
-  # renseigné (ex. issue: "2026-12", url: "https://www.ofce.fr/2026/12/") —
-  # ne pas les renseigner manuellement.
+  # renseigné (ex. issue: "153", url: "https://www.ofce.fr/pb/153/") — ne
+  # pas les renseigner manuellement. `annee` n'est pas utilisé pour les PB :
+  # la numérotation est séquentielle depuis l'origine, indépendante de
+  # l'année de publication.

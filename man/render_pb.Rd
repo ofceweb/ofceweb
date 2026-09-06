@@ -46,7 +46,7 @@ vérification du dépôt git, vérification de la structure PB, lecture de l'ét
 `stage` (staging ou publié) depuis la clé `draft` de `_quarto.yml`. **La
 consultation du registre central (`ofce/wp-registry`, sous-dossier `pb/`) ne se fait plus ici** :
 elle a lieu en amont, dans [setup_pb()] (et à nouveau dans [publish_pb()]) —
-`render_pb()` suppose que `draft`/`pb`/`annee` sont déjà synchronisés dans
+`render_pb()` suppose que `draft`/`pb` sont déjà synchronisés dans
 `_quarto.yml` et se contente de les lire, sans accès réseau. Suivent le
 nettoyage de `_site/`, le rendu Quarto (HTML + PDF), la construction du
 sitemap, l'écriture du manifeste, la synchronisation de `FTP_SERVER_DIR`

@@ -15,12 +15,15 @@
 #' En revanche, les **workflows GitHub Actions** (`.github/workflows/`) sont
 #' **toujours mis à jour** depuis la version de référence du package.
 #'
-#' `pb` et `annee` ne sont **pas** des arguments : ils sont soit lus depuis un
-#' `_quarto.yml` déjà existant, soit écrasés par une entrée confirmée du
-#' registre central (`ofce/wp-registry`, sous-dossier `pb/`), jamais choisis librement par
+#' `pb` n'est **pas** un argument : il est soit lu depuis un `_quarto.yml`
+#' déjà existant, soit écrasé par une entrée confirmée du registre central
+#' (`ofce/wp-registry`, sous-dossier `pb/`), jamais choisi librement par
 #' l'appelant. Un dépôt sans `_quarto.yml` et sans entrée de registre reste un
 #' brouillon (`pb` absent) ; pour obtenir un numéro, utiliser
-#' [pb_registry_request()] puis relancer `setup_pb()` une fois la PR fusionnée.
+#' [pb_registry_request()] puis relancer `setup_pb()` une fois la PR
+#' fusionnée. Le champ `annee` n'est pas utilisé pour les PB : les numéros
+#' sont attribués séquentiellement depuis l'origine, indépendamment de
+#' l'année de publication.
 #'
 #' Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour via
 #' [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
@@ -97,14 +100,12 @@ setup_pb <- function(
     index_yml <- get_yaml(dest_index) else
       index_yml <- list()
 
-  # pb / annee : plus d'arguments — toujours lus depuis _quarto.yml, sauf
-  # écrasement par une entrée confirmée du registre central (section 10d).
+  # pb : plus un argument — toujours lu depuis _quarto.yml, sauf écrasement
+  # par une entrée confirmée du registre central (section 10d). `annee`
+  # n'est pas utilisé pour les PB (numérotation séquentielle indépendante de
+  # l'année).
   pb          <- yml[["pb"]]
   pb_provided <- !is.null(pb)
-
-  annee          <- yml[["annee"]]
-  annee_provided <- !is.null(annee)
-  if (is.null(annee)) annee <- as.integer(format(Sys.Date(), "%Y"))
 
   if(!is.null(yml[["lang"]])&&!lang_provided) {
     lang <- yml[["lang"]]
@@ -178,10 +179,6 @@ setup_pb <- function(
     if (is.na(pb))
       cli::cli_abort("{.arg pb} doit être un entier ou NULL.")
   }
-
-  annee <- suppressWarnings(as.integer(annee))
-  if (is.na(annee))
-    cli::cli_abort("{.arg annee} doit être un entier.")
 
   if (!lang %in% c("fr", "en")) {
     cli::cli_alert_warning("{.arg lang} doit être {.val fr} ou {.val en}. Utilisation de {.val fr}.")
@@ -380,7 +377,7 @@ setup_pb <- function(
     }
   }
 
-  # ---- 10d. registre central (source de vérité pour pb/annee/draft) --------
+  # ---- 10d. registre central (source de vérité pour pb/draft) --------------
   cli::cli_h2("Registre central")
   registry_state <- tryCatch(
     sync_pb_registry_state(root),
@@ -392,22 +389,17 @@ setup_pb <- function(
   if (!is.null(registry_state) && isTRUE(registry_state$network_error)) {
     if (!is.null(pb) || !is.null(yml$pb))
       cli::cli_alert_warning(
-        "{.field pb}/{.field annee} non revalidés par le registre — \\
-         traités comme absents pour cet appel (site-path, citation.*, \\
-         FTP_SERVER_DIR non recalculés sur l'ancien numéro)."
+        "{.field pb} non revalidé par le registre — traité comme absent \\
+         pour cet appel (site-path, citation.*, FTP_SERVER_DIR non \\
+         recalculés sur l'ancien numéro)."
       )
-    pb             <- NULL
-    yml$pb         <- NULL
-    yml$annee      <- NULL
-    pb_provided    <- FALSE
-    annee_provided <- FALSE
-    annee          <- as.integer(format(Sys.Date(), "%Y"))
+    pb          <- NULL
+    yml$pb      <- NULL
+    pb_provided <- FALSE
   } else if (!is.null(registry_state) && !isTRUE(registry_state$network_error) &&
       !is.null(registry_state$registry_entry)) {
-    pb             <- as.integer(registry_state$registry_entry$pb)
-    annee          <- as.integer(registry_state$registry_entry$annee)
-    pb_provided    <- TRUE
-    annee_provided <- TRUE
+    pb          <- as.integer(registry_state$registry_entry$pb)
+    pb_provided <- TRUE
   }
 
   # ---- 11. édition du _quarto.yml ------------------------------------------
@@ -415,9 +407,9 @@ setup_pb <- function(
   lines <- lines_before
 
   if (pb_provided)    { yml$pb    <- pb;    lines <- yaml_patch_scalar_or_delete(lines, "pb", pb) }
-  if (annee_provided) { yml$annee <- annee; lines <- yaml_patch_scalar(lines, "annee", annee) }
   if (lang_provided)  { yml$lang  <- lang;  lines <- yaml_patch_scalar(lines, "lang", lang) }
-  # On enlève les pb/annee de l'index si jamais
+  # On enlève pb/annee de l'index si jamais présents (annee n'est plus
+  # utilisé pour les PB, mais on nettoie une valeur résiduelle éventuelle).
   if(!is.null(index_yml$pb))
     yaml_comment_out_frontmatter(dest_index, "pb")
   if(!is.null(index_yml$annee))
@@ -450,15 +442,13 @@ setup_pb <- function(
 
   # site-url / site-path : toujours recalculés
   #
-  # Publié (pb non nul)  : site-url = www.ofce.fr,  site-path = {annee}/{pb}/[{version}/]
+  # Publié (pb non nul)  : site-url = www.ofce.fr,  site-path = {pb}/[{version}/]
   # Brouillon gh-pages : site-url = {org}.github.io/{repo}/,       pas de site-path
   # Staging FTP        : site-url = staging.ofce.fr/{repo}/[{version}/], pas de site-path
   if (!is.null(pb)) {
-    effective_annee_sp <- suppressWarnings(as.integer(yml$annee %||% annee))
-    if (is.na(effective_annee_sp)) effective_annee_sp <- annee
     yml$website$`site-url`  <- "https://www.ofce.fr/"
     lines <- yaml_patch_scalar(lines, "website.site-url", "https://www.ofce.fr/")
-    site_path_base <- sprintf("%d/%d", effective_annee_sp, pb)
+    site_path_base <- sprintf("%d", pb)
     if (isTRUE(versionning))
       site_path <- paste0(site_path_base, "/", version)
     else
@@ -504,18 +494,17 @@ setup_pb <- function(
 
   # citation.url / citation.issue : valeurs dérivées, toujours mises à jour
   # pour les PBs publiés.
-  # - citation.url  : https://www.ofce.fr/pb/{annee}/{pb}/ (URL stable, sans version)
-  # - citation.issue: "{année}-{pb}"
+  # - citation.url  : https://www.ofce.fr/pb/{pb}/ (URL stable, sans version)
+  # - citation.issue: "{pb}"
   if (!is.null(yml$pb)) {
-    citation_annee <- suppressWarnings(as.integer(yml$annee))
-    citation_pb    <- suppressWarnings(as.integer(yml$pb))
-    if (!is.na(citation_annee) && !is.na(citation_pb)) {
-      stable_url <- sprintf("https://www.ofce.fr/pb/%d/%d/", citation_annee, citation_pb)
+    citation_pb <- suppressWarnings(as.integer(yml$pb))
+    if (!is.na(citation_pb)) {
+      stable_url <- sprintf("https://www.ofce.fr/pb/%d/", citation_pb)
       if (is.null(yml$citation)) yml$citation <- list()
       yml$citation$url <- stable_url
       lines <- yaml_patch_scalar(lines, "citation.url", stable_url)
 
-      issue <- sprintf("%d-%d", citation_annee, citation_pb)
+      issue <- sprintf("%d", citation_pb)
       yml$citation$issue <- issue
       lines <- yaml_patch_scalar(lines, "citation.issue", issue)
     }
@@ -527,15 +516,13 @@ setup_pb <- function(
     lines <- yaml_patch_scalar(lines, "comments.hypothesis", isTRUE(hypothesis))
   }
 
-  # output-file PDF : uniquement si pb ou annee sont déjà connus ET si un
-  # format PDF est effectivement actif (pb-pdf OU pb-typst).
+  # output-file PDF : uniquement si pb est déjà connu ET si un format PDF
+  # est effectivement actif (pb-pdf OU pb-typst).
   active_pdf_format <- if (length(pdf_formats_declared) == 1L) pdf_formats_declared else NA_character_
   uses_pb_pdf <- !is.na(active_pdf_format)
-  if ((pb_provided || annee_provided) && uses_pb_pdf) {
-    effective_pb    <- if (pb_provided)    pb    else yml$pb
-    effective_annee <- if (annee_provided) annee else as.integer(yml$annee)
-    pdf_output <- if (!is.null(effective_pb)) {
-      sprintf("OFCEPB%d-%d.pdf", effective_annee, effective_pb)
+  if (pb_provided && uses_pb_pdf) {
+    pdf_output <- if (!is.null(pb)) {
+      sprintf("OFCEPB%d.pdf", pb)
     } else {
       "OFCEPB-draft.pdf"
     }
@@ -634,7 +621,6 @@ setup_pb <- function(
   cli::cli_h2("Résumé")
   cli::cli_li("titre       : {final_title}")
   cli::cli_li("pb          : {if (is.null(yml$pb)) 'brouillon (null)' else yml$pb}")
-  cli::cli_li("annee       : {yml$annee}")
   cli::cli_li("version     : {yml$version}")
   cli::cli_li("lang        : {yml[['lang']]}")
   cli::cli_li("site-url    : {yml$website$`site-url`}")
@@ -646,7 +632,7 @@ setup_pb <- function(
   cli::cli_li(
     "stage-target: {stage_target}{if (identical(stage_target, 'auto')) paste0(' (→ ', stage_target_resolved, ' pour ', gh_org, ')') else ''}"
   )
-  cli::cli_li("draft       : {if (is.null(registry_state)) '(non consulté)' else if (isTRUE(registry_state$network_error)) 'TRUE (forcé -- registre inaccessible, pb/annee effacés)' else registry_state$stage}")
+  cli::cli_li("draft       : {if (is.null(registry_state)) '(non consulté)' else if (isTRUE(registry_state$network_error)) 'TRUE (forcé -- registre inaccessible, pb effacé)' else registry_state$stage}")
   if (!is.null(yml$citation$issue))
     cli::cli_li("citation issue: {yml$citation$issue}")
   if (!is.null(yml$citation$url))

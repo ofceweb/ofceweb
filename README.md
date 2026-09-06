@@ -29,6 +29,18 @@ Le document de travail peut être versionné quand il est hébergé sur `staging
 
 Une fois le document de travail validé, les auteurs peuvent modifier le document de travail librement. En cas d'abus, cet accès peut être retiré.
 
+## Publier un policy brief en phase _staging_ ou _publication_
+
+Le principe est le même que pour un document de travail : le policy brief vit dans un repo github, sur son compte personnel ou dans l'organisation OFCE. Le _template_ est implémenté par `setup_pb()`, fonction non destructive équivalente à `setup_wp()`, qui peut être exécutée autant de fois que l'on veut. `check_pb()` diagnostique l'installation.
+
+Tant que le policy brief est en phase _staging_, il est servi par github.com (`gh-pages`) ou sur le site `staging.ofce.fr`, avec la même possibilité de cryptage que pour un document de travail (`encrypt_site()` / `remove_encrypt()`).
+
+La publication passe par `pb_registry_request()` et une validation par un administrateur, avec la même logique de registre central que les documents de travail. La différence : les policy briefs **partagent** ce registre central avec les documents de travail (`ofce/wp-registry`, sous-dossier `pb/`), mais leur numérotation est **séquentielle depuis l'origine et indépendante de l'année** — contrairement aux documents de travail, numérotés par année. Le champ `annee` n'intervient donc jamais pour un policy brief. En exécutant `setup_pb()` la vérification est faite ; `publish_pb()` l'exécute également.
+
+Pour être stagé ou publié sur le site de l'OFCE, la propriété du policy brief doit être transférée à l'organisation OFCE sur github.com, avec un renommage du dépôt selon la convention `pb-{initiale de l'auteur}-{nom court}`, le tout en MINUSCULES. Par exemple : `pb-xt-relance`.
+
+Comme le document de travail, le policy brief peut être versionné une fois hébergé sur `staging.ofce.fr` ou `www.ofce.fr/pb`. Une url stable est toujours disponible (`www.ofce.fr/pb/{NNN}`) pour le policy brief de l'OFCE n°NNN, et pointe vers la dernière version poussée sur le site.
+
 ## Publier un mini-site en phase _staging_ ou _publication_
 
 Un mini-site ressemble beaucoup à un document de travail, à ceci près que le format est plus libre et que le mini-site n'est pas nécessairement publié. A priori, les mini-sites publiés doivent être référencés dans le site général. Merci de contacter les administrateurs dans ce cas.

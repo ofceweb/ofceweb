@@ -9,13 +9,13 @@ render(path = ".", type = NULL, ...)
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
 
-\item{type}{Force le type de dépôt (`"wp"`, `"site"`, `"prev"` ou
+\item{type}{Force le type de dépôt (`"wp"`, `"site"`, `"prev"`, `"pb"` ou
 `"blog"`) plutôt que de le détecter automatiquement. Défaut `NULL`
 (détection automatique).}
 
 \item{...}{Arguments supplémentaires transmis à la fonction de rendu
-choisie ([render_wp()], [render_site()], [render_prev()] ou
-[render_blog()]). Ces fonctions n'ont pas toutes la même signature ;
+choisie ([render_wp()], [render_site()], [render_prev()], [render_pb()]
+ou [render_blog()]). Ces fonctions n'ont pas toutes la même signature ;
 passer un argument non reconnu par la fonction cible provoquera une
 erreur R standard ("unused argument").}
 }
@@ -33,6 +33,7 @@ La détection se fait, dans l'ordre :
 \enumerate{
   \item `ofce_prev: true` dans `_quarto.yml` → prévision (`render_prev()`)
   \item `ofce_wp: true` dans `_quarto.yml` → document de travail (`render_wp()`)
+  \item `ofce_pb: true` dans `_quarto.yml` → policy brief (`render_pb()`)
   \item présence d'un dossier `posts/` → blog (`render_blog()`)
   \item présence d'un `_quarto.yml` (sans marqueur ci-dessus) → site
     générique (`render_site()`)
@@ -41,6 +42,6 @@ Si rien de tout cela n'est détecté, la fonction s'arrête avec un message
 invitant à lancer [setup_wp()] ou [setup_site()].
 }
 \seealso{
-[render_wp()], [render_site()], [render_prev()], [render_blog()],
-  [detect_repo_type()]
+[render_wp()], [render_site()], [render_prev()], [render_pb()],
+  [render_blog()], [detect_repo_type()]
 }

@@ -10,14 +10,14 @@ detect_repo_type(root)
 \item{root}{Chemin vers la racine du dépôt (déjà résolu en chemin absolu).}
 }
 \value{
-Une chaîne : `"wp"`, `"prev"`, `"blog"` ou `"site"`. Si aucun
-  marqueur n'est trouvé, la fonction s'arrête avec [cli::cli_abort()].
+Une chaîne : `"wp"`, `"prev"`, `"pb"`, `"blog"` ou `"site"`. Si
+  aucun marqueur n'est trouvé, la fonction s'arrête avec [cli::cli_abort()].
 }
 \description{
 Examine `_quarto.yml` et la structure du dossier `root` pour déterminer
 s'il s'agit d'un document de travail (`"wp"`), d'une prévision
-(`"prev"`), d'un blog (`"blog"`) ou d'un site générique (`"site"`).
-Utilisée par [render()] pour choisir automatiquement la fonction de rendu
-à appeler.
+(`"prev"`), d'un policy brief (`"pb"`), d'un blog (`"blog"`) ou d'un site
+générique (`"site"`). Utilisée par [render()] pour choisir automatiquement
+la fonction de rendu à appeler.
 }
 \keyword{internal}

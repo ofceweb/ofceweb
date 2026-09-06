@@ -2,9 +2,12 @@
 # regardless of the casing used in the remote URL (e.g. "OFCE/repo"),
 # and still reject genuinely different owners. It targets the pb/
 # subfolder of the shared ofce/wp-registry repo (see R/pb_registry_request.R).
+# PB numbering is sequential from the origin, independent of `annee` — the
+# registry itself is a flat `pb/pb.json` file, so `_quarto.yml` doesn't need
+# an `annee` field for this flow.
 
-build_registry_repo_pb <- function(dir, annee = 2026L) {
-  write_quarto_yml(dir, list(annee = annee))
+build_registry_repo_pb <- function(dir) {
+  write_quarto_yml(dir, list())
   invisible(dir)
 }
 
@@ -16,7 +19,7 @@ test_that("pb_registry_request() accepts an OFCE-cased (uppercase) remote owner"
   gert::git_remote_add(url = "https://github.com/OFCE/pb2026-1.git", name = "origin", repo = dir)
 
   local_mocked_bindings(
-    fetch_pb_year = function(...) NULL,
+    fetch_pb_registry = function(...) NULL,
     .env = environment()
   )
   local_mocked_bindings(

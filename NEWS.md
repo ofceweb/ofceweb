@@ -1,3 +1,35 @@
+## ofceweb v0.10.12
+
+### `annee` supprimé de la famille `pb_*` — numérotation PB strictement séquentielle
+
+Contrairement aux WP (numérotés `{annee}/{wp}`), les policy briefs sont
+numérotés de manière strictement séquentielle depuis l'origine,
+indépendamment de l'année de publication (confirmé par le registre central :
+les PB 140 à 152 couvrent 2025, 153 à 157 couvrent 2026, sans redémarrage à
+1 en 2026). Le champ `annee` n'avait donc aucune valeur d'indexation pour
+les PB et a été retiré de l'ensemble du pipeline `pb_*`.
+
+* `site-path` / URLs : `{pb}[/vX]` au lieu de `{annee}/{pb}[/vX]` —
+  ex. `www.ofce.fr/pb/153/` au lieu de `www.ofce.fr/pb/2026/153/`.
+* `citation.issue` devient simplement `"{pb}"` (au lieu de `"{annee}-{pb}"`).
+* PDF de sortie : `OFCEPB{pb}.pdf` (au lieu de `OFCEPB{annee}-{pb}.pdf`).
+* Registre central : `pb/pb.json` remplace le sharding par année
+  (`pb/{annee}.json` + `pb/index.json`) — fichier plat unique, numérotation
+  auto = `max(pb existants) + 1` toutes années confondues. Migration des
+  entrées existantes (140–157) effectuée via une PR contre
+  `ofce/wp-registry`.
+* Branches de demande d'enregistrement : `request/pb/{pb}` (au lieu de
+  `request/pb/{annee}/{pb}`).
+* `check_pb()` : n'exige/ne valide plus `annee` ; `site-path` attendu au
+  format `N` ou `N/vX`.
+* `complete_pb_yaml()` : ne complète plus `annee`.
+* `pb_registry_request()` : perd l'argument `annee` ; `pb_manifest()`,
+  `deploy_pb()`, `push_pb_redirect()` ne lisent/écrivent plus `annee`.
+* **Rupture de compatibilité** : un `_quarto.yml` PB existant avec `annee`
+  résiduel n'est pas affecté (le champ est simplement ignoré) ; relancer
+  `setup_pb()` pour recalculer `site-path`/`citation.*` sur le nouveau
+  format.
+
 ## ofceweb v0.10.11
 
 ### Nouvelle famille `pb_*` — policy briefs OFCE

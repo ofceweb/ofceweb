@@ -22,7 +22,7 @@ Invisible `NULL`. Appelée pour ses effets de bord.
 pointant vers la version courante du PB (champ `version` de `_quarto.yml`),
 le pousse sur la branche `site-redirect`, puis déclenche le workflow
 `ftp_redirect.yml` pour le déployer à l'URL stable
-`www.ofce.fr/pb/{annee}/{pb}/`.
+`www.ofce.fr/pb/{pb}/`.
 }
 \details{
 Met également à jour la variable GitHub Actions `FTP_REDIRECT_DIR` avec le

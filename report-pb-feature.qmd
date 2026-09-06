@@ -29,19 +29,21 @@ Rationale:
 - Both document types already share nearly all of the surrounding tooling (setup, render, check, deploy logic), so sharing the registry keeps the "single source of truth" pattern intact rather than fragmenting it.
 - The two subfolders (`wp/`, `pb/`) keep entries namespaced and independently addressable, so there's no risk of ID collisions between the two document types.
 
-The one consequence of this merge is that **PR branch names** created by the registry request flow needed their own namespace to avoid colliding with WP branches now living in the same repo. Branches changed from `request/{annee}/{wp-or-pb}` (implicitly WP-only) to an explicit `request/pb/{annee}/{pb}` for policy briefs, leaving WP's `request/{annee}/{wp}` untouched.
+The one consequence of this merge is that **PR branch names** created by the registry request flow needed their own namespace to avoid colliding with WP branches now living in the same repo. Branches changed from `request/{annee}/{wp-or-pb}` (implicitly WP-only) to an explicit `request/pb/{pb}` for policy briefs, leaving WP's `request/{annee}/{wp}` untouched.
+
+This branch name also reflects a second, independent simplification: unlike the WP registry (sharded by year, `wp/{annee}.json`), the PB registry is a **flat single file**, `pb/pb.json`. PB numbers are assigned strictly sequentially from the outset, independently of the publication year — so `annee` plays no role in the PB registry's indexing, and correspondingly does not appear in the PB branch name or in the registered entry.
 
 # Changes implemented
 
 ## Registry retargeting
 
-- `R/pb_registry_sync.R`: `fetch_pb_index()`, `fetch_pb_year()`, `fetch_pb_entries()`, and `sync_pb_registry_state()` were retargeted from `registry_repo = "ofce/pb-registry"` to `"ofce/wp-registry"`, with docstrings updated to describe the shared registry and its `pb/` subfolder.
-- `R/pb_registry_request.R`: retargeted to `"ofce/wp-registry"`; PR branch names namespaced to `request/pb/{annee}/{pb}`; commit message updated to `request(pb): ...`; temp clone directory prefix changed to `wp-registry-pb-`.
+- `R/pb_registry_sync.R`: `fetch_pb_registry()`, `fetch_pb_entries()`, and `sync_pb_registry_state()` were retargeted from `registry_repo = "ofce/pb-registry"` to `"ofce/wp-registry"`, with docstrings updated to describe the shared registry, its `pb/` subfolder, and the flat (non-year-sharded) `pb/pb.json` file — unlike `wp/{annee}.json` on the WP side, there is no `fetch_pb_year()`/`fetch_pb_index()` equivalent, since PB numbers are sequential from the outset and not partitioned by year.
+- `R/pb_registry_request.R`: retargeted to `"ofce/wp-registry"`; PR branch names namespaced to `request/pb/{pb}` (no `annee` segment, consistent with the flat registry file); commit message updated to `request(pb): ...`; temp clone directory prefix changed to `wp-registry-pb-`.
 - `R/setup_pb.R`, `R/render_pb.R`, `inst/setup_pb/_quarto.yml`: in-code comments updated to reference the shared registry and its subfolder structure.
 
 ### Diff excerpt: branch naming in `pb_registry_request.R`
 
-The change most directly motivated by the registry merge is the branch-name prefix. Before the merge, PB branches mirrored the WP pattern exactly (`request/{annee}/{pb}`), which was safe only because PB and WP lived in separate registry repos. Once PB moved into the shared `ofce/wp-registry` repo, that pattern would collide with WP's own `request/{annee}/{wp}` branches whenever `pb` and `wp` happened to share the same numeric ID for the same year. The fix adds an explicit `pb/` segment:
+The change most directly motivated by the registry merge is the branch-name prefix. Before the merge, PB branches mirrored the WP pattern exactly (`request/{annee}/{pb}`), which was safe only because PB and WP lived in separate registry repos. Once PB moved into the shared `ofce/wp-registry` repo, that year-keyed pattern would collide with WP's own `request/{annee}/{wp}` branches whenever `pb` and `wp` happened to share the same numeric ID for the same year. The fix adds an explicit `pb/` segment — and, since the PB registry itself was simplified to a flat `pb/pb.json` file with strictly sequential numbering, drops `annee` entirely rather than just reordering it:
 
 ```diff
 -  registry_repo = "ofce/pb-registry",
@@ -52,8 +54,9 @@ The change most directly motivated by the registry merge is the branch-name pref
    # ---- 10. Branche, commit, push vers registry_repo -----------------------
 -  branch_name <- sprintf("request/%d/%d", annee, pb)
 +  # Préfixe pb/ : registry_repo est désormais partagé avec les WP
-+  # (request/{annee}/{wp}) — le préfixe pb/ évite toute collision d'ID.
-+  branch_name <- sprintf("request/pb/%d/%d", annee, pb)
++  # (request/{annee}/{wp}) — pb/pb.json est un fichier plat (numérotation
++  # séquentielle, indépendante de l'année), donc pas de segment annee ici.
++  branch_name <- sprintf("request/pb/%d", pb)
     gert::git_branch_create(branch = branch_name, repo = tmp, checkout = TRUE)
 ```
 
@@ -63,15 +66,15 @@ The current implementation reflects the "after" state shown above (`R/pb_registr
 
 Two new test files were added, mirroring the existing WP test suite:
 
-- `tests/testthat/test-pb_registry_sync.R` — covers `sync_pb_registry_state()` syncing `draft`/`pb`/`annee` from a matched entry, clearing those fields when unmatched, and forcing `draft: true` with cleared fields on a registry fetch error (the network-failure safety net).
+- `tests/testthat/test-pb_registry_sync.R` — covers `sync_pb_registry_state()` syncing `draft`/`pb` from a matched entry, clearing those fields when unmatched, and forcing `draft: true` with cleared fields on a registry fetch error (the network-failure safety net). `annee` is never read or written by this helper — PB numbering is sequential from the origin and independent of it.
 - `tests/testthat/test-pb_registry_request.R` — covers acceptance of OFCE-cased (uppercase) remote owners and rejection of remote owners outside the `ofce` organization.
 
 All five new tests pass against the retargeted implementation.
 
 ## Documentation
 
-- `_pkgdown.yml`: added a "Policy briefs" reference section (placed after "Working papers"), listing `setup_pb`, `check_pb`, `render_pb`, `publish_pb`, `deploy_pb`, `rescan_pb`, `pb_version_up`, and `pb_registry_request`, with a description of the shared-registry design and URL/path conventions (`www.ofce.fr/pb/{annee}/{N}/`).
-- `NEWS.md`: added a `v0.10.11` entry documenting the full `pb_*` function family, the shared-registry rationale, the `request/pb/{annee}/{pb}` branch namespace, PDF naming conventions (`OFCEPB{annee}-{pb}.pdf` published / `OFCEPB-draft.pdf` draft), and confirmation that the legacy `/pdf/pbrief/{annee}/` namespace is disjoint from the new PB paths (no collision, no migration needed).
+- `_pkgdown.yml`: added a "Policy briefs" reference section (placed after "Working papers"), listing `setup_pb`, `check_pb`, `render_pb`, `publish_pb`, `deploy_pb`, `rescan_pb`, `pb_version_up`, and `pb_registry_request`, with a description of the shared-registry design and URL/path conventions (`www.ofce.fr/pb/{N}/`).
+- `NEWS.md`: added a `v0.10.11` entry documenting the full `pb_*` function family, the shared-registry rationale, and PDF naming conventions (`OFCEPB-draft.pdf` for drafts), and confirmation that the legacy `/pdf/pbrief/{annee}/` namespace is disjoint from the new PB paths (no collision, no migration needed). A later entry (`annee` removed from the `pb_*` family) subsequently dropped the year from the branch namespace (`request/pb/{annee}/{pb}` → `request/pb/{pb}`) and from the published PDF name (`OFCEPB{annee}-{pb}.pdf` → `OFCEPB{pb}.pdf`) once the registry itself moved to the flat, sequentially-numbered `pb/pb.json` — see that entry for the current state.
 
 ## `rescan_pb()` alias
 

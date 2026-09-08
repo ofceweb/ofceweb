@@ -384,3 +384,15 @@ test_that("check_wp() errors when two documents declare the same PDF output-file
 
   expect_equal(diag_status(df, "output-file"), "error")
 })
+
+test_that("check_wp() warns (non-blocking) when a stray format.* key is still active", {
+  dir <- withr::local_tempdir()
+  build_valid_wp_repo(dir)
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  yml$format$html <- "default"
+  write_quarto_yml(dir, yml)
+
+  df <- check_wp(dir, verbose = FALSE)
+
+  expect_equal(diag_status(df, "format:stray-keys"), "warning")
+})

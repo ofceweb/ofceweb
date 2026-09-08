@@ -7,10 +7,10 @@ abstract: |
 format:
   wp-html: default
   wp-pdf:
-    output-file: "OFCEWP-draft.pdf"
+    output-file: "OFCEWP-draft.pdf"   # recalculé par setup_wp()
 format-links:
-  - typst
-  - format: wp-typst
+  - pdf
+  - format: wp-pdf
     text: "OFCEWP-draft.pdf"
     icon: file-pdf
 ---

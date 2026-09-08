@@ -1,3 +1,28 @@
+## ofceweb v0.10.13
+
+### `setup_wp()` : nettoyage des clés `format.*` parasites, `wp-pdf` systématique
+
+* `setup_wp()` commente désormais automatiquement toute clé `format.*`
+  « parasite » trouvée dans `_quarto.yml`/`index.qmd` — une autre clé
+  `*-html` que `wp-html` (ex. `format.html`, une clé `wp-html` dupliquée),
+  ou une clé PDF qui n'est ni `wp-pdf` ni `wp-typst` (ex. `pdf`, `typst`,
+  `ofce-pdf`). `wp-html` reste l'unique format HTML actif, ajouté à
+  `_quarto.yml` s'il est absent (dépôt pré-existant au gabarit actuel).
+* `wp-pdf` est désormais systématiquement assuré présent dans `index.qmd`
+  quand ni `wp-pdf` ni `wp-typst` n'est déjà déclaré — que ce soit un
+  nouveau dépôt, un dépôt sans format PDF, ou un dépôt dont le seul format
+  PDF était une clé parasite qui vient d'être commentée. **Un `wp-typst`
+  déjà présent n'est jamais remplacé** : le choix de moteur d'un dépôt
+  existant reste inchangé. Le tie-break existant (les deux déclarés
+  simultanément → `wp-pdf` commenté, `wp-typst` gagne) est inchangé.
+* Nouveau nom de fichier PDF brouillon pour le moteur `wp-pdf` :
+  `ofce-draft-{repo sans préfixe "wp-"}.pdf` (au lieu de
+  `OFCEWP-draft.pdf`), recalculé et repatché à chaque appel de
+  `setup_wp()`. Le nom de brouillon de `wp-typst` reste `OFCEWP-draft.pdf`,
+  inchangé.
+* `check_wp()` : nouveau diagnostic (warning, non bloquant)
+  `format:stray-keys` signalant une clé `format.*` parasite encore active.
+
 ## ofceweb v0.10.12
 
 ### `annee` supprimé de la famille `pb_*` — numérotation PB strictement séquentielle

@@ -418,3 +418,212 @@ test_that("setup_wp() resolves stage-target to gh-pages and uses the real owner 
   expect_equal(yml$`stage-target`, "auto")
   expect_equal(yml$website$`site-url`, "https://someoneelse.github.io/wp-example/")
 })
+
+test_that("setup_wp() injects a default wp-pdf format for a brand-new draft with no PDF format declared, naming the draft file from the repo (wp- prefix stripped)", {
+  local_stub_wp_side_effects()
+  local_mocked_bindings(
+    git_remote_list = function(...) data.frame(
+      name = "origin",
+      url  = "https://github.com/ofce/wp-pam-pmq.git"
+    ),
+    .package = "gert"
+  )
+  dir <- withr::local_tempdir()
+  build_draft_wp_repo(dir)
+
+  suppressMessages(setup_wp(dir))
+
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  expect_equal(idx_yml$format$`wp-pdf`$`output-file`, "ofce-draft-pam-pmq.pdf")
+  links <- idx_yml$`format-links`
+  pdf_link <- links[[which(vapply(links, is.list, logical(1L)))]]
+  expect_equal(pdf_link$format, "wp-pdf")
+  expect_equal(pdf_link$text, "ofce-draft-pam-pmq.pdf")
+})
+
+test_that("setup_wp() leaves a sole wp-typst declaration untouched -- no wp-pdf is added", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-typst:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  expect_null(idx_yml$format$`wp-pdf`)
+  expect_equal(idx_yml$format$`wp-typst`$`output-file`, "OFCEWP2026-5.pdf")
+})
+
+test_that("setup_wp() comments out a stray PDF key and injects wp-pdf when neither wp-pdf nor wp-typst is declared", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  pdf:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+
+  idx_lines <- readLines(fs::path(dir, "index.qmd"))
+  expect_true(any(grepl("^\\s*#\\s*pdf:", idx_lines)))
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  expect_equal(idx_yml$format$`wp-pdf`$`output-file`, "OFCEWP2026-5.pdf")
+})
+
+test_that("setup_wp() comments out a stray PDF key alongside an existing wp-typst, without adding wp-pdf", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-typst:",
+    "    output-file: OFCEWP-draft.pdf",
+    "  ofce-pdf:",
+    "    output-file: OFCEWP-draft-2.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+
+  idx_lines <- readLines(fs::path(dir, "index.qmd"))
+  expect_true(any(grepl("^\\s*#\\s*ofce-pdf:", idx_lines)))
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  expect_null(idx_yml$format$`wp-pdf`)
+  expect_equal(idx_yml$format$`wp-typst`$`output-file`, "OFCEWP2026-5.pdf")
+})
+
+test_that("setup_wp() comments out a stray HTML key in index.qmd, keeping wp-html untouched", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default", `wp-pdf` = list(`output-file` = "OFCEWP-draft.pdf"))
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  html: default"
+  ))
+
+  expect_message(setup_wp(dir), "HTML parasite")
+
+  idx_lines <- readLines(fs::path(dir, "index.qmd"))
+  expect_true(any(grepl("^\\s*#\\s*html:", idx_lines)))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$format$`wp-html`, "default")
+})
+
+test_that("setup_wp() adds format.wp-html to _quarto.yml when it's missing (pre-existing repo)", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr"
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$format$`wp-html`, "default")
+})
+
+test_that("setup_wp() is idempotent on an already-clean repo using wp-pdf", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+  after_first <- list(
+    yml = readLines(fs::path(dir, "_quarto.yml")),
+    idx = readLines(fs::path(dir, "index.qmd"))
+  )
+  suppressMessages(setup_wp(dir))
+  after_second <- list(
+    yml = readLines(fs::path(dir, "_quarto.yml")),
+    idx = readLines(fs::path(dir, "index.qmd"))
+  )
+
+  expect_identical(after_first$yml, after_second$yml)
+  expect_identical(after_first$idx, after_second$idx)
+})
+
+test_that("setup_wp() is idempotent on an already-clean repo using wp-typst", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-typst:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+  after_first <- list(
+    yml = readLines(fs::path(dir, "_quarto.yml")),
+    idx = readLines(fs::path(dir, "index.qmd"))
+  )
+  suppressMessages(setup_wp(dir))
+  after_second <- list(
+    yml = readLines(fs::path(dir, "_quarto.yml")),
+    idx = readLines(fs::path(dir, "index.qmd"))
+  )
+
+  expect_identical(after_first$yml, after_second$yml)
+  expect_identical(after_first$idx, after_second$idx)
+})

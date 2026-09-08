@@ -58,6 +58,21 @@
 #' antérieure du package) sont signalées par un avertissement, jamais
 #' supprimées automatiquement.
 #'
+#' Les clés `format.*` de `_quarto.yml`/`index.qmd` sont nettoyées à chaque
+#' appel : `wp-html` reste l'unique format HTML actif (toute autre clé
+#' `*-html`, ex. `format.html`, est commentée ; `wp-html` est ajouté à
+#' `_quarto.yml` s'il est absent). Côté PDF, `wp-pdf` (LaTeX) et `wp-typst`
+#' (Typst) sont les deux seuls moteurs légitimes — toute autre clé PDF
+#' (`pdf`, `typst`, `ofce-pdf`, ...) est commentée. `wp-pdf` est ajouté par
+#' défaut dans `index.qmd` uniquement quand **ni** `wp-pdf` **ni**
+#' `wp-typst` n'est déjà déclaré : un `wp-typst` déjà présent n'est jamais
+#' remplacé. Si les deux sont déclarés simultanément, `wp-pdf` est commenté
+#' et `wp-typst` l'emporte. Le nom du PDF de brouillon (`wp` non attribué)
+#' dépend du moteur actif : `ofce-draft-{repo sans préfixe "wp-"}.pdf` pour
+#' `wp-pdf`, `OFCEWP-draft.pdf` (inchangé) pour `wp-typst` — recalculé à
+#' chaque appel. Une fois publié (`wp`/`annee` connus), les deux moteurs
+#' produisent `OFCEWP{annee}-{wp}.pdf`.
+#'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param lang Chaîne. Langue principale : `"fr"` (défaut) ou `"en"`.
 #' @param hypothesis Logique. Active les commentaires Hypothesis. Défaut `FALSE`.
@@ -292,7 +307,7 @@ setup_wp <- function(
     cli::cli_alert_info("{.file index.qmd} déjà présent — non écrasé.")
   }
 
-  # ---- 6b. format PDF : wp-pdf et wp-typst sont mutuellement exclusifs -----
+  # ---- 6a. format HTML : wp-html reste l'unique format HTML actif --------
   # Relit `_quarto.yml` depuis le disque : le gabarit vient potentiellement
   # d'être copié à l'étape 5 et le `yml` capturé plus haut (avant copie)
   # peut ne pas encore refléter son contenu ; `index_yml`, lui, est déjà à
@@ -300,9 +315,92 @@ setup_wp <- function(
   project_format_names <- names(
     tryCatch(yaml::read_yaml(dest_yaml), error = function(e) list())[["format"]]
   )
+  index_format_names <- names(index_yml[["format"]])
+  all_format_names    <- union(project_format_names, index_format_names)
+
+  html_stray <- Filter(is_stray_html_format_key, all_format_names)
+  if (length(html_stray) > 0L) {
+    any_commented_html <- FALSE
+    for (k in html_stray) {
+      kp <- paste0("format.", k)
+      if (k %in% index_format_names) {
+        if (isTRUE(tryCatch(yaml_comment_out_frontmatter(dest_index, kp), error = function(e) FALSE))) {
+          index_yml$format[[k]] <- NULL
+          any_commented_html <- TRUE
+        }
+      }
+      if (k %in% project_format_names) {
+        if (isTRUE(tryCatch(yaml_comment_out_file(dest_yaml, kp), error = function(e) FALSE))) {
+          yml$format[[k]] <- NULL
+          any_commented_html <- TRUE
+        }
+      }
+    }
+    if (any_commented_html) {
+      cli::cli_alert_warning(c(
+        "Clé{?s} HTML parasite{?s} ({.field {html_stray}}) commentée{?s} : \
+         {.field wp-html} reste l'unique format HTML actif."
+      ))
+    }
+    # Recalculées : une ou plusieurs clés viennent peut-être d'être commentées.
+    project_format_names <- names(
+      tryCatch(yaml::read_yaml(dest_yaml), error = function(e) list())[["format"]]
+    )
+    index_format_names <- names(index_yml[["format"]])
+    all_format_names    <- union(project_format_names, index_format_names)
+  }
+
+  # Un dépôt pré-existant au gabarit actuel peut ne pas encore porter
+  # `format.wp-html` dans _quarto.yml -- l'ajouter, jamais en remplacement
+  # d'une valeur déjà présente.
+  if (!"wp-html" %in% project_format_names) {
+    ql <- readLines(dest_yaml, warn = FALSE)
+    ql <- yaml_patch_scalar(ql, "format.wp-html", "default")
+    writeLines(ql, dest_yaml)
+    yml$format$`wp-html` <- "default"
+    project_format_names <- union(project_format_names, "wp-html")
+    all_format_names     <- union(all_format_names, "wp-html")
+    cli::cli_alert_success("Ajout de {.field format.wp-html: default} dans {.file _quarto.yml}.")
+  }
+
+  # ---- 6b. format PDF : wp-pdf systématique, sauf si wp-typst déjà présent ---
+  # Toute clé PDF qui n'est ni wp-pdf ni wp-typst (ex. `pdf`, `typst`,
+  # `ofce-pdf`) est commentée -- wp-pdf/wp-typst restent les deux seuls
+  # moteurs PDF légitimes, et leur arbitrage mutuel (ci-dessous) est
+  # inchangé.
+  pdf_stray <- Filter(is_stray_pdf_format_key, all_format_names)
+  if (length(pdf_stray) > 0L) {
+    any_commented_pdf <- FALSE
+    for (k in pdf_stray) {
+      kp <- paste0("format.", k)
+      if (k %in% index_format_names) {
+        if (isTRUE(tryCatch(yaml_comment_out_frontmatter(dest_index, kp), error = function(e) FALSE))) {
+          index_yml$format[[k]] <- NULL
+          any_commented_pdf <- TRUE
+        }
+      }
+      if (k %in% project_format_names) {
+        if (isTRUE(tryCatch(yaml_comment_out_file(dest_yaml, kp), error = function(e) FALSE))) {
+          yml$format[[k]] <- NULL
+          any_commented_pdf <- TRUE
+        }
+      }
+    }
+    if (any_commented_pdf) {
+      cli::cli_alert_warning(c(
+        "Clé{?s} PDF parasite{?s} ({.field {pdf_stray}}) commentée{?s} : \
+         seuls {.field wp-pdf} et {.field wp-typst} sont des moteurs PDF valides."
+      ))
+    }
+    project_format_names <- names(
+      tryCatch(yaml::read_yaml(dest_yaml), error = function(e) list())[["format"]]
+    )
+    index_format_names <- names(index_yml[["format"]])
+  }
+
   pdf_formats_declared <- intersect(
     c("wp-pdf", "wp-typst"),
-    union(project_format_names, names(index_yml[["format"]]))
+    union(project_format_names, index_format_names)
   )
 
   if (length(pdf_formats_declared) > 1L) {
@@ -327,7 +425,29 @@ setup_wp <- function(
       ))
       pdf_formats_declared <- "wp-typst"
     }
-  } else if (identical(pdf_formats_declared, "wp-pdf") && !isTRUE(check_rsvg_convert(verbose = FALSE))) {
+  }
+
+  if (length(pdf_formats_declared) == 0L) {
+    # Aucun format PDF actif restant (ni wp-pdf ni wp-typst) -- nouveau
+    # dépôt, dépôt sans aucun format PDF, ou dépôt dont le seul format PDF
+    # était une clé parasite qui vient d'être commentée ci-dessus. wp-pdf est
+    # systématiquement assuré présent -- jamais en remplacement d'un wp-typst
+    # déjà présent, cf. bloc précédent.
+    tryCatch({
+      yaml_patch_frontmatter_block(
+        dest_index,
+        "format.wp-pdf",
+        list(`output-file` = "OFCEWP-draft.pdf")
+      )
+      index_yml$format$`wp-pdf` <- list(`output-file` = "OFCEWP-draft.pdf")
+      cli::cli_alert_success("Ajout de {.field format.wp-pdf} par défaut dans {.file index.qmd}.")
+    }, error = function(e) {
+      cli::cli_alert_warning("Impossible d'ajouter {.field format.wp-pdf} dans index.qmd : {conditionMessage(e)}")
+    })
+    pdf_formats_declared <- "wp-pdf"
+  }
+
+  if (identical(pdf_formats_declared, "wp-pdf") && !isTRUE(check_rsvg_convert(verbose = FALSE))) {
     # wp-pdf (LaTeX) est le seul moteur déclaré mais `rsvg-convert` est
     # absent : Quarto ne peut pas rastériser nativement les figures SVG pour
     # LaTeX. On force `fig-format: png` pour éviter un échec de rendu, au
@@ -344,7 +464,7 @@ setup_wp <- function(
     ))
   }
 
-  # ---- 7. copie annexes.qmd et news.qmd (si absents) -----------------------
+# ---- 7. copie annexes.qmd et news.qmd (si absents) -----------------------
   for (qmd in c("annexes.qmd", "news.qmd")) {
     dest_qmd <- fs::path(root, qmd)
     if (!fs::file_exists(dest_qmd)) {
@@ -658,23 +778,27 @@ setup_wp <- function(
     lines <- yaml_patch_scalar(lines, "comments.hypothesis", isTRUE(hypothesis))
   }
 
-  # output-file PDF : uniquement si wp ou annee sont déjà connus (yml existant
-  # ou registre) ET si un format PDF est effectivement actif (wp-pdf OU
-  # wp-typst -- jamais les deux, cf. section 6b ci-dessus qui a déjà
-  # résolu un éventuel conflit) -- ne pas injecter un format que le WP
-  # n'utilise pas, ni recréer une clé qui vient d'être commentée.
+  # output-file PDF : toujours recalculé pour le format PDF effectivement
+  # actif (wp-pdf OU wp-typst -- jamais les deux, cf. section 6b ci-dessus qui
+  # a déjà résolu un éventuel conflit et garanti qu'un des deux est actif).
   active_pdf_format <- if (length(pdf_formats_declared) == 1L) pdf_formats_declared else NA_character_
   uses_wp_pdf <- !is.na(active_pdf_format)
-  if ((wp_provided || annee_provided) && uses_wp_pdf) {
+  if (uses_wp_pdf) {
     effective_wp    <- if (wp_provided)    wp    else yml$wp
-    effective_annee <- if (annee_provided) annee else as.integer(yml$annee)
-    pdf_output <- if (!is.null(effective_wp)) {
-      sprintf("OFCEWP%d-%d.pdf", effective_annee, effective_wp)
+    effective_annee <- if (annee_provided) annee else suppressWarnings(as.integer(yml$annee))
+    if (!is.null(effective_wp) && !is.na(effective_annee)) {
+      # Publié : inchangé, quel que soit le moteur PDF actif.
+      pdf_output <- sprintf("OFCEWP%d-%d.pdf", effective_annee, effective_wp)
+    } else if (identical(active_pdf_format, "wp-pdf")) {
+      # Brouillon, moteur wp-pdf : nom dérivé du nom du dépôt (préfixe
+      # littéral "wp-" retiré, ex. wp-pam-pmq -> pam-pmq), recalculé et
+      # repatché à chaque appel -- wp-typst garde son nom historique
+      # (branche ci-dessous), inchangé.
+      pdf_output <- sprintf("ofce-draft-%s.pdf", sub("^wp-", "", repo_name))
     } else {
-      "OFCEWP-draft.pdf"
+      # Brouillon, moteur wp-typst : nom historique inchangé.
+      pdf_output <- index_yml$format[[active_pdf_format]]$`output-file` %||% "OFCEWP-draft.pdf"
     }
-  } else if (uses_wp_pdf) {
-    pdf_output <- index_yml$format[[active_pdf_format]]$`output-file` %||% NA_character_
   } else {
     pdf_output <- NA_character_
   }

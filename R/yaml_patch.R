@@ -12,6 +12,23 @@
 # Used by setup_wp(), setup_prev(), setup_site() and update_navbar() to
 # edit `_quarto.yml` (and friends) without discarding a user's comments.
 
+# Is `key` a "stray" HTML format key -- i.e. some other `*-html` (or bare
+# `html`) engine key, distinct from the one canonical `wp-html` key that
+# setup_wp() keeps active? Used to flag/clean up leftover `format.html` or
+# duplicated `format.wp-html`-like keys found in index.qmd/_quarto.yml.
+is_stray_html_format_key <- function(key) {
+  grepl("(^html$|-html$)", key) && !identical(key, "wp-html")
+}
+
+# Is `key` a "stray" PDF-producing format key -- i.e. anything other than
+# the two legitimate PDF engines `wp-pdf` (LaTeX) and `wp-typst` (Typst),
+# which are never treated as stray relative to each other (their mutual
+# arbitration is the separate wp-pdf/wp-typst conflict tie-break, not this
+# stray-key cleanup).
+is_stray_pdf_format_key <- function(key) {
+  grepl("(^pdf$|-pdf$|^typst$|-typst$)", key) && !key %in% c("wp-pdf", "wp-typst")
+}
+
 # Returns the number of leading spaces of `line` (0 for blank lines).
 yaml_indent_of <- function(line) {
   nchar(regmatches(line, regexpr("^ *", line)))

@@ -197,6 +197,22 @@ check_wp <- function(path = ".", verbose = TRUE) {
       add_diag("format:pdf", "error",
                "Aucun format PDF (wp-pdf ou wp-typst) déclaré (ni dans _quarto.yml ni dans index.qmd).")
     }
+
+    # ---- clés format.* parasites (warning, non bloquant) -------------------
+    # HTML : toute autre clé `*-html` que `wp-html`. PDF : toute clé `*-pdf`/
+    # `*-typst` (ou bare `pdf`/`typst`) qui n'est ni `wp-pdf` ni `wp-typst`.
+    # Utile si quelqu'un réédite les fichiers à la main entre deux setup_wp() ;
+    # setup_wp() les commente automatiquement, donc cette clé ne devrait
+    # normalement rester active qu'entre deux appels.
+    stray_keys <- Filter(
+      function(k) is_stray_html_format_key(k) || is_stray_pdf_format_key(k),
+      all_formats
+    )
+    if (length(stray_keys) > 0L) {
+      add_diag("format:stray-keys", "warning",
+               sprintf("Clé(s) format.* parasite(s) encore active(s) : %s — relancer setup_wp() pour les commenter automatiquement.",
+                       paste(stray_keys, collapse = ", ")))
+    }
   }
 
   # ---- references.bib (warning) --------------------------------------------

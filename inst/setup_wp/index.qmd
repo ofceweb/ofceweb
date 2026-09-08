@@ -6,7 +6,7 @@ abstract: |
 
 format:
   wp-html: default
-  wp-typst:
+  wp-pdf:
     output-file: "OFCEWP-draft.pdf"
 format-links:
   - typst

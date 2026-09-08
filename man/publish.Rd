@@ -9,15 +9,15 @@ publish(path = ".", type = NULL, ...)
 \arguments{
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
 
-\item{type}{Force le type de dépôt (`"wp"`, `"site"`, `"prev"`, `"pb"` ou
-`"blog"`) plutôt que de le détecter automatiquement. Défaut `NULL`
-(détection automatique).}
+\item{type}{Force le type de dépôt (`"wp"`, `"site"`, `"prev"`, `"pb"`,
+`"ife"` ou `"blog"`) plutôt que de le détecter automatiquement. Défaut
+`NULL` (détection automatique).}
 
 \item{...}{Arguments supplémentaires transmis à la fonction de
 publication choisie ([publish_wp()], [publish_prev()], [publish_pb()],
-[publish_blog()] ou [stage_site()]). Ces fonctions n'ont pas toutes la
-même signature ; passer un argument non reconnu par la fonction cible
-provoquera une erreur R standard ("unused argument").}
+[publish_blog()], [publish_ife()] ou [stage_site()]). Ces fonctions
+n'ont pas toutes la même signature ; passer un argument non reconnu par
+la fonction cible provoquera une erreur R standard ("unused argument").}
 }
 \value{
 La valeur de retour de la fonction de publication appelée.
@@ -25,8 +25,8 @@ La valeur de retour de la fonction de publication appelée.
 \description{
 Inspecte le dépôt situé à `path` (via [detect_repo_type()], la même
 détection que celle utilisée par [render()]) et appelle automatiquement
-[publish_wp()], [publish_prev()], [publish_blog()] ou [stage_site()]
-selon ce qui est détecté.
+[publish_wp()], [publish_prev()], [publish_blog()], [publish_ife()] ou
+[stage_site()] selon ce qui est détecté.
 }
 \details{
 La détection se fait, dans l'ordre :
@@ -34,6 +34,8 @@ La détection se fait, dans l'ordre :
   \item `ofce_prev: true` dans `_quarto.yml` → prévision ([publish_prev()])
   \item `ofce_wp: true` dans `_quarto.yml` → document de travail ([publish_wp()])
   \item `ofce_pb: true` dans `_quarto.yml` → policy brief ([publish_pb()])
+  \item `project: type: ife-website` dans `_quarto.yml` → site IFE
+    ([publish_ife()])
   \item présence d'un dossier `posts/` → blog ([publish_blog()])
   \item présence d'un `_quarto.yml` (sans marqueur ci-dessus) → site
     générique ([stage_site()])
@@ -48,5 +50,6 @@ lieu.
 }
 \seealso{
 [publish_wp()], [publish_prev()], [publish_pb()],
-  [publish_blog()], [stage_site()], [render()], [detect_repo_type()]
+  [publish_blog()], [publish_ife()], [stage_site()], [render()],
+  [detect_repo_type()]
 }

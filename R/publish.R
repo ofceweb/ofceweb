@@ -2,14 +2,16 @@
 #'
 #' Inspecte le dépôt situé à `path` (via [detect_repo_type()], la même
 #' détection que celle utilisée par [render()]) et appelle automatiquement
-#' [publish_wp()], [publish_prev()], [publish_blog()] ou [stage_site()]
-#' selon ce qui est détecté.
+#' [publish_wp()], [publish_prev()], [publish_blog()], [publish_ife()] ou
+#' [stage_site()] selon ce qui est détecté.
 #'
 #' La détection se fait, dans l'ordre :
 #' \enumerate{
 #'   \item `ofce_prev: true` dans `_quarto.yml` → prévision ([publish_prev()])
 #'   \item `ofce_wp: true` dans `_quarto.yml` → document de travail ([publish_wp()])
 #'   \item `ofce_pb: true` dans `_quarto.yml` → policy brief ([publish_pb()])
+#'   \item `project: type: ife-website` dans `_quarto.yml` → site IFE
+#'     ([publish_ife()])
 #'   \item présence d'un dossier `posts/` → blog ([publish_blog()])
 #'   \item présence d'un `_quarto.yml` (sans marqueur ci-dessus) → site
 #'     générique ([stage_site()])
@@ -23,18 +25,19 @@
 #' lieu.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
-#' @param type Force le type de dépôt (`"wp"`, `"site"`, `"prev"`, `"pb"` ou
-#'   `"blog"`) plutôt que de le détecter automatiquement. Défaut `NULL`
-#'   (détection automatique).
+#' @param type Force le type de dépôt (`"wp"`, `"site"`, `"prev"`, `"pb"`,
+#'   `"ife"` ou `"blog"`) plutôt que de le détecter automatiquement. Défaut
+#'   `NULL` (détection automatique).
 #' @param ... Arguments supplémentaires transmis à la fonction de
 #'   publication choisie ([publish_wp()], [publish_prev()], [publish_pb()],
-#'   [publish_blog()] ou [stage_site()]). Ces fonctions n'ont pas toutes la
-#'   même signature ; passer un argument non reconnu par la fonction cible
-#'   provoquera une erreur R standard ("unused argument").
+#'   [publish_blog()], [publish_ife()] ou [stage_site()]). Ces fonctions
+#'   n'ont pas toutes la même signature ; passer un argument non reconnu par
+#'   la fonction cible provoquera une erreur R standard ("unused argument").
 #'
 #' @returns La valeur de retour de la fonction de publication appelée.
 #' @seealso [publish_wp()], [publish_prev()], [publish_pb()],
-#'   [publish_blog()], [stage_site()], [render()], [detect_repo_type()]
+#'   [publish_blog()], [publish_ife()], [stage_site()], [render()],
+#'   [detect_repo_type()]
 #' @export
 publish <- function(path = ".", type = NULL, ...) {
   root <- fs::path_abs(path)
@@ -45,6 +48,7 @@ publish <- function(path = ".", type = NULL, ...) {
     prev = list(fn = publish_prev, name = "publish_prev"),
     wp   = list(fn = publish_wp,   name = "publish_wp"),
     pb   = list(fn = publish_pb,   name = "publish_pb"),
+    ife  = list(fn = publish_ife,  name = "publish_ife"),
     blog = list(fn = publish_blog, name = "publish_blog"),
     site = list(fn = stage_site,   name = "stage_site"),
     cli::cli_abort("Type de d\u00e9p\u00f4t inconnu : {.val {detected}}")

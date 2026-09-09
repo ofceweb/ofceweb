@@ -97,9 +97,10 @@ trigger_action <- function(root     = ".",
   # ensure_adhoc_workflow() moments earlier in the same call chain), that
   # cache can briefly lag behind, causing a spurious
   # "422 Invalid value for input" even though the file on the default branch
-  # is correct. Retry a few times with backoff before giving up.
-  max_attempts <- 4
-  wait_s       <- c(2, 4, 8)
+  # is correct. Retry multiple times with exponential backoff before giving up.
+  # GitHub's cache invalidation can take up to 30-60 seconds.
+  max_attempts <- 8
+  wait_s       <- c(5, 8, 12, 15, 20, 25, 30)
   for (attempt in seq_len(max_attempts)) {
     resp <- httr2::request(url) |>
       httr2::req_auth_bearer_token(token) |>

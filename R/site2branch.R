@@ -181,7 +181,7 @@ site2branch <- function(
       error = function(e) {
         cli::cli_abort(
           c(
-            "x" = "Déclenchement du workflow {.val {workflow}} échoué après 4 tentatives.",
+            "x" = "Déclenchement du workflow {.val {workflow}} échoué.",
             "i" = "Message d'erreur : {e$message}",
             "i" = "Relancer manuellement avec {.code trigger_action(workflow = {.val {workflow}})}"
           ),

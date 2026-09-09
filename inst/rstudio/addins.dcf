@@ -8,32 +8,44 @@ Binding: preview_qmd
 Package: ofceweb
 Interactive: false
 
-Name: Publier le dossier courant (ad-hoc)
+Name: Rendre (flash)
 Description: >
-  Rend le dossier courant comme un site Quarto autonome dans _site/, avec un 
-  slug déterministe, puis le déploie immédiatement vers staging.ofce.fr en 
-  un seul job d'arrière-plan. Auto-détecte le fichier index s'il n'y en a 
-  qu'un, ou demande de le spécifier. Injecte une bannière OFCE. Auto-installe 
+  Rend le document actif dans l'éditeur RStudio (et le dossier qui le
+  contient) comme un site Quarto autonome dans _site/, avec un slug
+  déterministe. Injecte une bannière OFCE. Prêt pour deploy_folder_addin()
+  (ou le déploiement) après rendu.
+Binding: render_folder_addin
+Package: ofceweb
+Interactive: true
+
+Name: Publier (flash)
+Description: >
+  Rend le document actif dans l'éditeur RStudio (et le dossier qui le
+  contient) comme un site Quarto autonome dans _site/, avec un slug
+  déterministe, puis le déploie immédiatement vers staging.ofce.fr en
+  un seul job d'arrière-plan. Injecte une bannière OFCE. Auto-installe
   le workflow GitHub si absent. Prend en charge l'opt-out de chiffrement.
 Binding: publish_folder_addin
 Package: ofceweb
 Interactive: true
 
-Name: Rendre le dossier courant (ad-hoc)
+Name: Rendre (projet)
 Description: >
-  Rend le dossier courant comme un site Quarto autonome dans _site/, 
-  avec un slug déterministe. Auto-détecte le fichier index s'il n'y en a 
-  qu'un, ou demande de le spécifier. Injecte une bannière OFCE. Prêt pour 
-  deploy_folder() après rendu.
-Binding: render_folder_addin
+  Rend le projet
+Binding: render
 Package: ofceweb
 Interactive: true
 
-Name: Déployer le dossier courant (ad-hoc)
+Name: Publier (projet)
 Description: >
-  Déploie le dossier courant (_site/) vers staging.ofce.fr. Auto-installe 
-  le workflow GitHub si absent. Lecture du slug depuis les métadonnées ou 
-  recalcul. Prend en charge l'opt-out de chiffrement.
-Binding: deploy_folder_addin
+  Publie le projet
+Binding: publish
+Package: ofceweb
+Interactive: true
+
+Name: Deployer (projet)
+Description: >
+  Déploie le projet (déjà rendu)
+Binding: deploy
 Package: ofceweb
 Interactive: true

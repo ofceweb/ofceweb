@@ -788,12 +788,65 @@ publish_folder <- function(
 }
 
 
-#' RStudio addin: Render + deploy current folder as ad-hoc site
+#' Resolve the ad-hoc addin context from the active RStudio document
+#'
+#' The ad-hoc "quick publish" addins ([render_folder_addin()],
+#' [deploy_folder_addin()], [publish_folder_addin()]) operate on the document
+#' currently open and focused in the RStudio editor, not on the enclosing
+#' RStudio *project* root: the relevant folder is the active document's own
+#' directory, and the relevant index file is the active document itself. This
+#' avoids surprising behaviour such as "publish the current folder" actually
+#' publishing the whole project root instead of the single note/slide deck
+#' the user has open.
+#'
+#' @param action `[character(1)]`\cr
+#'   Human-readable description of the action being attempted (used in error
+#'   messages), e.g. `"rendre le document ad-hoc"`.
+#'
+#' @return A list with `dir` (absolute path to the active document's folder)
+#'   and `index` (the active document's filename, relative to `dir`).
+#'
+#' @keywords internal
+#' @noRd
+adhoc_active_doc_context <- function(action) {
+  if (!rstudioapi::isAvailable())
+    cli::cli_abort("Impossible de {action} : RStudio (rstudioapi) non disponible.")
+
+  ctx  <- rstudioapi::getSourceEditorContext()
+  path <- ctx$path
+
+  if (is.null(path) || !nzchar(path))
+    cli::cli_abort(c(
+      "Impossible de {action} : aucun document actif d\u00e9tect\u00e9.",
+      "i" = "Ouvrez (et enregistrez) le fichier {.code .qmd}/{.code .md} \
+             \u00e0 publier, puis relancez cette commande."
+    ))
+
+  ext <- tolower(fs::path_ext(path))
+  if (!ext %in% c("qmd", "md"))
+    cli::cli_abort(
+      "Impossible de {action} : le document actif \
+       ({.file {fs::path_file(path)}}) n'est pas un fichier \
+       {.code .qmd}/{.code .md}."
+    )
+
+  doc_path <- path |> fs::path_expand() |> fs::path_abs() |> fs::path_norm()
+
+  list(
+    dir   = fs::path_dir(doc_path) |> as.character(),
+    index = fs::path_file(doc_path) |> as.character()
+  )
+}
+
+
+#' RStudio addin: Render + deploy the active document as an ad-hoc site
 #'
 #' Interactive wrapper for [publish_folder()] designed for use as an RStudio
-#' addin. Detects the current project directory, prompts for optional index
-#' and encryption preference, then renders and deploys as a single background
-#' job.
+#' addin. Uses the document currently active in the RStudio editor as
+#' context: the folder to render is that document's own directory, and the
+#' document itself is used as the site's index page (see
+#' [adhoc_active_doc_context()]). Prompts for an encryption preference, then
+#' renders and deploys as a single background job.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effect of launching a
 #'   publish job.
@@ -801,31 +854,9 @@ publish_folder <- function(
 #' @keywords internal
 #' @noRd
 publish_folder_addin <- function() {
-  # Get the current project root (RStudio's active project or current working dir)
-  proj_dir <- tryCatch({
-    if (rstudioapi::isAvailable()) {
-      project_dir <- rstudioapi::getActiveProject()
-      if (!is.null(project_dir)) project_dir else getwd()
-    } else {
-      getwd()
-    }
-  }, error = \(e) getwd())
+  ctx <- adhoc_active_doc_context("publier le document ad-hoc")
 
-  cli::cli_h1("Publier le dossier ad-hoc : {.path {fs::path_file(proj_dir)}}")
-
-  # Optional: ask for index file
-  index_choice <- rstudioapi::selectFile(
-    caption  = "Choisir le fichier index (laisser vide pour auto-d\u00e9tection)",
-    label    = "Index file",
-    path     = proj_dir,
-    filter   = "Quarto files (*.qmd *.md)"
-  )
-
-  index <- if (!is.null(index_choice) && nzchar(index_choice)) {
-    fs::path_file(index_choice)
-  } else {
-    NULL
-  }
+  cli::cli_h1("Publier le document ad-hoc : {.path {ctx$index}}")
 
   # Ask for encryption preference
   encrypt_choice <- rstudioapi::showDialog(
@@ -837,8 +868,8 @@ publish_folder_addin <- function() {
 
   # Publish (render + deploy) with as_job = TRUE
   publish_folder(
-    path        = proj_dir,
-    index       = index,
+    path        = ctx$dir,
+    index       = ctx$index,
     slug        = NULL,
     encrypt     = encrypt,
     progress    = TRUE,
@@ -1443,47 +1474,27 @@ ensure_adhoc_workflow <- function(repo_root, progress = TRUE) {
 }
 
 
-#' RStudio addin: Render current folder as ad-hoc site
+#' RStudio addin: Render the active document as an ad-hoc site
 #'
-#' Interactive wrapper for [render_folder()] designed for use as an RStudio addin.
-#' Detects the current project directory, prompts for optional index and slug
-#' parameters, then renders as a background job.
+#' Interactive wrapper for [render_folder()] designed for use as an RStudio
+#' addin. Uses the document currently active in the RStudio editor as
+#' context: the folder to render is that document's own directory, and the
+#' document itself is used as the site's index page (see
+#' [adhoc_active_doc_context()]). Renders as a background job.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effect of launching a render job.
 #'
 #' @keywords internal
 #' @noRd
 render_folder_addin <- function() {
-  # Get the current project root (RStudio's active project or current working dir)
-  proj_dir <- tryCatch({
-    if (rstudioapi::isAvailable()) {
-      project_dir <- rstudioapi::getActiveProject()
-      if (!is.null(project_dir)) project_dir else getwd()
-    } else {
-      getwd()
-    }
-  }, error = \(e) getwd())
+  ctx <- adhoc_active_doc_context("rendre le document ad-hoc")
 
-  cli::cli_h1("Rendre le dossier ad-hoc : {.path {fs::path_file(proj_dir)}}")
-
-  # Optional: ask for index and slug
-  index_choice <- rstudioapi::selectFile(
-    caption  = "Choisir le fichier index (laisser vide pour auto-détection)",
-    label    = "Index file",
-    path     = proj_dir,
-    filter   = "Quarto files (*.qmd *.md)"
-  )
-
-  index <- if (!is.null(index_choice) && nzchar(index_choice)) {
-    fs::path_file(index_choice)
-  } else {
-    NULL
-  }
+  cli::cli_h1("Rendre le document ad-hoc : {.path {ctx$index}}")
 
   # Render with as_job = TRUE (forces background execution)
   render_folder(
-    path     = proj_dir,
-    index    = index,
+    path     = ctx$dir,
+    index    = ctx$index,
     slug     = NULL,
     progress = TRUE,
     preview  = TRUE,
@@ -1494,34 +1505,29 @@ render_folder_addin <- function() {
 }
 
 
-#' RStudio addin: Deploy current folder's ad-hoc site
+#' RStudio addin: Deploy the active document's ad-hoc site
 #'
-#' Interactive wrapper for [deploy_folder()] designed for use as an RStudio addin.
-#' Detects the current project directory, prompts for optional slug override and
-#' encryption preference, then deploys as a background job.
+#' Interactive wrapper for [deploy_folder()] designed for use as an RStudio
+#' addin. Uses the document currently active in the RStudio editor as
+#' context: the folder to deploy is that document's own directory (see
+#' [adhoc_active_doc_context()]) -- i.e. wherever [render_folder_addin()]
+#' last produced a `_site/` next to it. Prompts for an encryption
+#' preference, then deploys as a background job.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effect of launching a deploy job.
 #'
 #' @keywords internal
 #' @noRd
 deploy_folder_addin <- function() {
-  # Get the current project root
-  proj_dir <- tryCatch({
-    if (rstudioapi::isAvailable()) {
-      project_dir <- rstudioapi::getActiveProject()
-      if (!is.null(project_dir)) project_dir else getwd()
-    } else {
-      getwd()
-    }
-  }, error = \(e) getwd())
+  ctx <- adhoc_active_doc_context("déployer le document ad-hoc")
 
-  cli::cli_h1("Déployer le dossier ad-hoc : {.path {fs::path_file(proj_dir)}}")
+  cli::cli_h1("Déployer le document ad-hoc : {.path {ctx$index}}")
 
   # Check if _site exists
-  site_dir <- fs::path(proj_dir, "_site")
+  site_dir <- fs::path(ctx$dir, "_site")
   if (!fs::dir_exists(site_dir)) {
     cli::cli_abort(
-      "Dossier {.path _site} non trouvé. Lancez d'abord {.code render_folder()}."
+      "Dossier {.path _site} non trouvé dans {.path {ctx$dir}}.        Lancez d'abord {.code render_folder()} (ou l'addin        {.emph Rendre le document courant (ad-hoc)})."
     )
   }
 
@@ -1535,7 +1541,7 @@ deploy_folder_addin <- function() {
 
   # Deploy with as_job = TRUE
   deploy_folder(
-    path        = proj_dir,
+    path        = ctx$dir,
     slug        = NULL,
     encrypt     = encrypt,
     progress    = TRUE,

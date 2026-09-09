@@ -7,10 +7,10 @@ optionnel, rendu, puis déploiement. Trois fonctions structurent ce cycle
 
 - [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
   — pose les gabarits et configure le `_quarto.yml`,
-- [`render_site()`](https://ofceweb.github.io/ofceweb/reference/render_site.md)
-  — construit `_site/`,
-- [`deploy_site()`](https://ofceweb.github.io/ofceweb/reference/deploy_site.md)
-  — publie le résultat.
+- [`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) —
+  construit `_site/`,
+- [`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md) —
+  publie le résultat.
 
 Les helpers
 [`rescan_site()`](https://ofceweb.github.io/ofceweb/reference/rescan_site.md)
@@ -159,7 +159,7 @@ Lors du déploiement FTP, chaque workflow de déploiement
 3.  Lance le transfert FTP avec les fichiers chiffrés.
 
 Le rendu local
-([`render_site()`](https://ofceweb.github.io/ofceweb/reference/render_site.md))
+([`render()`](https://ofceweb.github.io/ofceweb/reference/render.md))
 produit toujours du HTML en clair — c’est le comportement attendu. La
 prévisualisation locale n’est donc pas protégée par mot de passe.
 
@@ -177,7 +177,7 @@ Le prochain déploiement s’effectuera sans chiffrement.
 
 ``` r
 
-ofceweb::render_site()
+ofceweb::render()
 ```
 
 Pipeline :
@@ -196,7 +196,7 @@ Arguments utiles :
 | Argument | Défaut | Effet |
 |----|----|----|
 | `render_site` | `TRUE` | Démarre le serveur local. Mettre à `FALSE` pour un build “headless”. |
-| `site2branch` | `FALSE` | Pousse directement vers la branche de déploiement (raccourci équivalent à enchaîner [`deploy_site()`](https://ofceweb.github.io/ofceweb/reference/deploy_site.md)). |
+| `site2branch` | `FALSE` | Pousse directement vers la branche de déploiement (raccourci équivalent à enchaîner [`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md)). |
 | `workers` | `8L` | Workers parallèles. |
 | `check_repo` | `TRUE` | Vérifie l’état du dépôt git avant le rendu. |
 
@@ -204,11 +204,12 @@ Arguments utiles :
 
 ``` r
 
-ofceweb::deploy_site()
+ofceweb::deploy()
 ```
 
-[`deploy_site()`](https://ofceweb.github.io/ofceweb/reference/deploy_site.md)
-lit la clé `ofce_host` du `_quarto.yml` et choisit :
+[`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md)
+(dispatché vers le déploiement `site`) lit la clé `ofce_host` du
+`_quarto.yml` et choisit :
 
 - **OFCE** (`ofce_host: true`) → délègue à
   [`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
@@ -230,7 +231,7 @@ serveur) sans purger le serveur :
 
 ``` r
 
-ofceweb::deploy_site(full_deploy = TRUE)
+ofceweb::deploy(full_deploy = TRUE)
 ```
 
 ## 6. Récapitulatif
@@ -248,10 +249,10 @@ ofceweb::setup_site(
 # gh secret set STATICRYPT_PASSWORD --repo owner/mon-depot
 
 # 3. rendu
-ofceweb::render_site()
+ofceweb::render()
 
 # 4. déploiement
-ofceweb::deploy_site()
+ofceweb::deploy()
 ```
 
 ## Helpers à connaître
@@ -266,8 +267,8 @@ ofceweb::deploy_site()
   — génère et pousse une page `index.html` de redirection vers la
   version courante (si le `site-path` contient un segment `/v\d+`).
   Appelée automatiquement par
-  [`stage_site()`](https://ofceweb.github.io/ofceweb/reference/stage_site.md)
-  et
+  [`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)
+  (pour un site générique) et
   [`site_version_up()`](https://ofceweb.github.io/ofceweb/reference/site_version_up.md)
   ; utile à appeler manuellement après une correction d’urgence sans
   changement de version.

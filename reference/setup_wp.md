@@ -117,6 +117,31 @@ accès réseau. D'éventuelles extensions périmées (installées par une
 version antérieure du package) sont signalées par un avertissement,
 jamais supprimées automatiquement.
 
+\`author\` est destiné à ne vivre que dans \`\_quarto.yml\` : si
+\`index.qmd\` en porte une (héritage d'un ancien gabarit, ou ajout
+manuel), elle est déplacée vers \`\_quarto.yml\` – remplaçant la valeur
+qui y était déjà, généralement le placeholder du gabarit – puis
+commentée dans \`index.qmd\`, avec un avertissement décrivant le
+déplacement. Un \`index.qmd\` sans clé \`author\` ne déclenche aucune
+modification.
+
+Les clés \`format.\*\` de \`\_quarto.yml\`/\`index.qmd\` sont nettoyées
+à chaque appel : \`wp-html\` reste l'unique format HTML actif (toute
+autre clé \`\*-html\`, ex. \`format.html\`, est commentée ; \`wp-html\`
+est ajouté à \`\_quarto.yml\` s'il est absent). Côté PDF, \`wp-pdf\`
+(LaTeX) et \`wp-typst\` (Typst) sont les deux seuls moteurs légitimes —
+toute autre clé PDF (\`pdf\`, \`typst\`, \`ofce-pdf\`, ...) est
+commentée. \`wp-typst\` est ajouté par défaut dans \`index.qmd\`
+uniquement quand \*\*ni\*\* \`wp-pdf\` \*\*ni\*\* \`wp-typst\` n'est
+déjà déclaré : un \`wp-pdf\` déjà présent n'est jamais remplacé. Si les
+deux sont déclarés simultanément, \`wp-pdf\` est commenté et
+\`wp-typst\` l'emporte. Le nom du PDF de brouillon (\`wp\` non attribué)
+dépend du moteur actif : \`ofce-draft-repo sans préfixe "wp-".pdf\` pour
+\`wp-pdf\`, \`OFCEWP-draft.pdf\` (inchangé, y compris pour le défaut
+\`wp-typst\`) — recalculé à chaque appel. Une fois publié
+(\`wp\`/\`annee\` connus), les deux moteurs produisent
+\`OFCEWPannee-wp.pdf\`.
+
 ## See also
 
 \[render_wp()\], \[deploy_wp()\], \[wp_version_up()\],

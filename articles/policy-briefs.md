@@ -96,7 +96,7 @@ Après
 
 ``` r
 
-check_pb()
+check()
 ```
 
 [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
@@ -128,7 +128,7 @@ peut compléter automatiquement les champs obligatoires manquants
 
 ``` r
 
-render_pb(
+render(
   path        = ".",
   check       = TRUE,   # appeler check_pb() avant rendu
   render_site = TRUE,   # lancer un serveur local après rendu
@@ -161,7 +161,7 @@ contente de les lire, sans accès réseau.
 
 ``` r
 
-deploy_pb()
+deploy()
 ```
 
 Le comportement dépend de l’état `stage` (lu depuis `manifest.json`,
@@ -194,7 +194,7 @@ sous-dossiers distincts — `pb/` pour les PB (fichier plat unique
 
 ``` r
 
-pb_registry_request()
+registry_request()
 ```
 
     Ouvre une pull request contre `ofceweb/wp-registry` proposant
@@ -211,9 +211,9 @@ pb_registry_request()
 
 2.  Une fois la PR fusionnée, relancer
     [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
-    pour synchroniser `pb`/`draft`/`site-path`/`citation.*`
-    (`citation.url` : `https://www.ofce.fr/pb/{N}/`, `citation.issue`:
-    `"{N}"`) et les variables FTP :
+    pour synchroniser `pb`/`draft`/`site-path`/`citation.*`/`stable_url`
+    (`citation.url`/`stable_url` : `https://www.ofce.fr/pb/{N}/`,
+    `citation.issue`: `"{N}"`) et les variables FTP :
 
 ``` r
 
@@ -224,15 +224,14 @@ setup_pb()
 
 ``` r
 
-render_pb()
-deploy_pb()
+render()
+deploy()
 ```
 
-[`publish_pb()`](https://ofceweb.github.io/ofceweb/reference/publish_pb.md)
+[`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)
 (qui enchaîne
-[`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md)
-et
-[`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md))
+[`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) et
+[`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md))
 refait cette consultation du registre juste avant le rendu, pour
 rattraper un enregistrement survenu depuis le dernier
 [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
@@ -266,8 +265,8 @@ fonctionne que pour un PB déjà publié (`pb` non `NULL`).
 
 ``` r
 
-render_pb()
-deploy_pb()
+render()
+deploy()
 ```
 
 ------------------------------------------------------------------------

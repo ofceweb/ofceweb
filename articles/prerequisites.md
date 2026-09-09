@@ -281,7 +281,5 @@ Ensuite, voir [*Construire un site avec
 ofceweb*](https://ofceweb.github.io/ofceweb/articles/build-a-site.md)
 pour l’enchaînement
 [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
-→
-[`render_site()`](https://ofceweb.github.io/ofceweb/reference/render_site.md)
-→
-[`deploy_site()`](https://ofceweb.github.io/ofceweb/reference/deploy_site.md).
+→ [`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) →
+[`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md).

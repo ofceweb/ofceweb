@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.12</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -284,7 +284,7 @@ résumé, date) et le contenu avant de commiter.</p>
 <h2 id="vérifier-la-structure-avant-rendu">2. Vérifier la structure avant rendu<a class="anchor" aria-label="anchor" href="#v%C3%A9rifier-la-structure-avant-rendu"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/check_pb.html">check_pb</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/check.html">check</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="../reference/check_pb.html">check_pb()</a></code> vérifie les mêmes catégories de champs que
 <code><a href="../reference/check_wp.html">check_wp()</a></code> (<code>_quarto.yml</code> obligatoires,
 <code>index.qmd</code> déclarant <code>pb-html</code> et
@@ -313,7 +313,7 @@ obligatoires manquants (<code>date</code>, <code>author</code>,
 <h2 id="rendre-le-pb">3. Rendre le PB<a class="anchor" aria-label="anchor" href="#rendre-le-pb"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/render_pb.html">render_pb</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span></span>
 <span>  path        <span class="op">=</span> <span class="st">"."</span>,</span>
 <span>  check       <span class="op">=</span> <span class="cn">TRUE</span>,   <span class="co"># appeler check_pb() avant rendu</span></span>
 <span>  render_site <span class="op">=</span> <span class="cn">TRUE</span>,   <span class="co"># lancer un serveur local après rendu</span></span>
@@ -337,7 +337,7 @@ les lire, sans accès réseau.</p>
 <h2 id="déployer-le-pb">4. Déployer le PB<a class="anchor" aria-label="anchor" href="#d%C3%A9ployer-le-pb"></a>
 </h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/deploy_pb.html">deploy_pb</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Le comportement dépend de l’état <code>stage</code> (lu depuis
 <code>manifest.json</code>, écrit par <code><a href="../reference/render_pb.html">render_pb()</a></code>) et,
 avant publication, de <code>stage-target</code> dans
@@ -374,7 +374,7 @@ année).</p>
 <li>Demander un numéro :</li>
 </ol>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/pb_registry_request.html">pb_registry_request</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/registry_request.html">registry_request</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code>Ouvre une pull request contre `ofceweb/wp-registry` proposant
 d'ajouter l'entrée dans `pb/pb.json`. Contrairement au flux WP (fork
 + PR cross-repo), le dépôt `ofce/wp-registry` autorise les membres de
@@ -389,10 +389,10 @@ manuellement.</code></pre>
 <ol start="2" style="list-style-type: decimal">
 <li>Une fois la PR fusionnée, relancer <code><a href="../reference/setup_pb.html">setup_pb()</a></code> pour
 synchroniser
-<code>pb</code>/<code>draft</code>/<code>site-path</code>/<code>citation.*</code>
-(<code>citation.url</code> : <code>https://www.ofce.fr/pb/{N}/</code>,
-<code>citation.issue</code>: <code>"{N}"</code>) et les variables FTP
-:</li>
+<code>pb</code>/<code>draft</code>/<code>site-path</code>/<code>citation.*</code>/<code>stable_url</code>
+(<code>citation.url</code>/<code>stable_url</code> :
+<code>https://www.ofce.fr/pb/{N}/</code>, <code>citation.issue</code>:
+<code>"{N}"</code>) et les variables FTP :</li>
 </ol>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/setup_pb.html">setup_pb</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -400,12 +400,12 @@ synchroniser
 <li>Rendre et déployer :</li>
 </ol>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/render_pb.html">render_pb</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/deploy_pb.html">deploy_pb</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="../reference/publish_pb.html">publish_pb()</a></code> (qui enchaîne <code><a href="../reference/render_pb.html">render_pb()</a></code> et
-<code><a href="../reference/deploy_pb.html">deploy_pb()</a></code>) refait cette consultation du registre juste
-avant le rendu, pour rattraper un enregistrement survenu depuis le
-dernier <code><a href="../reference/setup_pb.html">setup_pb()</a></code> — mais ne recalcule que
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="../reference/publish.html">publish()</a></code> (qui enchaîne <code><a href="../reference/render.html">render()</a></code> et
+<code><a href="../reference/deploy.html">deploy()</a></code>) refait cette consultation du registre juste avant
+le rendu, pour rattraper un enregistrement survenu depuis le dernier
+<code><a href="../reference/setup_pb.html">setup_pb()</a></code> — mais ne recalcule que
 <code>draft</code>/<code>pb</code>, pas
 <code>site-path</code>/<code>citation.*</code> : si le numéro change à
 cette étape, relancer <code><a href="../reference/setup_pb.html">setup_pb()</a></code> avant de publier à
@@ -433,8 +433,8 @@ variables GitHub
 <code>manifest.json</code>. Ne fonctionne que pour un PB déjà publié
 (<code>pb</code> non <code>NULL</code>).</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/render_pb.html">render_pb</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/deploy_pb.html">deploy_pb</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">

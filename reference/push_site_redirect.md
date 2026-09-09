@@ -37,8 +37,8 @@ segment de version (\`/v\[0-9\]+\`) ou si \`ofce_host\` n'est pas
 \`true\`.
 
 Appelée automatiquement par \[site_version_up()\] lors d'un incrément de
-version, et par \[stage_site()\] à chaque déploiement staging.
+version, et par \`publish_site()\` à chaque déploiement staging.
 
 ## See also
 
-\[site_version_up()\], \[stage_site()\], \[deploy_site()\]
+\[site_version_up()\], \[deploy_site()\]

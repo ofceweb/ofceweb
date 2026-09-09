@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.12</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,12 +83,12 @@ principales sont :</p>
 <li>
 <code><a href="../reference/setup_prev.html">setup_prev()</a></code> — initialise ou met à jour le dépôt,</li>
 <li>
-<code><a href="../reference/check_prev.html">check_prev()</a></code> — diagnostique la configuration,</li>
+<code><a href="../reference/check.html">check()</a></code> — diagnostique la configuration,</li>
 <li>
-<code><a href="../reference/render_prev.html">render_prev()</a></code> — construit le site avec le profil Quarto
+<code><a href="../reference/render.html">render()</a></code> — construit le site avec le profil Quarto
 choisi,</li>
 <li>
-<code><a href="../reference/deploy_prev.html">deploy_prev()</a></code> — pousse le site rendu vers le bon
+<code><a href="../reference/deploy.html">deploy()</a></code> — pousse le site rendu vers le bon
 serveur.</li>
 </ul>
 <p><strong>Pré-requis.</strong> Vous devez disposer d’un PAT GitHub
@@ -185,9 +185,9 @@ chiffrement.</p>
 <h2 id="vérifier-la-configuration">3. Vérifier la configuration<a class="anchor" aria-label="anchor" href="#v%C3%A9rifier-la-configuration"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/check_prev.html">check_prev</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="../reference/check_prev.html">check_prev()</a></code> parcourt la configuration et signale deux
-niveaux de problèmes :</p>
+<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/check.html">check</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="../reference/check.html">check()</a></code> (dispatché vers le diagnostic <code>prev</code>)
+parcourt la configuration et signale deux niveaux de problèmes :</p>
 <ul>
 <li>
 <strong>Erreurs bloquantes</strong> — empêcheront le rendu ou le
@@ -198,7 +198,7 @@ déploiement en CI (ex. <code>_quarto-staging.yml</code> absent,
 mais peuvent causer des échecs CI (ex. <code>STATICRYPT_PASSWORD</code>
 non défini, fichier de profil déclaré mais manquant).</li>
 </ul>
-<p><code><a href="../reference/check_prev.html">check_prev()</a></code> retourne un data frame invisible avec les
+<p><code><a href="../reference/check.html">check()</a></code> retourne un data frame invisible avec les
 colonnes <code>field</code>, <code>status</code> (<code>"ok"</code>,
 <code>"warning"</code>, <code>"error"</code>) et <code>message</code>,
 ce qui permet de l’intégrer dans des pipelines automatisés.</p>
@@ -208,14 +208,15 @@ ce qui permet de l’intégrer dans des pipelines automatisés.</p>
 </h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Profil staging (défaut)</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render_prev.html">render_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"staging"</span><span class="op">)</span></span>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"staging"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Profil publish</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render_prev.html">render_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"publish"</span><span class="op">)</span></span>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"publish"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Profil personnalisé (ex. brouillon)</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render_prev.html">render_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"review"</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="../reference/render_prev.html">render_prev()</a></code> :</p>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"review"</span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="../reference/render.html">render()</a></code> (dispatché vers le rendu <code>prev</code>)
+:</p>
 <ol style="list-style-type: decimal">
 <li>Vérifie que <code>_quarto.yml</code> est présent et marqué
 <code>ofce_prev: true</code>.</li>
@@ -237,15 +238,15 @@ avoir déclaré ce profil dans <code>_quarto.yml</code> et créé le fichier
 </h2>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Déployer la version staging</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy_prev.html">deploy_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"staging"</span><span class="op">)</span></span>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"staging"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Déployer la version publish</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy_prev.html">deploy_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"publish"</span><span class="op">)</span></span>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"publish"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Déployer un profil personnalisé</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy_prev.html">deploy_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"review"</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="../reference/deploy_prev.html">deploy_prev()</a></code> suppose que le rendu a déjà été effectué
-(le dossier <code>_site_{profil}/</code> doit exister). Il :</p>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"review"</span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="../reference/deploy.html">deploy()</a></code> suppose que le rendu a déjà été effectué (le
+dossier <code>_site_{profil}/</code> doit exister). Il :</p>
 <ol style="list-style-type: decimal">
 <li>Copie <code>_site_{profil}/</code> dans un dépôt git
 temporaire.</li>
@@ -259,16 +260,15 @@ ne surcharge pas <code>git</code>.</li>
 <code>ftp_deploy_profile.yml</code> déploie vers
 <code>prev{id}/{profil}/</code> sur le serveur staging, avec chiffrement
 staticrypt — le profil joue le rôle de version.</p>
-<p>Les fonctions <code><a href="../reference/stage_prev.html">stage_prev()</a></code> et
-<code><a href="../reference/publish_prev.html">publish_prev()</a></code> combinent rendu et déploiement en un appel
-:</p>
+<p>Les fonctions <code><a href="../reference/stage_prev.html">stage_prev()</a></code> et <code><a href="../reference/publish.html">publish()</a></code>
+combinent rendu et déploiement en un appel :</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/stage_prev.html">stage_prev</a></span><span class="op">(</span><span class="op">)</span>    <span class="co"># render_prev("staging") + site2staging()</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/publish_prev.html">publish_prev</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># render_prev("publish") + site2publish()</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/stage_prev.html">stage_prev</a></span><span class="op">(</span><span class="op">)</span>    <span class="co"># render("staging") + site2staging()</span></span>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/publish.html">publish</a></span><span class="op">(</span><span class="op">)</span>       <span class="co"># render("publish") + site2publish()</span></span></code></pre></div>
 <p>Pour forcer un re-upload FTP complet (utile après nettoyage côté
 serveur) :</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy_prev.html">deploy_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"staging"</span>, full_deploy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"staging"</span>, full_deploy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="profils-personnalisés">6. Profils personnalisés<a class="anchor" aria-label="anchor" href="#profils-personnalis%C3%A9s"></a>
@@ -300,8 +300,8 @@ dépôt. Au minimum, il doit définir le répertoire de sortie :</li>
 <li>Rendre et déployer :</li>
 </ol>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render_prev.html">render_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"review"</span><span class="op">)</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy_prev.html">deploy_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"review"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"review"</span><span class="op">)</span></span>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"review"</span><span class="op">)</span></span></code></pre></div>
 <p>Le site est alors accessible sous
 <code>staging/prev2603/review/</code> sur le serveur FTP (après
 chiffrement CI). Le fichier d’état FTP incrémental est maintenu
@@ -386,17 +386,17 @@ mise à jour a bien été poussée, sans avoir à changer
 <span><span class="co"># git add . &amp;&amp; git commit -m "init" &amp;&amp; git push</span></span>
 <span></span>
 <span><span class="co"># 2. vérifier la configuration</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/check_prev.html">check_prev</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/check.html">check</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 3. rendre</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render_prev.html">render_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"staging"</span><span class="op">)</span>   <span class="co"># ou "publish", ou un profil custom</span></span>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"staging"</span><span class="op">)</span>   <span class="co"># ou "publish", ou un profil custom</span></span>
 <span></span>
 <span><span class="co"># 4. déployer</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy_prev.html">deploy_prev</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"staging"</span><span class="op">)</span></span>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span>profile <span class="op">=</span> <span class="st">"staging"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># raccourcis render + deploy</span></span>
 <span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/stage_prev.html">stage_prev</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/publish_prev.html">publish_prev</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/publish.html">publish</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="fonctions-de-référence">Fonctions de référence<a class="anchor" aria-label="anchor" href="#fonctions-de-r%C3%A9f%C3%A9rence"></a>
@@ -416,16 +416,16 @@ mise à jour a bien été poussée, sans avoir à changer
 <td>Initialise / met à jour le dépôt</td>
 </tr>
 <tr class="even">
-<td><code><a href="../reference/check_prev.html">check_prev()</a></code></td>
+<td><code><a href="../reference/check.html">check()</a></code></td>
 <td>Diagnostique la configuration</td>
 </tr>
 <tr class="odd">
-<td><code>render_prev(profile)</code></td>
+<td><code>render(profile)</code></td>
 <td>Construit <code>_site_{profile}/</code>
 </td>
 </tr>
 <tr class="even">
-<td><code>deploy_prev(profile)</code></td>
+<td><code>deploy(profile)</code></td>
 <td>Pousse vers la branche et déclenche le CI</td>
 </tr>
 <tr class="odd">
@@ -433,7 +433,7 @@ mise à jour a bien été poussée, sans avoir à changer
 <td>render staging + deploy staging</td>
 </tr>
 <tr class="even">
-<td><code><a href="../reference/publish_prev.html">publish_prev()</a></code></td>
+<td><code><a href="../reference/publish.html">publish()</a></code></td>
 <td>render publish + deploy publish</td>
 </tr>
 <tr class="odd">

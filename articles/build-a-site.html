@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.12</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,9 +85,9 @@ structurent ce cycle :</p>
 <code><a href="../reference/setup_site.html">setup_site()</a></code> — pose les gabarits et configure le
 <code>_quarto.yml</code>,</li>
 <li>
-<code><a href="../reference/render_site.html">render_site()</a></code> — construit <code>_site/</code>,</li>
+<code><a href="../reference/render.html">render()</a></code> — construit <code>_site/</code>,</li>
 <li>
-<code><a href="../reference/deploy_site.html">deploy_site()</a></code> — publie le résultat.</li>
+<code><a href="../reference/deploy.html">deploy()</a></code> — publie le résultat.</li>
 </ul>
 <p>Les helpers <code><a href="../reference/rescan_site.html">rescan_site()</a></code> et
 <code><a href="../reference/site_version_up.html">site_version_up()</a></code> viennent en complément.</p>
@@ -310,9 +310,9 @@ dans un répertoire temporaire, puis les recopie sur place avant le
 transfert.</li>
 <li>Lance le transfert FTP avec les fichiers chiffrés.</li>
 </ol>
-<p>Le rendu local (<code><a href="../reference/render_site.html">render_site()</a></code>) produit toujours du HTML
-en clair — c’est le comportement attendu. La prévisualisation locale
-n’est donc pas protégée par mot de passe.</p>
+<p>Le rendu local (<code><a href="../reference/render.html">render()</a></code>) produit toujours du HTML en
+clair — c’est le comportement attendu. La prévisualisation locale n’est
+donc pas protégée par mot de passe.</p>
 </div>
 <div class="section level3">
 <h3 id="désactiver-le-chiffrement">Désactiver le chiffrement<a class="anchor" aria-label="anchor" href="#d%C3%A9sactiver-le-chiffrement"></a>
@@ -326,7 +326,7 @@ n’est donc pas protégée par mot de passe.</p>
 <h2 id="rendre-le-site">4. Rendre le site<a class="anchor" aria-label="anchor" href="#rendre-le-site"></a>
 </h2>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render_site.html">render_site</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Pipeline :</p>
 <ul>
 <li>Vérifie que <code>_quarto.yml</code> existe (sinon renvoie vers
@@ -364,7 +364,7 @@ pour la navigation locale).</li>
 <td><code>site2branch</code></td>
 <td><code>FALSE</code></td>
 <td>Pousse directement vers la branche de déploiement (raccourci
-équivalent à enchaîner <code><a href="../reference/deploy_site.html">deploy_site()</a></code>).</td>
+équivalent à enchaîner <code><a href="../reference/deploy.html">deploy()</a></code>).</td>
 </tr>
 <tr class="odd">
 <td><code>workers</code></td>
@@ -383,8 +383,9 @@ pour la navigation locale).</li>
 <h2 id="déployer">5. Déployer<a class="anchor" aria-label="anchor" href="#d%C3%A9ployer"></a>
 </h2>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy_site.html">deploy_site</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="../reference/deploy_site.html">deploy_site()</a></code> lit la clé <code>ofce_host</code> du
+<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="../reference/deploy.html">deploy()</a></code> (dispatché vers le déploiement
+<code>site</code>) lit la clé <code>ofce_host</code> du
 <code>_quarto.yml</code> et choisit :</p>
 <ul>
 <li>
@@ -407,7 +408,7 @@ lance
 <p>Pour forcer un re-upload FTP complet (par exemple après nettoyage
 côté serveur) sans purger le serveur :</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy_site.html">deploy_site</a></span><span class="op">(</span>full_deploy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span>full_deploy <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="récapitulatif">6. Récapitulatif<a class="anchor" aria-label="anchor" href="#r%C3%A9capitulatif"></a>
@@ -424,10 +425,10 @@ côté serveur) sans purger le serveur :</p>
 <span><span class="co"># gh secret set STATICRYPT_PASSWORD --repo owner/mon-depot</span></span>
 <span></span>
 <span><span class="co"># 3. rendu</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render_site.html">render_site</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/render.html">render</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 4. déploiement</span></span>
-<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy_site.html">deploy_site</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">ofceweb</span><span class="fu">::</span><span class="fu"><a href="../reference/deploy.html">deploy</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="helpers-à-connaître">Helpers à connaître<a class="anchor" aria-label="anchor" href="#helpers-%C3%A0-conna%C3%AEtre"></a>
@@ -445,7 +446,7 @@ réécrit la section <code>other-links</code> du <code>_quarto.yml</code>.
 <code><a href="../reference/push_site_redirect.html">push_site_redirect()</a></code> — génère et pousse une page
 <code>index.html</code> de redirection vers la version courante (si le
 <code>site-path</code> contient un segment <code>/v\d+</code>). Appelée
-automatiquement par <code><a href="../reference/stage_site.html">stage_site()</a></code> et
+automatiquement par <code><a href="../reference/publish.html">publish()</a></code> (pour un site générique) et
 <code><a href="../reference/site_version_up.html">site_version_up()</a></code> ; utile à appeler manuellement après une
 correction d’urgence sans changement de version.</li>
 </ul>

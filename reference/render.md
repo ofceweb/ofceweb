@@ -1,9 +1,10 @@
 # Détecte le type d'un dépôt et lance le bon rendu
 
 Inspecte le dépôt situé à \`path\` (via \[detect_repo_type()\]) et
-appelle automatiquement \[render_wp()\], \[render_site()\],
-\[render_prev()\] ou \[render_blog()\] selon ce qui est détecté, plutôt
-que de devoir se souvenir de la bonne fonction à utiliser.
+appelle automatiquement la fonction de rendu interne correspondante (WP,
+site générique, prévision, policy brief, site IFE, homepage ou blog)
+selon ce qui est détecté, plutôt que de devoir se souvenir de la bonne
+fonction à utiliser.
 
 ## Usage
 
@@ -19,17 +20,16 @@ render(path = ".", type = NULL, ...)
 
 - type:
 
-  Force le type de dépôt (\`"wp"\`, \`"site"\`, \`"prev"\`, \`"pb"\` ou
-  \`"blog"\`) plutôt que de le détecter automatiquement. Défaut \`NULL\`
-  (détection automatique).
+  Force le type de dépôt (\`"wp"\`, \`"site"\`, \`"prev"\`, \`"pb"\`,
+  \`"ife"\`, \`"home"\` ou \`"blog"\`) plutôt que de le détecter
+  automatiquement. Défaut \`NULL\` (détection automatique).
 
 - ...:
 
-  Arguments supplémentaires transmis à la fonction de rendu choisie
-  (\[render_wp()\], \[render_site()\], \[render_prev()\],
-  \[render_pb()\] ou \[render_blog()\]). Ces fonctions n'ont pas toutes
-  la même signature ; passer un argument non reconnu par la fonction
-  cible provoquera une erreur R standard ("unused argument").
+  Arguments supplémentaires transmis à la fonction de rendu choisie. Ces
+  fonctions n'ont pas toutes la même signature ; passer un argument non
+  reconnu par la fonction cible provoquera une erreur R standard
+  ("unused argument").
 
 ## Value
 
@@ -40,23 +40,29 @@ La valeur de retour de la fonction de rendu appelée.
 La détection se fait, dans l'ordre :
 
 1.  \`ofce_prev: true\` dans \`\_quarto.yml\` → prévision
-    (\`render_prev()\`)
 
 2.  \`ofce_wp: true\` dans \`\_quarto.yml\` → document de travail
-    (\`render_wp()\`)
 
 3.  \`ofce_pb: true\` dans \`\_quarto.yml\` → policy brief
-    (\`render_pb()\`)
 
-4.  présence d'un dossier \`posts/\` → blog (\`render_blog()\`)
+4.  \`ofce_home: true\` dans \`\_quarto.yml\` → homepage OFCE
 
-5.  présence d'un \`\_quarto.yml\` (sans marqueur ci-dessus) → site
-    générique (\`render_site()\`)
+5.  \`project: type: ife-website\` dans \`\_quarto.yml\` → site IFE
+
+6.  présence d'un dossier \`posts/\` → blog (\[render_blog()\])
+
+7.  présence d'un \`\_quarto.yml\` (sans marqueur ci-dessus) → site
+    générique
 
 Si rien de tout cela n'est détecté, la fonction s'arrête avec un message
 invitant à lancer \[setup_wp()\] ou \[setup_site()\].
 
+Pour \`blog\`/\`ife\`/\`home\`, le nom du dossier local est vérifié
+(\`webblog\`/\`ife_webhome\`/\`webhome\` respectivement) : un dépôt mal
+nommé provoque un arrêt explicite plutôt qu'un rendu silencieux au
+mauvais endroit.
+
 ## See also
 
-\[render_wp()\], \[render_site()\], \[render_prev()\], \[render_pb()\],
+\[publish()\], \[deploy()\], \[check()\], \[registry_request()\],
 \[render_blog()\], \[detect_repo_type()\]

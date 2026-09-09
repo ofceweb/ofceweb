@@ -70,6 +70,14 @@ une fois la PR fusionnée. Le champ \`annee\` n'est pas utilisé pour les
 PB : les numéros sont attribués séquentiellement depuis l'origine,
 indépendamment de l'année de publication.
 
+\`author\` est destiné à ne vivre que dans \`\_quarto.yml\` : si
+\`index.qmd\` en porte une (héritage d'un ancien gabarit, ou ajout
+manuel), elle est déplacée vers \`\_quarto.yml\` – remplaçant la valeur
+qui y était déjà, généralement le placeholder du gabarit – puis
+commentée dans \`index.qmd\`, avec un avertissement décrivant le
+déplacement. Un \`index.qmd\` sans clé \`author\` ne déclenche aucune
+modification.
+
 Les extensions Quarto OFCE (\`\_extensions/\`) sont installées/mises à
 jour via \[ofce::setup_quarto()\], qui les récupère depuis le dépôt
 GitHub \`OFCE/ofce-quarto-extensions\` — la fonction nécessite donc un

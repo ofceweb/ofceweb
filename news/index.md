@@ -1,5 +1,241 @@
 # Changelog
 
+## ofceweb (development version)
+
+### Correction : `yaml_block_end()` sous-estimait les séquences dont le tiret est à la même colonne que la clé
+
+YAML autorise deux styles pour une séquence de blocs : les éléments
+`- ...` peuvent être indentés sous leur clé parente (style utilisé par
+les gabarits du package, ex. `author:\n - name: ...`) ou écrits à la
+**même** indentation que la clé elle-même (ex. `author:\n- name: ...`,
+produit notamment par
+[`yaml::write_yaml()`](https://yaml.r-lib.org/reference/write_yaml.html)).
+`yaml_block_end()` — utilisée par
+[`yaml_patch_block()`](https://ofceweb.github.io/ofceweb/reference/yaml_patch_block.md),
+[`yaml_comment_out()`](https://ofceweb.github.io/ofceweb/reference/yaml_comment_out.md)
+et donc par
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/
+[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)/[`update_navbar()`](https://ofceweb.github.io/ofceweb/reference/update_navbar.md)/etc.
+pour localiser l’étendue d’une clé — ne reconnaissait que le premier
+style : avec le second, elle considérait que le sous-arbre s’arrêtait
+immédiatement après la ligne de la clé, ce qui pouvait corrompre le
+`_quarto.yml` (doublons, YAML invalide) lors d’un remplacement. Les deux
+styles sont désormais gérés correctement.
+
+### `setup_wp()`/`setup_pb()` remontent un `author` trouvé dans `index.qmd` vers `_quarto.yml`
+
+Si `index.qmd` porte une clé `author` (héritage d’un ancien gabarit, ou
+ajout manuel),
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+la déplacent désormais vers `_quarto.yml` — remplaçant la valeur qui y
+était déjà (probablement le placeholder du gabarit) — puis la commentent
+dans `index.qmd`, avec un avertissement décrivant le déplacement.
+`_quarto.yml` est désormais la seule source de vérité pour `author`. Si
+`index.qmd` n’a pas de clé `author`, rien n’est modifié : le placeholder
+(ou une valeur déjà correcte) côté `_quarto.yml` reste inchangé, sans
+avertissement.
+
+### `wp-typst` devient le moteur PDF par défaut pour les WP
+
+Quand un nouveau document de travail (WP) n’a **ni** `wp-pdf` **ni**
+`wp-typst` déjà déclaré dans `index.qmd`,
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+ajoute désormais `wp-typst` par défaut (au lieu de `wp-pdf`/LaTeX
+auparavant) : Typst gère nativement les figures SVG, sans dépendance
+externe à `rsvg-convert` ni risque de PDF volumineux si cet outil est
+absent. Le gabarit `inst/setup_wp/index.qmd` (copié par
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+sur un tout nouveau dépôt) est mis à jour de la même façon — il
+s’alignait déjà avec `pb-typst` pour les policy briefs. `wp-pdf` reste
+pleinement disponible en le déclarant explicitement, et un
+`wp-pdf`/`wp-typst` déjà présent n’est jamais remplacé. Les policy
+briefs (PB) utilisaient déjà `pb-typst` par défaut — cette rupture
+d’asymétrie entre WP et PB était non intentionnelle.
+
+## ofceweb v1.0.0
+
+### ⚠️ Rupture de compatibilité — API render/publish/deploy/check/registry simplifiée
+
+Seuls cinq points d’entrée sont désormais exportés pour piloter le cycle
+de vie d’un dépôt (rendu, publication, déploiement, diagnostic, demande
+de numéro registre) :
+**[`render()`](https://ofceweb.github.io/ofceweb/reference/render.md)**,
+**[`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)**,
+**[`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md)**,
+**[`check()`](https://ofceweb.github.io/ofceweb/reference/check.md)** et
+**[`registry_request()`](https://ofceweb.github.io/ofceweb/reference/registry_request.md)**.
+Chacun détecte automatiquement le type de dépôt (`wp`, `prev`, `pb`,
+`ife`, `home`, `blog`, `site`, via
+\[[`detect_repo_type()`](https://ofceweb.github.io/ofceweb/reference/detect_repo_type.md)\])
+et appelle la fonction interne correspondante — un argument `type=`
+explicite reste disponible pour forcer le type sans passer par la
+détection.
+
+**Rupture, sans période de dépréciation** : les fonctions spécifiques
+par type ci-dessous ne sont plus exportées
+([`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md),
+[`render_prev()`](https://ofceweb.github.io/ofceweb/reference/render_prev.md),
+[`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md),
+[`render_ife()`](https://ofceweb.github.io/ofceweb/reference/render_ife.md),
+[`render_home()`](https://ofceweb.github.io/ofceweb/reference/render_home.md),
+[`render_site()`](https://ofceweb.github.io/ofceweb/reference/render_site.md),
+[`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md),
+[`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md),
+[`publish_pb()`](https://ofceweb.github.io/ofceweb/reference/publish_pb.md),
+[`publish_ife()`](https://ofceweb.github.io/ofceweb/reference/publish_ife.md),
+[`publish_home()`](https://ofceweb.github.io/ofceweb/reference/publish_home.md),
+`stage_site()` (renommée
+[`publish_site()`](https://ofceweb.github.io/ofceweb/reference/publish_site.md)),
+[`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md),
+[`deploy_prev()`](https://ofceweb.github.io/ofceweb/reference/deploy_prev.md),
+[`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md),
+[`deploy_site()`](https://ofceweb.github.io/ofceweb/reference/deploy_site.md),
+[`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md),
+[`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md),
+[`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md),
+[`check_blog()`](https://ofceweb.github.io/ofceweb/reference/check_blog.md),
+[`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md),
+[`pb_registry_request()`](https://ofceweb.github.io/ofceweb/reference/pb_registry_request.md))
+— les appeler via `ofceweb::` s’arrête désormais avec une erreur R
+standard (“could not find function”). Migration :
+
+| Avant | Après |
+|----|----|
+| [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md), [`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md), [`render_prev()`](https://ofceweb.github.io/ofceweb/reference/render_prev.md), [`render_ife()`](https://ofceweb.github.io/ofceweb/reference/render_ife.md), [`render_home()`](https://ofceweb.github.io/ofceweb/reference/render_home.md), [`render_site()`](https://ofceweb.github.io/ofceweb/reference/render_site.md) | [`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) |
+| [`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md), [`publish_pb()`](https://ofceweb.github.io/ofceweb/reference/publish_pb.md), [`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md), [`publish_ife()`](https://ofceweb.github.io/ofceweb/reference/publish_ife.md), [`publish_home()`](https://ofceweb.github.io/ofceweb/reference/publish_home.md), `stage_site()` | [`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md) |
+| [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md), [`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md), [`deploy_prev()`](https://ofceweb.github.io/ofceweb/reference/deploy_prev.md), [`deploy_site()`](https://ofceweb.github.io/ofceweb/reference/deploy_site.md) | [`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md) |
+| [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md), [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md), [`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md) | [`check()`](https://ofceweb.github.io/ofceweb/reference/check.md) |
+| [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md), [`pb_registry_request()`](https://ofceweb.github.io/ofceweb/reference/pb_registry_request.md) | [`registry_request()`](https://ofceweb.github.io/ofceweb/reference/registry_request.md) |
+
+[`render_blog()`](https://ofceweb.github.io/ofceweb/reference/render_blog.md)/[`publish_blog()`](https://ofceweb.github.io/ofceweb/reference/publish_blog.md)
+restent exportées et inchangées — le blog est explicitement exclu de ce
+round (sa logique de publication va évoluer séparément avec une future
+fonctionnalité de soumission).
+[`stage_prev()`](https://ofceweb.github.io/ofceweb/reference/stage_prev.md)
+reste également exportée sous ce nom (distincte de
+[`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md),
+elle garde tout son sens dans le cycle de vie des prévisions).
+
+Nouveautés permises par cette consolidation :
+
+- **[`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md)**
+  gagne des routes pour `ife` et `home`
+  ([`deploy_ife()`](https://ofceweb.github.io/ofceweb/reference/deploy_ife.md)/
+  [`deploy_home()`](https://ofceweb.github.io/ofceweb/reference/deploy_home.md),
+  désormais des fonctions internes dédiées — auparavant, ce push vers
+  `site-deploy` était fait par du code dupliqué directement dans
+  [`render_ife()`](https://ofceweb.github.io/ofceweb/reference/render_ife.md)/[`render_home()`](https://ofceweb.github.io/ofceweb/reference/render_home.md)).
+- **[`check()`](https://ofceweb.github.io/ofceweb/reference/check.md)**
+  couvre `wp`/`prev`/`pb` ; pour `ife`/`home`/`site`/`blog`, qui n’ont
+  pas (encore) de diagnostic par dépôt, elle échoue avec un message
+  explicite plutôt que de chercher une fonction inexistante.
+  [`check_blog()`](https://ofceweb.github.io/ofceweb/reference/check_blog.md)
+  reste interne, appelée par
+  [`submit_blog()`](https://ofceweb.github.io/ofceweb/reference/submit_blog.md)
+  comme aujourd’hui — son diagnostic porte sur un post, pas sur la
+  racine du dépôt, donc `check(type = "blog")` renvoie vers
+  [`submit_blog()`](https://ofceweb.github.io/ofceweb/reference/submit_blog.md).
+- **[`registry_request()`](https://ofceweb.github.io/ofceweb/reference/registry_request.md)**
+  couvre `wp`/`pb` (les deux seuls types avec un registre central
+  aujourd’hui) et échoue explicitement pour les autres types.
+- [`detect_repo_type()`](https://ofceweb.github.io/ofceweb/reference/detect_repo_type.md)
+  reconnaît un nouveau marqueur `ofce_home: true` dans `_quarto.yml`,
+  qui rend le type `home` (jusqu’ici seulement accessible en appelant
+  directement
+  [`render_home()`](https://ofceweb.github.io/ofceweb/reference/render_home.md)/[`publish_home()`](https://ofceweb.github.io/ofceweb/reference/publish_home.md))
+  atteignable par détection automatique.
+- Pour `blog`/`ife`/`home`, qui ont chacun un unique dépôt canonique en
+  pratique, le nom du dossier local est désormais vérifié
+  (`webblog`/`ife_webhome`/`webhome`) avant tout rendu/publication/
+  déploiement — un dépôt mal nommé arrête l’exécution avec un message
+  explicite plutôt que l’ancien avertissement suivi d’une confirmation
+  interactive
+  ([`render_ife()`](https://ofceweb.github.io/ofceweb/reference/render_ife.md)/[`render_home()`](https://ofceweb.github.io/ofceweb/reference/render_home.md)),
+  incompatible avec un usage non interactif (CI).
+
+**Dépôts déjà déployés** : aucune action requise pour continuer à
+fonctionner en CI au prochain run — mais pour profiter des workflows
+GitHub Actions mis à jour (qui appellent désormais
+[`ofceweb::render()`](https://ofceweb.github.io/ofceweb/reference/render.md)
+plutôt que la fonction spécifique au type), il faut relancer
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)/
+[`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)/[`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
+une fois, qui rafraîchit les fichiers de workflow comme à chaque
+exécution.
+
+### Nouveau champ `stable_url`
+
+- [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  écrivent désormais aussi un champ `stable_url` de premier niveau dans
+  `_quarto.yml`, en plus de `citation.url` (même valeur, sans le segment
+  de version `/v{x}`) — pour les usages hors citation/PDF (bannière,
+  meta sur la page rendue, etc.).
+- Les posts de blog reçoivent le même champ `stable_url` (URL canonique
+  du post, sans notion de version) dans le front matter de la copie
+  rendue, à côté de `share$permalink`.
+
+## ofceweb v0.10.13
+
+### Nouvelle fonction `render_folder()` — publication rapide d’ad-hoc
+
+Nouvelle fonctionnalité de publication légère pour partager du contenu
+non-officiel (notes de travail, slides, brouillons de blog) sans passer
+par le pipeline complet WP/PB/prévisions. Permet de désigner **n’importe
+quel dossier** dans un dépôt git, de le rendre en tant que site Quarto
+autonome, et de le déployer vers une URL privée et unique sous
+`staging.ofce.fr`.
+
+#### Public API
+
+- **`render_folder(path, index, slug, progress, preview, as_job)`** —
+  Rend un dossier arbitraire en tant que site Quarto dans un répertoire
+  temporaire isolé, laissant un artifact `.site/` seul en place. Génère
+  un slug déterministe basé sur le chemin relatif du dossier,
+  auto-détecte le fichier index s’il n’existe qu’un seul `.qmd`/`.md`,
+  injecte une bannière OFCE fixe dans chaque page HTML. Supporte
+  l’exécution en arrière-plan via RStudio Jobs (`as_job = TRUE`) avec
+  streaming d’erreur en direct et export du résultat vers
+  `adhoc_last_render`.
+
+- **`deploy_folder(path, slug, encrypt, progress, trigger, full_deploy, as_job)`**
+  — Pousse le `.site/` déjà rendu vers une branche git et déclenche le
+  déploiement FTP. Auto-installe le workflow
+  `.github/workflows/ftp_deploy_profile.yml` si manquant (PR fallback
+  sur les branches par défaut protégées). Nouveau paramètre `encrypt`
+  pour la publication sans staticrypt, même si `STATICRYPT_PASSWORD` est
+  configuré.
+
+- **`preview_folder(path)`** — Lance un serveur live-reload local sur
+  `.site/` via
+  [`servr::httw()`](https://rdrr.io/pkg/servr/man/httd.html),
+  réutilisable indépendamment de comment `.site/` a été produit.
+
+#### Infrastructure
+
+- Workflow `ftp_deploy_profile.yml` met à jour : support du marqueur
+  `.no-staticrypt` pour l’opt-out de chiffrement au moment du
+  déploiement.
+- Dépôt : paramètre `rstudioapi` ajouté à `Suggests` pour la détection
+  RStudio.
+- `.gitignore` : ajout de `.site/` pour éviter les commits accidentels.
+
+#### Design
+
+- Rendu isolé : le dossier cible est copié dans un répertoire temporaire
+  avant la configuration Quarto, jamais modifié in-place (sauf l’ajout
+  de `.site/` final). Élimine les risques de collision avec les
+  configurations parentes.
+- Slug déterministe : basé sur le chemin relatif + CRC32 6-char, même
+  slug = même URL à chaque republication. Persiste dans
+  `.site/.adhoc-meta.json`.
+- Extension auto-discovery : remonte l’arbre du dépôt pour collecter les
+  répertoires `_extensions/` découverts (le plus proche gagne).
+- Bannière OFCE : injecté en post-traitement HTML, indépendamment de la
+  configuration Quarto (prise en charge revealjs, plain HTML, etc.).
+- Jobs RStudio : erreurs entièrement streamées au pane Background Jobs +
+  résumé exporté vers l’environnement global pour consultation
+  ultérieure.
+
 ## ofceweb v0.10.12
 
 ### `annee` supprimé de la famille `pb_*` — numérotation PB strictement séquentielle

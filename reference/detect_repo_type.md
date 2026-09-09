@@ -2,10 +2,11 @@
 
 Examine \`\_quarto.yml\` et la structure du dossier \`root\` pour
 déterminer s'il s'agit d'un document de travail (\`"wp"\`), d'une
-prévision (\`"prev"\`), d'un policy brief (\`"pb"\`), d'un blog
-(\`"blog"\`) ou d'un site générique (\`"site"\`). Utilisée par
-\[render()\] pour choisir automatiquement la fonction de rendu à
-appeler.
+prévision (\`"prev"\`), d'un policy brief (\`"pb"\`), de la homepage
+OFCE (\`"home"\`), du site IFE (\`"ife"\`), d'un blog (\`"blog"\`) ou
+d'un site générique (\`"site"\`). Utilisée par
+\[render()\]/\[publish()\]/\[deploy()\]/\[check()\] pour choisir
+automatiquement la fonction à appeler.
 
 ## Usage
 
@@ -21,6 +22,6 @@ detect_repo_type(root)
 
 ## Value
 
-Une chaîne : \`"wp"\`, \`"prev"\`, \`"pb"\`, \`"blog"\` ou \`"site"\`.
-Si aucun marqueur n'est trouvé, la fonction s'arrête avec
-\[cli::cli_abort()\].
+Une chaîne : \`"wp"\`, \`"prev"\`, \`"pb"\`, \`"home"\`, \`"ife"\`,
+\`"blog"\` ou \`"site"\`. Si aucun marqueur n'est trouvé, la fonction
+s'arrête avec \[cli::cli_abort()\].

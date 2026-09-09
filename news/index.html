@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.12</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,101 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="ofceweb-development-version">ofceweb (development version)<a class="anchor" aria-label="anchor" href="#ofceweb-development-version"></a></h2>
+<div class="section level3">
+<h3 id="correction--yaml_block_end-sous-estimait-les-séquences-dont-le-tiret-est-à-la-même-colonne-que-la-clé-development-version">Correction : <code>yaml_block_end()</code> sous-estimait les séquences dont le tiret est à la même colonne que la clé<a class="anchor" aria-label="anchor" href="#correction--yaml_block_end-sous-estimait-les-s%C3%A9quences-dont-le-tiret-est-%C3%A0-la-m%C3%AAme-colonne-que-la-cl%C3%A9-development-version"></a></h3>
+<p>YAML autorise deux styles pour une séquence de blocs : les éléments <code>- ...</code> peuvent être indentés sous leur clé parente (style utilisé par les gabarits du package, ex. <code>author:\n  - name: ...</code>) ou écrits à la <strong>même</strong> indentation que la clé elle-même (ex. <code>author:\n- name: ...</code>, produit notamment par <code><a href="https://yaml.r-lib.org/reference/write_yaml.html" class="external-link">yaml::write_yaml()</a></code>). <code>yaml_block_end()</code> — utilisée par <code><a href="../reference/yaml_patch_block.html">yaml_patch_block()</a></code>, <code><a href="../reference/yaml_comment_out.html">yaml_comment_out()</a></code> et donc par <code><a href="../reference/setup_wp.html">setup_wp()</a></code>/ <code><a href="../reference/setup_pb.html">setup_pb()</a></code>/<code><a href="../reference/update_navbar.html">update_navbar()</a></code>/etc. pour localiser l’étendue d’une clé — ne reconnaissait que le premier style : avec le second, elle considérait que le sous-arbre s’arrêtait immédiatement après la ligne de la clé, ce qui pouvait corrompre le <code>_quarto.yml</code> (doublons, YAML invalide) lors d’un remplacement. Les deux styles sont désormais gérés correctement.</p>
+</div>
+<div class="section level3">
+<h3 id="setup_wpsetup_pb-remontent-un-author-trouvé-dans-indexqmd-vers-_quartoyml-development-version">
+<code>setup_wp()</code>/<code>setup_pb()</code> remontent un <code>author</code> trouvé dans <code>index.qmd</code> vers <code>_quarto.yml</code>
+<a class="anchor" aria-label="anchor" href="#setup_wpsetup_pb-remontent-un-author-trouv%C3%A9-dans-indexqmd-vers-_quartoyml-development-version"></a></h3>
+<p>Si <code>index.qmd</code> porte une clé <code>author</code> (héritage d’un ancien gabarit, ou ajout manuel), <code><a href="../reference/setup_wp.html">setup_wp()</a></code>/<code><a href="../reference/setup_pb.html">setup_pb()</a></code> la déplacent désormais vers <code>_quarto.yml</code> — remplaçant la valeur qui y était déjà (probablement le placeholder du gabarit) — puis la commentent dans <code>index.qmd</code>, avec un avertissement décrivant le déplacement. <code>_quarto.yml</code> est désormais la seule source de vérité pour <code>author</code>. Si <code>index.qmd</code> n’a pas de clé <code>author</code>, rien n’est modifié : le placeholder (ou une valeur déjà correcte) côté <code>_quarto.yml</code> reste inchangé, sans avertissement.</p>
+</div>
+<div class="section level3">
+<h3 id="wp-typst-devient-le-moteur-pdf-par-défaut-pour-les-wp-development-version">
+<code>wp-typst</code> devient le moteur PDF par défaut pour les WP<a class="anchor" aria-label="anchor" href="#wp-typst-devient-le-moteur-pdf-par-d%C3%A9faut-pour-les-wp-development-version"></a></h3>
+<p>Quand un nouveau document de travail (WP) n’a <strong>ni</strong> <code>wp-pdf</code> <strong>ni</strong> <code>wp-typst</code> déjà déclaré dans <code>index.qmd</code>, <code><a href="../reference/setup_wp.html">setup_wp()</a></code> ajoute désormais <code>wp-typst</code> par défaut (au lieu de <code>wp-pdf</code>/LaTeX auparavant) : Typst gère nativement les figures SVG, sans dépendance externe à <code>rsvg-convert</code> ni risque de PDF volumineux si cet outil est absent. Le gabarit <code>inst/setup_wp/index.qmd</code> (copié par <code><a href="../reference/setup_wp.html">setup_wp()</a></code> sur un tout nouveau dépôt) est mis à jour de la même façon — il s’alignait déjà avec <code>pb-typst</code> pour les policy briefs. <code>wp-pdf</code> reste pleinement disponible en le déclarant explicitement, et un <code>wp-pdf</code>/<code>wp-typst</code> déjà présent n’est jamais remplacé. Les policy briefs (PB) utilisaient déjà <code>pb-typst</code> par défaut — cette rupture d’asymétrie entre WP et PB était non intentionnelle.</p>
+</div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.0.0" id="ofceweb-v100">ofceweb v1.0.0<a class="anchor" aria-label="anchor" href="#ofceweb-v100"></a></h2>
+<div class="section level3">
+<h3 id="warning-rupture-de-compatibilité--api-renderpublishdeploycheckregistry-simplifiée-1-0-0">⚠️ Rupture de compatibilité — API render/publish/deploy/check/registry simplifiée<a class="anchor" aria-label="anchor" href="#warning-rupture-de-compatibilit%C3%A9--api-renderpublishdeploycheckregistry-simplifi%C3%A9e-1-0-0"></a></h3>
+<p>Seuls cinq points d’entrée sont désormais exportés pour piloter le cycle de vie d’un dépôt (rendu, publication, déploiement, diagnostic, demande de numéro registre) : <strong><code><a href="../reference/render.html">render()</a></code></strong>, <strong><code><a href="../reference/publish.html">publish()</a></code></strong>, <strong><code><a href="../reference/deploy.html">deploy()</a></code></strong>, <strong><code><a href="../reference/check.html">check()</a></code></strong> et <strong><code><a href="../reference/registry_request.html">registry_request()</a></code></strong>. Chacun détecte automatiquement le type de dépôt (<code>wp</code>, <code>prev</code>, <code>pb</code>, <code>ife</code>, <code>home</code>, <code>blog</code>, <code>site</code>, via [<code><a href="../reference/detect_repo_type.html">detect_repo_type()</a></code>]) et appelle la fonction interne correspondante — un argument <code>type=</code> explicite reste disponible pour forcer le type sans passer par la détection.</p>
+<p><strong>Rupture, sans période de dépréciation</strong> : les fonctions spécifiques par type ci-dessous ne sont plus exportées (<code><a href="../reference/render_wp.html">render_wp()</a></code>, <code><a href="../reference/render_prev.html">render_prev()</a></code>, <code><a href="../reference/render_pb.html">render_pb()</a></code>, <code><a href="../reference/render_ife.html">render_ife()</a></code>, <code><a href="../reference/render_home.html">render_home()</a></code>, <code><a href="../reference/render_site.html">render_site()</a></code>, <code><a href="../reference/publish_wp.html">publish_wp()</a></code>, <code><a href="../reference/publish_prev.html">publish_prev()</a></code>, <code><a href="../reference/publish_pb.html">publish_pb()</a></code>, <code><a href="../reference/publish_ife.html">publish_ife()</a></code>, <code><a href="../reference/publish_home.html">publish_home()</a></code>, <code>stage_site()</code> (renommée <code><a href="../reference/publish_site.html">publish_site()</a></code>), <code><a href="../reference/deploy_wp.html">deploy_wp()</a></code>, <code><a href="../reference/deploy_prev.html">deploy_prev()</a></code>, <code><a href="../reference/deploy_pb.html">deploy_pb()</a></code>, <code><a href="../reference/deploy_site.html">deploy_site()</a></code>, <code><a href="../reference/check_wp.html">check_wp()</a></code>, <code><a href="../reference/check_prev.html">check_prev()</a></code>, <code><a href="../reference/check_pb.html">check_pb()</a></code>, <code><a href="../reference/check_blog.html">check_blog()</a></code>, <code><a href="../reference/wp_registry_request.html">wp_registry_request()</a></code>, <code><a href="../reference/pb_registry_request.html">pb_registry_request()</a></code>) — les appeler via <code>ofceweb::</code> s’arrête désormais avec une erreur R standard (“could not find function”). Migration :</p>
+<table class="table"><colgroup><col width="50%"><col width="50%"></colgroup><thead><tr><th>Avant</th>
+<th>Après</th>
+</tr></thead><tbody><tr><td>
+<code><a href="../reference/render_wp.html">render_wp()</a></code>, <code><a href="../reference/render_pb.html">render_pb()</a></code>, <code><a href="../reference/render_prev.html">render_prev()</a></code>, <code><a href="../reference/render_ife.html">render_ife()</a></code>, <code><a href="../reference/render_home.html">render_home()</a></code>, <code><a href="../reference/render_site.html">render_site()</a></code>
+</td>
+<td><code><a href="../reference/render.html">render()</a></code></td>
+</tr><tr><td>
+<code><a href="../reference/publish_wp.html">publish_wp()</a></code>, <code><a href="../reference/publish_pb.html">publish_pb()</a></code>, <code><a href="../reference/publish_prev.html">publish_prev()</a></code>, <code><a href="../reference/publish_ife.html">publish_ife()</a></code>, <code><a href="../reference/publish_home.html">publish_home()</a></code>, <code>stage_site()</code>
+</td>
+<td><code><a href="../reference/publish.html">publish()</a></code></td>
+</tr><tr><td>
+<code><a href="../reference/deploy_wp.html">deploy_wp()</a></code>, <code><a href="../reference/deploy_pb.html">deploy_pb()</a></code>, <code><a href="../reference/deploy_prev.html">deploy_prev()</a></code>, <code><a href="../reference/deploy_site.html">deploy_site()</a></code>
+</td>
+<td><code><a href="../reference/deploy.html">deploy()</a></code></td>
+</tr><tr><td>
+<code><a href="../reference/check_wp.html">check_wp()</a></code>, <code><a href="../reference/check_pb.html">check_pb()</a></code>, <code><a href="../reference/check_prev.html">check_prev()</a></code>
+</td>
+<td><code><a href="../reference/check.html">check()</a></code></td>
+</tr><tr><td>
+<code><a href="../reference/wp_registry_request.html">wp_registry_request()</a></code>, <code><a href="../reference/pb_registry_request.html">pb_registry_request()</a></code>
+</td>
+<td><code><a href="../reference/registry_request.html">registry_request()</a></code></td>
+</tr></tbody></table><p><code><a href="../reference/render_blog.html">render_blog()</a></code>/<code><a href="../reference/publish_blog.html">publish_blog()</a></code> restent exportées et inchangées — le blog est explicitement exclu de ce round (sa logique de publication va évoluer séparément avec une future fonctionnalité de soumission). <code><a href="../reference/stage_prev.html">stage_prev()</a></code> reste également exportée sous ce nom (distincte de <code><a href="../reference/publish_prev.html">publish_prev()</a></code>, elle garde tout son sens dans le cycle de vie des prévisions).</p>
+<p>Nouveautés permises par cette consolidation :</p>
+<ul><li>
+<strong><code><a href="../reference/deploy.html">deploy()</a></code></strong> gagne des routes pour <code>ife</code> et <code>home</code> (<code><a href="../reference/deploy_ife.html">deploy_ife()</a></code>/ <code><a href="../reference/deploy_home.html">deploy_home()</a></code>, désormais des fonctions internes dédiées — auparavant, ce push vers <code>site-deploy</code> était fait par du code dupliqué directement dans <code><a href="../reference/render_ife.html">render_ife()</a></code>/<code><a href="../reference/render_home.html">render_home()</a></code>).</li>
+<li>
+<strong><code><a href="../reference/check.html">check()</a></code></strong> couvre <code>wp</code>/<code>prev</code>/<code>pb</code> ; pour <code>ife</code>/<code>home</code>/<code>site</code>/<code>blog</code>, qui n’ont pas (encore) de diagnostic par dépôt, elle échoue avec un message explicite plutôt que de chercher une fonction inexistante. <code><a href="../reference/check_blog.html">check_blog()</a></code> reste interne, appelée par <code><a href="../reference/submit_blog.html">submit_blog()</a></code> comme aujourd’hui — son diagnostic porte sur un post, pas sur la racine du dépôt, donc <code>check(type = "blog")</code> renvoie vers <code><a href="../reference/submit_blog.html">submit_blog()</a></code>.</li>
+<li>
+<strong><code><a href="../reference/registry_request.html">registry_request()</a></code></strong> couvre <code>wp</code>/<code>pb</code> (les deux seuls types avec un registre central aujourd’hui) et échoue explicitement pour les autres types.</li>
+<li>
+<code><a href="../reference/detect_repo_type.html">detect_repo_type()</a></code> reconnaît un nouveau marqueur <code>ofce_home: true</code> dans <code>_quarto.yml</code>, qui rend le type <code>home</code> (jusqu’ici seulement accessible en appelant directement <code><a href="../reference/render_home.html">render_home()</a></code>/<code><a href="../reference/publish_home.html">publish_home()</a></code>) atteignable par détection automatique.</li>
+<li>Pour <code>blog</code>/<code>ife</code>/<code>home</code>, qui ont chacun un unique dépôt canonique en pratique, le nom du dossier local est désormais vérifié (<code>webblog</code>/<code>ife_webhome</code>/<code>webhome</code>) avant tout rendu/publication/ déploiement — un dépôt mal nommé arrête l’exécution avec un message explicite plutôt que l’ancien avertissement suivi d’une confirmation interactive (<code><a href="../reference/render_ife.html">render_ife()</a></code>/<code><a href="../reference/render_home.html">render_home()</a></code>), incompatible avec un usage non interactif (CI).</li>
+</ul><p><strong>Dépôts déjà déployés</strong> : aucune action requise pour continuer à fonctionner en CI au prochain run — mais pour profiter des workflows GitHub Actions mis à jour (qui appellent désormais <code><a href="../reference/render.html">ofceweb::render()</a></code> plutôt que la fonction spécifique au type), il faut relancer <code><a href="../reference/setup_wp.html">setup_wp()</a></code>/<code><a href="../reference/setup_pb.html">setup_pb()</a></code>/ <code><a href="../reference/setup_site.html">setup_site()</a></code>/<code><a href="../reference/setup_prev.html">setup_prev()</a></code> une fois, qui rafraîchit les fichiers de workflow comme à chaque exécution.</p>
+</div>
+<div class="section level3">
+<h3 id="nouveau-champ-stable_url-1-0-0">Nouveau champ <code>stable_url</code>
+<a class="anchor" aria-label="anchor" href="#nouveau-champ-stable_url-1-0-0"></a></h3>
+<ul><li>
+<code><a href="../reference/setup_wp.html">setup_wp()</a></code>/<code><a href="../reference/setup_pb.html">setup_pb()</a></code> écrivent désormais aussi un champ <code>stable_url</code> de premier niveau dans <code>_quarto.yml</code>, en plus de <code>citation.url</code> (même valeur, sans le segment de version <code>/v{x}</code>) — pour les usages hors citation/PDF (bannière, meta sur la page rendue, etc.).</li>
+<li>Les posts de blog reçoivent le même champ <code>stable_url</code> (URL canonique du post, sans notion de version) dans le front matter de la copie rendue, à côté de <code>share$permalink</code>.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.13" id="ofceweb-v01013">ofceweb v0.10.13<a class="anchor" aria-label="anchor" href="#ofceweb-v01013"></a></h2>
+<div class="section level3">
+<h3 id="nouvelle-fonction-render_folder--publication-rapide-dad-hoc-0-10-13">Nouvelle fonction <code>render_folder()</code> — publication rapide d’ad-hoc<a class="anchor" aria-label="anchor" href="#nouvelle-fonction-render_folder--publication-rapide-dad-hoc-0-10-13"></a></h3>
+<p>Nouvelle fonctionnalité de publication légère pour partager du contenu non-officiel (notes de travail, slides, brouillons de blog) sans passer par le pipeline complet WP/PB/prévisions. Permet de désigner <strong>n’importe quel dossier</strong> dans un dépôt git, de le rendre en tant que site Quarto autonome, et de le déployer vers une URL privée et unique sous <code>staging.ofce.fr</code>.</p>
+<div class="section level4">
+<h4 id="public-api-0-10-13">Public API<a class="anchor" aria-label="anchor" href="#public-api-0-10-13"></a></h4>
+<ul><li><p><strong><code>render_folder(path, index, slug, progress, preview, as_job)</code></strong> — Rend un dossier arbitraire en tant que site Quarto dans un répertoire temporaire isolé, laissant un artifact <code>.site/</code> seul en place. Génère un slug déterministe basé sur le chemin relatif du dossier, auto-détecte le fichier index s’il n’existe qu’un seul <code>.qmd</code>/<code>.md</code>, injecte une bannière OFCE fixe dans chaque page HTML. Supporte l’exécution en arrière-plan via RStudio Jobs (<code>as_job = TRUE</code>) avec streaming d’erreur en direct et export du résultat vers <code>adhoc_last_render</code>.</p></li>
+<li><p><strong><code>deploy_folder(path, slug, encrypt, progress, trigger, full_deploy, as_job)</code></strong> — Pousse le <code>.site/</code> déjà rendu vers une branche git et déclenche le déploiement FTP. Auto-installe le workflow <code>.github/workflows/ftp_deploy_profile.yml</code> si manquant (PR fallback sur les branches par défaut protégées). Nouveau paramètre <code>encrypt</code> pour la publication sans staticrypt, même si <code>STATICRYPT_PASSWORD</code> est configuré.</p></li>
+<li><p><strong><code>preview_folder(path)</code></strong> — Lance un serveur live-reload local sur <code>.site/</code> via <code><a href="https://rdrr.io/pkg/servr/man/httd.html" class="external-link">servr::httw()</a></code>, réutilisable indépendamment de comment <code>.site/</code> a été produit.</p></li>
+</ul></div>
+<div class="section level4">
+<h4 id="infrastructure-0-10-13">Infrastructure<a class="anchor" aria-label="anchor" href="#infrastructure-0-10-13"></a></h4>
+<ul><li>Workflow <code>ftp_deploy_profile.yml</code> met à jour : support du marqueur <code>.no-staticrypt</code> pour l’opt-out de chiffrement au moment du déploiement.</li>
+<li>Dépôt : paramètre <code>rstudioapi</code> ajouté à <code>Suggests</code> pour la détection RStudio.</li>
+<li>
+<code>.gitignore</code> : ajout de <code>.site/</code> pour éviter les commits accidentels.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="design-0-10-13">Design<a class="anchor" aria-label="anchor" href="#design-0-10-13"></a></h4>
+<ul><li>Rendu isolé : le dossier cible est copié dans un répertoire temporaire avant la configuration Quarto, jamais modifié in-place (sauf l’ajout de <code>.site/</code> final). Élimine les risques de collision avec les configurations parentes.</li>
+<li>Slug déterministe : basé sur le chemin relatif + CRC32 6-char, même slug = même URL à chaque republication. Persiste dans <code>.site/.adhoc-meta.json</code>.</li>
+<li>Extension auto-discovery : remonte l’arbre du dépôt pour collecter les répertoires <code>_extensions/</code> découverts (le plus proche gagne).</li>
+<li>Bannière OFCE : injecté en post-traitement HTML, indépendamment de la configuration Quarto (prise en charge revealjs, plain HTML, etc.).</li>
+<li>Jobs RStudio : erreurs entièrement streamées au pane Background Jobs + résumé exporté vers l’environnement global pour consultation ultérieure.</li>
+</ul></div>
+</div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.12" id="ofceweb-v01012">ofceweb v0.10.12<a class="anchor" aria-label="anchor" href="#ofceweb-v01012"></a></h2>
 <div class="section level3">

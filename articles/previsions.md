@@ -6,12 +6,12 @@ principales sont :
 
 - [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
   — initialise ou met à jour le dépôt,
-- [`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
-  — diagnostique la configuration,
-- [`render_prev()`](https://ofceweb.github.io/ofceweb/reference/render_prev.md)
-  — construit le site avec le profil Quarto choisi,
-- [`deploy_prev()`](https://ofceweb.github.io/ofceweb/reference/deploy_prev.md)
-  — pousse le site rendu vers le bon serveur.
+- [`check()`](https://ofceweb.github.io/ofceweb/reference/check.md) —
+  diagnostique la configuration,
+- [`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) —
+  construit le site avec le profil Quarto choisi,
+- [`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md) —
+  pousse le site rendu vers le bon serveur.
 
 **Pré-requis.** Vous devez disposer d’un PAT GitHub stocké dans
 `DEPLOY_PAT` et de l’outil `gh` (GitHub CLI) authentifié. Si ce n’est
@@ -81,11 +81,12 @@ chiffrement.
 
 ``` r
 
-ofceweb::check_prev()
+ofceweb::check()
 ```
 
-[`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
-parcourt la configuration et signale deux niveaux de problèmes :
+[`check()`](https://ofceweb.github.io/ofceweb/reference/check.md)
+(dispatché vers le diagnostic `prev`) parcourt la configuration et
+signale deux niveaux de problèmes :
 
 - **Erreurs bloquantes** — empêcheront le rendu ou le déploiement en CI
   (ex. `_quarto-staging.yml` absent, `FTP_STAGING_DIR` non définie).
@@ -93,7 +94,7 @@ parcourt la configuration et signale deux niveaux de problèmes :
   causer des échecs CI (ex. `STATICRYPT_PASSWORD` non défini, fichier de
   profil déclaré mais manquant).
 
-[`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
+[`check()`](https://ofceweb.github.io/ofceweb/reference/check.md)
 retourne un data frame invisible avec les colonnes `field`, `status`
 (`"ok"`, `"warning"`, `"error"`) et `message`, ce qui permet de
 l’intégrer dans des pipelines automatisés.
@@ -103,17 +104,17 @@ l’intégrer dans des pipelines automatisés.
 ``` r
 
 # Profil staging (défaut)
-ofceweb::render_prev(profile = "staging")
+ofceweb::render(profile = "staging")
 
 # Profil publish
-ofceweb::render_prev(profile = "publish")
+ofceweb::render(profile = "publish")
 
 # Profil personnalisé (ex. brouillon)
-ofceweb::render_prev(profile = "review")
+ofceweb::render(profile = "review")
 ```
 
-[`render_prev()`](https://ofceweb.github.io/ofceweb/reference/render_prev.md)
-:
+[`render()`](https://ofceweb.github.io/ofceweb/reference/render.md)
+(dispatché vers le rendu `prev`) :
 
 1.  Vérifie que `_quarto.yml` est présent et marqué `ofce_prev: true`.
 2.  Vide le répertoire de sortie `_site_{profil}/`.
@@ -133,16 +134,16 @@ correspondant (voir §6).
 ``` r
 
 # Déployer la version staging
-ofceweb::deploy_prev(profile = "staging")
+ofceweb::deploy(profile = "staging")
 
 # Déployer la version publish
-ofceweb::deploy_prev(profile = "publish")
+ofceweb::deploy(profile = "publish")
 
 # Déployer un profil personnalisé
-ofceweb::deploy_prev(profile = "review")
+ofceweb::deploy(profile = "review")
 ```
 
-[`deploy_prev()`](https://ofceweb.github.io/ofceweb/reference/deploy_prev.md)
+[`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md)
 suppose que le rendu a déjà été effectué (le dossier `_site_{profil}/`
 doit exister). Il :
 
@@ -158,14 +159,13 @@ chiffrement staticrypt — le profil joue le rôle de version.
 
 Les fonctions
 [`stage_prev()`](https://ofceweb.github.io/ofceweb/reference/stage_prev.md)
-et
-[`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md)
+et [`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)
 combinent rendu et déploiement en un appel :
 
 ``` r
 
-ofceweb::stage_prev()    # render_prev("staging") + site2staging()
-ofceweb::publish_prev()  # render_prev("publish") + site2publish()
+ofceweb::stage_prev()    # render("staging") + site2staging()
+ofceweb::publish()       # render("publish") + site2publish()
 ```
 
 Pour forcer un re-upload FTP complet (utile après nettoyage côté
@@ -173,7 +173,7 @@ serveur) :
 
 ``` r
 
-ofceweb::deploy_prev(profile = "staging", full_deploy = TRUE)
+ofceweb::deploy(profile = "staging", full_deploy = TRUE)
 ```
 
 ## 6. Profils personnalisés
@@ -209,8 +209,8 @@ website:
 
 ``` r
 
-ofceweb::render_prev(profile = "review")
-ofceweb::deploy_prev(profile = "review")
+ofceweb::render(profile = "review")
+ofceweb::deploy(profile = "review")
 ```
 
 Le site est alors accessible sous `staging/prev2603/review/` sur le
@@ -258,17 +258,17 @@ ofceweb::setup_prev()
 # git add . && git commit -m "init" && git push
 
 # 2. vérifier la configuration
-ofceweb::check_prev()
+ofceweb::check()
 
 # 3. rendre
-ofceweb::render_prev(profile = "staging")   # ou "publish", ou un profil custom
+ofceweb::render(profile = "staging")   # ou "publish", ou un profil custom
 
 # 4. déployer
-ofceweb::deploy_prev(profile = "staging")
+ofceweb::deploy(profile = "staging")
 
 # raccourcis render + deploy
 ofceweb::stage_prev()
-ofceweb::publish_prev()
+ofceweb::publish()
 ```
 
 ## Fonctions de référence
@@ -276,11 +276,11 @@ ofceweb::publish_prev()
 | Fonction | Rôle |
 |----|----|
 | [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md) | Initialise / met à jour le dépôt |
-| [`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md) | Diagnostique la configuration |
-| `render_prev(profile)` | Construit `_site_{profile}/` |
-| `deploy_prev(profile)` | Pousse vers la branche et déclenche le CI |
+| [`check()`](https://ofceweb.github.io/ofceweb/reference/check.md) | Diagnostique la configuration |
+| `render(profile)` | Construit `_site_{profile}/` |
+| `deploy(profile)` | Pousse vers la branche et déclenche le CI |
 | [`stage_prev()`](https://ofceweb.github.io/ofceweb/reference/stage_prev.md) | render staging + deploy staging |
-| [`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md) | render publish + deploy publish |
+| [`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md) | render publish + deploy publish |
 | [`site2staging()`](https://ofceweb.github.io/ofceweb/reference/site2staging.md) | Deploy-only vers `site-staging` |
 | [`site2publish()`](https://ofceweb.github.io/ofceweb/reference/site2publish.md) | Deploy-only vers `site-publish` |
 | `site2profile(profile)` | Deploy-only vers `site-{profile}` |

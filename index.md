@@ -11,6 +11,8 @@ Pour installer [ofceweb](https://ofceweb.github.io/ofceweb/), utiliser
 ``` r
 
 pak::pak("ofceweb/ofceweb")
+# ou
+devtools::install_github("ofceweb/ofceweb")
 # ou 
 renv::install("ofceweb/ofceweb")
 ```
@@ -19,8 +21,12 @@ Le package couvre les usages de plusieurs types d’utilisateurs.
 
 ## Publier un document de travail en phase *staging* ou *publication*
 
+Ces éléments sont détaillés dans la vignette
+[`vignette("working-papers")`](https://ofceweb.github.io/ofceweb/articles/working-papers.md).
+
 Le principe est d’avoir le document de travail dans un repo github, sur
-son compte personnel ou dans l’organisation OFCE.
+son compte personnel dans un premier temps puis dans l’organisation OFCE
+poru sa publication.
 
 Le format du repo est assez libre, un *template* est proposé, avec
 quelques éléments obligatoires pour la publication. Le *template* est
@@ -28,39 +34,35 @@ implémenté par
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
 fonction non destructive qui préserve ce qui est déjà mis en place
 (yaml, fichiers).
-[`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
+[`check()`](https://ofceweb.github.io/ofceweb/reference/check.md)
 diagnostique l’installation et pointe vers les problèmes non bloquants
 ou bloquants.
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
 peut être exécuté autant de fois que l’on veut.
 
+Le document de travail a deux états possibles. Il est d’abord en
+“brouillon” et est publié en mode *staging*, c’est-à-dire un mode privé
+et préliminaire. Il est ensuite validé techniquement et scientifiquement
+et devient publié. Le rendu du document passe par
+[`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) et
+la publication par
+[`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md).
+Le bouton `render` ne produira pas le même résultat. En revanche un menu
+est ajouté dans les `Addins`de Rstudio.
+
 Tant que le document de travail est en phase *staging*, il est servi par
 github.com (`gh-pages`) ou sur le site `staging.ofce.fr`. Il est
-possible de le crypter afin d’en limiter l’accès à un public choisi. La
-mise en place du cryptage est faite par
-[`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-et le cryptage est enlevé par
-[`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md).
-Pour le cryptage, il faut définir un mot de passe qui est sur
-`github.com`.
-
-La publication suppose la validation. Celle-ci passe par la fonction
-[`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md)
-et une validation par un administrateur. La validation est à la fois
-éditoriale et technique. Une fois validé, le numéro du document de
-travail est renseigné dasn un registre central sésame pour la mise en
-ligne. En exécutant
-[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
-la vérification est faite. La fonction
+possible (très recommandé) de le crypter afin d’en limiter l’accès à un
+public choisi. La validation attribue un numéro au document de travail
+et une url stable (qui ne change pas). la fonction
 [`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)
-exécute également cette vérification.
+assure dans tous les cas la mise en ligne (*staging* ou stable)
 
-Pour être stagé ou publié sur le site de l’OFCE, la propriété du
+Pour être stagé ou publié sur le site de l’OFCE, la propriété du repo du
 document de travail doit être transférée à l’organisation OFCE sur
-github.com (settings-\>Danger Zone-\>Transfer ownership sur github.com).
-Lors de son transfert, le dépôt doit être renommé. La convention de
-nommage est `wp-{initiales de l'auteur}-{nom court}`, le tout en
-MINUSCULES. Par exemple : `wp-xt-travail`.
+github.com (sans danger, vous gardez l’accès complet), avec un renommage
+du dépôt selon la convention `pb-{initiale de l'auteur}-{nom court}`, le
+tout en MINUSCULES. Par exemple : `wp-xt-travail`.
 
 Le document de travail peut être versionné quand il est hébergé sur
 `staging.ofce.fr` ou `www.ofce.fr/wp`. Les différentes versions peuvent
@@ -75,6 +77,9 @@ retiré.
 
 ## Publier un policy brief en phase *staging* ou *publication*
 
+Ces éléments sont détaillés dans la vignette
+[`vignette("policy-briefs")`](https://ofceweb.github.io/ofceweb/articles/policy-briefs.md).
+
 Le principe est le même que pour un document de travail : le policy
 brief vit dans un repo github, sur son compte personnel ou dans
 l’organisation OFCE. Le *template* est implémenté par
@@ -82,35 +87,27 @@ l’organisation OFCE. Le *template* est implémenté par
 fonction non destructive équivalente à
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
 qui peut être exécutée autant de fois que l’on veut.
-[`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+[`check()`](https://ofceweb.github.io/ofceweb/reference/check.md)
 diagnostique l’installation.
 
 Tant que le policy brief est en phase *staging*, il est servi par
 github.com (`gh-pages`) ou sur le site `staging.ofce.fr`, avec la même
-possibilité de cryptage que pour un document de travail
-([`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md)
-/
-[`remove_encrypt()`](https://ofceweb.github.io/ofceweb/reference/remove_encrypt.md)).
+possibilité de cryptage que pour un document de travail.
+[`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) et
+[`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)
+assurent le rendu et la publication.
 
-La publication passe par
-[`pb_registry_request()`](https://ofceweb.github.io/ofceweb/reference/pb_registry_request.md)
-et une validation par un administrateur, avec la même logique de
-registre central que les documents de travail. La différence : les
-policy briefs **partagent** ce registre central avec les documents de
-travail (`ofce/wp-registry`, sous-dossier `pb/`), mais leur numérotation
-est **séquentielle depuis l’origine et indépendante de l’année** —
-contrairement aux documents de travail, numérotés par année. Le champ
-`annee` n’intervient donc jamais pour un policy brief. En exécutant
-[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
-la vérification est faite ;
-[`publish_pb()`](https://ofceweb.github.io/ofceweb/reference/publish_pb.md)
-l’exécute également.
+La publication passe par une validation par un administrateur, avec la
+même logique que les documents de travail. La différence : les policy
+briefs ont une numérotation **séquentielle depuis l’origine et
+indépendante de l’année** — contrairement aux documents de travail,
+numérotés par année.
 
-Pour être stagé ou publié sur le site de l’OFCE, la propriété du policy
-brief doit être transférée à l’organisation OFCE sur github.com, avec un
-renommage du dépôt selon la convention
-`pb-{initiale de l'auteur}-{nom court}`, le tout en MINUSCULES. Par
-exemple : `pb-xt-relance`.
+Pour être stagé ou publié sur le site de l’OFCE, la propriété du repo
+policy brief doit être transférée à l’organisation OFCE sur github.com
+(sans danger, vous gardez l’accès complet), avec un renommage du dépôt
+selon la convention `pb-{initiale de l'auteur}-{nom court}`, le tout en
+MINUSCULES. Par exemple : `pb-xt-relance`.
 
 Comme le document de travail, le policy brief peut être versionné une
 fois hébergé sur `staging.ofce.fr` ou `www.ofce.fr/pb`. Une url stable
@@ -151,9 +148,9 @@ verison *publish* (commentaires fermés, url définie
 statitistique).
 
 Les principales fonctions sont
-[`render_prev()`](https://ofceweb.github.io/ofceweb/reference/render_prev.md)
-et
-[`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md).
+[`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md),
+[`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) et
+[`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md).
 Les fonctions helpers seront ajoutées progressivement.
 
 ## Administrer les principales pages du site web de l’OFCE
@@ -187,12 +184,14 @@ page ;
 
 Pour générer la *home page*, aller dans le repo
 [webhome](https://github.com/ofceweb/webhome), lancer
-[`render_home()`](https://ofceweb.github.io/ofceweb/reference/render_home.md)
-; avec l’option `site2branch=TRUE`, le rendu est uploadé sur github dans
-la branche `site-deploy` et envoyé sur le site de l’OFCE ;
-[`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
-fait la même opération. La fonction est documentée pour les options
-avancées.
+[`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) (qui
+détecte le type `home` via `ofce_home: true` dans `_quarto.yml`) ; avec
+l’option `site2branch=TRUE`, le rendu est uploadé sur github dans la
+branche `site-deploy` et envoyé sur le site de l’OFCE ;
+[`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md)/[`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
+font la même opération. Utiliser
+[`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)
+pour enchaîner rendu et déploiement en une seule commande.
 
 ### les statistiques de fréquention et de production
 

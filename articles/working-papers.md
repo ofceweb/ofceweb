@@ -6,11 +6,56 @@ Chaque document de travail (WP) de l’OFCE vit dans son propre dépôt
 GitHub. Un WP produit deux sorties :
 
 - une **page HTML** (site Quarto avec l’extension `wp`)
-- un **PDF** (LaTeX via `wp-pdf` ou Typst via `wp-typst`)
+- un **PDF** (LaTeX via `wp-pdf` ou Typst via `wp-typst` — `wp-typst`
+  est le moteur ajouté par défaut par
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  quand aucun des deux n’est déjà déclaré, car il gère nativement les
+  figures SVG sans dépendance externe ; `wp-pdf` reste disponible en le
+  déclarant explicitement)
 
 Il peut contenir des **annexes** (`annexes.qmd`) et un **historique des
 révisions** (`news.qmd`), ainsi que tout autre document que l’on
-souhaite (code, explications de code, de données, etc…).
+souhaite (code, explications de code, de données, etc…). Le document
+`index.qmd` est le docuement principal (il peut être le seul document).
+
+1.  On initialise ou corrige une installation avec
+    [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+2.  On vérifie et diagnostique par
+    [`check()`](https://ofceweb.github.io/ofceweb/reference/check.md)
+3.  On fait le rendu avec
+    [`render()`](https://ofceweb.github.io/ofceweb/reference/render.md)
+    (on peut avoir à régler de nombreux problèmes de rendu)
+4.  On publie avec
+    [`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)
+    (envoyé en *staging* tant qu’il n’est pas validé, ou sur une url
+    stable lorsqu’il est validé)
+5.  On demande la validation par
+    [`registry_request()`](https://ofceweb.github.io/ofceweb/reference/registry_request.md)
+
+*Note* 1 : le bouton `render` de **Rstudio** ne produit pas le même
+résultat que
+[`render()`](https://ofceweb.github.io/ofceweb/reference/render.md). Le
+menu **Addins** de **RStudio** contient les items render/publish/etc…
+
+*Note* 2 : tous les .qmd dans le répertoire seront rendus (et ajoutés
+dans la section `Autres liens` de `\_quarto.yml`). Si c’est un problème,
+ajoutez un `\_` au début du nom u `.qmd`. Il sera exclu. Glisser le
+`.qmd` dans un dossier dont le nom commence par `_` fonctionne aussi.
+
+### Prérequis
+
+la vignette `vignette("prequisites")` décrit ce qui est nécessaire pour
+que la procédure fonctionne. Il faut :
+
+1.  Avoir installé `git`, `gh` sur son ordinateur
+2.  Etre correctement identifié/loggé pour `git` et `gh` (github.com)
+3.  Avoir généré/disposé des tokens (PAT) poriu l’identification
+4.  Avoir transféré son dépôt sur le github de l’OFCE
+
+La fonction
+[`check()`](https://ofceweb.github.io/ofceweb/reference/check.md)
+réalise un diagnostic. La plupart de ces prérequis sont à faire une fois
+et une seule. N’hésitez pas à demander de l’aide en cas de difficulté.
 
 ### Cycle de vie
 
@@ -23,6 +68,12 @@ souhaite (code, explications de code, de données, etc…).
 Lorsque le docuement de travail est *stagé* sur le site staging.ofce.fr,
 il est possible de versionner. Le versionnage est impossible sur github
 gh-pages.
+
+La fonction
+[`wp_version_up()`](https://ofceweb.github.io/ofceweb/reference/wp_version_up.md)
+incrémente la version. Il faut faire
+[`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)
+ensuite.
 
 Pour être *stagé* sur le site ofce.fr ou publié, la propriété du dépôt
 doit être transférée à l’organisation OFCE. On recommande la convention
@@ -100,10 +151,10 @@ les meilleurs pratiques.
 
 ``` r
 
-check_wp()
+check()
 ```
 
-[`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
+[`check()`](https://ofceweb.github.io/ofceweb/reference/check.md)
 vérifie :
 
 - Connexion GitHub : `gh::gh("GET /user")` (warning non bloquant si
@@ -128,7 +179,7 @@ appelée par
 
 ``` r
 
-render_wp(
+render(
   path        = ".",
   check       = TRUE,   # appeler check_wp() avant rendu
   render_site = TRUE,   # lancer un serveur local après rendu
@@ -138,8 +189,8 @@ render_wp(
 
 **Pipeline** :
 
-1.  [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
-    si `check` (abandon si erreurs bloquantes)
+1.  [`check()`](https://ofceweb.github.io/ofceweb/reference/check.md) si
+    `check` (abandon si erreurs bloquantes)
     - Vérifie la connexion GitHub (`gh::gh("GET /user")`)
 2.  Vide `_site/`
 3.  `quarto::quarto_render(output_format = "all")` — HTML + PDF
@@ -158,7 +209,7 @@ render_wp(
 
 ``` r
 
-deploy_wp()
+deploy()
 ```
 
 Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
@@ -187,7 +238,7 @@ synchronise `wp`/`annee` (et `draft`) depuis cette entrée, en écrasant
 toute valeur passée en argument ou déjà présente dans `_quarto.yml`.
 
 1.  Demander un numéro via
-    [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md),
+    [`registry_request()`](https://ofceweb.github.io/ofceweb/reference/registry_request.md),
     qui calcule le numéro (auto-incrémenté, ou fourni via `wp =`) et
     ouvre une PR contre `ofce/wp-registry` — `annee` est lu depuis
     `_quarto.yml` si absent, et `contact` depuis `git config user.email`
@@ -197,7 +248,7 @@ toute valeur passée en argument ou déjà présente dans `_quarto.yml`.
 
 ``` r
 
-wp_registry_request()
+registry_request()
 ```
 
 Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
@@ -221,8 +272,8 @@ propre compte (`GET /user`) et pousser une branche sur
 2.  Une fois la PR fusionnée, relancer
     [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
     pour synchroniser `_quarto.yml` (`wp`, `annee`, `draft`,
-    `site-path`, `citation.url`/`citation.issue`) et mettre à jour les
-    variables FTP (`FTP_SERVER_DIR`, `FTP_REDIRECT_DIR`) :
+    `site-path`, `citation.url`/`citation.issue`/`stable_url`) et mettre
+    à jour les variables FTP (`FTP_SERVER_DIR`, `FTP_REDIRECT_DIR`) :
 
 ``` r
 
@@ -233,20 +284,16 @@ setup_wp()
 
 ``` r
 
-render_wp()
-deploy_wp()
+render()
+deploy()
 ```
 
-[`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md)
-(qui enchaîne
-[`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md)
-et
-[`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)
-— voir
 [`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md)
-pour la dispatche automatique selon le type de dépôt) refait cette
-consultation du registre juste avant le rendu, pour rattraper un
-enregistrement survenu depuis le dernier
+(qui enchaîne
+[`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) et
+[`deploy()`](https://ofceweb.github.io/ofceweb/reference/deploy.md))
+refait cette consultation du registre juste avant le rendu, pour
+rattraper un enregistrement survenu depuis le dernier
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
 — mais ne recalcule que `draft`/`wp`/`annee`, pas
 `site-path`/`citation.*` : si le numéro change à cette étape, relancer
@@ -280,7 +327,7 @@ gh secret delete STATICRYPT_PASSWORD --repo owner/mon-wp
 ```
 
 Le rendu local
-([`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md))
+([`render()`](https://ofceweb.github.io/ofceweb/reference/render.md))
 produit toujours du HTML en clair.
 
 ------------------------------------------------------------------------
@@ -306,8 +353,10 @@ Après l’incrémentation, rendre et déployer à nouveau :
 
 ``` r
 
-render_wp()
-deploy_wp()
+render()
+deploy()
+
+# ou publish()
 ```
 
 ------------------------------------------------------------------------

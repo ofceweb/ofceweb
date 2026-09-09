@@ -48,6 +48,33 @@ privée et unique sous `staging.ofce.fr`.
 * Jobs RStudio : erreurs entièrement streamées au pane Background Jobs + résumé
   exporté vers l'environnement global pour consultation ultérieure.
 
+#### Correctifs — fiabilisation du déclenchement du workflow FTP dans `deploy_folder()`
+
+* `deploy_folder()` passait `inputs = list()` (vide) à `trigger_action()`, en
+  s'appuyant sur le nom de la branche poussée (`site-{profile}`) pour que le
+  workflow retrouve le profil. Or `workflow_dispatch` exécute toujours le
+  workflow sur la branche par défaut du dépôt (pas sur `site-{profile}`) :
+  `github.ref_name` valait donc `"main"` côté workflow, qui en déduisait à
+  tort une branche cible `site-main` — inexistante, provoquant l'échec du
+  `git fetch`/checkout dans le job GitHub Actions (déclenchement signalé
+  comme réussi côté R, mais job qui échouait ensuite silencieusement).
+  `deploy_folder()` transmet désormais explicitement `inputs = list(profile
+  = slug)`, indépendamment de la branche sur laquelle le `workflow_dispatch`
+  est exécuté.
+* Bug annexe démasqué par le correctif ci-dessus : le slug lu depuis
+  `.adhoc-meta.json` (`jsonlite::read_json()` sans `simplifyVector = TRUE`)
+  revenait comme une **liste** d'un élément plutôt qu'une chaîne scalaire —
+  sérialisé en JSON comme un tableau (`["slug"]`) plutôt qu'une chaîne, GitHub
+  rejetait alors l'entrée `profile` (`422 Invalid value for input 'profile'`).
+  Corrigé à la fois à la lecture (`simplifyVector = TRUE`) et à l'écriture
+  (`render_folder()` écrit désormais `.adhoc-meta.json` avec
+  `auto_unbox = TRUE`) — voir la convention documentée dans `AGENTS.md`.
+* `trigger_action()` retente désormais jusqu'à 8 fois avec un délai croissant
+  (5 à 30 s, ~150 s au total) en cas de `422`, et `site2branch()` attend 3 s
+  après le push avant de déclencher : le cache de validation des entrées
+  `workflow_dispatch` côté GitHub peut mettre du temps à refléter un workflow
+  venant d'être installé/mis à jour par `ensure_adhoc_workflow()`.
+
 ## ofceweb v0.10.12
 
 ### `annee` supprimé de la famille `pb_*` — numérotation PB strictement séquentielle

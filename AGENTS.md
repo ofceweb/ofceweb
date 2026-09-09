@@ -26,3 +26,9 @@
   - **Prevision**: `prev{YYMM}/` → generates `index.html` redirecting to latest version
   - Effective server path: `www/staging/prev{YYMM}/`
 - Branch: `site-staging-redirect` (separate from staging content branch `site-staging`)
+
+## JSON read/write conventions
+
+- Always pair `jsonlite::write_json()` (and `toJSON()`) with `auto_unbox = TRUE` when writing scalar fields (e.g. `slug`, `stage`, `pb`). Without it, every scalar is wrapped in a single-element JSON array (`"slug": ["x"]` instead of `"slug": "x"`), which then round-trips back as a length-1 **list** on read — silently breaking anything expecting a plain string (e.g. GitHub `workflow_dispatch` inputs, which reject arrays). This caused a real bug in `adhoc_site.R`'s ad-hoc metadata file (`.adhoc-meta.json`).
+- On the read side, `jsonlite::read_json()` defaults to `simplifyVector = FALSE`; pass `simplifyVector = TRUE` when you expect scalar fields back as atomic vectors rather than lists.
+- Fields that are genuinely arrays (e.g. registry entries, FTP state `data`) are fine to read/manipulate as lists — no change needed there.

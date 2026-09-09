@@ -2,60 +2,40 @@
 #'
 #' Inspecte le dépôt situé à `path` (via [detect_repo_type()], la même
 #' détection que celle utilisée par [render()]) et appelle automatiquement
-#' [publish_wp()], [publish_prev()], [publish_blog()], [publish_ife()] ou
-#' [stage_site()] selon ce qui est détecté.
+#' la fonction de publication interne correspondante.
 #'
 #' La détection se fait, dans l'ordre :
 #' \enumerate{
-#'   \item `ofce_prev: true` dans `_quarto.yml` → prévision ([publish_prev()])
-#'   \item `ofce_wp: true` dans `_quarto.yml` → document de travail ([publish_wp()])
-#'   \item `ofce_pb: true` dans `_quarto.yml` → policy brief ([publish_pb()])
+#'   \item `ofce_prev: true` dans `_quarto.yml` → prévision
+#'   \item `ofce_wp: true` dans `_quarto.yml` → document de travail
+#'   \item `ofce_pb: true` dans `_quarto.yml` → policy brief
+#'   \item `ofce_home: true` dans `_quarto.yml` → homepage OFCE
 #'   \item `project: type: ife-website` dans `_quarto.yml` → site IFE
-#'     ([publish_ife()])
 #'   \item présence d'un dossier `posts/` → blog ([publish_blog()])
 #'   \item présence d'un `_quarto.yml` (sans marqueur ci-dessus) → site
-#'     générique ([stage_site()])
+#'     générique
 #' }
 #' Si rien de tout cela n'est détecté, la fonction s'arrête avec un message
 #' invitant à lancer [setup_wp()] ou [setup_site()].
 #'
 #' Pour un site générique, il n'existe pas de fonction `publish_site()`
-#' dédiée : les sites génériques n'ont pas de distinction staging/publish
-#' comme les prévisions, donc [stage_site()] (rendu + déploiement) en tient
-#' lieu.
+#' dédiée à part entière avec une sémantique différente de `render + deploy` :
+#' les sites génériques n'ont pas de distinction staging/publish comme les
+#' prévisions, donc `publish_site()` (rendu + déploiement) en tient lieu.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param type Force le type de dépôt (`"wp"`, `"site"`, `"prev"`, `"pb"`,
-#'   `"ife"` ou `"blog"`) plutôt que de le détecter automatiquement. Défaut
-#'   `NULL` (détection automatique).
+#'   `"ife"`, `"home"` ou `"blog"`) plutôt que de le détecter automatiquement.
+#'   Défaut `NULL` (détection automatique).
 #' @param ... Arguments supplémentaires transmis à la fonction de
-#'   publication choisie ([publish_wp()], [publish_prev()], [publish_pb()],
-#'   [publish_blog()], [publish_ife()] ou [stage_site()]). Ces fonctions
-#'   n'ont pas toutes la même signature ; passer un argument non reconnu par
-#'   la fonction cible provoquera une erreur R standard ("unused argument").
+#'   publication choisie. Ces fonctions n'ont pas toutes la même signature ;
+#'   passer un argument non reconnu par la fonction cible provoquera une
+#'   erreur R standard ("unused argument").
 #'
 #' @returns La valeur de retour de la fonction de publication appelée.
-#' @seealso [publish_wp()], [publish_prev()], [publish_pb()],
-#'   [publish_blog()], [publish_ife()], [stage_site()], [render()],
-#'   [detect_repo_type()]
+#' @seealso [render()], [deploy()], [check()], [registry_request()],
+#'   [publish_blog()], [detect_repo_type()]
 #' @export
 publish <- function(path = ".", type = NULL, ...) {
-  root <- fs::path_abs(path)
-  detected <- type %||% detect_repo_type(root)
-
-  target <- switch(
-    detected,
-    prev = list(fn = publish_prev, name = "publish_prev"),
-    wp   = list(fn = publish_wp,   name = "publish_wp"),
-    pb   = list(fn = publish_pb,   name = "publish_pb"),
-    ife  = list(fn = publish_ife,  name = "publish_ife"),
-    blog = list(fn = publish_blog, name = "publish_blog"),
-    site = list(fn = stage_site,   name = "stage_site"),
-    cli::cli_abort("Type de d\u00e9p\u00f4t inconnu : {.val {detected}}")
-  )
-
-  cli::cli_alert_info(
-    "D\u00e9p\u00f4t d\u00e9tect\u00e9 comme {.strong {detected}} \u2014 appel de {.fn {target$name}}")
-
-  target$fn(path = path, ...)
+  .ofce_dispatch("publish", path, type, ...)
 }

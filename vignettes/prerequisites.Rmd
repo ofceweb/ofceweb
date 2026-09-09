@@ -285,4 +285,4 @@ nchar(Sys.getenv("DEPLOY_PAT"))   # doit être > 0
 ```
 
 Ensuite, voir [*Construire un site avec ofceweb*](build-a-site.html)
-pour l'enchaînement `setup_site()` → `render_site()` → `deploy_site()`.
+pour l'enchaînement `setup_site()` → `render()` → `deploy()`.

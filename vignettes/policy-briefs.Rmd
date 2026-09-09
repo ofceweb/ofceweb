@@ -106,7 +106,7 @@ commiter.
 ## 2. Vérifier la structure avant rendu
 
 ```{r}
-check_pb()
+check()
 ```
 
 `check_pb()` vérifie les mêmes catégories de champs que `check_wp()`
@@ -131,7 +131,7 @@ peut compléter automatiquement les champs obligatoires manquants
 ## 3. Rendre le PB
 
 ```{r}
-render_pb(
+render(
   path        = ".",
   check       = TRUE,   # appeler check_pb() avant rendu
   render_site = TRUE,   # lancer un serveur local après rendu
@@ -154,7 +154,7 @@ de les lire, sans accès réseau.
 ## 4. Déployer le PB
 
 ```{r}
-deploy_pb()
+deploy()
 ```
 
 Le comportement dépend de l'état `stage` (lu depuis `manifest.json`,
@@ -184,7 +184,7 @@ sous-dossiers distincts — `pb/` pour les PB (fichier plat unique
 1.  Demander un numéro :
 
 ```{r}
-pb_registry_request()
+registry_request()
 ```
 
     Ouvre une pull request contre `ofceweb/wp-registry` proposant
@@ -211,11 +211,11 @@ setup_pb()
 3.  Rendre et déployer :
 
 ```{r}
-render_pb()
-deploy_pb()
+render()
+deploy()
 ```
 
-`publish_pb()` (qui enchaîne `render_pb()` et `deploy_pb()`) refait cette
+`publish()` (qui enchaîne `render()` et `deploy()`) refait cette
 consultation du registre juste avant le rendu, pour rattraper un
 enregistrement survenu depuis le dernier `setup_pb()` — mais ne
 recalcule que `draft`/`pb`, pas `site-path`/`citation.*` : si le numéro
@@ -244,8 +244,8 @@ Met à jour en cascade `version` et le dernier segment de
 fonctionne que pour un PB déjà publié (`pb` non `NULL`).
 
 ```{r}
-render_pb()
-deploy_pb()
+render()
+deploy()
 ```
 
 ------------------------------------------------------------------------

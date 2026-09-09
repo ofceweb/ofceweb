@@ -44,3 +44,4 @@ Contrôles effectués :
 \seealso{
 [render_wp()], [setup_wp()]
 }
+\keyword{internal}

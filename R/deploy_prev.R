@@ -17,7 +17,7 @@
 #' @returns Invisible `NULL`.
 #' @seealso [stage_prev()], [publish_prev()], [site2staging()]
 #' @importFrom cli cli_abort
-#' @export
+#' @keywords internal
 deploy_prev <- function(
     path        = ".",
     profile      = "staging",

@@ -59,3 +59,4 @@ Contrôles effectués :
 \seealso{
 [setup_prev()], [render_prev()]
 }
+\keyword{internal}

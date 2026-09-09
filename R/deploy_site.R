@@ -17,7 +17,7 @@
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [site2branch()], [setup_site()]
-#' @export
+#' @keywords internal
 deploy_site <- function(
     path = ".",
     progress = TRUE,

@@ -45,3 +45,4 @@ invite à relancer [setup_pb()] pour recalculer les champs dérivés
 \seealso{
 [render_pb()], [deploy_pb()], [push_pb_redirect()], [setup_pb()]
 }
+\keyword{internal}

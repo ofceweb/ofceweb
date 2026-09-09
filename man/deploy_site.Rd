@@ -39,3 +39,4 @@ GitHub Pages).
 \seealso{
 [site2branch()], [setup_site()]
 }
+\keyword{internal}

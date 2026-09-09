@@ -38,3 +38,4 @@ sans relancer le rendu Quarto. Pour staging, pousse `_site_staging/` vers
 \seealso{
 [stage_prev()], [publish_prev()], [site2staging()]
 }
+\keyword{internal}

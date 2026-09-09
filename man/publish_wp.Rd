@@ -47,3 +47,4 @@ dérivés (`site-path`, `citation.*`, `FTP_SERVER_DIR`).
 \seealso{
 [render_wp()], [deploy_wp()], [push_wp_redirect()], [setup_wp()]
 }
+\keyword{internal}

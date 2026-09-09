@@ -8,6 +8,8 @@ Pour installer `{ofceweb}`, utiliser `{pak}` ou `renv::install()`
 
 ```r
 pak::pak("ofceweb/ofceweb")
+# ou
+devtools::install_github("ofceweb/ofceweb")
 # ou 
 renv::install("ofceweb/ofceweb")
 ```
@@ -15,15 +17,17 @@ Le package couvre les usages de plusieurs types d'utilisateurs.
 
 ## Publier un document de travail en phase _staging_ ou _publication_
 
-Le principe est d'avoir le document de travail dans un repo github, sur son compte personnel ou dans l'organisation OFCE.
+Ces éléments sont détaillés dans la vignette `vignette("working-papers")`.
 
-Le format du repo est assez libre, un _template_ est proposé, avec quelques éléments obligatoires pour la publication. Le _template_ est implémenté par `setup_wp()`, fonction non destructive qui préserve ce qui est déjà mis en place (yaml, fichiers). `check_wp()` diagnostique l'installation et pointe vers les problèmes non bloquants ou bloquants. `setup_wp()` peut être exécuté autant de fois que l'on veut.
+Le principe est d'avoir le document de travail dans un repo github, sur son compte personnel dans un premier temps puis dans l'organisation OFCE poru sa publication.
 
-Tant que le document de travail est en phase _staging_, il est servi par github.com (`gh-pages`) ou sur le site `staging.ofce.fr`. Il est possible de le crypter afin d'en limiter l'accès à un public choisi. La mise en place du cryptage est faite par `encrypt_site()` et le cryptage est enlevé par `remove_encrypt()`. Pour le cryptage, il faut définir un mot de passe qui est sur `github.com`.
+Le format du repo est assez libre, un _template_ est proposé, avec quelques éléments obligatoires pour la publication. Le _template_ est implémenté par `setup_wp()`, fonction non destructive qui préserve ce qui est déjà mis en place (yaml, fichiers). `check()` diagnostique l'installation et pointe vers les problèmes non bloquants ou bloquants. `setup_wp()` peut être exécuté autant de fois que l'on veut.
 
-La publication suppose la validation. Celle-ci passe par la fonction `wp_registry_request()` et une validation par un administrateur. La validation est à la fois éditoriale et technique. Une fois validé, le numéro du document de travail est renseigné dasn un registre central sésame pour la mise en ligne. En exécutant `setup_wp()` la vérification est faite. La fonction `publish()` exécute également cette vérification. 
+Le document de travail a deux états possibles. Il est d'abord en "brouillon" et est publié en mode *staging*, c'est-à-dire un mode privé et préliminaire. Il est ensuite validé techniquement et scientifiquement et devient publié. Le rendu du document passe par `render()` et la publication par `publish()`. Le bouton `render` ne produira pas le même résultat. En revanche un menu est ajouté dans les `Addins`de Rstudio.
 
-Pour être stagé ou publié sur le site de l'OFCE, la propriété du document de travail doit être transférée à l'organisation OFCE sur github.com (settings->Danger Zone->Transfer ownership sur github.com). Lors de son transfert, le dépôt doit être renommé. La convention de nommage est `wp-{initiales de l'auteur}-{nom court}`, le tout en MINUSCULES. Par exemple : `wp-xt-travail`.
+Tant que le document de travail est en phase _staging_, il est servi par github.com (`gh-pages`) ou sur le site `staging.ofce.fr`. Il est possible (très recommandé) de le crypter afin d'en limiter l'accès à un public choisi. La validation attribue un numéro au document de travail et une url stable (qui ne change pas). la fonction `publish()` assure dans tous les cas la mise en ligne (*staging* ou stable)
+
+Pour être stagé ou publié sur le site de l'OFCE, la propriété du repo du document de travail doit être transférée à l'organisation OFCE sur github.com (sans danger, vous gardez l'accès complet), avec un renommage du dépôt selon la convention `pb-{initiale de l'auteur}-{nom court}`, le tout en MINUSCULES. Par exemple : `wp-xt-travail`.
 
 Le document de travail peut être versionné quand il est hébergé sur `staging.ofce.fr` ou `www.ofce.fr/wp`. Les différentes versions peuvent être conservées, une url stable est toujours disponible (www.ofce.fr/wp/{YYYY}/{NNN}) pour le document de travail de l'OFCE n°YYYY-NNN ou (staging.ofce.fr/{repo}/. L'url stable pointe vers la dernière version poussée sur le site. 
 
@@ -31,13 +35,15 @@ Une fois le document de travail validé, les auteurs peuvent modifier le documen
 
 ## Publier un policy brief en phase _staging_ ou _publication_
 
-Le principe est le même que pour un document de travail : le policy brief vit dans un repo github, sur son compte personnel ou dans l'organisation OFCE. Le _template_ est implémenté par `setup_pb()`, fonction non destructive équivalente à `setup_wp()`, qui peut être exécutée autant de fois que l'on veut. `check_pb()` diagnostique l'installation.
+Ces éléments sont détaillés dans la vignette `vignette("policy-briefs")`.
 
-Tant que le policy brief est en phase _staging_, il est servi par github.com (`gh-pages`) ou sur le site `staging.ofce.fr`, avec la même possibilité de cryptage que pour un document de travail (`encrypt_site()` / `remove_encrypt()`).
+Le principe est le même que pour un document de travail : le policy brief vit dans un repo github, sur son compte personnel ou dans l'organisation OFCE. Le _template_ est implémenté par `setup_pb()`, fonction non destructive équivalente à `setup_wp()`, qui peut être exécutée autant de fois que l'on veut. `check()` diagnostique l'installation.
 
-La publication passe par `pb_registry_request()` et une validation par un administrateur, avec la même logique de registre central que les documents de travail. La différence : les policy briefs **partagent** ce registre central avec les documents de travail (`ofce/wp-registry`, sous-dossier `pb/`), mais leur numérotation est **séquentielle depuis l'origine et indépendante de l'année** — contrairement aux documents de travail, numérotés par année. Le champ `annee` n'intervient donc jamais pour un policy brief. En exécutant `setup_pb()` la vérification est faite ; `publish_pb()` l'exécute également.
+Tant que le policy brief est en phase _staging_, il est servi par github.com (`gh-pages`) ou sur le site `staging.ofce.fr`, avec la même possibilité de cryptage que pour un document de travail. `render()` et `publish()` assurent le rendu et la publication. 
 
-Pour être stagé ou publié sur le site de l'OFCE, la propriété du policy brief doit être transférée à l'organisation OFCE sur github.com, avec un renommage du dépôt selon la convention `pb-{initiale de l'auteur}-{nom court}`, le tout en MINUSCULES. Par exemple : `pb-xt-relance`.
+La publication passe par une validation par un administrateur, avec la même logique que les documents de travail. La différence : les policy briefs ont une numérotation **séquentielle depuis l'origine et indépendante de l'année** — contrairement aux documents de travail, numérotés par année.
+
+Pour être stagé ou publié sur le site de l'OFCE, la propriété du repo policy brief doit être transférée à l'organisation OFCE sur github.com (sans danger, vous gardez l'accès complet), avec un renommage du dépôt selon la convention `pb-{initiale de l'auteur}-{nom court}`, le tout en MINUSCULES. Par exemple : `pb-xt-relance`.
 
 Comme le document de travail, le policy brief peut être versionné une fois hébergé sur `staging.ofce.fr` ou `www.ofce.fr/pb`. Une url stable est toujours disponible (`www.ofce.fr/pb/{NNN}`) pour le policy brief de l'OFCE n°NNN, et pointe vers la dernière version poussée sur le site.
 
@@ -55,7 +61,7 @@ La mise à jour du mini-site se fait en le republiant.
 
 La prévision est un mini-site particulier. Une version _staging_ (commentaires ouverts, cryptée, non référencée) co existe avec une verison _publish_ (commentaires fermés, url définie (www.ofce.fr/prev/prevYYMM), non cryptée, référencée, suivi statitistique).
 
-Les principales fonctions sont `render_prev()` et `publish_prev()`. Les fonctions helpers seront ajoutées progressivement.
+Les principales fonctions sont `setup_prev()`, `render()` et `publish()`. Les fonctions helpers seront ajoutées progressivement.
 
 ## Administrer les principales pages du site web de l'OFCE
 
@@ -75,7 +81,7 @@ Le blog relecture sera prochainement inclu dans la procédure.
 
 [webhome](https://github.com/ofceweb/webhome) est le repo de la home page ; 
 
-Pour générer la *home page*, aller dans le repo [webhome](https://github.com/ofceweb/webhome), lancer `render_home()` ; avec l'option `site2branch=TRUE`, le rendu est uploadé sur github dans la branche `site-deploy` et envoyé sur le site de l'OFCE ; `site2branch()` fait la même opération. La fonction est documentée pour les options avancées.
+Pour générer la *home page*, aller dans le repo [webhome](https://github.com/ofceweb/webhome), lancer `render()` (qui détecte le type `home` via `ofce_home: true` dans `_quarto.yml`) ; avec l'option `site2branch=TRUE`, le rendu est uploadé sur github dans la branche `site-deploy` et envoyé sur le site de l'OFCE ; `deploy()`/`site2branch()` font la même opération. Utiliser `publish()` pour enchaîner rendu et déploiement en une seule commande.
 
 ### les statistiques de fréquention et de production
 

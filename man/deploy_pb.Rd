@@ -43,3 +43,4 @@ dans `_quarto.yml` (positionné par [setup_pb()]) :
 \seealso{
 [render_pb()], [site2branch()], [pb_version_up()], [pb_registry_request()]
 }
+\keyword{internal}

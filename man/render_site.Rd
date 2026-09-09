@@ -43,5 +43,6 @@ site simple non bilingue : nettoyage de `_site`, rendu Quarto, reconstruction
 du sitemap, déploiement optionnel et prévisualisation locale.
 }
 \seealso{
-[setup_site()], [stage_site()], [site2branch()], [render_blog()]
+[setup_site()], [site2branch()], [render_blog()]
 }
+\keyword{internal}

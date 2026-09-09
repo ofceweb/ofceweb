@@ -54,3 +54,4 @@ déploiement sur la branche de déploiement et prévisualisation locale.
 \seealso{
 [setup_wp()], [check_wp()], [deploy_wp()]
 }
+\keyword{internal}

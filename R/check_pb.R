@@ -36,7 +36,7 @@
 #' @importFrom yaml read_yaml
 #' @importFrom glue glue
 #' @importFrom gh gh
-#' @export
+#' @keywords internal
 check_pb <- function(path = ".", verbose = TRUE) {
 
   root <- path |>

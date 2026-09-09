@@ -25,7 +25,7 @@
 #' @importFrom cli cli_h2 cli_abort cli_alert_success cli_alert_warning cli_text cli_alert_info
 #' @importFrom yaml read_yaml
 #' @importFrom jsonlite read_json
-#' @export
+#' @keywords internal
 deploy_pb <- function(
     path        = ".",
     progress    = TRUE,

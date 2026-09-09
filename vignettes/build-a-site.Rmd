@@ -16,8 +16,8 @@ Ce vignette décrit le cycle complet d'un site générique propulsé par
 rendu, puis déploiement. Trois fonctions structurent ce cycle :
 
 - `setup_site()` — pose les gabarits et configure le `_quarto.yml`,
-- `render_site()` — construit `_site/`,
-- `deploy_site()` — publie le résultat.
+- `render()` — construit `_site/`,
+- `deploy()` — publie le résultat.
 
 Les helpers `rescan_site()` et `site_version_up()` viennent en complément.
 
@@ -149,7 +149,7 @@ Lors du déploiement FTP, chaque workflow de déploiement (`ftp_deploy.yml`,
    sur place avant le transfert.
 3. Lance le transfert FTP avec les fichiers chiffrés.
 
-Le rendu local (`render_site()`) produit toujours du HTML en clair —
+Le rendu local (`render()`) produit toujours du HTML en clair —
 c'est le comportement attendu. La prévisualisation locale n'est donc
 pas protégée par mot de passe.
 
@@ -166,7 +166,7 @@ Le prochain déploiement s'effectuera sans chiffrement.
 ## 4. Rendre le site
 
 ```r
-ofceweb::render_site()
+ofceweb::render()
 ```
 
 Pipeline :
@@ -184,17 +184,17 @@ Arguments utiles :
 | Argument       | Défaut | Effet |
 |----------------|--------|-------|
 | `render_site`  | `TRUE` | Démarre le serveur local. Mettre à `FALSE` pour un build "headless". |
-| `site2branch`  | `FALSE`| Pousse directement vers la branche de déploiement (raccourci équivalent à enchaîner `deploy_site()`). |
+| `site2branch`  | `FALSE`| Pousse directement vers la branche de déploiement (raccourci équivalent à enchaîner `deploy()`). |
 | `workers`      | `8L`   | Workers parallèles. |
 | `check_repo`   | `TRUE` | Vérifie l'état du dépôt git avant le rendu. |
 
 ## 5. Déployer
 
 ```r
-ofceweb::deploy_site()
+ofceweb::deploy()
 ```
 
-`deploy_site()` lit la clé `ofce_host` du `_quarto.yml` et choisit :
+`deploy()` (dispatché vers le déploiement `site`) lit la clé `ofce_host` du `_quarto.yml` et choisit :
 
 - **OFCE** (`ofce_host: true`) → délègue à `site2branch()` : copie
   `_site/` dans un dépôt temporaire, fait un commit unique, force-push
@@ -214,7 +214,7 @@ Pour forcer un re-upload FTP complet (par exemple après nettoyage côté
 serveur) sans purger le serveur :
 
 ```r
-ofceweb::deploy_site(full_deploy = TRUE)
+ofceweb::deploy(full_deploy = TRUE)
 ```
 
 ## 6. Récapitulatif
@@ -231,10 +231,10 @@ ofceweb::setup_site(
 # gh secret set STATICRYPT_PASSWORD --repo owner/mon-depot
 
 # 3. rendu
-ofceweb::render_site()
+ofceweb::render()
 
 # 4. déploiement
-ofceweb::deploy_site()
+ofceweb::deploy()
 ```
 
 ## Helpers à connaître
@@ -246,6 +246,6 @@ ofceweb::deploy_site()
   (`v0` → `v1`, `v3_4` → `v3_5`, etc.). OFCE uniquement.
 - `push_site_redirect()` — génère et pousse une page `index.html` de
   redirection vers la version courante (si le `site-path` contient un
-  segment `/v\d+`). Appelée automatiquement par `stage_site()` et
-  `site_version_up()` ; utile à appeler manuellement après une correction
+  segment `/v\d+`). Appelée automatiquement par `publish()` (pour un site
+  générique) et `site_version_up()` ; utile à appeler manuellement après une correction
   d'urgence sans changement de version.

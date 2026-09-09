@@ -9,7 +9,7 @@
 #' de version (`/v[0-9]+`) ou si `ofce_host` n'est pas `true`.
 #'
 #' Appelée automatiquement par [site_version_up()] lors d'un incrément de
-#' version, et par [stage_site()] à chaque déploiement staging.
+#' version, et par `publish_site()` à chaque déploiement staging.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
@@ -17,7 +17,7 @@
 #'   après le push via [trigger_action()].
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
-#' @seealso [site_version_up()], [stage_site()], [deploy_site()]
+#' @seealso [site_version_up()], [deploy_site()]
 #' @importFrom fs path_expand path_abs path_norm path file_exists dir_create dir_delete
 #' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_info cli_abort cli_warn
 #' @importFrom yaml read_yaml

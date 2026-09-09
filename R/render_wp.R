@@ -33,7 +33,7 @@
 #' @importFrom tictoc tic toc
 #' @importFrom servr daemon_stop httw
 #' @importFrom quarto quarto_render
-#' @export
+#' @keywords internal
 render_wp <- function(
     path = ".",
     check       = TRUE,
@@ -185,7 +185,7 @@ render_wp <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [render_wp()], [deploy_wp()], [push_wp_redirect()], [setup_wp()]
-#' @export
+#' @keywords internal
 publish_wp <- function(
     path        = ".",
     check       = TRUE,

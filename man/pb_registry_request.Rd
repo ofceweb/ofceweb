@@ -84,3 +84,4 @@ permettre de résoudre `GET /user` et de pousser une branche sur
 \seealso{
 [setup_pb()], [render_pb()], [deploy_pb()]
 }
+\keyword{internal}

@@ -16,9 +16,9 @@ initialisation, vérification, rendu et déploiement. Les fonctions
 principales sont :
 
 - `setup_prev()` — initialise ou met à jour le dépôt,
-- `check_prev()` — diagnostique la configuration,
-- `render_prev()` — construit le site avec le profil Quarto choisi,
-- `deploy_prev()` — pousse le site rendu vers le bon serveur.
+- `check()` — diagnostique la configuration,
+- `render()` — construit le site avec le profil Quarto choisi,
+- `deploy()` — pousse le site rendu vers le bon serveur.
 
 **Pré-requis.** Vous devez disposer d'un PAT GitHub stocké dans
 `DEPLOY_PAT` et de l'outil `gh` (GitHub CLI) authentifié. Si ce n'est
@@ -81,10 +81,10 @@ sans chiffrement.
 ## 3. Vérifier la configuration
 
 ```r
-ofceweb::check_prev()
+ofceweb::check()
 ```
 
-`check_prev()` parcourt la configuration et signale deux niveaux de
+`check()` (dispatché vers le diagnostic `prev`) parcourt la configuration et signale deux niveaux de
 problèmes :
 
 - **Erreurs bloquantes** — empêcheront le rendu ou le déploiement en
@@ -93,7 +93,7 @@ problèmes :
   causer des échecs CI (ex. `STATICRYPT_PASSWORD` non défini, fichier
   de profil déclaré mais manquant).
 
-`check_prev()` retourne un data frame invisible avec les colonnes
+`check()` retourne un data frame invisible avec les colonnes
 `field`, `status` (`"ok"`, `"warning"`, `"error"`) et `message`, ce
 qui permet de l'intégrer dans des pipelines automatisés.
 
@@ -101,16 +101,16 @@ qui permet de l'intégrer dans des pipelines automatisés.
 
 ```r
 # Profil staging (défaut)
-ofceweb::render_prev(profile = "staging")
+ofceweb::render(profile = "staging")
 
 # Profil publish
-ofceweb::render_prev(profile = "publish")
+ofceweb::render(profile = "publish")
 
 # Profil personnalisé (ex. brouillon)
-ofceweb::render_prev(profile = "review")
+ofceweb::render(profile = "review")
 ```
 
-`render_prev()` :
+`render()` (dispatché vers le rendu `prev`) :
 
 1. Vérifie que `_quarto.yml` est présent et marqué `ofce_prev: true`.
 2. Vide le répertoire de sortie `_site_{profil}/`.
@@ -128,16 +128,16 @@ correspondant (voir §6).
 
 ```r
 # Déployer la version staging
-ofceweb::deploy_prev(profile = "staging")
+ofceweb::deploy(profile = "staging")
 
 # Déployer la version publish
-ofceweb::deploy_prev(profile = "publish")
+ofceweb::deploy(profile = "publish")
 
 # Déployer un profil personnalisé
-ofceweb::deploy_prev(profile = "review")
+ofceweb::deploy(profile = "review")
 ```
 
-`deploy_prev()` suppose que le rendu a déjà été effectué (le dossier
+`deploy()` suppose que le rendu a déjà été effectué (le dossier
 `_site_{profil}/` doit exister). Il :
 
 1. Copie `_site_{profil}/` dans un dépôt git temporaire.
@@ -149,19 +149,19 @@ Pour les profils personnalisés, le workflow `ftp_deploy_profile.yml`
 déploie vers `prev{id}/{profil}/` sur le serveur staging, avec
 chiffrement staticrypt — le profil joue le rôle de version.
 
-Les fonctions `stage_prev()` et `publish_prev()` combinent rendu et
+Les fonctions `stage_prev()` et `publish()` combinent rendu et
 déploiement en un appel :
 
 ```r
-ofceweb::stage_prev()    # render_prev("staging") + site2staging()
-ofceweb::publish_prev()  # render_prev("publish") + site2publish()
+ofceweb::stage_prev()    # render("staging") + site2staging()
+ofceweb::publish()       # render("publish") + site2publish()
 ```
 
 Pour forcer un re-upload FTP complet (utile après nettoyage côté
 serveur) :
 
 ```r
-ofceweb::deploy_prev(profile = "staging", full_deploy = TRUE)
+ofceweb::deploy(profile = "staging", full_deploy = TRUE)
 ```
 
 ## 6. Profils personnalisés
@@ -196,8 +196,8 @@ website:
 3. Rendre et déployer :
 
 ```r
-ofceweb::render_prev(profile = "review")
-ofceweb::deploy_prev(profile = "review")
+ofceweb::render(profile = "review")
+ofceweb::deploy(profile = "review")
 ```
 
 Le site est alors accessible sous `staging/prev2603/review/` sur le
@@ -244,17 +244,17 @@ ofceweb::setup_prev()
 # git add . && git commit -m "init" && git push
 
 # 2. vérifier la configuration
-ofceweb::check_prev()
+ofceweb::check()
 
 # 3. rendre
-ofceweb::render_prev(profile = "staging")   # ou "publish", ou un profil custom
+ofceweb::render(profile = "staging")   # ou "publish", ou un profil custom
 
 # 4. déployer
-ofceweb::deploy_prev(profile = "staging")
+ofceweb::deploy(profile = "staging")
 
 # raccourcis render + deploy
 ofceweb::stage_prev()
-ofceweb::publish_prev()
+ofceweb::publish()
 ```
 
 ## Fonctions de référence
@@ -262,11 +262,11 @@ ofceweb::publish_prev()
 | Fonction | Rôle |
 |----------|------|
 | `setup_prev()` | Initialise / met à jour le dépôt |
-| `check_prev()` | Diagnostique la configuration |
-| `render_prev(profile)` | Construit `_site_{profile}/` |
-| `deploy_prev(profile)` | Pousse vers la branche et déclenche le CI |
+| `check()` | Diagnostique la configuration |
+| `render(profile)` | Construit `_site_{profile}/` |
+| `deploy(profile)` | Pousse vers la branche et déclenche le CI |
 | `stage_prev()` | render staging + deploy staging |
-| `publish_prev()` | render publish + deploy publish |
+| `publish()` | render publish + deploy publish |
 | `site2staging()` | Deploy-only vers `site-staging` |
 | `site2publish()` | Deploy-only vers `site-publish` |
 | `site2profile(profile)` | Deploy-only vers `site-{profile}` |

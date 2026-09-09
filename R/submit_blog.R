@@ -126,7 +126,7 @@ scan_qmd_deps <- function(qmd_path) {
 #' @importFrom fs path_dir path_file path file_exists
 #' @importFrom cli cli_h1 cli_rule cli_alert_success cli_alert_warning cli_alert_danger
 #' @importFrom purrr transpose
-#' @export
+#' @keywords internal
 check_blog <- function(path = ".", verbose = TRUE) {
 
   qmd_path <- .resolve_qmd(path)

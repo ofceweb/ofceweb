@@ -19,7 +19,7 @@
 #'   Par défaut égale à `site2branch`.
 #'
 #' @returns Appelée pour ses effets de bord. Retourne invisiblement `NULL`.
-#' @export
+#' @keywords internal
 render_home <- function(
     path = ".",
     check_repo = TRUE,
@@ -40,13 +40,6 @@ render_home <- function(
     cli::cli_abort("Le projet ne contient pas de dossier ofce")
   }
 
-  if(project != "webhome") {
-    cli::cli_alert_danger(
-      "Ce n'est pas le repo {.emph webhome}, mais {.emph {project}}")
-    answer <- readline("Etes vous sûr.e de vouloir continuer ? [o/N] ")
-    if (!tolower(answer) %in% c("o", "oui"))
-      cli::cli_abort("ABORT")
-  }
   oldwd <- getwd()
   quarto_yml_path <- "_quarto.yml"
   quarto_yml_bak  <- "_quarto.yml.bak"
@@ -84,12 +77,7 @@ render_home <- function(
   run_render_scripts(post_render_scripts)
 
   if(site2branch) {
-    site2branch(
-      path = ".",
-      branch = "site-deploy",
-      source = "_site",
-      progress = progress,
-      trigger = trigger)
+    deploy_home(path = root, progress = progress, trigger = trigger)
   } else {
     cli::cli_text(
       "Pour publier _site, lancer {.run ofceweb::site2branch()} dans le même répertoire"
@@ -112,7 +100,7 @@ render_home <- function(
 #' @inheritParams render_home
 #' @returns Appelée pour ses effets de bord. Retourne invisiblement `NULL`.
 #' @seealso [render_home()], [site2branch()]
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -132,6 +120,38 @@ publish_home <- function(
     site2branch = TRUE,
     trigger = trigger
   )
+}
+
+#' Déploie la homepage du site OFCE
+#'
+#' Pousse le répertoire `_site` déjà rendu (via [render_home()]) vers la
+#' branche git `site-deploy`, en déclenchant en option le workflow GitHub
+#' Actions de déploiement FTP.
+#'
+#' @param path Chemin vers la racine du projet (dossier `webhome`). Défaut `"."`.
+#' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
+#' @param trigger Passé à [site2branch()]. Défaut `TRUE`.
+#' @param ... Arguments supplémentaires passés à [site2branch()].
+#'
+#' @returns Invisible : valeur de retour de [site2branch()].
+#' @seealso [render_home()], [site2branch()]
+#' @keywords internal
+deploy_home <- function(path = ".", progress = TRUE, trigger = TRUE, ...) {
+  root <- path |>
+    fs::path_expand() |>
+    fs::path_abs() |>
+    fs::path_norm()
+
+  res <- site2branch(
+    path     = root,
+    branch   = "site-deploy",
+    source   = "_site",
+    progress = progress,
+    trigger  = trigger,
+    ...
+  )
+
+  invisible(res)
 }
 
 run_render_scripts <- function(scripts) {

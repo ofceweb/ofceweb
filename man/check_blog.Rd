@@ -19,3 +19,4 @@ Inspecte le YAML frontmatter du `.qmd` et les fichiers qu'il référence pour
 détecter les problèmes bloquants (champs obligatoires manquants, fichiers
 introuvables) et les avertissements (dépendances manquantes).
 }
+\keyword{internal}

@@ -82,3 +82,4 @@ permettre de résoudre `GET /user` et de pousser une branche sur
 \seealso{
 [setup_wp()], [render_wp()], [deploy_wp()]
 }
+\keyword{internal}

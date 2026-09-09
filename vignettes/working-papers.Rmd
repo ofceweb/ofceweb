@@ -24,7 +24,26 @@ GitHub. Un WP produit deux sorties :
 
 Il peut contenir des **annexes** (`annexes.qmd`) et un **historique des
 révisions** (`news.qmd`), ainsi que tout autre document que l'on
-souhaite (code, explications de code, de données, etc...).
+souhaite (code, explications de code, de données, etc...). Le document `index.qmd` est le docuement principal (il peut être le seul document).
+
+1.  On initialise ou corrige une installation avec  `setup_wp()`
+2.  On vérifie et diagnostique par `check()`
+2.  On fait le rendu avec `render()` (on peut avoir à régler de nombreux problèmes de rendu)
+3.  On publie avec `publish()` (envoyé en *staging* tant qu'il n'est pas validé, ou sur une url stable lorsqu'il est validé)
+4.  On demande la validation par `registry_request()`
+
+Note: le bouton `render` de **Rstudio** ne produit pas le même résultat que `render()`. Le menu **Addins** de **RStudio** contient les items render/publish/etc...
+
+### Prérequis
+
+la vignette `vignette("prequisites")` décrit ce qui est nécessaire pour que la procédure fonctionne. Il faut :
+
+1.  Avoir installé `git`, `gh` sur son ordinateur
+2.  Etre correctement identifié/loggé pour `git` et `gh` (github.com)
+3.  Avoir généré/disposé des tokens (PAT) poriu l'identification
+3.  Avoir transféré son dépôt sur le github de l'OFCE
+
+La fonction `check()` réalise un diagnostic. La plupart de ces prérequis sont à faire une fois et une seule. N'hésitez pas à demander de l'aide en cas de difficulté.
 
 ### Cycle de vie
 
@@ -38,11 +57,15 @@ Lorsque le docuement de travail est *stagé* sur le site staging.ofce.fr,
 il est possible de versionner. Le versionnage est impossible sur github
 gh-pages.
 
+La fonction `wp_version_up()` incrémente la version. Il faut faire `publish()` ensuite.
+
 Pour être *stagé* sur le site ofce.fr ou publié, la propriété du dépôt
 doit être transférée à l'organisation OFCE. On recommande la convention
 de nommage suitante :
 `wp-{initiales de l'auteur.e}-{nom court du projet}`, le TOUT EN
 MINUSCULE. Par exemple `wp-gaxt-trec`.
+
+
 
 ------------------------------------------------------------------------
 
@@ -102,10 +125,10 @@ Vous trouverez dans le package `{ofce}` de nombreux outils pour faciliter le tra
 ## 2. Vérifier la structure avant rendu
 
 ```{r}
-check_wp()
+check()
 ```
 
-`check_wp()` vérifie :
+`check()` vérifie :
 
 - Connexion GitHub : `gh::gh("GET /user")` (warning non bloquant si
   absent)
@@ -127,7 +150,7 @@ appelée par `render_wp()`.
 ## 3. Rendre le WP
 
 ```{r}
-render_wp(
+render(
   path        = ".",
   check       = TRUE,   # appeler check_wp() avant rendu
   render_site = TRUE,   # lancer un serveur local après rendu
@@ -137,7 +160,7 @@ render_wp(
 
 **Pipeline** :
 
-1.  `check_wp()` si `check` (abandon si erreurs bloquantes)
+1.  `check()` si `check` (abandon si erreurs bloquantes)
     - Vérifie la connexion GitHub (`gh::gh("GET /user")`)
 2.  Vide `_site/`
 3.  `quarto::quarto_render(output_format = "all")` — HTML + PDF
@@ -154,7 +177,7 @@ render_wp(
 ## 4. Déployer le WP
 
 ```{r}
-deploy_wp()
+deploy()
 ```
 
 Le comportement dépend de la valeur de `wp` dans `_quarto.yml` :
@@ -179,7 +202,7 @@ une entrée confirmée, `setup_wp()` synchronise `wp`/`annee` (et `draft`)
 depuis cette entrée, en écrasant toute valeur passée en argument ou déjà
 présente dans `_quarto.yml`.
 
-1.  Demander un numéro via `wp_registry_request()`, qui calcule le
+1.  Demander un numéro via `registry_request()`, qui calcule le
     numéro (auto-incrémenté, ou fourni via `wp =`) et ouvre une PR
     contre `ofce/wp-registry` — `annee` est lu depuis `_quarto.yml` si
     absent, et `contact` depuis `git config user.email` si non fourni
@@ -187,7 +210,7 @@ présente dans `_quarto.yml`.
     :
 
 ```{r}
-wp_registry_request()
+registry_request()
 ```
 
 Un·e admin OFCE doit approuver et fusionner cette PR — la fonction
@@ -222,12 +245,11 @@ setup_wp()
 3.  Rendre et déployer :
 
 ```{r}
-render_wp()
-deploy_wp()
+render()
+deploy()
 ```
 
-`publish_wp()` (qui enchaîne `render_wp()` et `deploy_wp()` — voir
-`publish()` pour la dispatche automatique selon le type de dépôt) refait
+`publish()` (qui enchaîne `render()` et `deploy()`) refait
 cette consultation du registre juste avant le rendu, pour rattraper un
 enregistrement survenu depuis le dernier `setup_wp()` — mais ne
 recalcule que `draft`/`wp`/`annee`, pas `site-path`/`citation.*` : si le
@@ -260,7 +282,7 @@ gh secret set STATICRYPT_PASSWORD --repo owner/mon-wp
 gh secret delete STATICRYPT_PASSWORD --repo owner/mon-wp
 ```
 
-Le rendu local (`render_wp()`) produit toujours du HTML en clair.
+Le rendu local (`render()`) produit toujours du HTML en clair.
 
 ------------------------------------------------------------------------
 
@@ -281,8 +303,10 @@ wp_version_up(custom_version = "v1_corr")   # version personnalisée
 Après l'incrémentation, rendre et déployer à nouveau :
 
 ```{r}
-render_wp()
-deploy_wp()
+render()
+deploy()
+
+# ou publish()
 ```
 
 ------------------------------------------------------------------------

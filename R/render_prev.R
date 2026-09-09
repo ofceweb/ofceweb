@@ -23,7 +23,7 @@
 #' @importFrom servr daemon_stop httw
 #' @importFrom quarto quarto_render
 #' @importFrom yaml read_yaml
-#' @export
+#' @keywords internal
 render_prev <- function(
     path     = ".",
     profile  = "staging",
@@ -198,7 +198,7 @@ stage_prev <- function(
 #' @returns Invisible `NULL`.
 #' @seealso [render_prev()], [deploy_prev()], [stage_prev()]
 #' @importFrom gh gh
-#' @export
+#' @keywords internal
 publish_prev <- function(
     path        = ".",
     progress    = TRUE,

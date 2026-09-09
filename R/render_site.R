@@ -18,14 +18,14 @@
 #' @param workers Entier. Nombre de workers parallèles. Défaut `8L`.
 #'
 #' @returns Invisible : sortie de [gert::git_status()].
-#' @seealso [setup_site()], [stage_site()], [site2branch()], [render_blog()]
+#' @seealso [setup_site()], [site2branch()], [render_blog()]
 #' @importFrom fs path_expand path_abs path_norm path_file path file_exists dir_exists dir_delete dir_ls file_delete
 #' @importFrom cli cli_h1 cli_h2 cli_abort cli_text cli_alert_warning
 #' @importFrom tictoc tic toc
 #' @importFrom servr daemon_stop httw
 #' @importFrom quarto quarto_render
 #' @importFrom gert git_status git_remote_list
-#' @export
+#' @keywords internal
 render_site <- function(
     path = ".",
     check_repo = TRUE,
@@ -172,8 +172,8 @@ rewrite_absolute_hrefs <- function(root) {
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [render_site()], [deploy_site()], [push_site_redirect()], [setup_site()]
-#' @export
-stage_site <- function(
+#' @keywords internal
+publish_site <- function(
     path        = ".",
     check_repo  = TRUE,
     progress    = TRUE,

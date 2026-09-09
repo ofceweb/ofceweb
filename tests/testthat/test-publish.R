@@ -1,8 +1,9 @@
-# publish() dispatches to publish_wp()/publish_prev()/publish_blog()/
-# stage_site() based on detect_repo_type() — the same detection logic used
-# by render() (see R/render.R for detect_repo_type() and its own tests).
-# Site has no dedicated publish_site(): stage_site() (render + deploy)
-# stands in for it, since generic sites have no staging/publish split.
+# publish() dispatches to the internal publish_xxx() functions based on
+# detect_repo_type() -- the same detection logic used by render() (see
+# R/render.R for detect_repo_type() and its own tests). Site has no dedicated
+# staging/publish split, so `publish_site()` (render + deploy) stands in for
+# it -- an internal rename of the former `stage_site()`, kept as the
+# `publish` column of the shared dispatch table (see R/repo_type.R).
 
 test_that("publish() dispatches to publish_wp() for a WP repo", {
   dir <- withr::local_tempdir()
@@ -13,7 +14,7 @@ test_that("publish() dispatches to publish_wp() for a WP repo", {
     publish_wp   = function(path, ...) { called <<- TRUE; invisible(NULL) },
     publish_prev = function(...) stop("should not be called"),
     publish_blog = function(...) stop("should not be called"),
-    stage_site   = function(...) stop("should not be called")
+    publish_site = function(...) stop("should not be called")
   )
 
   suppressMessages(publish(dir))
@@ -29,7 +30,20 @@ test_that("publish() dispatches to publish_prev() for a prev repo", {
     publish_wp   = function(...) stop("should not be called"),
     publish_prev = function(path, ...) { called <<- TRUE; invisible(NULL) },
     publish_blog = function(...) stop("should not be called"),
-    stage_site   = function(...) stop("should not be called")
+    publish_site = function(...) stop("should not be called")
+  )
+
+  suppressMessages(publish(dir))
+  expect_true(called)
+})
+
+test_that("publish() dispatches to publish_pb() for a pb repo", {
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(ofce_pb = TRUE, pb = 5L))
+
+  called <- FALSE
+  local_mocked_bindings(
+    publish_pb = function(path, ...) { called <<- TRUE; invisible(NULL) }
   )
 
   suppressMessages(publish(dir))
@@ -37,7 +51,8 @@ test_that("publish() dispatches to publish_prev() for a prev repo", {
 })
 
 test_that("publish() dispatches to publish_blog() for a blog repo", {
-  dir <- withr::local_tempdir()
+  dir <- fs::path(withr::local_tempdir(), "webblog")
+  fs::dir_create(dir)
   write_quarto_yml(dir, list(title = "Un blog"))
   fs::dir_create(fs::path(dir, "posts"))
 
@@ -46,14 +61,42 @@ test_that("publish() dispatches to publish_blog() for a blog repo", {
     publish_wp   = function(...) stop("should not be called"),
     publish_prev = function(...) stop("should not be called"),
     publish_blog = function(path, ...) { called <<- TRUE; invisible(NULL) },
-    stage_site   = function(...) stop("should not be called")
+    publish_site = function(...) stop("should not be called")
   )
 
   suppressMessages(publish(dir))
   expect_true(called)
 })
 
-test_that("publish() dispatches to stage_site() for a generic site repo", {
+test_that("publish() dispatches to publish_ife() for an ife repo", {
+  dir <- fs::path(withr::local_tempdir(), "ife_webhome")
+  fs::dir_create(dir)
+  write_quarto_yml(dir, list(project = list(type = "ife-website")))
+
+  called <- FALSE
+  local_mocked_bindings(
+    publish_ife = function(path, ...) { called <<- TRUE; invisible(NULL) }
+  )
+
+  suppressMessages(publish(dir))
+  expect_true(called)
+})
+
+test_that("publish() dispatches to publish_home() for a home repo", {
+  dir <- fs::path(withr::local_tempdir(), "webhome")
+  fs::dir_create(dir)
+  write_quarto_yml(dir, list(ofce_home = TRUE))
+
+  called <- FALSE
+  local_mocked_bindings(
+    publish_home = function(path, ...) { called <<- TRUE; invisible(NULL) }
+  )
+
+  suppressMessages(publish(dir))
+  expect_true(called)
+})
+
+test_that("publish() dispatches to publish_site() for a generic site repo", {
   dir <- withr::local_tempdir()
   write_quarto_yml(dir, list(title = "Un site quelconque"))
 
@@ -62,7 +105,7 @@ test_that("publish() dispatches to stage_site() for a generic site repo", {
     publish_wp   = function(...) stop("should not be called"),
     publish_prev = function(...) stop("should not be called"),
     publish_blog = function(...) stop("should not be called"),
-    stage_site   = function(path, ...) { called <<- TRUE; invisible(NULL) }
+    publish_site = function(path, ...) { called <<- TRUE; invisible(NULL) }
   )
 
   suppressMessages(publish(dir))
@@ -92,7 +135,7 @@ test_that("publish() honours an explicit type= override", {
   # explicit `type=` bypasses detection entirely.
   called <- FALSE
   local_mocked_bindings(
-    stage_site = function(path, ...) { called <<- TRUE; invisible(NULL) }
+    publish_site = function(path, ...) { called <<- TRUE; invisible(NULL) }
   )
 
   suppressMessages(publish(dir, type = "site"))

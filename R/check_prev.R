@@ -49,7 +49,7 @@
 #' @importFrom cli cli_h1 cli_alert_success cli_alert_warning cli_alert_danger cli_rule
 #' @importFrom yaml read_yaml
 #' @importFrom gh gh
-#' @export
+#' @keywords internal
 check_prev <- function(path = ".", verbose = TRUE) {
 
   root <- path |>

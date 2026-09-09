@@ -56,3 +56,4 @@ prévisualisation locale.
 \seealso{
 [setup_pb()], [check_pb()], [deploy_pb()]
 }
+\keyword{internal}

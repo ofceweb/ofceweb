@@ -48,7 +48,7 @@ jobs:
         env:
           DEPLOY_PAT: ${{ secrets.DEPLOY_PAT }}
           GITHUB_PAT: ${{ secrets.GH_PAT }}
-        run: Rscript -e "ofceweb::render_wp(check_repo = FALSE, render_site = FALSE, site2branch = FALSE)"
+        run: Rscript -e "ofceweb::render(check_repo = FALSE, render_site = FALSE, site2branch = FALSE)"
 
       - name: Chiffrement staticrypt (si STATICRYPT_PASSWORD défini)
         run: |

@@ -44,3 +44,4 @@ publish_home()
 \seealso{
 [render_home()], [site2branch()]
 }
+\keyword{internal}

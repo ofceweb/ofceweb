@@ -39,3 +39,4 @@ avant le transfert FTP.
 \seealso{
 [stage_prev()], [publish_prev()], [setup_prev()], [check_prev()]
 }
+\keyword{internal}

@@ -68,7 +68,7 @@
 #' @importFrom jsonlite fromJSON toJSON read_json
 #' @importFrom gert git_clone git_branch_create git_add git_commit git_signature
 #' @importFrom httr2 request req_url_path req_url_query req_auth_bearer_token req_headers req_body_json req_perform resp_status resp_body_json
-#' @export
+#' @keywords internal
 pb_registry_request <- function(
     path          = ".",
     pb            = NULL,

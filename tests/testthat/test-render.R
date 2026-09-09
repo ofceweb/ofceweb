@@ -1,6 +1,6 @@
-# render() dispatches to render_wp()/render_site()/render_prev()/render_blog()
-# based on detect_repo_type(), which reads `_quarto.yml` markers and folder
-# structure. See R/render.R.
+# render() dispatches to the internal render_xxx() functions based on
+# detect_repo_type(), which reads `_quarto.yml` markers and folder structure.
+# See R/render.R and R/repo_type.R (.ofce_dispatch()).
 
 # ---- detect_repo_type() ----------------------------------------------------
 
@@ -14,6 +14,24 @@ test_that("detect_repo_type() recognises a prev repo via ofce_prev: true", {
   dir <- withr::local_tempdir()
   write_quarto_yml(dir, list(ofce_prev = TRUE, prev = 3L, annee = 2026L))
   expect_equal(detect_repo_type(dir), "prev")
+})
+
+test_that("detect_repo_type() recognises a pb repo via ofce_pb: true", {
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(ofce_pb = TRUE, pb = 5L))
+  expect_equal(detect_repo_type(dir), "pb")
+})
+
+test_that("detect_repo_type() recognises a home repo via ofce_home: true", {
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(ofce_home = TRUE))
+  expect_equal(detect_repo_type(dir), "home")
+})
+
+test_that("detect_repo_type() recognises an ife repo via project: type: ife-website", {
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(project = list(type = "ife-website")))
+  expect_equal(detect_repo_type(dir), "ife")
 })
 
 test_that("detect_repo_type() recognises a blog via a posts/ directory", {
@@ -32,6 +50,12 @@ test_that("detect_repo_type() falls back to site when _quarto.yml has no marker"
 test_that("detect_repo_type() errors when both ofce_wp and ofce_prev are true", {
   dir <- withr::local_tempdir()
   write_quarto_yml(dir, list(ofce_wp = TRUE, ofce_prev = TRUE))
+  expect_error(detect_repo_type(dir), "incoh")
+})
+
+test_that("detect_repo_type() errors when both ofce_wp and ofce_home are true", {
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(ofce_wp = TRUE, ofce_home = TRUE))
   expect_error(detect_repo_type(dir), "incoh")
 })
 
@@ -74,8 +98,23 @@ test_that("render() dispatches to render_prev() for a prev repo", {
   expect_true(called)
 })
 
-test_that("render() dispatches to render_blog() for a blog repo", {
+test_that("render() dispatches to render_pb() for a pb repo", {
   dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(ofce_pb = TRUE, pb = 5L))
+
+  called <- FALSE
+  local_mocked_bindings(
+    render_pb = function(path, ...) { called <<- TRUE; invisible(NULL) }
+  )
+
+  suppressMessages(render(dir))
+  expect_true(called)
+})
+
+test_that("render() dispatches to render_blog() for a blog repo", {
+  # webblog is the canonical expected folder name for blog (validate_repo_name()).
+  dir <- fs::path(withr::local_tempdir(), "webblog")
+  fs::dir_create(dir)
   write_quarto_yml(dir, list(title = "Un blog"))
   fs::dir_create(fs::path(dir, "posts"))
 
@@ -85,6 +124,34 @@ test_that("render() dispatches to render_blog() for a blog repo", {
     render_site = function(...) stop("should not be called"),
     render_prev = function(...) stop("should not be called"),
     render_blog = function(path, ...) { called <<- TRUE; invisible(NULL) }
+  )
+
+  suppressMessages(render(dir))
+  expect_true(called)
+})
+
+test_that("render() dispatches to render_ife() for an ife repo", {
+  dir <- fs::path(withr::local_tempdir(), "ife_webhome")
+  fs::dir_create(dir)
+  write_quarto_yml(dir, list(project = list(type = "ife-website")))
+
+  called <- FALSE
+  local_mocked_bindings(
+    render_ife = function(path, ...) { called <<- TRUE; invisible(NULL) }
+  )
+
+  suppressMessages(render(dir))
+  expect_true(called)
+})
+
+test_that("render() dispatches to render_home() for a home repo", {
+  dir <- fs::path(withr::local_tempdir(), "webhome")
+  fs::dir_create(dir)
+  write_quarto_yml(dir, list(ofce_home = TRUE))
+
+  called <- FALSE
+  local_mocked_bindings(
+    render_home = function(path, ...) { called <<- TRUE; invisible(NULL) }
   )
 
   suppressMessages(render(dir))

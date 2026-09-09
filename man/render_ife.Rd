@@ -52,3 +52,4 @@ sitemap elle-même : le projet `ife-website` s'appuie sur son propre
 \seealso{
 [publish_ife()], [site2branch()], [render_site()]
 }
+\keyword{internal}

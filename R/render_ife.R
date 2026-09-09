@@ -32,7 +32,7 @@
 #' @importFrom tictoc tic toc
 #' @importFrom servr daemon_stop httw
 #' @importFrom quarto quarto_render
-#' @export
+#' @keywords internal
 render_ife <- function(
     path = ".",
     check_repo = TRUE,
@@ -61,14 +61,6 @@ render_ife <- function(
       "i" = "Ce dossier ne semble pas \u00eatre le d\u00e9p\u00f4t {.emph ife_webhome}."
     ))
 
-  if(project != "ife_webhome") {
-    cli::cli_alert_danger(
-      "Ce n'est pas le repo {.emph ife_webhome}, mais {.emph {project}}")
-    answer <- readline("Etes vous s\u00fbr.e de vouloir continuer ? [o/N] ")
-    if(!tolower(answer) %in% c("o", "oui"))
-      cli::cli_abort("ABORT")
-  }
-
   oldwd <- getwd()
   on.exit(setwd(oldwd))
   setwd(root)
@@ -91,12 +83,7 @@ render_ife <- function(
   tictoc::toc()
 
   if(site2branch) {
-    site2branch(
-      path = ".",
-      branch = "site-deploy",
-      source = "_site",
-      progress = progress,
-      trigger = trigger)
+    deploy_ife(path = root, progress = progress, trigger = trigger)
   } else {
     cli::cli_text(
       "Pour publier _site, lancer {.run ofceweb::site2branch()} dans le m\u00eame r\u00e9pertoire")
@@ -120,7 +107,7 @@ render_ife <- function(
 #' @inheritParams render_ife
 #' @returns Appelée pour ses effets de bord. Retourne invisiblement `NULL`.
 #' @seealso [render_ife()], [site2branch()]
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -140,4 +127,36 @@ publish_ife <- function(
     site2branch = TRUE,
     trigger = trigger
   )
+}
+
+#' Déploie le site IFE (ife_webhome)
+#'
+#' Pousse le répertoire `_site` déjà rendu (via [render_ife()]) vers la
+#' branche git `site-deploy`, en déclenchant en option le workflow GitHub
+#' Actions de déploiement FTP (`ftp_deploy.yml`).
+#'
+#' @param path Chemin vers la racine du dépôt (dossier `ife_webhome`). Défaut `"."`.
+#' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
+#' @param trigger Passé à [site2branch()]. Défaut `TRUE`.
+#' @param ... Arguments supplémentaires passés à [site2branch()].
+#'
+#' @returns Invisible : valeur de retour de [site2branch()].
+#' @seealso [render_ife()], [site2branch()]
+#' @keywords internal
+deploy_ife <- function(path = ".", progress = TRUE, trigger = TRUE, ...) {
+  root <- path |>
+    fs::path_expand() |>
+    fs::path_abs() |>
+    fs::path_norm()
+
+  res <- site2branch(
+    path     = root,
+    branch   = "site-deploy",
+    source   = "_site",
+    progress = progress,
+    trigger  = trigger,
+    ...
+  )
+
+  invisible(res)
 }

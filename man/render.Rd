@@ -10,40 +10,45 @@ render(path = ".", type = NULL, ...)
 \item{path}{Chemin vers la racine du dépôt. Défaut `"."`.}
 
 \item{type}{Force le type de dépôt (`"wp"`, `"site"`, `"prev"`, `"pb"`,
-`"ife"` ou `"blog"`) plutôt que de le détecter automatiquement. Défaut
-`NULL` (détection automatique).}
+`"ife"`, `"home"` ou `"blog"`) plutôt que de le détecter automatiquement.
+Défaut `NULL` (détection automatique).}
 
 \item{...}{Arguments supplémentaires transmis à la fonction de rendu
-choisie ([render_wp()], [render_site()], [render_prev()], [render_pb()],
-[render_ife()] ou [render_blog()]). Ces fonctions n'ont pas toutes la
-même signature ; passer un argument non reconnu par la fonction cible
-provoquera une erreur R standard ("unused argument").}
+choisie. Ces fonctions n'ont pas toutes la même signature ; passer un
+argument non reconnu par la fonction cible provoquera une erreur R
+standard ("unused argument").}
 }
 \value{
 La valeur de retour de la fonction de rendu appelée.
 }
 \description{
 Inspecte le dépôt situé à `path` (via [detect_repo_type()]) et appelle
-automatiquement [render_wp()], [render_site()], [render_prev()],
-[render_ife()] ou [render_blog()] selon ce qui est détecté, plutôt que de
-devoir se souvenir de la bonne fonction à utiliser.
+automatiquement la fonction de rendu interne correspondante (WP, site
+générique, prévision, policy brief, site IFE, homepage ou blog) selon ce
+qui est détecté, plutôt que de devoir se souvenir de la bonne fonction à
+utiliser.
 }
 \details{
 La détection se fait, dans l'ordre :
 \enumerate{
-  \item `ofce_prev: true` dans `_quarto.yml` → prévision (`render_prev()`)
-  \item `ofce_wp: true` dans `_quarto.yml` → document de travail (`render_wp()`)
-  \item `ofce_pb: true` dans `_quarto.yml` → policy brief (`render_pb()`)
+  \item `ofce_prev: true` dans `_quarto.yml` → prévision
+  \item `ofce_wp: true` dans `_quarto.yml` → document de travail
+  \item `ofce_pb: true` dans `_quarto.yml` → policy brief
+  \item `ofce_home: true` dans `_quarto.yml` → homepage OFCE
   \item `project: type: ife-website` dans `_quarto.yml` → site IFE
-    (`render_ife()`)
-  \item présence d'un dossier `posts/` → blog (`render_blog()`)
+  \item présence d'un dossier `posts/` → blog ([render_blog()])
   \item présence d'un `_quarto.yml` (sans marqueur ci-dessus) → site
-    générique (`render_site()`)
+    générique
 }
 Si rien de tout cela n'est détecté, la fonction s'arrête avec un message
 invitant à lancer [setup_wp()] ou [setup_site()].
+
+Pour `blog`/`ife`/`home`, le nom du dossier local est vérifié
+(`webblog`/`ife_webhome`/`webhome` respectivement) : un dépôt mal nommé
+provoque un arrêt explicite plutôt qu'un rendu silencieux au mauvais
+endroit.
 }
 \seealso{
-[render_wp()], [render_site()], [render_prev()], [render_pb()],
-  [render_ife()], [render_blog()], [detect_repo_type()]
+[publish()], [deploy()], [check()], [registry_request()],
+  [render_blog()], [detect_repo_type()]
 }

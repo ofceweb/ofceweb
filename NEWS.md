@@ -1,5 +1,74 @@
 ## ofceweb (development version)
 
+### ⚠️ Rupture de compatibilité — API render/publish/deploy/check/registry simplifiée
+
+Seuls cinq points d'entrée sont désormais exportés pour piloter le cycle de
+vie d'un dépôt (rendu, publication, déploiement, diagnostic, demande de
+numéro registre) : **`render()`**, **`publish()`**, **`deploy()`**,
+**`check()`** et **`registry_request()`**. Chacun détecte automatiquement
+le type de dépôt (`wp`, `prev`, `pb`, `ife`, `home`, `blog`, `site`, via
+[`detect_repo_type()`]) et appelle la fonction interne correspondante — un
+argument `type=` explicite reste disponible pour forcer le type sans passer
+par la détection.
+
+**Rupture, sans période de dépréciation** : les fonctions spécifiques par
+type ci-dessous ne sont plus exportées (`render_wp()`, `render_prev()`,
+`render_pb()`, `render_ife()`, `render_home()`, `render_site()`,
+`publish_wp()`, `publish_prev()`, `publish_pb()`, `publish_ife()`,
+`publish_home()`, `stage_site()` (renommée `publish_site()`), `deploy_wp()`,
+`deploy_prev()`, `deploy_pb()`, `deploy_site()`, `check_wp()`, `check_prev()`,
+`check_pb()`, `check_blog()`, `wp_registry_request()`, `pb_registry_request()`)
+— les appeler via `ofceweb::` s'arrête désormais avec une erreur R standard
+("could not find function"). Migration :
+
+| Avant | Après |
+|---|---|
+| `render_wp()`, `render_pb()`, `render_prev()`, `render_ife()`, `render_home()`, `render_site()` | `render()` |
+| `publish_wp()`, `publish_pb()`, `publish_prev()`, `publish_ife()`, `publish_home()`, `stage_site()` | `publish()` |
+| `deploy_wp()`, `deploy_pb()`, `deploy_prev()`, `deploy_site()` | `deploy()` |
+| `check_wp()`, `check_pb()`, `check_prev()` | `check()` |
+| `wp_registry_request()`, `pb_registry_request()` | `registry_request()` |
+
+`render_blog()`/`publish_blog()` restent exportées et inchangées — le blog
+est explicitement exclu de ce round (sa logique de publication va évoluer
+séparément avec une future fonctionnalité de soumission). `stage_prev()`
+reste également exportée sous ce nom (distincte de `publish_prev()`, elle
+garde tout son sens dans le cycle de vie des prévisions).
+
+Nouveautés permises par cette consolidation :
+
+* **`deploy()`** gagne des routes pour `ife` et `home` (`deploy_ife()`/
+  `deploy_home()`, désormais des fonctions internes dédiées — auparavant, ce
+  push vers `site-deploy` était fait par du code dupliqué directement dans
+  `render_ife()`/`render_home()`).
+* **`check()`** couvre `wp`/`prev`/`pb` ; pour `ife`/`home`/`site`/`blog`,
+  qui n'ont pas (encore) de diagnostic par dépôt, elle échoue avec un
+  message explicite plutôt que de chercher une fonction inexistante.
+  `check_blog()` reste interne, appelée par `submit_blog()` comme
+  aujourd'hui — son diagnostic porte sur un post, pas sur la racine du
+  dépôt, donc `check(type = "blog")` renvoie vers `submit_blog()`.
+* **`registry_request()`** couvre `wp`/`pb` (les deux seuls types avec un
+  registre central aujourd'hui) et échoue explicitement pour les autres
+  types.
+* `detect_repo_type()` reconnaît un nouveau marqueur `ofce_home: true` dans
+  `_quarto.yml`, qui rend le type `home` (jusqu'ici seulement accessible en
+  appelant directement `render_home()`/`publish_home()`) atteignable par
+  détection automatique.
+* Pour `blog`/`ife`/`home`, qui ont chacun un unique dépôt canonique en
+  pratique, le nom du dossier local est désormais vérifié
+  (`webblog`/`ife_webhome`/`webhome`) avant tout rendu/publication/
+  déploiement — un dépôt mal nommé arrête l'exécution avec un message
+  explicite plutôt que l'ancien avertissement suivi d'une confirmation
+  interactive (`render_ife()`/`render_home()`), incompatible avec un usage
+  non interactif (CI).
+
+**Dépôts déjà déployés** : aucune action requise pour continuer à
+fonctionner en CI au prochain run — mais pour profiter des workflows GitHub
+Actions mis à jour (qui appellent désormais `ofceweb::render()` plutôt que
+la fonction spécifique au type), il faut relancer `setup_wp()`/`setup_pb()`/
+`setup_site()`/`setup_prev()` une fois, qui rafraîchit les fichiers de
+workflow comme à chaque exécution.
+
 ### Nouveau champ `stable_url`
 
 * `setup_wp()`/`setup_pb()` écrivent désormais aussi un champ `stable_url`

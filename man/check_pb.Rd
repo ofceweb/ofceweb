@@ -45,3 +45,4 @@ Contrôles effectués :
 \seealso{
 [render_pb()], [setup_pb()]
 }
+\keyword{internal}

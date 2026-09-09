@@ -40,7 +40,7 @@
 #' @importFrom jsonlite read_json
 #' @section Working Paper (WP) Users:
 #'
-#' @export
+#' @keywords internal
 deploy_wp <- function(
     path        = ".",
     progress    = TRUE,

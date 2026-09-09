@@ -60,3 +60,4 @@ Route le déploiement selon l'\u00e9tat du registre (`stage` dans
 \seealso{
 [render_wp()], [site2branch()], [wp_version_up()], [wp_registry_request()]
 }
+\keyword{internal}

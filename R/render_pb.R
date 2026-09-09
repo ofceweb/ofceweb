@@ -33,7 +33,7 @@
 #' @importFrom tictoc tic toc
 #' @importFrom servr daemon_stop httw
 #' @importFrom quarto quarto_render
-#' @export
+#' @keywords internal
 render_pb <- function(
     path = ".",
     check       = TRUE,
@@ -173,7 +173,7 @@ render_pb <- function(
 #'
 #' @returns Invisible `NULL`.
 #' @seealso [render_pb()], [deploy_pb()], [push_pb_redirect()], [setup_pb()]
-#' @export
+#' @keywords internal
 publish_pb <- function(
     path        = ".",
     check       = TRUE,

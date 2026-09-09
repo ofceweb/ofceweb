@@ -41,3 +41,4 @@ Enchaîne [render_prev()] avec le profil `"publish"` puis pousse
 \seealso{
 [render_prev()], [deploy_prev()], [stage_prev()]
 }
+\keyword{internal}

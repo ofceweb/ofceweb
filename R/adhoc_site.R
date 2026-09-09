@@ -348,7 +348,11 @@ render_folder_worker <- function(
     rendered_at  = as.character(Sys.time())
   )
   meta_file <- fs::path(output_dir, ".adhoc-meta.json")
-  jsonlite::write_json(metadata, meta_file, pretty = TRUE)
+  # auto_unbox = TRUE: without it, write_json() wraps every scalar in a
+  # single-element JSON array (e.g. "slug": ["x"]), which round-trips back
+  # as a length-1 list on read and silently breaks anything expecting a
+  # plain string (e.g. workflow_dispatch inputs).
+  jsonlite::write_json(metadata, meta_file, auto_unbox = TRUE, pretty = TRUE)
 
   # Compute and return the URL (but don't display it until deployed)
   repo_slug <- gh_slug_from_remote(repo_root)
@@ -538,8 +542,12 @@ deploy_folder_worker <- function(
   if (is.null(slug)) {
     meta_file <- fs::path(site_dir, ".adhoc-meta.json")
     if (fs::file_exists(meta_file)) {
-      metadata <- jsonlite::read_json(meta_file)
-      slug <- metadata$slug
+      # simplifyVector = TRUE so scalar fields come back as plain character
+      # vectors, not length-1 lists -- a list would later serialize as a
+      # JSON array (e.g. ["slug"]) when passed as the `profile` input to
+      # workflow_dispatch, which GitHub rejects as an invalid string value.
+      metadata <- jsonlite::read_json(meta_file, simplifyVector = TRUE)
+      slug <- as.character(metadata$slug)[[1]]
       if (progress)
         cli::cli_alert_info("Slug lu depuis les métadonnées : {.code {slug}}")
     } else {
@@ -571,12 +579,13 @@ deploy_folder_worker <- function(
   stamp_banner_push_time(site_dir)
 
   # Push via site2branch
-  # Note: We pass empty inputs to trigger_action() because GitHub's workflow_dispatch
-  # input validation can be unreliable when the workflow was just updated. The
-  # workflow extracts the profile from the branch name anyway (site-{profile}),
-  # so we don't need to pass it as an input. The branch push will occur seconds
-  # before the dispatch attempt, and the workflow can use github.ref_name to get
-  # the profile name.
+  # Note: workflow_dispatch runs the workflow against whatever ref it is
+  # dispatched to (the repo's *default* branch here, since trigger_action()
+  # doesn't target the site branch) — github.ref_name in that run is "main",
+  # NOT "site-{slug}". Relying on the branch-name fallback in the workflow's
+  # vars step only works for the automatic push-triggered run (branches:
+  # site-**), not for this explicit dispatch. So we must pass the profile
+  # explicitly as an input to get the right branch name in both cases.
   rel_site_path <- fs::path_rel(site_dir, repo_root)
 
   site2branch(
@@ -587,7 +596,7 @@ deploy_folder_worker <- function(
     trigger     = trigger,
     workflow    = "ftp_deploy_profile.yml",
     full_deploy = full_deploy,
-    inputs      = list()  # Empty; profile is extracted from branch name
+    inputs      = list(profile = slug)
   )
 
   # Compute and report URL

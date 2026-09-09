@@ -830,7 +830,11 @@ adhoc_active_doc_context <- function(action) {
        {.code .qmd}/{.code .md}."
     )
 
-  doc_path <- path |> fs::path_expand() |> fs::path_abs() |> fs::path_norm()
+  # rstudioapi returns "~"-shorthand paths resolved against R's HOME env var.
+  # fs::path_expand() does not always honour a custom HOME on Windows (it can
+  # fall back to the OS user profile), so use base::path.expand() here to
+  # stay consistent with how RStudio itself resolved the "~".
+  doc_path <- path |> path.expand() |> fs::path_abs() |> fs::path_norm()
 
   list(
     dir   = fs::path_dir(doc_path) |> as.character(),

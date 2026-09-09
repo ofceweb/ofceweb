@@ -379,6 +379,41 @@ render_folder_worker <- function(
 }
 
 
+gh_secret_present <- function(owner, repo, pat, name) {
+  check_secret_list <- function(url) {
+    resp <- httr2::request(url) |>
+      httr2::req_auth_bearer_token(pat) |>
+      httr2::req_headers(
+        "Accept"               = "application/vnd.github+json",
+        "X-GitHub-Api-Version" = "2022-11-28"
+      ) |>
+      httr2::req_error(is_error = \(r) FALSE) |>
+      httr2::req_perform()
+
+    if (httr2::resp_status(resp) != 200)
+      return(FALSE)
+
+    body <- httr2::resp_body_json(resp)
+    any(vapply(body$secrets, \(s) identical(s$name, name), logical(1)))
+  }
+
+  # Repo-level secrets and org-level secrets shared with this repo live
+  # under separate endpoints (GET .../actions/secrets only returns
+  # repo-level secrets, never those inherited from the organization).
+  repo_url <- sprintf(
+    "https://api.github.com/repos/%s/%s/actions/secrets",
+    owner, repo
+  )
+  org_url <- sprintf(
+    "https://api.github.com/repos/%s/%s/actions/organization-secrets",
+    owner, repo
+  )
+
+  tryCatch(check_secret_list(repo_url), error = \(e) FALSE) ||
+    tryCatch(check_secret_list(org_url), error = \(e) FALSE)
+}
+
+
 #' Deploy a rendered ad-hoc folder site to staging
 #'
 #' Pushes the `_site/` folder (previously rendered by [render_folder()]) to a
@@ -626,27 +661,10 @@ deploy_folder_worker <- function(
       owner_repo <- strsplit(repo_slug, "/")[[1]]
       owner <- owner_repo[1]
       repo <- owner_repo[2]
-
-      # Check if STATICRYPT_PASSWORD secret exists
-      secrets_url <- sprintf(
-        "https://api.github.com/repos/%s/%s/actions/secrets",
-        owner, repo
-      )
-      resp <- httr2::request(secrets_url) |>
-        httr2::req_auth_bearer_token(pat) |>
-        httr2::req_headers(
-          "Accept"               = "application/vnd.github+json",
-          "X-GitHub-Api-Version" = "2022-11-28"
-        ) |>
-        httr2::req_error(is_error = \(r) FALSE) |>
-        httr2::req_perform()
-
-      if (httr2::resp_status(resp) == 200) {
-        body <- httr2::resp_body_json(resp)
-        any(sapply(body$secrets, \(s) s$name == "STATICRYPT_PASSWORD"))
-      } else {
-        FALSE
-      }
+      # STATICRYPT_PASSWORD may be set either as a repo-level secret or as
+      # an org-level secret shared with this repo -- these live under
+      # separate API endpoints, so both must be checked.
+      gh_secret_present(owner, repo, pat, "STATICRYPT_PASSWORD")
     }, error = \(e) FALSE)
 
     if (encrypt && has_password) {
@@ -862,13 +880,15 @@ publish_folder_addin <- function() {
 
   cli::cli_h1("Publier le document ad-hoc : {.path {ctx$index}}")
 
-  # Ask for encryption preference
-  encrypt_choice <- rstudioapi::showDialog(
+  # Ask for encryption preference. rstudioapi::showDialog() is an OK-only
+  # alert (it always returns NULL, never a "No"); showQuestion() is the
+  # one that actually returns TRUE/FALSE based on which button is clicked.
+  encrypt <- rstudioapi::showQuestion(
     title   = "Chiffrement staticrypt",
-    message = "Publier avec chiffrement (si STATICRYPT_PASSWORD est configur\u00e9) ?"
+    message = "Publier avec chiffrement (si STATICRYPT_PASSWORD est configuré) ?",
+    ok      = "Oui",
+    cancel  = "Non"
   )
-
-  encrypt <- !identical(encrypt_choice, "No")
 
   # Publish (render + deploy) synchronously so the console/Viewer stay in
   # this session (a background job runs in a separate R process and can't
@@ -1543,13 +1563,15 @@ deploy_folder_addin <- function() {
     )
   }
 
-  # Ask for encryption preference
-  encrypt_choice <- rstudioapi::showDialog(
+  # Ask for encryption preference. rstudioapi::showDialog() is an OK-only
+  # alert (it always returns NULL, never a "No"); showQuestion() is the
+  # one that actually returns TRUE/FALSE based on which button is clicked.
+  encrypt <- rstudioapi::showQuestion(
     title   = "Chiffrement staticrypt",
-    message = "Publier avec chiffrement (si STATICRYPT_PASSWORD est configuré) ?"
+    message = "Publier avec chiffrement (si STATICRYPT_PASSWORD est configuré) ?",
+    ok      = "Oui",
+    cancel  = "Non"
   )
-
-  encrypt <- !identical(encrypt_choice, "No")
 
   # Deploy synchronously so console output stays visible in this session.
   deploy_folder(

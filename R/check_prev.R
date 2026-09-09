@@ -438,6 +438,16 @@ check_prev <- function(path = ".", verbose = TRUE) {
         jsonlite::fromJSON(paste(sec_raw, collapse = ""))$name,
         error = function(e) character()
       )
+      # `gh secret list` only returns repo-level secrets. STATICRYPT_PASSWORD
+      # may instead be configured as an org-level secret shared with this
+      # repo, which lives under a separate API endpoint -- check that too.
+      org_sec_raw  <- system2(
+        "gh",
+        c("api", "repos/:owner/:repo/actions/organization-secrets",
+          "--jq", ".secrets[].name"),
+        stdout = TRUE, stderr = FALSE
+      )
+      sec_list <- c(sec_list, org_sec_raw)
       if ("STATICRYPT_PASSWORD" %in% sec_list) {
         add_diag("STATICRYPT_PASSWORD", "ok",
                  "Secret GitHub `STATICRYPT_PASSWORD` défini.")

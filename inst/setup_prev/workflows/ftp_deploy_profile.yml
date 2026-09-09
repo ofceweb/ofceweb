@@ -11,6 +11,7 @@ on:
       profile:
         description: "Nom du profil Quarto (ex. review, draft…)"
         required: true
+        type: string
 
 jobs:
   deploy:
@@ -47,10 +48,14 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Chiffrement staticrypt (si STATICRYPT_PASSWORD défini)
+      - name: Chiffrement staticrypt (si STATICRYPT_PASSWORD défini et demandé)
         run: |
-          if [ -z "$STATICRYPT_PASSWORD" ]; then
-            echo "STATICRYPT_PASSWORD absent — déploiement sans chiffrement."
+          if [ -z "$STATICRYPT_PASSWORD" ] || [ -f .no-staticrypt ]; then
+            if [ -f .no-staticrypt ]; then
+              echo "Marqueur .no-staticrypt trouvé — chiffrement désactivé."
+            else
+              echo "STATICRYPT_PASSWORD absent — déploiement sans chiffrement."
+            fi
           else
             npm install -g staticrypt
             mkdir -p /tmp/staticrypt_out
@@ -82,6 +87,7 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
+            **/.no-staticrypt
 
       - name: Sauvegarder l'état FTP dans site-${{ steps.vars.outputs.profile }}
         run: |

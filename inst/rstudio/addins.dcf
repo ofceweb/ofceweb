@@ -29,6 +29,18 @@ Binding: publish_folder_addin
 Package: ofceweb
 Interactive: true
 
+Name: Deployer (flash)
+Description: >
+  Rend le document actif dans l'éditeur RStudio (et le dossier qui le
+  contient) comme un site Quarto autonome dans _site/, avec un slug
+  déterministe, puis le déploie immédiatement vers staging.ofce.fr en
+  un seul job d'arrière-plan. Injecte une bannière OFCE. Auto-installe
+  le workflow GitHub si absent. Prend en charge l'opt-out de chiffrement.
+Binding: deploy_folder_addin
+Package: ofceweb
+Interactive: true
+
+
 Name: Rendre (projet)
 Description: >
   Rend le projet

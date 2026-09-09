@@ -850,7 +850,7 @@ adhoc_active_doc_context <- function(action) {
 #' context: the folder to render is that document's own directory, and the
 #' document itself is used as the site's index page (see
 #' [adhoc_active_doc_context()]). Prompts for an encryption preference, then
-#' renders and deploys as a single background job.
+#' renders and deploys synchronously in the current console session.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effect of launching a
 #'   publish job.
@@ -870,7 +870,9 @@ publish_folder_addin <- function() {
 
   encrypt <- !identical(encrypt_choice, "No")
 
-  # Publish (render + deploy) with as_job = TRUE
+  # Publish (render + deploy) synchronously so the console/Viewer stay in
+  # this session (a background job runs in a separate R process and can't
+  # drive the RStudio Viewer pane or keep a preview server alive).
   publish_folder(
     path        = ctx$dir,
     index       = ctx$index,
@@ -879,7 +881,7 @@ publish_folder_addin <- function() {
     progress    = TRUE,
     trigger     = TRUE,
     full_deploy = FALSE,
-    as_job      = TRUE
+    as_job      = FALSE
   )
 
   invisible(NULL)
@@ -1484,7 +1486,10 @@ ensure_adhoc_workflow <- function(repo_root, progress = TRUE) {
 #' addin. Uses the document currently active in the RStudio editor as
 #' context: the folder to render is that document's own directory, and the
 #' document itself is used as the site's index page (see
-#' [adhoc_active_doc_context()]). Renders as a background job.
+#' [adhoc_active_doc_context()]). Renders synchronously in the current
+#' console session (rather than as a background job) so that the trailing
+#' [preview_folder()] call can actually launch a live preview server and
+#' open the RStudio Viewer pane.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effect of launching a render job.
 #'
@@ -1495,14 +1500,17 @@ render_folder_addin <- function() {
 
   cli::cli_h1("Rendre le document ad-hoc : {.path {ctx$index}}")
 
-  # Render with as_job = TRUE (forces background execution)
+  # Render synchronously so preview_folder() (called at the end of
+  # render_folder() when preview = TRUE) runs in this interactive session
+  # and can actually drive the RStudio Viewer pane; a background job would
+  # exit (killing its preview server) as soon as rendering finished.
   render_folder(
     path     = ctx$dir,
     index    = ctx$index,
     slug     = NULL,
     progress = TRUE,
     preview  = TRUE,
-    as_job   = TRUE
+    as_job   = FALSE
   )
 
   invisible(NULL)
@@ -1516,7 +1524,7 @@ render_folder_addin <- function() {
 #' context: the folder to deploy is that document's own directory (see
 #' [adhoc_active_doc_context()]) -- i.e. wherever [render_folder_addin()]
 #' last produced a `_site/` next to it. Prompts for an encryption
-#' preference, then deploys as a background job.
+#' preference, then deploys synchronously in the current console session.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effect of launching a deploy job.
 #'
@@ -1543,7 +1551,7 @@ deploy_folder_addin <- function() {
 
   encrypt <- !identical(encrypt_choice, "No")
 
-  # Deploy with as_job = TRUE
+  # Deploy synchronously so console output stays visible in this session.
   deploy_folder(
     path        = ctx$dir,
     slug        = NULL,
@@ -1551,7 +1559,7 @@ deploy_folder_addin <- function() {
     progress    = TRUE,
     trigger     = TRUE,
     full_deploy = FALSE,
-    as_job      = TRUE
+    as_job      = FALSE
   )
 
   invisible(NULL)

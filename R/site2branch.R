@@ -179,8 +179,14 @@ site2branch <- function(
     tryCatch(
       trigger_action(root = root, workflow = workflow, inputs = inputs),
       error = function(e) {
-        cli::cli_warn("FTP dispatch \u00e9chou\u00e9 : {e$message}")
-        cli::cli_warn("... relancer manuellement avec trigger_action() ou vérifier que la branche par défaut a été poussée sur github.com.")
+        cli::cli_abort(
+          c(
+            "x" = "Déclenchement du workflow {.val {workflow}} échoué après 4 tentatives.",
+            "i" = "Message d'erreur : {e$message}",
+            "i" = "Relancer manuellement avec {.code trigger_action(workflow = {.val {workflow}})}"
+          ),
+          call = NULL
+        )
       }
     )
   }

@@ -1,27 +1,52 @@
-## ofceweb v0.10.13
+## ofceweb (dev)
 
-### `setup_wp()` : nettoyage des clés `format.*` parasites, `wp-pdf` systématique
+### Nouvelle fonction `render_folder()` — publication rapide d'ad-hoc
 
-* `setup_wp()` commente désormais automatiquement toute clé `format.*`
-  « parasite » trouvée dans `_quarto.yml`/`index.qmd` — une autre clé
-  `*-html` que `wp-html` (ex. `format.html`, une clé `wp-html` dupliquée),
-  ou une clé PDF qui n'est ni `wp-pdf` ni `wp-typst` (ex. `pdf`, `typst`,
-  `ofce-pdf`). `wp-html` reste l'unique format HTML actif, ajouté à
-  `_quarto.yml` s'il est absent (dépôt pré-existant au gabarit actuel).
-* `wp-pdf` est désormais systématiquement assuré présent dans `index.qmd`
-  quand ni `wp-pdf` ni `wp-typst` n'est déjà déclaré — que ce soit un
-  nouveau dépôt, un dépôt sans format PDF, ou un dépôt dont le seul format
-  PDF était une clé parasite qui vient d'être commentée. **Un `wp-typst`
-  déjà présent n'est jamais remplacé** : le choix de moteur d'un dépôt
-  existant reste inchangé. Le tie-break existant (les deux déclarés
-  simultanément → `wp-pdf` commenté, `wp-typst` gagne) est inchangé.
-* Nouveau nom de fichier PDF brouillon pour le moteur `wp-pdf` :
-  `ofce-draft-{repo sans préfixe "wp-"}.pdf` (au lieu de
-  `OFCEWP-draft.pdf`), recalculé et repatché à chaque appel de
-  `setup_wp()`. Le nom de brouillon de `wp-typst` reste `OFCEWP-draft.pdf`,
-  inchangé.
-* `check_wp()` : nouveau diagnostic (warning, non bloquant)
-  `format:stray-keys` signalant une clé `format.*` parasite encore active.
+Nouvelle fonctionnalité de publication légère pour partager du contenu non-officiel
+(notes de travail, slides, brouillons de blog) sans passer par le pipeline complet
+WP/PB/prévisions. Permet de désigner **n'importe quel dossier** dans un dépôt git,
+de le rendre en tant que site Quarto autonome, et de le déployer vers une URL
+privée et unique sous `staging.ofce.fr`.
+
+#### Public API
+
+* **`render_folder(path, index, slug, progress, preview, as_job)`** — Rend un dossier
+  arbitraire en tant que site Quarto dans un répertoire temporaire isolé, laissant
+  un artifact `.site/` seul en place. Génère un slug déterministe basé sur le
+  chemin relatif du dossier, auto-détecte le fichier index s'il n'existe qu'un seul
+  `.qmd`/`.md`, injecte une bannière OFCE fixe dans chaque page HTML. Supporte
+  l'exécution en arrière-plan via RStudio Jobs (`as_job = TRUE`) avec streaming
+  d'erreur en direct et export du résultat vers `adhoc_last_render`.
+
+* **`deploy_folder(path, slug, encrypt, progress, trigger, full_deploy, as_job)`** —
+  Pousse le `.site/` déjà rendu vers une branche git et déclenche le déploiement FTP.
+  Auto-installe le workflow `.github/workflows/ftp_deploy_profile.yml` si manquant
+  (PR fallback sur les branches par défaut protégées). Nouveau paramètre `encrypt`
+  pour la publication sans staticrypt, même si `STATICRYPT_PASSWORD` est configuré.
+
+* **`preview_folder(path)`** — Lance un serveur live-reload local sur `.site/` via
+  `servr::httw()`, réutilisable indépendamment de comment `.site/` a été produit.
+
+#### Infrastructure
+
+* Workflow `ftp_deploy_profile.yml` met à jour : support du marqueur `.no-staticrypt`
+  pour l'opt-out de chiffrement au moment du déploiement.
+* Dépôt : paramètre `rstudioapi` ajouté à `Suggests` pour la détection RStudio.
+* `.gitignore` : ajout de `.site/` pour éviter les commits accidentels.
+
+#### Design
+
+* Rendu isolé : le dossier cible est copié dans un répertoire temporaire avant la
+  configuration Quarto, jamais modifié in-place (sauf l'ajout de `.site/` final).
+  Élimine les risques de collision avec les configurations parentes.
+* Slug déterministe : basé sur le chemin relatif + CRC32 6-char, même slug = même URL
+  à chaque republication. Persiste dans `.site/.adhoc-meta.json`.
+* Extension auto-discovery : remonte l'arbre du dépôt pour collecter les répertoires
+  `_extensions/` découverts (le plus proche gagne).
+* Bannière OFCE : injecté en post-traitement HTML, indépendamment de la configuration
+  Quarto (prise en charge revealjs, plain HTML, etc.).
+* Jobs RStudio : erreurs entièrement streamées au pane Background Jobs + résumé
+  exporté vers l'environnement global pour consultation ultérieure.
 
 ## ofceweb v0.10.12
 

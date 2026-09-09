@@ -33,3 +33,4 @@ version, et par `publish_site()` à chaque déploiement staging.
 \seealso{
 [site_version_up()], [deploy_site()]
 }
+\keyword{internal}

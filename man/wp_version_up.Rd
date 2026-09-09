@@ -28,3 +28,4 @@ Ne fonctionne que pour un WP publié (`wp` non nul dans `_quarto.yml`).
 \seealso{
 [setup_wp()], [site_version_up()]
 }
+\keyword{internal}

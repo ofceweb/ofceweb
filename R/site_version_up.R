@@ -18,7 +18,7 @@
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @seealso [setup_site()]
-#' @export
+#' @keywords internal
 site_version_up <- function(path = ".", custom_version = NULL) {
   root <- fs::path_abs(fs::path_expand(path))
   yml_path <- fs::path(root, "_quarto.yml")

@@ -496,3 +496,73 @@ test_that("setup_pb() is idempotent on an already-clean repo using pb-typst", {
   expect_identical(after_first$yml, after_second$yml)
   expect_identical(after_first$idx, after_second$idx)
 })
+
+# Inserts a template-style (2-space indented sequence) `author:` placeholder
+# block into an already-written `_quarto.yml`, right before `website:` --
+# mirroring the real inst/setup_pb/_quarto.yml gabarit. yaml::write_yaml()
+# (used by write_quarto_yml()) emits list items at the *same* indentation as
+# the parent key, which is a different (also valid) YAML style that
+# yaml_block_end()/yaml_patch_block() don't handle -- irrelevant to the
+# feature under test, so it's sidestepped here by writing the placeholder
+# by hand instead of through write_quarto_yml()'s `author =` argument.
+insert_pb_author_placeholder <- function(dir) {
+  path  <- fs::path(dir, "_quarto.yml")
+  lines <- readLines(path, warn = FALSE)
+  placeholder <- c(
+    "author:",
+    "  - name: \"Prénom Nom\"",
+    "    email: \"prenom.nom@sciencespo.fr\""
+  )
+  website_line <- which(grepl("^website:", lines))[[1]]
+  lines <- append(lines, placeholder, after = website_line - 1L)
+  writeLines(lines, path)
+  invisible(path)
+}
+
+test_that("setup_pb() moves an author key found in index.qmd into _quarto.yml, replacing the template placeholder", {
+  local_stub_pb_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_pb = TRUE,
+    pb      = 8L,
+    lang    = "fr",
+    website = list(title = "Un PB")
+  ))
+  insert_pb_author_placeholder(dir)
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: Un PB",
+    "author:",
+    "  - name: Jane Doe",
+    "    email: jane.doe@sciencespo.fr"
+  ))
+
+  expect_message(setup_pb(dir), "author")
+
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$author[[1]]$name, "Jane Doe")
+  expect_equal(yml$author[[1]]$email, "jane.doe@sciencespo.fr")
+
+  idx_yml <- get_yaml(fs::path(dir, "index.qmd"))
+  expect_null(idx_yml$author)
+  idx_lines <- readLines(fs::path(dir, "index.qmd"))
+  expect_true(any(grepl("^\\s*#\\s*author:", idx_lines)))
+})
+
+test_that("setup_pb() leaves _quarto.yml's author untouched when index.qmd has no author key", {
+  local_stub_pb_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_pb = TRUE,
+    pb      = 9L,
+    lang    = "fr",
+    website = list(title = "Un autre PB")
+  ))
+  insert_pb_author_placeholder(dir)
+  write_qmd(dir, "index.qmd", yaml_lines = "title: Un autre PB")
+
+  expect_no_message(setup_pb(dir), message = "author")
+
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$author[[1]]$name, "Prénom Nom")
+  expect_equal(yml$author[[1]]$email, "prenom.nom@sciencespo.fr")
+})

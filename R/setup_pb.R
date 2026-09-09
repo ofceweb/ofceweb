@@ -25,6 +25,13 @@
 #' sont attribués séquentiellement depuis l'origine, indépendamment de
 #' l'année de publication.
 #'
+#' `author` est destiné à ne vivre que dans `_quarto.yml` : si `index.qmd`
+#' en porte une (héritage d'un ancien gabarit, ou ajout manuel), elle est
+#' déplacée vers `_quarto.yml` -- remplaçant la valeur qui y était déjà,
+#' généralement le placeholder du gabarit -- puis commentée dans
+#' `index.qmd`, avec un avertissement décrivant le déplacement. Un
+#' `index.qmd` sans clé `author` ne déclenche aucune modification.
+#'
 #' Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour via
 #' [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
 #' `OFCE/ofce-quarto-extensions` — la fonction nécessite donc un accès réseau.
@@ -414,6 +421,24 @@ setup_pb <- function(
     yaml_comment_out_frontmatter(dest_index, "pb")
   if(!is.null(index_yml$annee))
     yaml_comment_out_frontmatter(dest_index, "annee")
+
+  # author : si index.qmd porte une clé author (héritage d'un ancien gabarit,
+  # ou ajout manuel), on la fait remonter dans _quarto.yml — qui est la seule
+  # source de vérité pour author désormais — en remplaçant ce qui y est déjà
+  # (probablement le placeholder du gabarit). Si index.qmd n'a pas de clé
+  # author, on ne touche à rien (le placeholder, ou une valeur déjà correcte
+  # côté _quarto.yml, reste en l'état).
+  if (!is.null(index_yml$author)) {
+    yml$author <- index_yml$author
+    lines <- yaml_patch_block(lines, "author", index_yml$author)
+    yaml_comment_out_frontmatter(dest_index, "author")
+    cli::cli_alert_warning(c(
+      "Clé {.field author} trouvée dans {.file index.qmd} — déplacée vers \
+       {.file _quarto.yml} (remplace la valeur du gabarit).",
+      "i" = "{.field author} est désormais renseigné exclusivement dans \
+       {.file _quarto.yml} ; la clé a été commentée dans {.file index.qmd}."
+    ))
+  }
 
   # project.type : toujours forcé à "ofce-website" pour les PBs OFCE
   yml$project$type <- "ofce-website"

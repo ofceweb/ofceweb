@@ -137,6 +137,59 @@ test_that("yaml_patch_block() with value = NULL deletes the key", {
   expect_equal(out, c("website:", "  title: T"))
 })
 
+test_that("yaml_block_end() includes sequence items whose dash sits at the same indentation as the key", {
+  # Valid YAML dispensation: a block sequence's `- ` items may be written at
+  # the *same* column as their parent mapping key, not just indented under
+  # it (the style this package's own templates use). yaml_block_end() must
+  # still capture the whole subtree, including each item's own nested keys.
+  lines <- c(
+    "author:",
+    "- name: Jane Doe",
+    "  email: jane.doe@sciencespo.fr",
+    "website:",
+    "  title: T"
+  )
+  expect_equal(yaml_block_end(lines, key_line = 1L, indent = 0L), 3L)
+})
+
+test_that("yaml_patch_block() replaces a top-level sequence written with dash at the same indentation as the key", {
+  lines <- c(
+    "ofce_wp: yes",
+    "author:",
+    "- name: Old Name",
+    "  email: old@sciencespo.fr",
+    "website:",
+    "  title: T"
+  )
+  out <- yaml_patch_block(lines, "author", list(list(name = "Jane Doe", email = "jane.doe@sciencespo.fr")))
+  expect_equal(out, c(
+    "ofce_wp: yes",
+    "author:",
+    "  - name: Jane Doe",
+    "    email: jane.doe@sciencespo.fr",
+    "website:",
+    "  title: T"
+  ))
+})
+
+test_that("yaml_comment_out() comments out every line of a same-indent sequence subtree", {
+  lines <- c(
+    "author:",
+    "- name: Jane Doe",
+    "  email: jane.doe@sciencespo.fr",
+    "website:",
+    "  title: T"
+  )
+  out <- yaml_comment_out(lines, "author")
+  expect_equal(out, c(
+    "# author:",
+    "# - name: Jane Doe",
+    "  # email: jane.doe@sciencespo.fr",
+    "website:",
+    "  title: T"
+  ))
+})
+
 test_that("yaml_patch_scalar_or_delete() deletes when value is NULL, sets otherwise", {
   lines <- c("wp: 10", "annee: 2026")
   expect_equal(yaml_patch_scalar_or_delete(lines, "wp", NULL), c("annee: 2026"))

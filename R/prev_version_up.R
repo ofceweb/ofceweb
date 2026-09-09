@@ -15,7 +15,7 @@
 #' @importFrom fs path_abs path_expand path file_exists
 #' @importFrom cli cli_abort cli_alert_success cli_alert_info cli_alert_warning
 #' @importFrom yaml read_yaml
-#' @export
+#' @keywords internal
 prev_version_up <- function(path = ".", custom_version = NULL) {
 
   root     <- fs::path_abs(fs::path_expand(path))

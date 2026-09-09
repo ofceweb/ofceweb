@@ -1,5 +1,46 @@
 ## ofceweb (development version)
 
+### Correction : `yaml_block_end()` sous-estimait les séquences dont le tiret est à la même colonne que la clé
+
+YAML autorise deux styles pour une séquence de blocs : les éléments `- ...`
+peuvent être indentés sous leur clé parente (style utilisé par les gabarits
+du package, ex. `author:\n  - name: ...`) ou écrits à la **même**
+indentation que la clé elle-même (ex. `author:\n- name: ...`, produit
+notamment par `yaml::write_yaml()`). `yaml_block_end()` — utilisée par
+`yaml_patch_block()`, `yaml_comment_out()` et donc par `setup_wp()`/
+`setup_pb()`/`update_navbar()`/etc. pour localiser l'étendue d'une clé — ne
+reconnaissait que le premier style : avec le second, elle considérait que le
+sous-arbre s'arrêtait immédiatement après la ligne de la clé, ce qui pouvait
+corrompre le `_quarto.yml` (doublons, YAML invalide) lors d'un remplacement.
+Les deux styles sont désormais gérés correctement.
+
+### `setup_wp()`/`setup_pb()` remontent un `author` trouvé dans `index.qmd` vers `_quarto.yml`
+
+Si `index.qmd` porte une clé `author` (héritage d'un ancien gabarit, ou
+ajout manuel), `setup_wp()`/`setup_pb()` la déplacent désormais vers
+`_quarto.yml` — remplaçant la valeur qui y était déjà (probablement le
+placeholder du gabarit) — puis la commentent dans `index.qmd`, avec un
+avertissement décrivant le déplacement. `_quarto.yml` est désormais la
+seule source de vérité pour `author`. Si `index.qmd` n'a pas de clé
+`author`, rien n'est modifié : le placeholder (ou une valeur déjà correcte)
+côté `_quarto.yml` reste inchangé, sans avertissement.
+
+### `wp-typst` devient le moteur PDF par défaut pour les WP
+
+Quand un nouveau document de travail (WP) n'a **ni** `wp-pdf` **ni**
+`wp-typst` déjà déclaré dans `index.qmd`, `setup_wp()` ajoute désormais
+`wp-typst` par défaut (au lieu de `wp-pdf`/LaTeX auparavant) : Typst gère
+nativement les figures SVG, sans dépendance externe à `rsvg-convert` ni
+risque de PDF volumineux si cet outil est absent. Le gabarit
+`inst/setup_wp/index.qmd` (copié par `setup_wp()` sur un tout nouveau dépôt)
+est mis à jour de la même façon — il s'alignait déjà avec `pb-typst` pour
+les policy briefs. `wp-pdf` reste pleinement disponible en le déclarant
+explicitement, et un `wp-pdf`/`wp-typst` déjà présent n'est jamais remplacé.
+Les policy briefs (PB) utilisaient déjà `pb-typst` par défaut — cette
+rupture d'asymétrie entre WP et PB était non intentionnelle.
+
+## ofceweb v1.0.0
+
 ### ⚠️ Rupture de compatibilité — API render/publish/deploy/check/registry simplifiée
 
 Seuls cinq points d'entrée sont désormais exportés pour piloter le cycle de
@@ -128,33 +169,6 @@ privée et unique sous `staging.ofce.fr`.
   Quarto (prise en charge revealjs, plain HTML, etc.).
 * Jobs RStudio : erreurs entièrement streamées au pane Background Jobs + résumé
   exporté vers l'environnement global pour consultation ultérieure.
-
-#### Correctifs — fiabilisation du déclenchement du workflow FTP dans `deploy_folder()`
-
-* `deploy_folder()` passait `inputs = list()` (vide) à `trigger_action()`, en
-  s'appuyant sur le nom de la branche poussée (`site-{profile}`) pour que le
-  workflow retrouve le profil. Or `workflow_dispatch` exécute toujours le
-  workflow sur la branche par défaut du dépôt (pas sur `site-{profile}`) :
-  `github.ref_name` valait donc `"main"` côté workflow, qui en déduisait à
-  tort une branche cible `site-main` — inexistante, provoquant l'échec du
-  `git fetch`/checkout dans le job GitHub Actions (déclenchement signalé
-  comme réussi côté R, mais job qui échouait ensuite silencieusement).
-  `deploy_folder()` transmet désormais explicitement `inputs = list(profile
-  = slug)`, indépendamment de la branche sur laquelle le `workflow_dispatch`
-  est exécuté.
-* Bug annexe démasqué par le correctif ci-dessus : le slug lu depuis
-  `.adhoc-meta.json` (`jsonlite::read_json()` sans `simplifyVector = TRUE`)
-  revenait comme une **liste** d'un élément plutôt qu'une chaîne scalaire —
-  sérialisé en JSON comme un tableau (`["slug"]`) plutôt qu'une chaîne, GitHub
-  rejetait alors l'entrée `profile` (`422 Invalid value for input 'profile'`).
-  Corrigé à la fois à la lecture (`simplifyVector = TRUE`) et à l'écriture
-  (`render_folder()` écrit désormais `.adhoc-meta.json` avec
-  `auto_unbox = TRUE`) — voir la convention documentée dans `AGENTS.md`.
-* `trigger_action()` retente désormais jusqu'à 8 fois avec un délai croissant
-  (5 à 30 s, ~150 s au total) en cas de `422`, et `site2branch()` attend 3 s
-  après le push avant de déclencher : le cache de validation des entrées
-  `workflow_dispatch` côté GitHub peut mettre du temps à refléter un workflow
-  venant d'être installé/mis à jour par `ensure_adhoc_workflow()`.
 
 ## ofceweb v0.10.12
 

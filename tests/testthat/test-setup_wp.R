@@ -422,7 +422,7 @@ test_that("setup_wp() resolves stage-target to gh-pages and uses the real owner 
   expect_equal(yml$website$`site-url`, "https://someoneelse.github.io/wp-example/")
 })
 
-test_that("setup_wp() injects a default wp-pdf format for a brand-new draft with no PDF format declared, naming the draft file from the repo (wp- prefix stripped)", {
+test_that("setup_wp() injects a default wp-typst format for a brand-new draft with no PDF format declared", {
   local_stub_wp_side_effects()
   local_mocked_bindings(
     git_remote_list = function(...) data.frame(
@@ -433,6 +433,38 @@ test_that("setup_wp() injects a default wp-pdf format for a brand-new draft with
   )
   dir <- withr::local_tempdir()
   build_draft_wp_repo(dir)
+
+  suppressMessages(setup_wp(dir))
+
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  expect_null(idx_yml$format$`wp-pdf`)
+  expect_equal(idx_yml$format$`wp-typst`$`output-file`, "OFCEWP-draft.pdf")
+  links <- idx_yml$`format-links`
+  pdf_link <- links[[which(vapply(links, is.list, logical(1L)))]]
+  expect_equal(pdf_link$format, "wp-typst")
+  expect_equal(pdf_link$text, "OFCEWP-draft.pdf")
+})
+
+test_that("setup_wp() names a wp-pdf draft file from the repo (wp- prefix stripped) when wp-pdf is the declared engine", {
+  local_stub_wp_side_effects()
+  local_mocked_bindings(
+    git_remote_list = function(...) data.frame(
+      name = "origin",
+      url  = "https://github.com/ofce/wp-pam-pmq.git"
+    ),
+    .package = "gert"
+  )
+  dir <- withr::local_tempdir()
+  build_draft_wp_repo(dir)
+  # Declare wp-pdf explicitly -- the repo-derived draft filename only kicks
+  # in for the wp-pdf (LaTeX) engine; wp-typst keeps the historical
+  # "OFCEWP-draft.pdf" name regardless of repo (see test above).
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
 
   suppressMessages(setup_wp(dir))
 
@@ -468,7 +500,7 @@ test_that("setup_wp() leaves a sole wp-typst declaration untouched -- no wp-pdf 
   expect_equal(idx_yml$format$`wp-typst`$`output-file`, "OFCEWP2026-5.pdf")
 })
 
-test_that("setup_wp() comments out a stray PDF key and injects wp-pdf when neither wp-pdf nor wp-typst is declared", {
+test_that("setup_wp() comments out a stray PDF key and injects wp-typst when neither wp-pdf nor wp-typst is declared", {
   local_stub_wp_side_effects()
   dir <- withr::local_tempdir()
   write_quarto_yml(dir, list(
@@ -490,7 +522,8 @@ test_that("setup_wp() comments out a stray PDF key and injects wp-pdf when neith
   idx_lines <- readLines(fs::path(dir, "index.qmd"))
   expect_true(any(grepl("^\\s*#\\s*pdf:", idx_lines)))
   idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
-  expect_equal(idx_yml$format$`wp-pdf`$`output-file`, "OFCEWP2026-5.pdf")
+  expect_null(idx_yml$format$`wp-pdf`)
+  expect_equal(idx_yml$format$`wp-typst`$`output-file`, "OFCEWP2026-5.pdf")
 })
 
 test_that("setup_wp() comments out a stray PDF key alongside an existing wp-typst, without adding wp-pdf", {
@@ -622,6 +655,144 @@ test_that("setup_wp() is idempotent on an already-clean repo using wp-typst", {
     idx = readLines(fs::path(dir, "index.qmd"))
   )
   suppressMessages(setup_wp(dir))
+  after_second <- list(
+    yml = readLines(fs::path(dir, "_quarto.yml")),
+    idx = readLines(fs::path(dir, "index.qmd"))
+  )
+
+  expect_identical(after_first$yml, after_second$yml)
+  expect_identical(after_first$idx, after_second$idx)
+})
+
+# Inserts a template-style (2-space indented sequence) `author:` placeholder
+# block into an already-written `_quarto.yml`, right before `website:` --
+# mirroring the real inst/setup_wp/_quarto.yml gabarit exactly (as opposed
+# to write_quarto_yml()'s `author =` argument, which round-trips through
+# yaml::write_yaml() and emits list items at the *same* indentation as the
+# parent key -- a different, also valid, YAML style covered separately
+# below and in test-yaml_patch.R).
+insert_author_placeholder <- function(dir) {
+  path  <- fs::path(dir, "_quarto.yml")
+  lines <- readLines(path, warn = FALSE)
+  placeholder <- c(
+    "author:",
+    "  - name: \"Prénom Nom\"",
+    "    email: \"prenom.nom@sciencespo.fr\""
+  )
+  website_line <- which(grepl("^website:", lines))[[1]]
+  lines <- append(lines, placeholder, after = website_line - 1L)
+  writeLines(lines, path)
+  invisible(path)
+}
+
+test_that("setup_wp() moves an author key found in index.qmd into _quarto.yml, replacing the template placeholder", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 8L,
+    annee   = 2026L,
+    lang    = "fr",
+    website = list(title = "Un WP")
+  ))
+  insert_author_placeholder(dir)
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: Un WP",
+    "author:",
+    "  - name: Jane Doe",
+    "    email: jane.doe@sciencespo.fr"
+  ))
+
+  expect_message(setup_wp(dir), "author")
+
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$author[[1]]$name, "Jane Doe")
+  expect_equal(yml$author[[1]]$email, "jane.doe@sciencespo.fr")
+
+  idx_yml <- get_yaml(fs::path(dir, "index.qmd"))
+  expect_null(idx_yml$author)
+  idx_lines <- readLines(fs::path(dir, "index.qmd"))
+  expect_true(any(grepl("^\\s*#\\s*author:", idx_lines)))
+})
+
+test_that("setup_wp() leaves _quarto.yml's author untouched when index.qmd has no author key", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 9L,
+    annee   = 2026L,
+    lang    = "fr",
+    website = list(title = "Un autre WP")
+  ))
+  insert_author_placeholder(dir)
+  write_qmd(dir, "index.qmd", yaml_lines = "title: Un autre WP")
+
+  expect_no_message(setup_wp(dir), message = "author")
+
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$author[[1]]$name, "Prénom Nom")
+  expect_equal(yml$author[[1]]$email, "prenom.nom@sciencespo.fr")
+})
+
+test_that("setup_wp() moves author into a same-indent-sequence author placeholder (dash at column 0)", {
+  # Regression test for the yaml_block_end() same-indentation sequence fix:
+  # write_quarto_yml() (via yaml::write_yaml()) emits `author:` list items
+  # at the *same* column as the key itself, rather than indented under it
+  # like the real gabarit -- both are valid YAML, and setup_wp() must
+  # correctly replace the whole placeholder subtree either way.
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 11L,
+    annee   = 2026L,
+    lang    = "fr",
+    author  = list(list(name = "Prénom Nom", email = "prenom.nom@sciencespo.fr")),
+    website = list(title = "Un WP au format dash-même-colonne")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: Un WP au format dash-même-colonne",
+    "author:",
+    "  - name: Jane Doe",
+    "    email: jane.doe@sciencespo.fr"
+  ))
+
+  expect_message(setup_wp(dir), "author")
+
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$author[[1]]$name, "Jane Doe")
+  expect_equal(yml$author[[1]]$email, "jane.doe@sciencespo.fr")
+  # No other top-level key was swallowed by the (previously mis-detected)
+  # author subtree.
+  expect_true(isTRUE(yml$ofce_wp))
+  expect_equal(yml$wp, 11L)
+})
+
+test_that("setup_wp() is idempotent after moving author from index.qmd to _quarto.yml", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 10L,
+    annee   = 2026L,
+    lang    = "fr",
+    website = list(title = "WP idempotent")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP idempotent",
+    "author:",
+    "  - name: Jane Doe",
+    "    email: jane.doe@sciencespo.fr"
+  ))
+
+  expect_message(setup_wp(dir), "author")
+  after_first <- list(
+    yml = readLines(fs::path(dir, "_quarto.yml")),
+    idx = readLines(fs::path(dir, "index.qmd"))
+  )
+
+  expect_no_message(setup_wp(dir), message = "author")
   after_second <- list(
     yml = readLines(fs::path(dir, "_quarto.yml")),
     idx = readLines(fs::path(dir, "index.qmd"))

@@ -25,3 +25,4 @@ variable GitHub Actions `FTP_STAGING_DIR`.
 \seealso{
 [setup_prev()], [check_prev()]
 }
+\keyword{internal}

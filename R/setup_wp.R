@@ -58,20 +58,27 @@
 #' antérieure du package) sont signalées par un avertissement, jamais
 #' supprimées automatiquement.
 #'
+#' `author` est destiné à ne vivre que dans `_quarto.yml` : si `index.qmd`
+#' en porte une (héritage d'un ancien gabarit, ou ajout manuel), elle est
+#' déplacée vers `_quarto.yml` -- remplaçant la valeur qui y était déjà,
+#' généralement le placeholder du gabarit -- puis commentée dans
+#' `index.qmd`, avec un avertissement décrivant le déplacement. Un
+#' `index.qmd` sans clé `author` ne déclenche aucune modification.
+#'
 #' Les clés `format.*` de `_quarto.yml`/`index.qmd` sont nettoyées à chaque
 #' appel : `wp-html` reste l'unique format HTML actif (toute autre clé
 #' `*-html`, ex. `format.html`, est commentée ; `wp-html` est ajouté à
 #' `_quarto.yml` s'il est absent). Côté PDF, `wp-pdf` (LaTeX) et `wp-typst`
 #' (Typst) sont les deux seuls moteurs légitimes — toute autre clé PDF
-#' (`pdf`, `typst`, `ofce-pdf`, ...) est commentée. `wp-pdf` est ajouté par
+#' (`pdf`, `typst`, `ofce-pdf`, ...) est commentée. `wp-typst` est ajouté par
 #' défaut dans `index.qmd` uniquement quand **ni** `wp-pdf` **ni**
-#' `wp-typst` n'est déjà déclaré : un `wp-typst` déjà présent n'est jamais
+#' `wp-typst` n'est déjà déclaré : un `wp-pdf` déjà présent n'est jamais
 #' remplacé. Si les deux sont déclarés simultanément, `wp-pdf` est commenté
 #' et `wp-typst` l'emporte. Le nom du PDF de brouillon (`wp` non attribué)
 #' dépend du moteur actif : `ofce-draft-{repo sans préfixe "wp-"}.pdf` pour
-#' `wp-pdf`, `OFCEWP-draft.pdf` (inchangé) pour `wp-typst` — recalculé à
-#' chaque appel. Une fois publié (`wp`/`annee` connus), les deux moteurs
-#' produisent `OFCEWP{annee}-{wp}.pdf`.
+#' `wp-pdf`, `OFCEWP-draft.pdf` (inchangé, y compris pour le défaut
+#' `wp-typst`) — recalculé à chaque appel. Une fois publié (`wp`/`annee`
+#' connus), les deux moteurs produisent `OFCEWP{annee}-{wp}.pdf`.
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param lang Chaîne. Langue principale : `"fr"` (défaut) ou `"en"`.
@@ -430,21 +437,23 @@ setup_wp <- function(
   if (length(pdf_formats_declared) == 0L) {
     # Aucun format PDF actif restant (ni wp-pdf ni wp-typst) -- nouveau
     # dépôt, dépôt sans aucun format PDF, ou dépôt dont le seul format PDF
-    # était une clé parasite qui vient d'être commentée ci-dessus. wp-pdf est
-    # systématiquement assuré présent -- jamais en remplacement d'un wp-typst
-    # déjà présent, cf. bloc précédent.
+    # était une clé parasite qui vient d'être commentée ci-dessus. wp-typst
+    # est le moteur PDF ajouté par défaut (Typst gère nativement les SVG,
+    # contrairement à wp-pdf/LaTeX qui nécessite rsvg-convert, cf. bloc
+    # suivant) -- jamais en remplacement d'un wp-pdf déjà présent, cf. bloc
+    # précédent.
     tryCatch({
       yaml_patch_frontmatter_block(
         dest_index,
-        "format.wp-pdf",
+        "format.wp-typst",
         list(`output-file` = "OFCEWP-draft.pdf")
       )
-      index_yml$format$`wp-pdf` <- list(`output-file` = "OFCEWP-draft.pdf")
-      cli::cli_alert_success("Ajout de {.field format.wp-pdf} par défaut dans {.file index.qmd}.")
+      index_yml$format$`wp-typst` <- list(`output-file` = "OFCEWP-draft.pdf")
+      cli::cli_alert_success("Ajout de {.field format.wp-typst} par défaut dans {.file index.qmd}.")
     }, error = function(e) {
-      cli::cli_alert_warning("Impossible d'ajouter {.field format.wp-pdf} dans index.qmd : {conditionMessage(e)}")
+      cli::cli_alert_warning("Impossible d'ajouter {.field format.wp-typst} dans index.qmd : {conditionMessage(e)}")
     })
-    pdf_formats_declared <- "wp-pdf"
+    pdf_formats_declared <- "wp-typst"
   }
 
   if (identical(pdf_formats_declared, "wp-pdf") && !isTRUE(check_rsvg_convert(verbose = FALSE))) {
@@ -650,6 +659,24 @@ setup_wp <- function(
     yaml_comment_out_frontmatter(dest_index, "wp")
   if(!is.null(index_yml$annee))
     yaml_comment_out_frontmatter(dest_index, "annee")
+
+  # author : si index.qmd porte une clé author (héritage d'un ancien gabarit,
+  # ou ajout manuel), on la fait remonter dans _quarto.yml — qui est la seule
+  # source de vérité pour author désormais — en remplaçant ce qui y est déjà
+  # (probablement le placeholder du gabarit). Si index.qmd n'a pas de clé
+  # author, on ne touche à rien (le placeholder, ou une valeur déjà correcte
+  # côté _quarto.yml, reste en l'état).
+  if (!is.null(index_yml$author)) {
+    yml$author <- index_yml$author
+    lines <- yaml_patch_block(lines, "author", index_yml$author)
+    yaml_comment_out_frontmatter(dest_index, "author")
+    cli::cli_alert_warning(c(
+      "Clé {.field author} trouvée dans {.file index.qmd} — déplacée vers \
+       {.file _quarto.yml} (remplace la valeur du gabarit).",
+      "i" = "{.field author} est désormais renseigné exclusivement dans \
+       {.file _quarto.yml} ; la clé a été commentée dans {.file index.qmd}."
+    ))
+  }
   # website.title : plus jamais écrit (cf. update_navbar(), qui supprime la
   # clé si elle est encore présente d'un appel antérieur) — le titre du WP
   # reste porté par la clé `title` au niveau racine, pas par `website.title`.

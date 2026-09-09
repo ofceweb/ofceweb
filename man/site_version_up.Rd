@@ -32,3 +32,4 @@ Les versions doivent être alphanumériques avec des underscores uniquement.
 \seealso{
 [setup_site()]
 }
+\keyword{internal}

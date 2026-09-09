@@ -38,6 +38,9 @@ reference:
   contents:
   - render
   - publish
+  - deploy
+  - check
+  - registry_request
 
 - title: Prévisions
   desc: >
@@ -48,12 +51,7 @@ reference:
     et custom est appliqué par les workflows GitHub Actions — pas localement.
   contents:
   - setup_prev
-  - check_prev
-  - render_prev
   - stage_prev
-  - publish_prev
-  - deploy_prev
-  - prev_version_up
 
 - title: Working papers
   desc: >
@@ -63,13 +61,7 @@ reference:
     appliqué par le workflow GitHub Actions — pas localement.
   contents:
   - setup_wp
-  - check_wp
-  - render_wp
-  - publish_wp
-  - deploy_wp
   - rescan_wp
-  - wp_version_up
-  - wp_registry_request
 
 - title: Policy briefs
   desc: >
@@ -81,13 +73,7 @@ reference:
     (`ofceweb/wp-registry`, sous-dossier `pb/`, fichier plat `pb/pb.json`).
   contents:
   - setup_pb
-  - check_pb
-  - render_pb
-  - publish_pb
-  - deploy_pb
   - rescan_pb
-  - pb_version_up
-  - pb_registry_request
 
 - title: Sites génériques
   desc: >
@@ -98,12 +84,19 @@ reference:
     locale n'est requise.
   contents:
   - setup_site
-  - render_site
-  - deploy_site
-  - stage_site
-  - push_site_redirect
   - rescan_site
-  - site_version_up
+
+- title: Publication flash d'un dossier
+  desc: >
+    Fonctions pour mettre en ligne un .qmd sur `staging.ofce.fr`.
+    Le chiffrement staticrypt est appliqué **en CI**, juste avant le
+    transfert FTP, via le secret `STATICRYPT_PASSWORD` — aucune manipulation
+    locale n'est requise.
+  contents:
+  - preview_folder
+  - render_folder
+  - deploy_folder
+  - publish_folder
 
 - title: Blog
   desc: >

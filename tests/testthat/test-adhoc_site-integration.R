@@ -3,7 +3,7 @@ test_that("render_folder_worker: renders a simple .qmd to _site/", {
   skip_if_not_installed("gert")
 
   # Create a temp git repo with a simple qmd file
-  temp_repo <- tempfile(prefix = "adhoc_test_")
+  temp_repo <- tempfile(pattern = "adhoc_test_")
   dir.create(temp_repo, recursive = TRUE)
   on.exit(unlink(temp_repo, recursive = TRUE))
 
@@ -52,7 +52,7 @@ test_that("render_folder_worker: auto-detects index when only one .qmd exists", 
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
-  temp_repo <- tempfile(prefix = "adhoc_auto_")
+  temp_repo <- tempfile(pattern = "adhoc_auto_")
   dir.create(temp_repo, recursive = TRUE)
   on.exit(unlink(temp_repo, recursive = TRUE))
 
@@ -82,7 +82,7 @@ test_that("render_folder_worker: errors when multiple .qmd files exist and no in
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
-  temp_repo <- tempfile(prefix = "adhoc_multi_")
+  temp_repo <- tempfile(pattern = "adhoc_multi_")
   dir.create(temp_repo, recursive = TRUE)
   on.exit(unlink(temp_repo, recursive = TRUE))
 
@@ -107,10 +107,10 @@ test_that("render_folder_worker: errors when multiple .qmd files exist and no in
   )
 })
 
-test_that("render_folder_worker: errors when no .qmd/.md files exist", {
+test_that("render_folder_worker: errors when no .qmd files exist", {
   skip_if_not_installed("gert")
 
-  temp_repo <- tempfile(prefix = "adhoc_empty_")
+  temp_repo <- tempfile(pattern = "adhoc_empty_")
   dir.create(temp_repo, recursive = TRUE)
   on.exit(unlink(temp_repo, recursive = TRUE))
 
@@ -126,7 +126,7 @@ test_that("render_folder_worker: errors when no .qmd/.md files exist", {
       progress = FALSE,
       preview  = FALSE
     ),
-    "Aucun fichier .qmd/.md"
+    "Aucun fichier .qmd"
   )
 })
 
@@ -134,7 +134,7 @@ test_that("render_folder_worker: uses supplied _quarto.yml if present", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
-  temp_repo <- tempfile(prefix = "adhoc_own_config_")
+  temp_repo <- tempfile(pattern = "adhoc_own_config_")
   dir.create(temp_repo, recursive = TRUE)
   on.exit(unlink(temp_repo, recursive = TRUE))
 
@@ -167,7 +167,7 @@ test_that("render_folder_worker: cleans up temp directory after render", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
-  temp_repo <- tempfile(prefix = "adhoc_cleanup_")
+  temp_repo <- tempfile(pattern = "adhoc_cleanup_")
   dir.create(temp_repo, recursive = TRUE)
   on.exit(unlink(temp_repo, recursive = TRUE))
 
@@ -201,7 +201,7 @@ test_that("render_folder_worker: returns URL string", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
-  temp_repo <- tempfile(prefix = "adhoc_url_")
+  temp_repo <- tempfile(pattern = "adhoc_url_")
   dir.create(temp_repo, recursive = TRUE)
   on.exit(unlink(temp_repo, recursive = TRUE))
 

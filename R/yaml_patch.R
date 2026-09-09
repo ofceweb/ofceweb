@@ -43,11 +43,36 @@ yaml_key_regex <- function(key) {
 # starts on `key_line`, which is at indentation `indent`. Blank lines are
 # folded in while scanning, but trailing blank lines are trimmed back off
 # so callers don't accidentally swallow spacer lines between sections.
+#
+# YAML allows a block sequence's `- ` items to sit at the *same*
+# indentation as their parent mapping key (e.g. `author:` followed by
+# `- name: ...` at column 0) rather than indented under it, which is the
+# style this package's own templates use (`  - name: ...`). Both are
+# valid, and a user's hand-edited `_quarto.yml` may use either -- so a
+# same-indent `- ` line immediately following `key_line` is detected and
+# treated as belonging to the subtree, along with any of its own more
+# deeply indented content (e.g. `  email: ...` under a `- name: ...`
+# item), rather than ending the block right after the key's own line.
 yaml_block_end <- function(lines, key_line, indent) {
   n <- length(lines)
+
+  first <- key_line + 1L
+  while (first <= n && !nzchar(trimws(lines[[first]]))) first <- first + 1L
+  same_indent_seq <- first <= n &&
+    yaml_indent_of(lines[[first]]) == indent &&
+    grepl("^-(\\s|$)", trimws(lines[[first]]))
+
   j <- key_line + 1L
-  while (j <= n && (!nzchar(trimws(lines[[j]])) || yaml_indent_of(lines[[j]]) > indent)) {
-    j <- j + 1L
+  while (j <= n) {
+    line <- lines[[j]]
+    if (!nzchar(trimws(line))) { j <- j + 1L; next }
+    li <- yaml_indent_of(line)
+    if (li > indent) { j <- j + 1L; next }
+    if (same_indent_seq && li == indent && grepl("^-(\\s|$)", trimws(line))) {
+      j <- j + 1L
+      next
+    }
+    break
   }
   end <- j - 1L
   while (end > key_line && !nzchar(trimws(lines[[end]]))) end <- end - 1L

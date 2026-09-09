@@ -29,3 +29,4 @@ Ne fonctionne que pour un PB publié (`pb` non nul dans `_quarto.yml`).
 \seealso{
 [setup_pb()], [wp_version_up()], [site_version_up()]
 }
+\keyword{internal}

@@ -571,11 +571,12 @@ deploy_folder_worker <- function(
   stamp_banner_push_time(site_dir)
 
   # Push via site2branch
-  # Note: We skip the workflow_dispatch trigger (trigger=FALSE) because the workflow
-  # is already configured to auto-trigger on push to site-** branches. GitHub's
-  # workflow_dispatch input validation can lag behind when the workflow was just
-  # installed/updated, causing spurious 422 errors. The push trigger is reliable
-  # and requires no explicit dispatch.
+  # Note: We pass empty inputs to trigger_action() because GitHub's workflow_dispatch
+  # input validation can be unreliable when the workflow was just updated. The
+  # workflow extracts the profile from the branch name anyway (site-{profile}),
+  # so we don't need to pass it as an input. The branch push will occur seconds
+  # before the dispatch attempt, and the workflow can use github.ref_name to get
+  # the profile name.
   rel_site_path <- fs::path_rel(site_dir, repo_root)
 
   site2branch(
@@ -583,10 +584,10 @@ deploy_folder_worker <- function(
     branch      = glue::glue("site-{slug}"),
     source      = rel_site_path,
     progress    = progress,
-    trigger     = FALSE,  # Rely on push-triggered workflow instead
+    trigger     = trigger,
     workflow    = "ftp_deploy_profile.yml",
     full_deploy = full_deploy,
-    inputs      = list(profile = slug)
+    inputs      = list()  # Empty; profile is extracted from branch name
   )
 
   # Compute and report URL

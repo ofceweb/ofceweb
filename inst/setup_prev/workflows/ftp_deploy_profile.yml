@@ -10,8 +10,9 @@ on:
     inputs:
       profile:
         description: "Nom du profil Quarto (ex. review, draft…)"
-        required: true
+        required: false
         type: string
+        default: ""
 
 jobs:
   deploy:
@@ -27,9 +28,9 @@ jobs:
       - name: Résoudre le nom du profil
         id: vars
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            PROFILE="${{ inputs.profile }}"
-          else
+          PROFILE="${{ inputs.profile }}"
+          # If profile input is empty or not provided, extract from branch name
+          if [ -z "$PROFILE" ]; then
             # La branche s'appelle site-{profile} — on retire le préfixe
             PROFILE="${{ github.ref_name }}"
             PROFILE="${PROFILE#site-}"

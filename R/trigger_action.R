@@ -89,25 +89,48 @@ trigger_action <- function(root     = ".",
     "https://api.github.com/repos/%s/%s/actions/workflows/%s/dispatches",
     owner, repo, workflow
   )
-  body <- list(ref = branch)
-  if (length(inputs) > 0) body$inputs <- inputs
+  req_body <- list(ref = branch)
+  if (length(inputs) > 0) req_body$inputs <- inputs
 
-  resp <- httr2::request(url) |>
-    httr2::req_auth_bearer_token(token) |>
-    httr2::req_headers(
-      "Accept"               = "application/vnd.github+json",
-      "X-GitHub-Api-Version" = "2022-11-28"
-    ) |>
-    httr2::req_body_json(body) |>
-    httr2::req_error(is_error = \(r) FALSE) |>
-    httr2::req_perform()
+  # GitHub's workflow_dispatch input validation runs against a cached copy of
+  # the workflow file. When the workflow was just installed/updated (e.g. by
+  # ensure_adhoc_workflow() moments earlier in the same call chain), that
+  # cache can briefly lag behind, causing a spurious
+  # "422 Invalid value for input" even though the file on the default branch
+  # is correct. Retry multiple times with exponential backoff before giving up.
+  # GitHub's cache invalidation can take up to 30-60 seconds.
+  max_attempts <- 8
+  wait_s       <- c(5, 8, 12, 15, 20, 25, 30)
+  for (attempt in seq_len(max_attempts)) {
+    resp <- httr2::request(url) |>
+      httr2::req_auth_bearer_token(token) |>
+      httr2::req_headers(
+        "Accept"               = "application/vnd.github+json",
+        "X-GitHub-Api-Version" = "2022-11-28"
+      ) |>
+      httr2::req_body_json(req_body) |>
+      httr2::req_error(is_error = \(r) FALSE) |>
+      httr2::req_perform()
 
-  code <- httr2::resp_status(resp)
-  if (code == 204L) {
-    cli::cli_alert_success("Workflow {.val {workflow}} d\u00e9clench\u00e9 sur {.val {branch}}.")
-  } else {
-    body <- tryCatch(httr2::resp_body_json(resp)$message, error = \(e) "?")
-    cli::cli_abort("GitHub API a retourn\u00e9 HTTP {code}: {body}")
+    code <- httr2::resp_status(resp)
+    if (code == 204L) {
+      cli::cli_alert_success("Workflow {.val {workflow}} d\u00e9clench\u00e9 sur {.val {branch}}.")
+      return(invisible(NULL))
+    }
+
+    # Only retry on 422 if we haven't exhausted retries yet. Otherwise, fail.
+    if (code != 422L || attempt == max_attempts) {
+      msg <- tryCatch(httr2::resp_body_json(resp)$message, error = \(e) "?")
+      cli::cli_abort("GitHub API a retourn\u00e9 HTTP {code}: {msg}")
+    }
+
+    # Sleep before retrying (only sleep if not the last attempt)
+    if (attempt < max_attempts) {
+      cli::cli_alert_info(
+        "D\u00e9clenchement refus\u00e9 (HTTP 422, probablement un d\u00e9lai de propagation \\
+         c\u00f4t\u00e9 GitHub apr\u00e8s l'installation du workflow) \u2014 nouvelle tentative dans {wait_s[attempt]}s..."
+      )
+      Sys.sleep(wait_s[attempt])
+    }
   }
-  invisible(NULL)
 }

@@ -69,3 +69,6 @@ _site
 .ftp-deploy-sync-state.json
 /.luarc.json
 *.pdf
+
+# Ad-hoc folder site artifacts (use render_folder/deploy_folder)
+.site/

@@ -73,6 +73,7 @@ Suggests:
     askpass,
     knitr,
     rmarkdown,
+    rstudioapi,
     testthat (>= 3.0.0),
     withr
 VignetteBuilder: knitr

@@ -71,13 +71,13 @@ site2branch <- function(
   state_file <- fs::path(root, ".ftp-deploy-sync-state.json")
 
   if (!fs::dir_exists(site_dir)) {
-    cli::cli_warn("{source} introuvable \u2014 push vers {branch} ignor\u00e9.")
+    cli::cli_warn("{source} introuvable — push vers {branch} ignoré.")
     return(invisible(NULL))
   }
   remotes    <- gert::git_remote_list(repo = root)
   origin_url <- remotes$url[remotes$name == "origin"]
   if (length(origin_url) == 0) {
-    cli::cli_warn("Pas de remote 'origin' \u2014 push vers {branch} ignor\u00e9.")
+    cli::cli_warn("Pas de remote 'origin' — push vers {branch} ignoré.")
     return(invisible(NULL))
   }
 
@@ -145,7 +145,7 @@ site2branch <- function(
           https_url)
     }
   }, error = function(e) {
-    cli::cli_warn("Impossible de r\u00e9cup\u00e9rer les credentials \u2014 tentative sans authentification.")
+    cli::cli_warn("Impossible de récupérer les credentials — tentative sans authentification.")
     https_url
   })
   existing_remotes <- gert::git_remote_list(repo = tmp)
@@ -173,14 +173,28 @@ site2branch <- function(
     cli::cli_abort("git push a échoué (code {ret}).")
 
   fs::dir_delete(tmp)
-  cli::cli_alert_success("{source} pouss\u00e9 vers la branche {branch}.")
+  cli::cli_alert_success("{source} poussé vers la branche {branch}.")
 
   if (trigger) {
+    # GitHub's workflow_dispatch input validation uses a cached copy of the workflow
+    # file. When the workflow was just installed or updated, the cache can lag behind.
+    # Wait a moment before attempting to trigger to increase the chance the cache
+    # has been refreshed by then.
+    if (progress)
+      cli::cli_alert_info("Attente avant déclenchement du workflow (cache GitHub)...")
+    Sys.sleep(3)
+
     tryCatch(
       trigger_action(root = root, workflow = workflow, inputs = inputs),
       error = function(e) {
-        cli::cli_warn("FTP dispatch \u00e9chou\u00e9 : {e$message}")
-        cli::cli_warn("... relancer manuellement avec trigger_action() ou vérifier que la branche par défaut a été poussée sur github.com.")
+        cli::cli_abort(
+          c(
+            "x" = "Déclenchement du workflow {.val {workflow}} échoué.",
+            "i" = "Message d'erreur : {e$message}",
+            "i" = "Relancer manuellement avec {.code trigger_action(workflow = {.val {workflow}})}"
+          ),
+          call = NULL
+        )
       }
     )
   }

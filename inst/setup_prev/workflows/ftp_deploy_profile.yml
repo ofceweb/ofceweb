@@ -10,7 +10,9 @@ on:
     inputs:
       profile:
         description: "Nom du profil Quarto (ex. review, draft…)"
-        required: true
+        required: false
+        type: string
+        default: ""
 
 jobs:
   deploy:
@@ -26,9 +28,9 @@ jobs:
       - name: Résoudre le nom du profil
         id: vars
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            PROFILE="${{ inputs.profile }}"
-          else
+          PROFILE="${{ inputs.profile }}"
+          # If profile input is empty or not provided, extract from branch name
+          if [ -z "$PROFILE" ]; then
             # La branche s'appelle site-{profile} — on retire le préfixe
             PROFILE="${{ github.ref_name }}"
             PROFILE="${PROFILE#site-}"
@@ -47,10 +49,14 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Chiffrement staticrypt (si STATICRYPT_PASSWORD défini)
+      - name: Chiffrement staticrypt (si STATICRYPT_PASSWORD défini et demandé)
         run: |
-          if [ -z "$STATICRYPT_PASSWORD" ]; then
-            echo "STATICRYPT_PASSWORD absent — déploiement sans chiffrement."
+          if [ -z "$STATICRYPT_PASSWORD" ] || [ -f .no-staticrypt ]; then
+            if [ -f .no-staticrypt ]; then
+              echo "Marqueur .no-staticrypt trouvé — chiffrement désactivé."
+            else
+              echo "STATICRYPT_PASSWORD absent — déploiement sans chiffrement."
+            fi
           else
             npm install -g staticrypt
             mkdir -p /tmp/staticrypt_out
@@ -82,6 +88,7 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
+            **/.no-staticrypt
 
       - name: Sauvegarder l'état FTP dans site-${{ steps.vars.outputs.profile }}
         run: |

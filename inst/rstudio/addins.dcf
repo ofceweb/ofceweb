@@ -8,11 +8,32 @@ Binding: preview_qmd
 Package: ofceweb
 Interactive: false
 
-Name: Prévisualiser le .qmd actif [staging]
+Name: Publier le dossier courant (ad-hoc)
 Description: >
-  Idem que "Prévisualiser le .qmd actif" mais avec le profil Quarto
-  "staging" (sortie dans _site_staging/). Raccourci dédié aux dépôts de
-  prévision OFCE.
-Binding: preview_qmd_staging
+  Rend le dossier courant comme un site Quarto autonome dans _site/, avec un 
+  slug déterministe, puis le déploie immédiatement vers staging.ofce.fr en 
+  un seul job d'arrière-plan. Auto-détecte le fichier index s'il n'y en a 
+  qu'un, ou demande de le spécifier. Injecte une bannière OFCE. Auto-installe 
+  le workflow GitHub si absent. Prend en charge l'opt-out de chiffrement.
+Binding: publish_folder_addin
 Package: ofceweb
-Interactive: false
+Interactive: true
+
+Name: Rendre le dossier courant (ad-hoc)
+Description: >
+  Rend le dossier courant comme un site Quarto autonome dans _site/, 
+  avec un slug déterministe. Auto-détecte le fichier index s'il n'y en a 
+  qu'un, ou demande de le spécifier. Injecte une bannière OFCE. Prêt pour 
+  deploy_folder() après rendu.
+Binding: render_folder_addin
+Package: ofceweb
+Interactive: true
+
+Name: Déployer le dossier courant (ad-hoc)
+Description: >
+  Déploie le dossier courant (_site/) vers staging.ofce.fr. Auto-installe 
+  le workflow GitHub si absent. Lecture du slug depuis les métadonnées ou 
+  recalcul. Prend en charge l'opt-out de chiffrement.
+Binding: deploy_folder_addin
+Package: ofceweb
+Interactive: true

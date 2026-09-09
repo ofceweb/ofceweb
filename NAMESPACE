@@ -5,6 +5,7 @@ export(check_pb)
 export(check_prev)
 export(check_wp)
 export(create_blog_version)
+export(deploy_folder)
 export(deploy_pb)
 export(deploy_prev)
 export(deploy_site)
@@ -14,9 +15,11 @@ export(download_gh_file)
 export(pb_registry_request)
 export(pb_version_up)
 export(prev_version_up)
+export(preview_folder)
 export(preview_qmd)
 export(publish)
 export(publish_blog)
+export(publish_folder)
 export(publish_home)
 export(publish_ife)
 export(publish_pb)
@@ -25,6 +28,7 @@ export(publish_wp)
 export(push_site_redirect)
 export(render)
 export(render_blog)
+export(render_folder)
 export(render_home)
 export(render_ife)
 export(render_pb)
@@ -38,7 +42,6 @@ export(setup_pb)
 export(setup_prev)
 export(setup_site)
 export(setup_wp)
-export(site2branch)
 export(site_version_up)
 export(stage_prev)
 export(stage_site)
@@ -87,6 +90,7 @@ importFrom(fs,
   path_ext_remove,
   path_ext_set,
   path_file,
+  path_join,
   path_norm,
   path_rel
 )
@@ -137,6 +141,10 @@ importFrom(quarto,
   quarto_inspect,
   quarto_render
 )
+importFrom(rlang,
+  env,
+  env_names
+)
 importFrom(servr,
   daemon_stop,
   httd,
@@ -148,10 +156,14 @@ importFrom(stringr,
   str_extract,
   str_match_all,
   str_remove_all,
-  str_replace_all
+  str_replace_all,
+  str_trim
 )
 importFrom(tictoc,
   tic,
   toc
 )
-importFrom(yaml,read_yaml)
+importFrom(yaml,
+  read_yaml,
+  write_yaml
+)

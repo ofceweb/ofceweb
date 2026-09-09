@@ -188,6 +188,7 @@ test_that("setup_wp() computes citation.issue and citation.url for a published W
 
   expect_equal(yml$citation$issue, "2027-12")
   expect_equal(yml$citation$url, "https://www.ofce.fr/wp/2027/12/")
+  expect_equal(yml$stable_url, "https://www.ofce.fr/wp/2027/12/")
 })
 
 test_that("setup_wp() updates citation.issue when the WP number changes", {
@@ -207,6 +208,7 @@ test_that("setup_wp() updates citation.issue when the WP number changes", {
   expect_equal(yml$wp, 8L)
   expect_equal(yml$citation$issue, "2026-8")
   expect_equal(yml$citation$url, "https://www.ofce.fr/wp/2026/8/")
+  expect_equal(yml$stable_url, "https://www.ofce.fr/wp/2026/8/")
 })
 
 test_that("setup_wp() does not set citation.issue/url for a draft (wp = NULL)", {
@@ -227,6 +229,7 @@ test_that("setup_wp() does not set citation.issue/url for a draft (wp = NULL)", 
   expect_null(yml$wp)
   expect_null(yml$citation$issue)
   expect_null(yml$citation$url)
+  expect_null(yml$stable_url)
 })
 
 test_that("setup_wp() warns that the deployment URL changes when the site-path is rewritten", {

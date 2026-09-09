@@ -173,6 +173,11 @@ copy_post <- function(posts, lang = "fr",
         pdf_link <- NULL
       yaml$translated <- translated
       yaml$socialband <- TRUE
+      # stable_url : URL canonique du post (pas de notion de version pour le
+      # blog) — même base que share$permalink ci-dessous, sans index.html.
+      yaml$stable_url <- glue::glue(
+        "https://ofce.sciences-po.fr/blog2024/{lang}/{post_folder}/"
+      )
       yaml$share = list(
         twitter = TRUE,
         facebook = TRUE,

@@ -200,7 +200,7 @@ pb_registry_request()
     manuellement.
 
 2.  Une fois la PR fusionnée, relancer `setup_pb()` pour synchroniser
-    `pb`/`draft`/`site-path`/`citation.*` (`citation.url` :
+    `pb`/`draft`/`site-path`/`citation.*`/`stable_url` (`citation.url`/`stable_url` :
     `https://www.ofce.fr/pb/{N}/`, `citation.issue`: `"{N}"`) et les
     variables FTP :
 

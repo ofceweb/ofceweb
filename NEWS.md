@@ -1,3 +1,15 @@
+## ofceweb (development version)
+
+### Nouveau champ `stable_url`
+
+* `setup_wp()`/`setup_pb()` écrivent désormais aussi un champ `stable_url`
+  de premier niveau dans `_quarto.yml`, en plus de `citation.url` (même
+  valeur, sans le segment de version `/v{x}`) — pour les usages hors
+  citation/PDF (bannière, meta sur la page rendue, etc.).
+* Les posts de blog reçoivent le même champ `stable_url` (URL canonique du
+  post, sans notion de version) dans le front matter de la copie rendue, à
+  côté de `share$permalink`.
+
 ## ofceweb v0.10.13
 
 ### `setup_wp()` : nettoyage des clés `format.*` parasites, `wp-pdf` systématique

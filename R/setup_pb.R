@@ -504,6 +504,12 @@ setup_pb <- function(
       yml$citation$url <- stable_url
       lines <- yaml_patch_scalar(lines, "citation.url", stable_url)
 
+      # stable_url : même valeur, exposée aussi comme clé de premier niveau
+      # (hors citation.*) pour les usages autres que la citation/PDF, ex.
+      # bannière/meta sur la page rendue.
+      yml$stable_url <- stable_url
+      lines <- yaml_patch_scalar(lines, "stable_url", stable_url)
+
       issue <- sprintf("%d", citation_pb)
       yml$citation$issue <- issue
       lines <- yaml_patch_scalar(lines, "citation.issue", issue)

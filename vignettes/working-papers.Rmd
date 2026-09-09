@@ -212,7 +212,7 @@ convient.
 
 2.  Une fois la PR fusionnée, relancer `setup_wp()` pour synchroniser
     `_quarto.yml` (`wp`, `annee`, `draft`, `site-path`,
-    `citation.url`/`citation.issue`) et mettre à jour les variables FTP
+    `citation.url`/`citation.issue`/`stable_url`) et mettre à jour les variables FTP
     (`FTP_SERVER_DIR`, `FTP_REDIRECT_DIR`) :
 
 ```{r}

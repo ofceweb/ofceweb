@@ -44,7 +44,7 @@ test_that("inject_quick_publish_banner: injects banner after <body>", {
 
   # Should contain the banner
   expect_true(grepl("OFCE", result))
-  expect_true(grepl("publication rapide", result))
+  expect_true(grepl("publication flash", result))
   # Banner should be after body tag
   expect_true(grepl("<body[^>]*>.*OFCE", result, ignore.case = TRUE))
 

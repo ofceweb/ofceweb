@@ -1038,7 +1038,7 @@ inject_quick_publish_banner <- function(site_dir) {
     '<div style="position:fixed;top:0;left:0;right:0;z-index:9999;',
     'background:#e6142d;color:#fff;font:13px sans-serif;',
     'padding:4px 10px;text-align:center;">',
-    'OFCE — publication rapide — page non indexée',
+    'OFCE — publication flash — page non indexée',
     '<span class="ofce-push-ts"></span>',
     '</div>',
     sep = ""
@@ -1566,12 +1566,7 @@ deploy_folder_addin <- function() {
   # Ask for encryption preference. rstudioapi::showDialog() is an OK-only
   # alert (it always returns NULL, never a "No"); showQuestion() is the
   # one that actually returns TRUE/FALSE based on which button is clicked.
-  encrypt <- rstudioapi::showQuestion(
-    title   = "Chiffrement staticrypt",
-    message = "Publier avec chiffrement (si STATICRYPT_PASSWORD est configuré) ?",
-    ok      = "Oui",
-    cancel  = "Non"
-  )
+  encrypt <- TRUE
 
   # Deploy synchronously so console output stays visible in this session.
   deploy_folder(

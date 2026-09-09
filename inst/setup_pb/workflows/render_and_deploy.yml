@@ -57,7 +57,7 @@ jobs:
           else
             npm install -g staticrypt
             mkdir -p /tmp/staticrypt_out
-            staticrypt ./_site/ \
+            staticrypt ./_site/* \
               --recursive \
               --directory /tmp/staticrypt_out/ \
               --password "$STATICRYPT_PASSWORD" \
@@ -67,7 +67,7 @@ jobs:
               --template-title "Accès restreint" \
               --template-instructions "Entrez le mot de passe ou contactez un responsable de la page que vous souhaitez atteindre." \
               --template-button "Accès"
-            cp -r /tmp/staticrypt_out/_site/. ./_site/
+            cp -r /tmp/staticrypt_out/. ./_site/
           fi
 
       - name: Restaurer l'état FTP depuis site-deploy

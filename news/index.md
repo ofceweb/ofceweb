@@ -2,6 +2,27 @@
 
 ## ofceweb (development version)
 
+### Les addins ad-hoc (Publier/Rendre/Déployer) utilisent désormais le document actif, pas la racine du projet
+
+`publish_folder_addin()`, `render_folder_addin()` et
+`deploy_folder_addin()` (exposés dans le menu RStudio *Addins*)
+résolvaient le dossier à publier via
+[`rstudioapi::getActiveProject()`](https://rstudio.github.io/rstudioapi/reference/getActiveProject.html)
+— c’est-à-dire la racine du projet RStudio ouvert, quel que soit le
+document effectivement actif dans l’éditeur. Pour un projet contenant
+plusieurs notes/documents ad-hoc, cela publiait systématiquement (ou
+tentait de publier) tout le dépôt plutôt que le document en cours
+d’édition. Les trois addins utilisent maintenant le contexte de
+l’éditeur
+([`rstudioapi::getSourceEditorContext()`](https://rstudio.github.io/rstudioapi/reference/rstudio-editors.html))
+: le dossier publié est celui du document actif, et ce document sert
+directement d’`index` (la boîte de dialogue de sélection de fichier a
+été retirée, devenue inutile). Un document non enregistré, ou qui n’est
+pas un fichier `.qmd`/`.md`, produit désormais une erreur explicite
+plutôt qu’un comportement silencieusement incorrect.
+`inst/rstudio/addins.dcf` a été mis à jour en conséquence (noms et
+descriptions).
+
 ### Correction : `yaml_block_end()` sous-estimait les séquences dont le tiret est à la même colonne que la clé
 
 YAML autorise deux styles pour une séquence de blocs : les éléments

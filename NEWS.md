@@ -1,4 +1,4 @@
-## ofceweb (development version)
+## ofceweb 1.0.1
 
 ### `check_gh_login()` et les vérifications FTP de `check_prev()` sont désormais mises en cache, comme `deploy_folder()`
 

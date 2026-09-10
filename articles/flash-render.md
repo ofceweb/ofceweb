@@ -1,0 +1,97 @@
+# Rendre un document en un clic (rendu flash)
+
+[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
+rend **un seul document** — celui actif dans l’éditeur RStudio — comme
+un mini-site Quarto autonome, sans toucher au reste du dépôt. Ce
+vignette se concentre sur son usage normal : l’addin RStudio **Rendre
+(flash)**.
+
+## Pourquoi c’est utile
+
+Beaucoup de documents ne font pas partie d’un site Quarto structuré :
+des slides ponctuelles, une note de travail, un `.qmd` isolé dans un
+dossier de recherche (`PolMo/Presentation/`, par exemple). Pour ces
+cas-là, pas besoin de
+[`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
+ni de `_quarto.yml` : l’addin prend le document ouvert, l’isole dans un
+dossier temporaire, le rend seul (même si d’autres `.qmd`/`.md` traînent
+dans le même dossier), et ouvre un aperçu local immédiatement.
+
+C’est la première étape du trio d’addins **Rendre → Publier / Déployer
+(flash)** : une fois le rendu validé dans l’aperçu, le même document
+peut être mis en ligne sur `staging.ofce.fr` en un clic supplémentaire
+(voir `publish_folder_addin()` / `deploy_folder_addin()`).
+
+## Comment l’utiliser
+
+1.  Ouvrir le `.qmd` à rendre dans l’éditeur RStudio, pour qu’il soit le
+    document **actif** dans la partie éditeur de texte (généralement à
+    gauche).
+2.  Menu **Addins → Rendre (flash)** (ou taper “Rendre (flash)” dans la
+    palette de commandes, Ctrl/Cmd+Shift+P). Pour publier plutôt que
+    seulement faire le rendu Menu **Addins → Rendre (flash)**. Pour
+    déployer sans refaire le rendu Menu **Addins → Déployer (flash)**.
+3.  Le rendu se déroule dans la console ; un aperçu s’ouvre
+    automatiquement dans l’onglet **Viewer** à la fin.
+
+Le résultat est écrit dans `_site/` à côté du document — pas ailleurs
+dans le dépôt.
+
+### Choix du document rendu
+
+Le document actif est explicitement passé à
+[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
+par l’addin, donc aucune ambiguïté ne se pose en usage normal. En dehors
+de l’addin (par exemple via la console), si aucun `index` n’est fourni,
+[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
+cherche `index.qmd`/`index.md` dans le dossier, sinon retient le
+`.qmd`/`.md` le plus récemment modifié — un message signale son choix.
+
+## Utilisation programmatique (secondaire)
+
+L’addin appelle simplement
+[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md).
+Il est possible de l’invoquer directement depuis la console — utile pour
+automatiser un lot de rendus, ou dans un script :
+
+``` r
+
+library(ofceweb)
+
+render_folder(
+  path    = "PolMo/Presentation",
+  index   = "Presentation_Polmo.qmd",  # optionnel si sans ambiguïté
+  preview = TRUE,
+  as_job  = FALSE
+)
+```
+
+## Pré-requis
+
+[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
+ne nécessite **ni PAT GitHub ni `gh`** — ces identifiants ne servent
+qu’à la publication/déploiement
+([`publish_folder()`](https://ofceweb.github.io/ofceweb/reference/publish_folder.md)
+/
+[`deploy_folder()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder.md)),
+pas au rendu seul. Il suffit :
+
+- d’être dans un dossier situé **à l’intérieur d’un dépôt git** (utilisé
+  pour calculer le `slug` et localiser d’éventuels `_extensions/`
+  partagés) ;
+- que le dossier soit *raisonnablement autonome* : les chemins relatifs
+  qui remontent en dehors (`../figures/x.png`, `../../biblio.bib`) ne se
+  résoudront pas, puisque seul ce dossier (et les `_extensions/`
+  trouvées) est copié dans le répertoire temporaire de rendu.
+
+Si un `_quarto.yml` existe déjà dans le dossier, il est **ignoré**
+volontairement : le rendu flash cible un seul document, pas un projet
+multi-pages — pour ça, voir
+[`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
+/
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md).
+
+Pour aller jusqu’à la mise en ligne (`publish_folder_addin()` /
+`deploy_folder_addin()`), un PAT GitHub et `gh` authentifié sont
+nécessaires — voir [*Pré-requis : PAT GitHub, gh CLI, variables
+d’environnement*](https://ofceweb.github.io/ofceweb/articles/articles/prerequisites.md).

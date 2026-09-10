@@ -847,8 +847,8 @@ deploy_folder_worker <- function(
       fs::file_delete(marker_file)
   }
 
-  # Stamp the banner with the actual push date/time (Paris time), not the
-  # render time
+  # Stamp the banner with the actual push date/time (Paris time) and the
+  # publisher's GitHub identity, rather than the render time
   stamp_banner_push_time(site_dir)
 
   # Push via site2branch
@@ -1306,16 +1306,25 @@ inject_quick_publish_banner <- function(site_dir) {
   }
 }
 
-#' Stamp the OFCE quick-publish banner with the push date/time
+#' Stamp the OFCE quick-publish banner with the push date/time and publisher
 #'
 #' Fills in the `<span class="ofce-push-ts">` placeholder left by
 #' [inject_quick_publish_banner()] in every `*.html` file under `site_dir`,
-#' with the current date/time in the `Europe/Paris` timezone. Called from
+#' with the current date/time in the `Europe/Paris` timezone and, when
+#' available, the GitHub identity of whoever is deploying (via the cached
+#' [check_gh_login()] diagnostic — `gh::gh("GET /user")`). Called from
 #' [deploy_folder_worker()] right before the git push, so the banner reflects
-#' when the site was actually deployed rather than when it was rendered.
+#' who actually pushed the site and when, not when it was rendered. By the
+#' time this runs, [adhoc_check_deploy_prereqs()] has already invoked
+#' [check_gh_setup()] earlier in [deploy_folder_worker()], so this call is a
+#' cache hit (`"gh:login"` key) rather than a fresh network request. If `gh`
+#' isn't authenticated, the identity is silently omitted from the banner
+#' rather than blocking the deploy — consistent with how `gh` checks never
+#' block rendering or deployment elsewhere in the package.
 #' Idempotent: re-running it (e.g. on a redeploy) overwrites the previous
-#' timestamp instead of appending to it. HTML files without the placeholder
-#' (e.g. produced by an older `ofceweb` version) are left untouched.
+#' timestamp/identity instead of appending to it. HTML files without the
+#' placeholder (e.g. produced by an older `ofceweb` version) are left
+#' untouched.
 #'
 #' @param site_dir `[character(1)]`\cr
 #'   Root directory to search for `*.html` files (recursive).
@@ -1324,7 +1333,12 @@ inject_quick_publish_banner <- function(site_dir) {
 #' @noRd
 stamp_banner_push_time <- function(site_dir) {
   pushed_at <- format(Sys.time(), "%d/%m/%Y %H:%M", tz = "Europe/Paris")
-  label     <- glue::glue(" \u2014 publi\u00e9 le {pushed_at} (heure de Paris)")
+  publisher <- check_gh_login(verbose = FALSE)
+  label     <- if (!is.na(publisher)) {
+    glue::glue(" \u2014 publi\u00e9 le {pushed_at} (heure de Paris) par @{publisher}")
+  } else {
+    glue::glue(" \u2014 publi\u00e9 le {pushed_at} (heure de Paris)")
+  }
 
   html_files <- fs::dir_ls(
     site_dir,

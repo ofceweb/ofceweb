@@ -90,6 +90,46 @@ test_that("inject_quick_publish_banner: processes all *.html files recursively",
   unlink(temp_dir, recursive = TRUE)
 })
 
+test_that("stamp_banner_push_time: includes GitHub identity when authenticated", {
+  local_mocked_bindings(check_gh_login = function(...) invisible("jdoe"))
+
+  temp_dir <- tempfile()
+  dir.create(temp_dir, recursive = TRUE)
+  test_file <- file.path(temp_dir, "test_stamp.html")
+  writeLines(
+    '<body>\n<div><span class="ofce-push-ts"></span></div>\n</body>',
+    test_file
+  )
+
+  stamp_banner_push_time(temp_dir)
+
+  result <- readLines(test_file, warn = FALSE) |> paste(collapse = "\n")
+  expect_true(grepl("publi\u00e9 le", result))
+  expect_true(grepl("@jdoe", result, fixed = TRUE))
+
+  unlink(temp_dir, recursive = TRUE)
+})
+
+test_that("stamp_banner_push_time: omits identity when gh isn't authenticated", {
+  local_mocked_bindings(check_gh_login = function(...) invisible(NA_character_))
+
+  temp_dir <- tempfile()
+  dir.create(temp_dir, recursive = TRUE)
+  test_file <- file.path(temp_dir, "test_stamp.html")
+  writeLines(
+    '<body>\n<div><span class="ofce-push-ts"></span></div>\n</body>',
+    test_file
+  )
+
+  stamp_banner_push_time(temp_dir)
+
+  result <- readLines(test_file, warn = FALSE) |> paste(collapse = "\n")
+  expect_true(grepl("publi\u00e9 le", result))
+  expect_false(grepl("@", result, fixed = TRUE))
+
+  unlink(temp_dir, recursive = TRUE)
+})
+
 test_that("find_git_root: finds git repository root", {
   skip_if_not_installed("gert")
 

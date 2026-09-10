@@ -42,6 +42,10 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.1" id="ofceweb-101">ofceweb 1.0.1<a class="anchor" aria-label="anchor" href="#ofceweb-101"></a></h2>
 <div class="section level3">
+<h3 id="la-bannière-de-publication-flash-affiche-désormais-lidentité-github-de-lauteur-du-déploiement-1-0-1">La bannière de publication flash affiche désormais l’identité GitHub de l’auteur du déploiement<a class="anchor" aria-label="anchor" href="#la-banni%C3%A8re-de-publication-flash-affiche-d%C3%A9sormais-lidentit%C3%A9-github-de-lauteur-du-d%C3%A9ploiement-1-0-1"></a></h3>
+<p><code>stamp_banner_push_time()</code>, appelée par <code><a href="../reference/deploy_folder_worker.html">deploy_folder_worker()</a></code> juste avant le push (voir <code><a href="../reference/render_folder.html">render_folder()</a></code>/<code><a href="../reference/deploy_folder.html">deploy_folder()</a></code>), interroge désormais <code>check_gh_login()</code> (<code>gh::gh("GET /user")</code>, mis en cache — voir entrée suivante) pour ajouter <code>par @{login}</code> à côté de l’horodatage dans la bannière rouge injectée par <code>inject_quick_publish_banner()</code>. Si <code>gh</code> n’est pas authentifié, l’identité est simplement omise (la bannière garde uniquement la date/heure) — cohérent avec le principe qu’un défaut de configuration <code>gh</code> ne bloque jamais le rendu ni le déploiement, seulement un diagnostic d’agrément.</p>
+</div>
+<div class="section level3">
 <h3 id="check_gh_login-et-les-vérifications-ftp-de-check_prev-sont-désormais-mises-en-cache-comme-deploy_folder-1-0-1">
 <code>check_gh_login()</code> et les vérifications FTP de <code>check_prev()</code> sont désormais mises en cache, comme <code>deploy_folder()</code>
 <a class="anchor" aria-label="anchor" href="#check_gh_login-et-les-v%C3%A9rifications-ftp-de-check_prev-sont-d%C3%A9sormais-mises-en-cache-comme-deploy_folder-1-0-1"></a></h3>

@@ -2,6 +2,21 @@
 
 ## ofceweb 1.0.1
 
+### La bannière de publication flash affiche désormais l’identité GitHub de l’auteur du déploiement
+
+`stamp_banner_push_time()`, appelée par
+[`deploy_folder_worker()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder_worker.md)
+juste avant le push (voir
+[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)/[`deploy_folder()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder.md)),
+interroge désormais `check_gh_login()` (`gh::gh("GET /user")`, mis en
+cache — voir entrée suivante) pour ajouter `par @{login}` à côté de
+l’horodatage dans la bannière rouge injectée par
+`inject_quick_publish_banner()`. Si `gh` n’est pas authentifié,
+l’identité est simplement omise (la bannière garde uniquement la
+date/heure) — cohérent avec le principe qu’un défaut de configuration
+`gh` ne bloque jamais le rendu ni le déploiement, seulement un
+diagnostic d’agrément.
+
 ### `check_gh_login()` et les vérifications FTP de `check_prev()` sont désormais mises en cache, comme `deploy_folder()`
 
 Le mécanisme de cache introduit pour `adhoc_check_deploy_prereqs()`

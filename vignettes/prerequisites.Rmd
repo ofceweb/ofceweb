@@ -17,7 +17,7 @@ knitr::opts_chunk$set(eval = FALSE)
 Avant de pouvoir construire et déployer un site avec `ofceweb`, il faut
 configurer côté machine quelques éléments d'authentification GitHub. Ce
 vignette les passe en revue. Une fois cette configuration faite,
-enchaîner avec [*Faire un document de travail*](articles/working-papers.html) ou [*Faire un mini-site*](articles/build-a-site.html).
+enchaîner avec [*Faire un document de travail*](working-papers.html) ou [*Faire un mini-site*](build-a-site.html).
 
 ## Vue d'ensemble :
 

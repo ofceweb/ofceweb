@@ -25,7 +25,7 @@ navbar:
         href: articles/build-a-site.html
       - text: Faire une prévision
         href: articles/previsions.html
-      - text: Rendre un document en un clic (flash)
+      - text: Stager un document en un clic (flash)
         href: articles/flash-render.html
     github:
       icon: fab fa-github

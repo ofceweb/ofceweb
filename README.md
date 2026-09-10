@@ -90,6 +90,6 @@ Pour générer la *home page*, aller dans le repo [webhome](https://github.com/o
 Pour générer le [dashboard de fréquentation webstat](https://www.ofce.fr/webstat) : aller dans le repo [webstat](https://github.com/ofceweb/webstat), et pusher sur main, le site est généré à partir de cet évènement ; 2 fois par jour webstat est actualisé.
 
 
-### Prochainement le nowcast
+### Le nowcast
 
-Le [nowcast](https://github.com/ofceweb/nowcast) a bientôt sa page. Il est en cours de développement
+Le [nowcast](https://github.com/ofceweb/nowcast) a sa page.

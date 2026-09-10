@@ -3,11 +3,12 @@ pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   build-a-site: build-a-site.html
+  flash-render: flash-render.html
   policy-briefs: policy-briefs.html
   prerequisites: prerequisites.html
   previsions: previsions.html
   working-papers: working-papers.html
-last_built: 2026-09-10T09:13Z
+last_built: 2026-09-10T16:54Z
 urls:
   reference: https://ofceweb.github.io/ofceweb/reference
   article: https://ofceweb.github.io/ofceweb/articles

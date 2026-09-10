@@ -4,9 +4,9 @@ Avant de pouvoir construire et déployer un site avec `ofceweb`, il faut
 configurer côté machine quelques éléments d’authentification GitHub. Ce
 vignette les passe en revue. Une fois cette configuration faite,
 enchaîner avec [*Faire un document de
-travail*](https://ofceweb.github.io/ofceweb/articles/articles/working-papers.md)
+travail*](https://ofceweb.github.io/ofceweb/articles/working-papers.md)
 ou [*Faire un
-mini-site*](https://ofceweb.github.io/ofceweb/articles/articles/build-a-site.md).
+mini-site*](https://ofceweb.github.io/ofceweb/articles/build-a-site.md).
 
 ## Vue d’ensemble :
 

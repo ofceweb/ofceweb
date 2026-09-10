@@ -204,7 +204,6 @@ webstat](https://www.ofce.fr/webstat) : aller dans le repo
 site est généré à partir de cet évènement ; 2 fois par jour webstat est
 actualisé.
 
-### Prochainement le nowcast
+### Le nowcast
 
-Le [nowcast](https://github.com/ofceweb/nowcast) a bientôt sa page. Il
-est en cours de développement
+Le [nowcast](https://github.com/ofceweb/nowcast) a sa page.

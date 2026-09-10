@@ -46,7 +46,7 @@
     <li><a class="dropdown-item" href="../articles/policy-briefs.html">Faire un Policy brief</a></li>
     <li><a class="dropdown-item" href="../articles/build-a-site.html">Faire un mini-site</a></li>
     <li><a class="dropdown-item" href="../articles/previsions.html">Faire une prévision</a></li>
-    <li><a class="dropdown-item" href="../articles/flash-render.html">Rendre un document en un clic (flash)</a></li>
+    <li><a class="dropdown-item" href="../articles/flash-render.html">Stager un document en un clic (flash)</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -96,7 +96,9 @@ ouvre un aperçu local immédiatement.</p>
 Déployer (flash)</strong> : une fois le rendu validé dans l’aperçu, le
 même document peut être mis en ligne sur <code>staging.ofce.fr</code> en
 un clic supplémentaire (voir <code>publish_folder_addin()</code> /
-<code>deploy_folder_addin()</code>).</p>
+<code>deploy_folder_addin()</code>). C’est une mise en ligne protégée
+par un mot de passe qui n’a pas vocation à être publique. Les mises en
+ligne publiques doivent être validées.</p>
 </div>
 <div class="section level2">
 <h2 id="comment-lutiliser">Comment l’utiliser<a class="anchor" aria-label="anchor" href="#comment-lutiliser"></a>
@@ -154,11 +156,12 @@ publication/déploiement (<code><a href="../reference/publish_folder.html">publi
 <li>d’être dans un dossier situé <strong>à l’intérieur d’un dépôt
 git</strong> (utilisé pour calculer le <code>slug</code> et localiser
 d’éventuels <code>_extensions/</code> partagés) ;</li>
-<li>que le dossier soit <em>raisonnablement autonome</em> : les chemins
-relatifs qui remontent en dehors (<code>../figures/x.png</code>,
+<li>que le dossier soit <strong>raisonnablement autonome</strong> : les
+chemins relatifs qui remontent en dehors (<code>../figures/x.png</code>,
 <code>../../biblio.bib</code>) ne se résoudront pas, puisque seul ce
 dossier (et les <code>_extensions/</code> trouvées) est copié dans le
-répertoire temporaire de rendu.</li>
+répertoire temporaire de rendu. Si ce n’est pas le cas, le rendu
+échouera.</li>
 </ul>
 <p>Si un <code>_quarto.yml</code> existe déjà dans le dossier, il est
 <strong>ignoré</strong> volontairement : le rendu flash cible un seul
@@ -167,8 +170,8 @@ document, pas un projet multi-pages — pour ça, voir
 <p>Pour aller jusqu’à la mise en ligne
 (<code>publish_folder_addin()</code> /
 <code>deploy_folder_addin()</code>), un PAT GitHub et <code>gh</code>
-authentifié sont nécessaires — voir <a href="articles/prerequisites.html"><em>Pré-requis : PAT GitHub, gh CLI,
-variables d’environnement</em></a>.</p>
+authentifié sont nécessaires — voir <a href="prerequisites.html"><em>Pré-requis : PAT GitHub, gh CLI, variables
+d’environnement</em></a>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

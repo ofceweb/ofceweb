@@ -20,7 +20,9 @@ dans le même dossier), et ouvre un aperçu local immédiatement.
 C’est la première étape du trio d’addins **Rendre → Publier / Déployer
 (flash)** : une fois le rendu validé dans l’aperçu, le même document
 peut être mis en ligne sur `staging.ofce.fr` en un clic supplémentaire
-(voir `publish_folder_addin()` / `deploy_folder_addin()`).
+(voir `publish_folder_addin()` / `deploy_folder_addin()`). C’est une
+mise en ligne protégée par un mot de passe qui n’a pas vocation à être
+publique. Les mises en ligne publiques doivent être validées.
 
 ## Comment l’utiliser
 
@@ -79,10 +81,11 @@ pas au rendu seul. Il suffit :
 - d’être dans un dossier situé **à l’intérieur d’un dépôt git** (utilisé
   pour calculer le `slug` et localiser d’éventuels `_extensions/`
   partagés) ;
-- que le dossier soit *raisonnablement autonome* : les chemins relatifs
-  qui remontent en dehors (`../figures/x.png`, `../../biblio.bib`) ne se
-  résoudront pas, puisque seul ce dossier (et les `_extensions/`
-  trouvées) est copié dans le répertoire temporaire de rendu.
+- que le dossier soit **raisonnablement autonome** : les chemins
+  relatifs qui remontent en dehors (`../figures/x.png`,
+  `../../biblio.bib`) ne se résoudront pas, puisque seul ce dossier (et
+  les `_extensions/` trouvées) est copié dans le répertoire temporaire
+  de rendu. Si ce n’est pas le cas, le rendu échouera.
 
 Si un `_quarto.yml` existe déjà dans le dossier, il est **ignoré**
 volontairement : le rendu flash cible un seul document, pas un projet
@@ -94,4 +97,4 @@ multi-pages — pour ça, voir
 Pour aller jusqu’à la mise en ligne (`publish_folder_addin()` /
 `deploy_folder_addin()`), un PAT GitHub et `gh` authentifié sont
 nécessaires — voir [*Pré-requis : PAT GitHub, gh CLI, variables
-d’environnement*](https://ofceweb.github.io/ofceweb/articles/articles/prerequisites.md).
+d’environnement*](https://ofceweb.github.io/ofceweb/articles/prerequisites.md).

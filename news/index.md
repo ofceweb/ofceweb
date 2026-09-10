@@ -2,6 +2,95 @@
 
 ## ofceweb (development version)
 
+### `check_gh_login()` et les vérifications FTP de `check_prev()` sont désormais mises en cache, comme `deploy_folder()`
+
+Le mécanisme de cache introduit pour `adhoc_check_deploy_prereqs()`
+(entrée suivante) est généralisé en un mécanisme partagé,
+`gh_cached_check()` (voir `git_utils.R`) : une seule fonction, un seul
+cache (`.gh_checks_cache`), un seul compteur de fraîcheur
+(`.gh_setup_generation`, incrémenté par `check_gh_setup()`).
+`check_gh_login()` (`gh::gh("GET /user")` — appelée sans mise en cache
+par
+[`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md),
+[`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md),
+[`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md),
+[`stage_prev()`](https://ofceweb.github.io/ofceweb/reference/stage_prev.md),
+[`publish_prev()`](https://ofceweb.github.io/ofceweb/reference/publish_prev.md))
+l’utilise désormais, tout comme les vérifications
+`FTP_STAGING_DIR`/`FTP_PUBLISH_DIR`/`STATICRYPT_PASSWORD` de
+[`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
+(jusqu’ici recalculées via `gh` CLI à chaque appel). `check_gh_setup()`
+gagne un paramètre interne `bump_cache` (`TRUE` par défaut) : les
+appelants qui le relancent *sans condition* à chaque invocation comme
+faisant partie de leur propre routine
+([`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md),
+[`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md),
+[`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md),
+[`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md),
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
+[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md))
+passent `bump_cache = FALSE`, sans quoi leur propre appel systématique
+invaliderait en permanence les caches ci-dessus à chaque exécution, les
+rendant inopérants — seul un appel direct de `check_gh_setup()` (à la
+console, ou depuis `adhoc_check_deploy_prereqs()` sur cache manqué)
+déclenche réellement une invalidation.
+
+*Note* : en vérifiant ce changement, deux problèmes préexistants et sans
+rapport ont été repérés et laissés en l’état (hors du périmètre de ce
+correctif) :
+[`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
+ajoute déjà, avant même de lire `_quarto.yml`, des diagnostics
+`gh:login`/`gh:cli`/… non pris en compte par plusieurs assertions de
+`test-check_wp.R` (échecs préexistants, reproduits à l’identique avant
+et après ce changement) ; et le remplacement conditionnel de `format`
+par `ofce-html` dans
+[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
+(voir plus bas) fait désormais échouer certains tests de
+`test-adhoc_site-integration.R` dont les dépôts de test ne fournissent
+pas l’extension `ofce`.
+
+### Le nouveau contrôle GitHub/FTP de `deploy_folder()` est mis en cache par dépôt, et pointe vers la vignette *prerequisites* en cas d’échec
+
+`adhoc_check_deploy_prereqs()` (voir entrée suivante) refaisait l’appel
+API GitHub `FTP_SERVER` à chaque
+[`deploy_folder()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder.md)/[`publish_folder()`](https://ofceweb.github.io/ofceweb/reference/publish_folder.md),
+même lorsque rien n’avait changé depuis le dernier appel réussi dans la
+session. Le résultat est désormais mis en cache par dépôt
+(`"owner/repo"`), et n’est invalidé que lorsque `check_gh_setup()` est
+relancé — que ce soit directement par l’utilisateur (typiquement après
+avoir corrigé un problème signalé) ou via un autre appel interne — ce
+qui permet au scénario « l’échec survient, je corrige, je relance
+`check_gh_setup()` pour confirmer, puis je redéploie » de repartir sur
+une vérification fraîche au lieu de rejouer un résultat mis en cache
+avant la correction. Chaque message d’échec pointe maintenant
+explicitement vers la vignette
+[*prerequisites*](https://ofceweb.github.io/ofceweb/articles/prerequisites.html)
+et rappelle de relancer `check_gh_setup()` (ou de redémarrer la session
+R) pour revérifier.
+
+### `deploy_folder()` vérifie désormais les pré-requis GitHub/FTP avant de pousser quoi que ce soit
+
+[`deploy_folder_worker()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder_worker.md)
+poussait directement vers une branche `site-{slug}` et tentait
+d’installer/déclencher le workflow FTP sans avoir vérifié au préalable
+que le dépôt était correctement configuré pour publier — un jeton GitHub
+absent, ou un dépôt sans accès au secret d’organisation `FTP_SERVER`,
+n’étaient découverts qu’au milieu du pipeline (échec de
+`ensure_adhoc_workflow()`) ou pire, après coup dans les logs d’Actions
+(déploiement FTP silencieusement raté). Une nouvelle vérification
+interne, `adhoc_check_deploy_prereqs()`, s’exécute maintenant en tout
+début de
+[`deploy_folder_worker()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder_worker.md)
+: elle rapporte le diagnostic `gh`/git partagé (`check_gh_setup()`,
+jamais bloquant), exige un jeton GitHub (`DEPLOY_PAT`, ou `gitcreds` en
+local — erreur explicite sinon), puis vérifie que le secret `FTP_SERVER`
+est visible pour le dépôt (au niveau du dépôt ou hérité d’un secret
+d’organisation) — utilisé comme indicateur que le dépôt est autorisé à
+publier sur l’infrastructure FTP de l’OFCE. Un secret `FTP_SERVER`
+confirmé absent bloque le déploiement avec un message explicite ; un
+contrôle non concluant (API GitHub injoignable) se contente d’un
+avertissement.
+
 ### `render_folder()` ne rend plus qu’un seul document, et ignore tout `_quarto.yml` préexistant
 
 [`render_folder_worker()`](https://ofceweb.github.io/ofceweb/reference/render_folder_worker.md)

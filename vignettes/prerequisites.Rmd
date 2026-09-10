@@ -17,15 +17,33 @@ knitr::opts_chunk$set(eval = FALSE)
 Avant de pouvoir construire et déployer un site avec `ofceweb`, il faut
 configurer côté machine quelques éléments d'authentification GitHub. Ce
 vignette les passe en revue. Une fois cette configuration faite,
-enchaîner avec [*Construire un site avec ofceweb*](build-a-site.html).
+enchaîner avec [*Faire un document de travail*](articles/working-papers.html) ou [*Faire un mini-site*](articles/build-a-site.html).
 
-Vue d'ensemble :
+## Vue d'ensemble :
 
+
+- gh/git doivent être installés
 - un **PAT** (Personal Access Token) GitHub stocké comme variable
   d'environnement pour que R / git / gh puissent agir en votre nom ;
 - l'outil en ligne de commande **`gh`** (GitHub CLI) authentifié via
   `gh auth login`, utilisé pour créer et supprimer les secrets de dépôt
   (notamment `STATICRYPT_PASSWORD` pour le chiffrement).
+  
+> #### Pour installer gh/git et s'authentifier
+> 
+> #### MacOS
+> ```bash
+> brew install git
+> brew install gh
+> gh auth login
+> ```
+> #### Win
+> ```bash
+> # installer chocolatey.org
+> choco install git
+> choco install gh
+> gh auth login
+> ```
 
 ## 1. Qu'est-ce qu'un PAT GitHub ?
 
@@ -44,7 +62,7 @@ Deux variétés coexistent sur GitHub :
 `ofceweb` utilise deux variables d'environnement :
 
 | Variable | À quoi ça sert |
-|----|----|
+|------------------------------------|------------------------------------|
 | `GITHUB_PAT` | Variable historique lue par `usethis`, `gh`, `gitcreds`, … pour les appels API GitHub usuels. |
 | `DEPLOY_PAT` | Lue **en priorité** par `site2branch()` / `trigger_action()` pour pousser sur la branche de déploiement et dispatcher le workflow `ftp_deploy.yml`. |
 
@@ -107,6 +125,7 @@ que vous démarrez, sans avoir à les retaper.
 toutes vos sessions R, indépendamment du projet.
 
 Depuis R :
+
 
 ``` r
 usethis::edit_r_environ()   # ouvre ~/.Renviron
@@ -180,7 +199,6 @@ gh --version
 
 ### Windows
 
-Au choix :
 
 - **winget** (préinstallé sur Windows 11 / Windows 10 récents) :
 
@@ -188,10 +206,10 @@ Au choix :
   winget install --id GitHub.cli
   ```
 
-- **Scoop** :
+- **chocolatey** :
 
   ``` powershell
-  scoop install gh
+  choco install gh
   ```
 
 - **Installeur MSI** : télécharger sur
@@ -215,7 +233,7 @@ gh auth login
 Réponses recommandées au prompt interactif :
 
 | Question | Réponse |
-|----|----|
+|------------------------------------|------------------------------------|
 | What account do you want to log into? | **GitHub.com** |
 | What is your preferred protocol for Git operations? | **HTTPS** |
 | Authenticate Git with your GitHub credentials? | **Y** (Yes) |
@@ -267,14 +285,14 @@ usethis::edit_r_environ()
 ``` sh
 # dans un terminal
 brew install gh        # macOS
-# ou : winget install --id GitHub.cli   (Windows)
+# ou : choco install gh   (Windows)
 gh auth login          # suivre le prompt, HTTPS + web browser
 gh auth status         # vérification
 ```
 
 ## Vérification automatique
 
-`setup_prev()`, `setup_wp()`, `check_prev()` et `check_wp()` exécutent
+`setup_prev()`, `setup_wp()`, `setup_pb()` et `check()` exécutent
 tous un diagnostic automatique de ces pré-requis (CLI `gh` installé et
 authentifié, jeton `DEPLOY_PAT`/`gitcreds` disponible, identité git
 `user.name`/`user.email` configurée). Chaque défaut déclenche un simple
@@ -284,5 +302,5 @@ avertissement (non bloquant) qui renvoie vers ce vignette :
 nchar(Sys.getenv("DEPLOY_PAT"))   # doit être > 0
 ```
 
-Ensuite, voir [*Construire un site avec ofceweb*](build-a-site.html)
+Ensuite, voir [*faire un mini-site*](articles/build-a-site.html)
 pour l'enchaînement `setup_site()` → `render()` → `deploy()`.

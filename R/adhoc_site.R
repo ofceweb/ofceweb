@@ -883,12 +883,7 @@ publish_folder_addin <- function() {
   # Ask for encryption preference. rstudioapi::showDialog() is an OK-only
   # alert (it always returns NULL, never a "No"); showQuestion() is the
   # one that actually returns TRUE/FALSE based on which button is clicked.
-  encrypt <- rstudioapi::showQuestion(
-    title   = "Chiffrement staticrypt",
-    message = "Publier avec chiffrement (si STATICRYPT_PASSWORD est configuré) ?",
-    ok      = "Oui",
-    cancel  = "Non"
-  )
+  encrypt <- TRUE
 
   # Publish (render + deploy) synchronously so the console/Viewer stay in
   # this session (a background job runs in a separate R process and can't

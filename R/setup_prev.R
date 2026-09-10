@@ -75,7 +75,9 @@ setup_prev <- function(
   check_quarto_version()
 
   # ---- 0. connexion GitHub / DEPLOY_PAT / identite git ---------------------
-  check_gh_setup(root)
+  # bump_cache = FALSE: runs unconditionally on every setup_prev() call --
+  # see check_gh_setup()'s `bump_cache` parameter doc.
+  check_gh_setup(root, bump_cache = FALSE)
 
   # ---- 1. Résolution de l'identifiant prev ---------------------------------
   project <- fs::path_file(root) |> as.character()

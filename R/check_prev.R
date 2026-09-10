@@ -29,10 +29,13 @@
 #'   \item `.github/workflows/ftp_deploy_publish.yml` présent
 #'   \item `.github/workflows/ftp_deploy_profile.yml` présent
 #'   \item Variables GitHub `FTP_STAGING_DIR` et `FTP_PUBLISH_DIR` définies
-#'     (vérification via `gh` CLI, avec fallback silencieux si absent)
+#'     (vérification via `gh` CLI, avec fallback silencieux si absent) — le
+#'     résultat est mis en cache par dépôt pour la session (voir
+#'     `gh_cached_check()`), tant que `check_gh_setup()` n'a pas tourné de
+#'     nouveau
 #'   \item Secret GitHub `STATICRYPT_PASSWORD` défini (warning non bloquant —
 #'     le rendu local fonctionne sans lui, mais le workflow CI staging
-#'     échouera)
+#'     échouera) — mis en cache de la même façon
 #'   \item Connexion GitHub (`gh::gh("GET /user")`) — warning non bloquant si
 #'     non authentifié
 #' }
@@ -81,7 +84,11 @@ check_prev <- function(path = ".", verbose = TRUE) {
   }
 
   # ---- gh CLI / DEPLOY_PAT / identite git ----------------------------------
-  gh_setup_diag <- check_gh_setup(root, verbose = FALSE)
+  # bump_cache = FALSE: this runs unconditionally on every check_prev() call,
+  # so letting it bump the shared generation counter would permanently
+  # invalidate the FTP variable/secret caches below on every single call --
+  # see check_gh_setup()'s `bump_cache` parameter doc.
+  gh_setup_diag <- check_gh_setup(root, verbose = FALSE, bump_cache = FALSE)
   for (i in seq_len(nrow(gh_setup_diag))) {
     add_diag(gh_setup_diag$field[i], gh_setup_diag$status[i], gh_setup_diag$message[i])
   }
@@ -402,63 +409,84 @@ check_prev <- function(path = ".", verbose = TRUE) {
   }
 
   # ---- 11. Variables GitHub FTP_STAGING_DIR et FTP_PUBLISH_DIR ------------
+  # The actual `gh` CLI round-trip is cached (per repo root) via
+  # gh_cached_check() -- see its documentation in git_utils.R -- so repeated
+  # check_prev() calls in the same session don't re-spawn `gh` every time.
+  # The cache is invalidated the moment check_gh_setup() runs again for any
+  # reason (directly, or from another cached check), so a "fix, then
+  # check_gh_setup() to confirm" workflow still ends up rechecking for real.
   gh_ok <- nzchar(Sys.which("gh"))
-  if (gh_ok) {
-    tryCatch({
-      vars_raw  <- system2("gh", c("variable", "list", "--json", "name"),
-                           stdout = TRUE, stderr = FALSE)
-      vars_list <- tryCatch(
-        jsonlite::fromJSON(paste(vars_raw, collapse = ""))$name,
-        error = function(e) character()
-      )
-      for (var_name in c("FTP_STAGING_DIR", "FTP_PUBLISH_DIR")) {
-        if (var_name %in% vars_list) {
-          add_diag(var_name, "ok",
-                   sprintf("Variable GitHub `%s` définie.", var_name))
-        } else {
-          add_diag(var_name, "error",
-                   sprintf("Variable GitHub `%s` non définie — lancer setup_prev().", var_name))
-        }
-      }
-    }, error = function(e) {
-      add_diag("gh variables", "warning",
-               "Impossible de vérifier les variables GitHub (gh CLI non authentifié ?).")
+  ftp_vars <- if (gh_ok) {
+    gh_cached_check(paste0("prev:ftp_vars:", root), function() {
+      tryCatch({
+        vars_raw  <- system2("gh", c("variable", "list", "--json", "name"),
+                             stdout = TRUE, stderr = FALSE)
+        list(ok = TRUE, names = tryCatch(
+          jsonlite::fromJSON(paste(vars_raw, collapse = ""))$name,
+          error = function(e) character()
+        ))
+      }, error = function(e) list(ok = FALSE, names = character()))
     })
+  } else {
+    list(ok = FALSE, names = character())
+  }
+
+  if (gh_ok && ftp_vars$ok) {
+    for (var_name in c("FTP_STAGING_DIR", "FTP_PUBLISH_DIR")) {
+      if (var_name %in% ftp_vars$names) {
+        add_diag(var_name, "ok",
+                 sprintf("Variable GitHub `%s` définie.", var_name))
+      } else {
+        add_diag(var_name, "error",
+                 sprintf("Variable GitHub `%s` non définie — lancer setup_prev().", var_name))
+      }
+    }
+  } else if (gh_ok) {
+    add_diag("gh variables", "warning",
+             "Impossible de vérifier les variables GitHub (gh CLI non authentifié ?).")
   } else {
     add_diag("gh variables", "warning",
              "gh CLI non disponible — variables GitHub non vérifiées.")
   }
 
   # ---- 12. Secret STATICRYPT_PASSWORD (non bloquant) ----------------------
-  if (gh_ok) {
-    tryCatch({
-      sec_raw   <- system2("gh", c("secret", "list", "--json", "name"),
-                           stdout = TRUE, stderr = FALSE)
-      sec_list  <- tryCatch(
-        jsonlite::fromJSON(paste(sec_raw, collapse = ""))$name,
-        error = function(e) character()
-      )
-      # `gh secret list` only returns repo-level secrets. STATICRYPT_PASSWORD
-      # may instead be configured as an org-level secret shared with this
-      # repo, which lives under a separate API endpoint -- check that too.
-      org_sec_raw  <- system2(
-        "gh",
-        c("api", "repos/:owner/:repo/actions/organization-secrets",
-          "--jq", ".secrets[].name"),
-        stdout = TRUE, stderr = FALSE
-      )
-      sec_list <- c(sec_list, org_sec_raw)
-      if ("STATICRYPT_PASSWORD" %in% sec_list) {
-        add_diag("STATICRYPT_PASSWORD", "ok",
-                 "Secret GitHub `STATICRYPT_PASSWORD` défini.")
-      } else {
-        add_diag("STATICRYPT_PASSWORD", "warning",
-                 "Secret `STATICRYPT_PASSWORD` non défini — le workflow CI staging échouera. Définir : gh secret set STATICRYPT_PASSWORD")
-      }
-    }, error = function(e) {
-      add_diag("STATICRYPT_PASSWORD", "warning",
-               "Impossible de vérifier le secret STATICRYPT_PASSWORD.")
+  # Cached the same way as the FTP variables check above.
+  staticrypt <- if (gh_ok) {
+    gh_cached_check(paste0("prev:staticrypt:", root), function() {
+      tryCatch({
+        sec_raw   <- system2("gh", c("secret", "list", "--json", "name"),
+                             stdout = TRUE, stderr = FALSE)
+        sec_list  <- tryCatch(
+          jsonlite::fromJSON(paste(sec_raw, collapse = ""))$name,
+          error = function(e) character()
+        )
+        # `gh secret list` only returns repo-level secrets. STATICRYPT_PASSWORD
+        # may instead be configured as an org-level secret shared with this
+        # repo, which lives under a separate API endpoint -- check that too.
+        org_sec_raw  <- system2(
+          "gh",
+          c("api", "repos/:owner/:repo/actions/organization-secrets",
+            "--jq", ".secrets[].name"),
+          stdout = TRUE, stderr = FALSE
+        )
+        list(ok = TRUE, names = c(sec_list, org_sec_raw))
+      }, error = function(e) list(ok = FALSE, names = character()))
     })
+  } else {
+    list(ok = FALSE, names = character())
+  }
+
+  if (gh_ok && staticrypt$ok) {
+    if ("STATICRYPT_PASSWORD" %in% staticrypt$names) {
+      add_diag("STATICRYPT_PASSWORD", "ok",
+               "Secret GitHub `STATICRYPT_PASSWORD` défini.")
+    } else {
+      add_diag("STATICRYPT_PASSWORD", "warning",
+               "Secret `STATICRYPT_PASSWORD` non défini — le workflow CI staging échouera. Définir : gh secret set STATICRYPT_PASSWORD")
+    }
+  } else if (gh_ok) {
+    add_diag("STATICRYPT_PASSWORD", "warning",
+             "Impossible de vérifier le secret STATICRYPT_PASSWORD.")
   } else {
     add_diag("STATICRYPT_PASSWORD", "warning",
              "gh CLI non disponible — secret STATICRYPT_PASSWORD non vérifié.")

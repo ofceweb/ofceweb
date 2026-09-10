@@ -126,7 +126,9 @@ setup_wp <- function(
   check_quarto_version()
 
   # ---- 0. connexion GitHub / DEPLOY_PAT / identite git ---------------------
-  check_gh_setup(root)
+  # bump_cache = FALSE: runs unconditionally on every setup_wp() call -- see
+  # check_gh_setup()'s `bump_cache` parameter doc.
+  check_gh_setup(root, bump_cache = FALSE)
 
   # Détecter les arguments fournis explicitement (avant toute modification)
   lang_provided       <- !missing(lang)

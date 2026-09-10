@@ -67,7 +67,11 @@ check_wp <- function(path = ".", verbose = TRUE) {
   }
 
   # ---- gh CLI / DEPLOY_PAT / identite git ----------------------------------
-  gh_setup_diag <- check_gh_setup(root, verbose = FALSE)
+  # bump_cache = FALSE: this runs unconditionally on every check_wp() call,
+  # so letting it bump the shared generation counter would permanently
+  # invalidate other gh_cached_check()-backed caches on every single call --
+  # see check_gh_setup()'s `bump_cache` parameter doc.
+  gh_setup_diag <- check_gh_setup(root, verbose = FALSE, bump_cache = FALSE)
   for (i in seq_len(nrow(gh_setup_diag))) {
     add_diag(gh_setup_diag$field[i], gh_setup_diag$status[i], gh_setup_diag$message[i])
   }

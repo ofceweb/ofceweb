@@ -57,7 +57,10 @@
 #'    `_quarto.yml` already present in `path` is deliberately ignored (not
 #'    merged): a flash render targets exactly one document, not a
 #'    pre-existing multi-page project — use [render_site()]/[render_wp()]
-#'    for that instead.
+#'    for that instead. If `index`'s own YAML frontmatter doesn't declare a
+#'    `format`, `format: ofce-html` is added to this temp `_quarto.yml` only
+#'    (never written back to the source file); if it does declare one, it's
+#'    left as the document's own frontmatter dictates.
 #' 6. Renders the folder via `quarto::quarto_render()` in the temp directory.
 #' 7. Locates the HTML output for `index` and copies it to `_site/index.html`
 #'    (preserving the original filename too).
@@ -328,21 +331,27 @@ render_folder_worker <- function(
   # `project.render` pins the build to `index`, so any other `.qmd`/`.md`
   # files swept into the temp copy (siblings, or files under collected
   # `_extensions/`) are not rendered.
+  #
+  # If `index`'s own YAML frontmatter already declares a `format`, it's left
+  # alone here (no `format` key is written) so it governs the render as-is.
+  # Otherwise `format: ofce-html` is added, but only in this ephemeral temp
+  # `_quarto.yml` — the source file itself is never touched.
   quarto_yml <- fs::path(temp_dir, "_quarto.yml")
   if (progress)
     cli::cli_h2("Écriture d'une configuration Quarto minimale (restreinte à {.path {index}})")
+  has_format <- isTRUE(tryCatch(
+    !is.null(get_yaml(index_path)[["format"]]),
+    error = function(e) FALSE
+  ))
   minimal_config <- list(
     project = list(
       type      = "default",
       `output-dir` = "_site",
       render    = list(index)
-    ),
-    format = list(
-      html = list(
-        theme = "cosmo"
-      )
     )
   )
+  if (!has_format)
+    minimal_config$format <- "ofce-html"
   yaml::write_yaml(minimal_config, quarto_yml)
 
   # Render
@@ -472,6 +481,164 @@ gh_secret_present <- function(owner, repo, pat, name) {
 }
 
 
+#' Rappel de configuration `gh`, utilisé dans les messages d'échec
+#'
+#' Bullet `cli` réutilisée par [adhoc_check_deploy_prereqs()] à chaque échec :
+#' pointe vers la vignette \emph{prerequisites} publiée sur le site pkgdown et
+#' rappelle comment revérifier après correction.
+#' @keywords internal
+#' @noRd
+adhoc_gh_config_hint <- function() {
+  c("i" = "V\u00e9rifiez votre configuration {.code gh} \u2014 consultez les \\
+           {.href [prerequisites](https://ofceweb.github.io/ofceweb/articles/prerequisites.html)}, \\
+           puis relancez {.code check_gh_setup()} pour confirmer la correction \\
+           (ou red\u00e9marrez votre session R).")
+}
+
+#' Preflight check before deploying an ad-hoc folder site
+#'
+#' Run once at the top of [deploy_folder_worker()], before any git push or
+#' workflow install/dispatch, so a misconfigured environment or an
+#' unauthorized repo fails fast with one clear message instead of pushing a
+#' branch that a downstream CI job can never actually deploy. Two things are
+#' checked:
+#'
+#' 1. **GitHub / git setup**, via the shared [check_gh_setup()] diagnostic
+#'    (`gh` CLI installed and authenticated, a deploy token available, git
+#'    identity configured) — reported as warnings only (never blocks),
+#'    consistent with how [check_gh_setup()] is used elsewhere ([setup_wp()],
+#'    `check_prev()`, `render_prev()`, ...). A GitHub token specifically
+#'    (`DEPLOY_PAT`, or `gitcreds` as a local fallback) *is* required for the
+#'    rest of the ad-hoc pipeline to work at all (installing the workflow,
+#'    triggering it, pushing via an embedded token), so its absence aborts
+#'    here rather than failing later mid-pipeline.
+#' 2. **The `FTP_SERVER` GitHub Actions secret is visible to this repo**
+#'    (either set at the repo level, or inherited from an organization-level
+#'    secret). Every FTP deployment workflow this package installs —
+#'    including `ftp_deploy_profile.yml`, used by [deploy_folder()] — reads
+#'    `secrets.FTP_SERVER`; if it isn't visible to the repo, the workflow is
+#'    guaranteed to fail once dispatched (empty FTP host). This is used as a
+#'    proxy for "is this repo authorized to publish to OFCE's FTP
+#'    infrastructure". If the secret is confirmed absent, this aborts; if it
+#'    simply can't be checked (no token, GitHub API unreachable), it warns
+#'    and lets the caller proceed rather than blocking on an inconclusive
+#'    check.
+#'
+#' Every abort here points the user to the published *prerequisites* article
+#' and suggests re-running [check_gh_setup()] (or restarting the R session)
+#' once they've fixed whatever was wrong.
+#'
+#' ## Caching
+#'
+#' A passing (or inconclusively-warned-but-proceeding) result is cached per
+#' repo — via the same shared `.gh_checks_cache`/[gh_cached_check()]
+#' mechanism used by [check_gh_login()] and `check_prev()`'s FTP
+#' variable/secret checks (see git_utils.R) — keyed by the `"owner/repo"`
+#' slug (falling back to `repo_root` if no `origin` remote is found), so
+#' repeated [deploy_folder()]/[publish_folder()] calls in the same session
+#' don't re-hit the GitHub API every time. The cache is invalidated — for
+#' that repo's next call only, transparently — as soon as [check_gh_setup()]
+#' runs again for *any* reason, including a direct call by the user (e.g.
+#' after fixing a reported problem) or from another cached check anywhere in
+#' the package. This is what makes "the check fails, I fix it, I call
+#' `check_gh_setup()` to confirm, then redeploy" actually pick up the fix
+#' instead of replaying a stale cached outcome.
+#'
+#' @param repo_root `[character(1)]`\cr Path to the repository root.
+#' @param progress `[logical(1)]`\cr If `TRUE`, report progress/diagnostics.
+#'
+#' @return Invisibly `TRUE`. Aborts via [cli::cli_abort()] when no GitHub
+#'   token is available, or when `FTP_SERVER` is confirmed missing.
+#' @keywords internal
+#' @noRd
+adhoc_check_deploy_prereqs <- function(repo_root, progress = TRUE) {
+  # Resolved up front (cheap, local, no network call) so it can serve as the
+  # cache key even when the rest of the check below hasn't run yet.
+  repo_slug <- gh_slug_from_remote(repo_root)
+  cache_key <- paste0("adhoc:", if (!is.na(repo_slug)) repo_slug else repo_root)
+
+  # Custom hit message below (rather than a plain gh_cached_check() call)
+  # so a cache hit can be reported distinctly from a fresh check -- but it
+  # reads/writes the exact same shared cache environment and generation
+  # counter as gh_cached_check(), so it's invalidated by the same trigger.
+  cached <- .gh_checks_cache[[cache_key]]
+  if (!is.null(cached) && identical(cached$generation, .gh_setup_generation$n)) {
+    if (progress)
+      cli::cli_alert_info(
+        "Pr\u00e9-requis GitHub/FTP d\u00e9j\u00e0 valid\u00e9s pour {.val {repo_slug}} dans cette session \\
+         (relancez {.code check_gh_setup()} pour forcer une nouvelle v\u00e9rification)."
+      )
+    return(invisible(TRUE))
+  }
+
+  if (progress)
+    cli::cli_h2("V\u00e9rification des pr\u00e9-requis GitHub / FTP")
+
+  # Non-blocking: gh CLI / auth / git identity are reported for visibility,
+  # but nothing here strictly requires the gh CLI itself (the ad-hoc
+  # pipeline talks to the GitHub API directly via httr2 + a bearer token).
+  # This call also bumps .gh_setup_generation$n -- see check_gh_setup() and
+  # the "Caching" section above.
+  check_gh_setup(repo_root, verbose = progress)
+
+  pat <- Sys.getenv("DEPLOY_PAT", "")
+  if (!nchar(pat))
+    pat <- tryCatch(
+      gitcreds::gitcreds_get("https://github.com")$password,
+      error = function(e) ""
+    )
+  if (!nchar(pat))
+    cli::cli_abort(c(
+      "Aucun token GitHub trouv\u00e9 \u2014 impossible de d\u00e9ployer.",
+      "i" = "D\u00e9finissez {.envvar DEPLOY_PAT} dans {.file ~/.Renviron}, ou connectez-vous \\
+             localement (le jeton sera alors lu depuis {.pkg gitcreds}).",
+      adhoc_gh_config_hint()
+    ))
+
+  if (is.na(repo_slug))
+    cli::cli_abort(c(
+      "Pas de remote {.val origin} reconnu \u2014 impossible de v\u00e9rifier les secrets GitHub.",
+      adhoc_gh_config_hint()
+    ))
+
+  owner_repo <- strsplit(repo_slug, "/")[[1]]
+  ftp_secret_status <- tryCatch(
+    gh_secret_present(owner_repo[1], owner_repo[2], pat, "FTP_SERVER"),
+    error = function(e) NA
+  )
+
+  if (isTRUE(ftp_secret_status)) {
+    if (progress)
+      cli::cli_alert_success(
+        "Secret {.code FTP_SERVER} accessible \u2014 d\u00e9p\u00f4t autoris\u00e9 \u00e0 publier."
+      )
+  } else if (isFALSE(ftp_secret_status)) {
+    cli::cli_abort(c(
+      "Secret {.code FTP_SERVER} introuvable pour {.val {repo_slug}}.",
+      "i" = "Ce d\u00e9p\u00f4t n'est probablement pas autoris\u00e9 \u00e0 publier sur l'infrastructure FTP \\
+             de l'OFCE (secret ni d\u00e9fini au niveau du d\u00e9p\u00f4t, ni h\u00e9rit\u00e9 d'un secret \\
+             d'organisation).",
+      "i" = "Demandez \u00e0 un administrateur de partager le secret d'organisation \\
+             {.code FTP_SERVER} avec ce d\u00e9p\u00f4t.",
+      adhoc_gh_config_hint()
+    ))
+  } else {
+    cli::cli_alert_warning(
+      "Impossible de v\u00e9rifier le secret {.code FTP_SERVER} (API GitHub injoignable, ou \\
+       jeton insuffisant) \u2014 poursuite sans garantie que le d\u00e9p\u00f4t soit autoris\u00e9 \u00e0 publier."
+    )
+  }
+
+  # Cache the (non-aborting) outcome against the generation stamped by our
+  # own check_gh_setup() call above, in the shared .gh_checks_cache. The
+  # only way this becomes stale is a *later* check_gh_setup() call (by
+  # anyone) bumping the counter again.
+  .gh_checks_cache[[cache_key]] <- list(value = TRUE, generation = .gh_setup_generation$n)
+
+  invisible(TRUE)
+}
+
+
 #' Deploy a rendered ad-hoc folder site to staging
 #'
 #' Pushes the `_site/` folder (previously rendered by [render_folder()]) to a
@@ -509,6 +676,14 @@ gh_secret_present <- function(owner, repo, pat, name) {
 #'
 #' - Verifies that `<path>/_site/` exists (must have been created by
 #'   [render_folder()] or manually).
+#' - Verifies GitHub / FTP prerequisites via an internal check: `gh` CLI
+#'   install/auth and git identity are checked for visibility only (never
+#'   block); a GitHub token (`DEPLOY_PAT`, or `gitcreds` locally) is
+#'   required and aborts if absent; and the `FTP_SERVER` secret must be
+#'   visible to the repo (repo-level or inherited from an organization
+#'   secret) — used as a proxy for "this repo is authorized to publish to
+#'   OFCE's FTP infrastructure". A confirmed-missing `FTP_SERVER` aborts; an
+#'   inconclusive check (e.g. GitHub API unreachable) only warns.
 #' - If `encrypt = FALSE` is requested, checks whether the installed
 #'   `ftp_deploy_profile.yml` workflow supports the `.no-staticrypt` marker
 #'   (added in recent versions). If not, warns and proceeds with encryption.
@@ -630,6 +805,11 @@ deploy_folder_worker <- function(
 
   if (progress)
     cli::cli_h1("Déploiement du dossier {.path {fs::path_file(target)}}")
+
+  # Fail fast on a missing GitHub token or an unauthorized repo (no access
+  # to the FTP_SERVER secret), before pushing anything or touching the
+  # workflow file.
+  adhoc_check_deploy_prereqs(repo_root, progress = progress)
 
   # Resolve slug
   if (is.null(slug)) {

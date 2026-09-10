@@ -273,12 +273,78 @@ set_gh_var <- function(root = ".", name, value) {
   invisible(NULL)
 }
 
+#' Compteur de générations pour [check_gh_setup()]
+#'
+#' Incrémenté à chaque appel de [check_gh_setup()] (voir son corps). Sert de
+#' jeton de fraîcheur pour toutes les vérifications GitHub coûteuses et
+#' sujettes à répétition du paquet qui mettent leur résultat en cache (voir
+#' [gh_cached_check()]) — sans coupler ces caches à l'implémentation interne
+#' de [check_gh_setup()].
+#' @keywords internal
+#' @noRd
+.gh_setup_generation <- local({
+  e <- new.env(parent = emptyenv())
+  e$n <- 0L
+  e
+})
+
+#' Cache partagé des vérifications GitHub coûteuses
+#'
+#' Un seul cache, un seul mécanisme d'invalidation, réutilisé par
+#' [check_gh_login()], les vérifications de variables/secrets FTP dans
+#' `check_prev()`, et `adhoc_check_deploy_prereqs()` (voir [gh_cached_check()]
+#' pour l'API).
+#' @keywords internal
+#' @noRd
+.gh_checks_cache <- new.env(parent = emptyenv())
+
+#' Met en cache le résultat d'une vérification GitHub coûteuse
+#'
+#' Stocke la valeur renvoyée par `compute()` sous `key`, valide tant que
+#' [check_gh_setup()] n'a pas tourné de nouveau depuis (compteur
+#' `.gh_setup_generation`, incrémenté à chaque appel de [check_gh_setup()]
+#' quel qu'en soit l'appelant — direct par l'utilisateur, ou indirect via un
+#' autre appel mettant lui-même en cache un résultat). C'est ce qui permet au
+#' scénario "l'appel échoue, je corrige quelque chose, je relance
+#' `check_gh_setup()` pour confirmer, puis je relance l'opération d'origine"
+#' de déclencher une vraie revérification au lieu de rejouer un résultat mis
+#' en cache avant la correction — qu'il s'agisse d'un échec ou (plus
+#' sournois) d'un succès devenu obsolète.
+#'
+#' Sur cache manqué, `compute()` est appelée sans filet : si elle lève une
+#' erreur (ex. [cli::cli_abort()]), rien n'est mis en cache — seuls les
+#' résultats qui vont au bout (succès, ou échec "doux" encodé dans la valeur
+#' de retour elle-même) sont mémorisés.
+#'
+#' @param key `[character(1)]`\cr Clé de cache unique, préfixée par
+#'   l'appelant pour éviter les collisions entre vérifications différentes
+#'   (ex. `"gh:login"`, `"prev:ftp_vars:{root}"`, `"adhoc:{owner/repo}"`).
+#' @param compute `[function()]`\cr Fonction sans argument, appelée sur cache
+#'   manqué ; sa valeur de retour est mise en cache puis renvoyée telle
+#'   quelle.
+#' @return La valeur mise en cache (existante ou fraîchement calculée).
+#' @keywords internal
+#' @noRd
+gh_cached_check <- function(key, compute) {
+  cached <- .gh_checks_cache[[key]]
+  if (!is.null(cached) && identical(cached$generation, .gh_setup_generation$n))
+    return(cached$value)
+
+  value <- compute()
+  .gh_checks_cache[[key]] <- list(value = value, generation = .gh_setup_generation$n)
+  value
+}
+
 #' Vérifie la connexion GitHub (`gh::gh("GET /user")`)
 #'
 #' Diagnostic partagé par [check_wp()], [setup_prev()], [stage_prev()] et
 #' [publish_prev()] : appelle `gh::gh("GET /user")` et affiche le login
 #' GitHub de l'utilisateur (succès) ou un avertissement non bloquant si
-#' aucune authentification n'est détectée.
+#' aucune authentification n'est détectée. Le résultat de l'appel réseau est
+#' mis en cache via [gh_cached_check()] (clé `"gh:login"`, globale — le
+#' compte connecté ne dépend pas du dépôt) ; répéter l'appel dans la même
+#' session ne refait donc pas la requête tant que [check_gh_setup()] n'a pas
+#' été relancé entre-temps.
 #'
 #' @param verbose Logique. Si `TRUE` (défaut), affiche le résultat via
 #'   [cli::cli_alert_success()] / [cli::cli_alert_warning()].
@@ -287,12 +353,15 @@ set_gh_var <- function(root = ".", name, value) {
 #' @keywords internal
 #' @noRd
 check_gh_login <- function(verbose = TRUE) {
-  gh_user <- tryCatch(gh::gh("GET /user"), error = function(e) NULL)
-  if (!is.null(gh_user) && !is.null(gh_user$login)) {
+  login <- gh_cached_check("gh:login", function() {
+    gh_user <- tryCatch(gh::gh("GET /user"), error = function(e) NULL)
+    if (!is.null(gh_user) && !is.null(gh_user$login)) gh_user$login else NA_character_
+  })
+
+  if (!is.na(login)) {
     if (verbose)
-      cli::cli_alert_success(
-        "Connect\u00e9 \u00e0 GitHub en tant que @{gh_user$login}.")
-    return(invisible(gh_user$login))
+      cli::cli_alert_success("Connect\u00e9 \u00e0 GitHub en tant que @{login}.")
+    return(invisible(login))
   }
   if (verbose)
     cli::cli_alert_warning(
@@ -314,12 +383,38 @@ check_gh_login <- function(verbose = TRUE) {
 #' @param root Chemin du dépôt, utilisé pour résoudre l'identité git locale.
 #' @param verbose Logique. Si `TRUE` (défaut), affiche chaque résultat via
 #'   [cli::cli_alert_success()] / [cli::cli_alert_warning()].
+#' @param bump_cache Logique. Si `TRUE` (défaut), incrémente
+#'   `.gh_setup_generation$n`, invalidant tous les caches partagés via
+#'   [gh_cached_check()] (voir sa documentation). Les appelants qui relancent
+#'   ce diagnostic à *chaque* invocation, sans condition, comme faisant partie
+#'   de leur propre routine (`check_prev()`, `check_wp()`, `check_pb()`,
+#'   `setup_prev()`, `setup_wp()`, `setup_pb()`) passent `FALSE` ici : sinon
+#'   leur propre appel systématique invaliderait en permanence les caches
+#'   d'autres vérifications (ex. les variables/secrets FTP de `check_prev()`)
+#'   à chaque appel, rendant cette mise en cache inopérante. Laissé à `TRUE`
+#'   (défaut) pour un appel direct par l'utilisateur (ex. `check_gh_setup()`
+#'   à la console pour confirmer une correction), et pour
+#'   `adhoc_check_deploy_prereqs()`, dont l'appel n'a lieu que sur cache
+#'   manqué (donc son propre déclenchement du compteur est sans effet de
+#'   bord indésirable).
 #' @return Un `data.frame` invisible avec les colonnes `field`, `status`
 #'   (`"ok"` / `"warning"`) et `message` — un enregistrement par vérification
 #'   (`gh:cli`, `gh:auth`, `gh:deploy_pat`, `git:identity`).
 #' @keywords internal
 #' @noRd
-check_gh_setup <- function(root = ".", verbose = TRUE) {
+check_gh_setup <- function(root = ".", verbose = TRUE, bump_cache = TRUE) {
+  # See the `bump_cache` parameter doc above for who should pass FALSE here
+  # and why. Callers that cache an expensive downstream check keyed on
+  # "gh/git setup hasn't changed since" (via gh_cached_check()) rely on this
+  # counter to detect that the user re-ran check_gh_setup() (directly, or via
+  # another such caller) since their cache entry was written, and treat the
+  # cache as stale in that case -- this is how "the check fails, the user
+  # fixes something, then calls check_gh_setup() to confirm" ends up forcing
+  # a real recheck on the next cached call, instead of replaying a stale
+  # failure (or a stale success masking a newly-broken setup).
+  if (bump_cache)
+    .gh_setup_generation$n <- .gh_setup_generation$n + 1L
+
   see_vignette <- "Voir vignette(\"prerequisites\", package = \"ofceweb\") pour la configuration."
 
   rows <- list()

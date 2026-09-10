@@ -21,8 +21,8 @@ Le package couvre les usages de plusieurs types d’utilisateurs.
 
 ## Publier un document de travail en phase *staging* ou *publication*
 
-Ces éléments sont détaillés dans la vignette
-[`vignette("working-papers")`](https://ofceweb.github.io/ofceweb/articles/working-papers.md).
+Ces éléments sont détaillés dans la [vignette Faire un document de
+travail](https://ofceweb.github.io/ofceweb/articles/working-papers.md).
 
 Le principe est d’avoir le document de travail dans un repo github, sur
 son compte personnel dans un premier temps puis dans l’organisation OFCE

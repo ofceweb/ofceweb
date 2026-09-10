@@ -80,9 +80,12 @@ Folder to render (relative or absolute). Defaults to `"."`.</p></dd>
 <dt id="arg-index">index<a class="anchor" aria-label="anchor" href="#arg-index"></a></dt>
 <dd><p>`[character(1)]`<br>
 Filename (relative to `path`) of the file to treat as the home page
-(e.g., `"slides.qmd"`, `"notes.md"`). Must be a single `.qmd` or `.md`
-file. If `NULL` (default), auto-detects when exactly one `.qmd` exists
-directly in `path`; otherwise errors with a list of candidates.</p></dd>
+(e.g., `"slides.qmd"`, `"notes.md"`). Must be a `.qmd` or `.md` file
+directly in `path`. If `NULL` (default), resolved via
+[adhoc_resolve_index()]: `index.qmd`/`index.md` if present, otherwise
+the most recently modified `.qmd`/`.md` candidate (an informational
+message names the file picked when more than one candidate exists).
+Only this single document is rendered — see Details.</p></dd>
 
 
 <dt id="arg-slug">slug<a class="anchor" aria-label="anchor" href="#arg-slug"></a></dt>
@@ -132,7 +135,13 @@ current session. See Details for integration patterns.</p></dd>
 4. Collects any `_extensions/` directories from `path` or its ancestors
    (up to the repo root) and includes them in the temp copy so extension
    shortcodes resolve correctly.
-5. If the temp copy has no `_quarto.yml`, writes a minimal default one.
+5. Writes a minimal `_quarto.yml` in the temp copy, restricted to `index`
+   via `project.render` — so only that one document is built, regardless
+   of how many other `.qmd`/`.md` files got copied alongside it. Any
+   `_quarto.yml` already present in `path` is deliberately ignored (not
+   merged): a flash render targets exactly one document, not a
+   pre-existing multi-page project — use [render_site()]/[render_wp()]
+   for that instead.
 6. Renders the folder via `quarto::quarto_render()` in the temp directory.
 7. Locates the HTML output for `index` and copies it to `_site/index.html`
    (preserving the original filename too).

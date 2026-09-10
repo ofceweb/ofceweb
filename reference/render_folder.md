@@ -31,10 +31,13 @@ render_folder(
 
   \`\[character(1)\]\`  
   Filename (relative to \`path\`) of the file to treat as the home page
-  (e.g., \`"slides.qmd"\`, \`"notes.md"\`). Must be a single \`.qmd\` or
-  \`.md\` file. If \`NULL\` (default), auto-detects when exactly one
-  \`.qmd\` exists directly in \`path\`; otherwise errors with a list of
-  candidates.
+  (e.g., \`"slides.qmd"\`, \`"notes.md"\`). Must be a \`.qmd\` or
+  \`.md\` file directly in \`path\`. If \`NULL\` (default), resolved via
+  \[adhoc_resolve_index()\]: \`index.qmd\`/\`index.md\` if present,
+  otherwise the most recently modified \`.qmd\`/\`.md\` candidate (an
+  informational message names the file picked when more than one
+  candidate exists). Only this single document is rendered — see
+  Details.
 
 - slug:
 
@@ -86,17 +89,22 @@ scratch temp directory and copies \`path\`'s contents into it (excluding
 \`\_site/\`, \`.quarto/\`, \`\_freeze/\`, \`.git\*\`). 4. Collects any
 \`\_extensions/\` directories from \`path\` or its ancestors (up to the
 repo root) and includes them in the temp copy so extension shortcodes
-resolve correctly. 5. If the temp copy has no \`\_quarto.yml\`, writes a
-minimal default one. 6. Renders the folder via
-\`quarto::quarto_render()\` in the temp directory. 7. Locates the HTML
-output for \`index\` and copies it to \`\_site/index.html\` (preserving
-the original filename too). 8. Post-processes all \`\*.html\` files to
-inject a small OFCE quick-publish banner right after the opening
-\`\<body...\>\` tag. 9. Cleans \`.DS_Store\` files, then copies the temp
-\`\_site/\` into \`\<path\>/\_site/\` (replacing if present). Writes
-metadata (slug, index, timestamp) to \`\_site/.adhoc-meta.json\`. 10. If
-\`preview = TRUE\` and \`as_job = FALSE\`, launches
-\[preview_folder()\].
+resolve correctly. 5. Writes a minimal \`\_quarto.yml\` in the temp
+copy, restricted to \`index\` via \`project.render\` — so only that one
+document is built, regardless of how many other \`.qmd\`/\`.md\` files
+got copied alongside it. Any \`\_quarto.yml\` already present in
+\`path\` is deliberately ignored (not merged): a flash render targets
+exactly one document, not a pre-existing multi-page project — use
+\[render_site()\]/\[render_wp()\] for that instead. 6. Renders the
+folder via \`quarto::quarto_render()\` in the temp directory. 7. Locates
+the HTML output for \`index\` and copies it to \`\_site/index.html\`
+(preserving the original filename too). 8. Post-processes all
+\`\*.html\` files to inject a small OFCE quick-publish banner right
+after the opening \`\<body...\>\` tag. 9. Cleans \`.DS_Store\` files,
+then copies the temp \`\_site/\` into \`\<path\>/\_site/\` (replacing if
+present). Writes metadata (slug, index, timestamp) to
+\`\_site/.adhoc-meta.json\`. 10. If \`preview = TRUE\` and \`as_job =
+FALSE\`, launches \[preview_folder()\].
 
 \## Self-contained folders
 

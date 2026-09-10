@@ -1,5 +1,26 @@
 ## ofceweb (development version)
 
+### `render_folder()` ne rend plus qu'un seul document, et ignore tout `_quarto.yml` préexistant
+
+`render_folder_worker()` appelait `quarto::quarto_render()` sans restriction
+dans la copie temporaire du dossier : si celui-ci (ou un `_extensions/`
+collecté au passage) contenait d'autres fichiers `.qmd`/`.md` que le document
+visé, ils étaient rendus eux aussi — travail inutile, et source d'échecs sur
+des documents sans rapport. Le fichier à rendre (`index`) est désormais
+résolu par la nouvelle fonction interne `adhoc_resolve_index()`, dans l'ordre
+suivant : `index` fourni explicitement (ce que fait déjà `render_folder_addin()`
+via le document actif) ; sinon `index.qmd`/`index.md` s'il existe ; sinon le
+fichier `.qmd`/`.md` le plus récemment modifié parmi les candidats trouvés
+directement dans le dossier (un message informatif indique alors le choix
+retenu, et invite à préciser `index` pour un autre résultat) — l'ancien
+comportement, qui échouait dès que plusieurs candidats existaient sans
+`index` explicite, est ainsi remplacé par un choix par défaut. Le
+`_quarto.yml` écrit dans la copie temporaire restreint désormais le rendu à
+ce seul fichier via `project.render`, et **tout `_quarto.yml` déjà présent
+dans le dossier source est ignoré** (non fusionné) : une publication flash
+vise un document unique, pas une configuration de projet multi-pages
+préexistante — pour ce cas, utiliser `render_site()`/`render_wp()`.
+
 ### Les addins ad-hoc (Publier/Rendre/Déployer) utilisent désormais le document actif, pas la racine du projet
 
 `publish_folder_addin()`, `render_folder_addin()` et `deploy_folder_addin()`

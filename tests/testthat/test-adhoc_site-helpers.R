@@ -107,3 +107,81 @@ test_that("find_git_root: errors when no .git found", {
 
   expect_error(find_git_root(temp_dir), "Pas de dépôt Git")
 })
+
+test_that("adhoc_resolve_index: honors explicit index when eligible", {
+  temp_dir <- tempfile()
+  dir.create(temp_dir)
+  on.exit(unlink(temp_dir, recursive = TRUE))
+
+  writeLines("---\ntitle: a\n---\n", file.path(temp_dir, "notes.qmd"))
+  writeLines("---\ntitle: b\n---\n", file.path(temp_dir, "slides.qmd"))
+
+  expect_equal(adhoc_resolve_index(temp_dir, index = "slides.qmd"), "slides.qmd")
+})
+
+test_that("adhoc_resolve_index: errors on explicit index that doesn't exist", {
+  temp_dir <- tempfile()
+  dir.create(temp_dir)
+  on.exit(unlink(temp_dir, recursive = TRUE))
+
+  writeLines("---\ntitle: a\n---\n", file.path(temp_dir, "notes.qmd"))
+
+  expect_error(
+    adhoc_resolve_index(temp_dir, index = "missing.qmd"),
+    "non trouv"
+  )
+})
+
+test_that("adhoc_resolve_index: prefers index.qmd over other candidates", {
+  temp_dir <- tempfile()
+  dir.create(temp_dir)
+  on.exit(unlink(temp_dir, recursive = TRUE))
+
+  writeLines("---\ntitle: a\n---\n", file.path(temp_dir, "notes.qmd"))
+  writeLines("---\ntitle: idx\n---\n", file.path(temp_dir, "index.qmd"))
+
+  expect_equal(adhoc_resolve_index(temp_dir, index = NULL, progress = FALSE), "index.qmd")
+})
+
+test_that("adhoc_resolve_index: falls back to most recently modified candidate", {
+  temp_dir <- tempfile()
+  dir.create(temp_dir)
+  on.exit(unlink(temp_dir, recursive = TRUE))
+
+  older <- file.path(temp_dir, "older.qmd")
+  newer <- file.path(temp_dir, "newer.qmd")
+  writeLines("---\ntitle: older\n---\n", older)
+  Sys.sleep(1.1)
+  writeLines("---\ntitle: newer\n---\n", newer)
+
+  expect_equal(
+    adhoc_resolve_index(temp_dir, index = NULL, progress = FALSE),
+    "newer.qmd"
+  )
+})
+
+test_that("adhoc_resolve_index: single candidate is picked without ambiguity", {
+  temp_dir <- tempfile()
+  dir.create(temp_dir)
+  on.exit(unlink(temp_dir, recursive = TRUE))
+
+  writeLines("---\ntitle: only\n---\n", file.path(temp_dir, "only.qmd"))
+
+  expect_equal(
+    adhoc_resolve_index(temp_dir, index = NULL, progress = FALSE),
+    "only.qmd"
+  )
+})
+
+test_that("adhoc_resolve_index: errors when no eligible file exists", {
+  temp_dir <- tempfile()
+  dir.create(temp_dir)
+  on.exit(unlink(temp_dir, recursive = TRUE))
+
+  writeLines("not a qmd", file.path(temp_dir, "_private.qmd"))
+
+  expect_error(
+    adhoc_resolve_index(temp_dir, index = NULL, progress = FALSE),
+    "Aucun fichier"
+  )
+})

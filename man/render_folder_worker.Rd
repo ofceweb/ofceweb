@@ -12,9 +12,12 @@ Folder to render (relative or absolute). Defaults to `"."`.}
 
 \item{index}{`[character(1)]`\cr
 Filename (relative to `path`) of the file to treat as the home page
-(e.g., `"slides.qmd"`, `"notes.md"`). Must be a single `.qmd` or `.md`
-file. If `NULL` (default), auto-detects when exactly one `.qmd` exists
-directly in `path`; otherwise errors with a list of candidates.}
+(e.g., `"slides.qmd"`, `"notes.md"`). Must be a `.qmd` or `.md` file
+directly in `path`. If `NULL` (default), resolved via
+[adhoc_resolve_index()]: `index.qmd`/`index.md` if present, otherwise
+the most recently modified `.qmd`/`.md` candidate (an informational
+message names the file picked when more than one candidate exists).
+Only this single document is rendered — see Details.}
 
 \item{slug}{`[character(1)]`\cr
 Override the auto-computed slug (unique identifier). If `NULL` (default),

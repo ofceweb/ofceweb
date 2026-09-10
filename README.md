@@ -17,7 +17,7 @@ Le package couvre les usages de plusieurs types d'utilisateurs.
 
 ## Publier un document de travail en phase _staging_ ou _publication_
 
-Ces éléments sont détaillés dans la vignette `vignette("working-papers")`.
+Ces éléments sont détaillés dans la [vignette Faire un document de travail](articles/working-papers.html).
 
 Le principe est d'avoir le document de travail dans un repo github, sur son compte personnel dans un premier temps puis dans l'organisation OFCE poru sa publication.
 

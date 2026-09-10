@@ -78,7 +78,7 @@ test_that("render_folder_worker: auto-detects index when only one .qmd exists", 
   expect_true(file.exists(file.path(temp_repo, "_site", "index.html")))
 })
 
-test_that("render_folder_worker: errors when multiple .qmd files exist and no index specified", {
+test_that("render_folder_worker: picks most recently modified .qmd when multiple exist and no index specified", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
@@ -90,21 +90,32 @@ test_that("render_folder_worker: errors when multiple .qmd files exist and no in
   gert::git_config_set("user.name", "Test User", repo = temp_repo)
   gert::git_config_set("user.email", "test@example.com", repo = temp_repo)
 
-  # Create multiple .qmd files
-  writeLines("---\ntitle: 'One'\n---\nContent", file.path(temp_repo, "doc1.qmd"))
-  writeLines("---\ntitle: 'Two'\n---\nContent", file.path(temp_repo, "doc2.qmd"))
+  # Create multiple .qmd files, doc2.qmd modified last
+  writeLines("---
+title: 'One'
+---
+Content", file.path(temp_repo, "doc1.qmd"))
+  Sys.sleep(1.1)
+  writeLines("---
+title: 'Two'
+---
+Content", file.path(temp_repo, "doc2.qmd"))
 
-  # Should error asking which one to use
-  expect_error(
-    render_folder_worker(
-      path     = temp_repo,
-      index    = NULL,
-      slug     = NULL,
-      progress = FALSE,
-      preview  = FALSE
-    ),
-    "Impossible de détecter"
+  # No error: falls back to the most recently modified candidate (doc2.qmd)
+  render_folder_worker(
+    path     = temp_repo,
+    index    = NULL,
+    slug     = NULL,
+    progress = FALSE,
+    preview  = FALSE
   )
+
+  meta_file <- file.path(temp_repo, "_site", ".adhoc-meta.json")
+  metadata <- jsonlite::read_json(meta_file)
+  expect_equal(metadata$index, "doc2.qmd")
+
+  # Only doc2.qmd was rendered -- doc1.qmd's own output should not exist
+  expect_false(file.exists(file.path(temp_repo, "_site", "doc1.html")))
 })
 
 test_that("render_folder_worker: errors when no .qmd files exist", {
@@ -130,7 +141,7 @@ test_that("render_folder_worker: errors when no .qmd files exist", {
   )
 })
 
-test_that("render_folder_worker: uses supplied _quarto.yml if present", {
+test_that("render_folder_worker: ignores any pre-existing _quarto.yml in the source folder", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
@@ -142,25 +153,51 @@ test_that("render_folder_worker: uses supplied _quarto.yml if present", {
   gert::git_config_set("user.name", "Test User", repo = temp_repo)
   gert::git_config_set("user.email", "test@example.com", repo = temp_repo)
 
-  # Create custom _quarto.yml
-  custom_yml <- "project:\n  type: default\n  output-dir: _site\nformat:\n  html:\n    theme: darkly\n"
+  # Create a custom _quarto.yml declaring a different theme -- this should
+  # be ignored entirely: a flash render always writes its own minimal
+  # config (theme: cosmo), restricted to `index` only.
+  custom_yml <- "project:
+  type: default
+  output-dir: _site
+format:
+  html:
+    theme: darkly
+"
   writeLines(custom_yml, file.path(temp_repo, "_quarto.yml"))
 
-  # Create qmd
-  writeLines("---\ntitle: 'Test'\n---\nContent", file.path(temp_repo, "index.qmd"))
+  # A second .qmd file alongside index.qmd: since it is not the resolved
+  # index, it must not be rendered even though the (ignored) custom config
+  # doesn't restrict `render:`.
+  writeLines("---
+title: 'Test'
+---
+Content", file.path(temp_repo, "index.qmd"))
+  writeLines("---
+title: 'Other'
+---
+Content", file.path(temp_repo, "other.qmd"))
 
-  # Render should succeed (using the custom config)
-  expect_no_error({
-    render_folder_worker(
-      path     = temp_repo,
-      index    = "index.qmd",
-      slug     = NULL,
-      progress = FALSE,
-      preview  = FALSE
-    )
-  })
+  render_folder_worker(
+    path     = temp_repo,
+    index    = "index.qmd",
+    slug     = NULL,
+    progress = FALSE,
+    preview  = FALSE
+  )
 
-  expect_true(dir.exists(file.path(temp_repo, "_site")))
+  site_dir <- file.path(temp_repo, "_site")
+  expect_true(dir.exists(site_dir))
+
+  # theme is cosmo (from the ofceweb minimal config), not darkly -- darkly's
+  # bootswatch stylesheet name would appear in the compiled CSS link/comment
+  # if the custom _quarto.yml had been honored
+  css_files <- fs::dir_ls(site_dir, recurse = TRUE, regexp = "\\.css$")
+  css_content <- css_files |> lapply(readLines, warn = FALSE) |> unlist() |> paste(collapse = "
+")
+  expect_false(grepl("darkly", css_content, ignore.case = TRUE))
+
+  # other.qmd was not rendered
+  expect_false(file.exists(file.path(site_dir, "other.html")))
 })
 
 test_that("render_folder_worker: cleans up temp directory after render", {

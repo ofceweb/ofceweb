@@ -10,9 +10,12 @@
 #'   Folder to render (relative or absolute). Defaults to `"."`.
 #' @param index `[character(1)]`\cr
 #'   Filename (relative to `path`) of the file to treat as the home page
-#'   (e.g., `"slides.qmd"`, `"notes.md"`). Must be a single `.qmd` or `.md`
-#'   file. If `NULL` (default), auto-detects when exactly one `.qmd` exists
-#'   directly in `path`; otherwise errors with a list of candidates.
+#'   (e.g., `"slides.qmd"`, `"notes.md"`). Must be a `.qmd` or `.md` file
+#'   directly in `path`. If `NULL` (default), resolved via
+#'   [adhoc_resolve_index()]: `index.qmd`/`index.md` if present, otherwise
+#'   the most recently modified `.qmd`/`.md` candidate (an informational
+#'   message names the file picked when more than one candidate exists).
+#'   Only this single document is rendered — see Details.
 #' @param slug `[character(1)]`\cr
 #'   Override the auto-computed slug (unique identifier). If `NULL` (default),
 #'   computed from the folder's relative path using [adhoc_slug()]. Persisted
@@ -48,7 +51,13 @@
 #' 4. Collects any `_extensions/` directories from `path` or its ancestors
 #'    (up to the repo root) and includes them in the temp copy so extension
 #'    shortcodes resolve correctly.
-#' 5. If the temp copy has no `_quarto.yml`, writes a minimal default one.
+#' 5. Writes a minimal `_quarto.yml` in the temp copy, restricted to `index`
+#'    via `project.render` — so only that one document is built, regardless
+#'    of how many other `.qmd`/`.md` files got copied alongside it. Any
+#'    `_quarto.yml` already present in `path` is deliberately ignored (not
+#'    merged): a flash render targets exactly one document, not a
+#'    pre-existing multi-page project — use [render_site()]/[render_wp()]
+#'    for that instead.
 #' 6. Renders the folder via `quarto::quarto_render()` in the temp directory.
 #' 7. Locates the HTML output for `index` and copies it to `_site/index.html`
 #'    (preserving the original filename too).
@@ -158,6 +167,62 @@ render_folder <- function(
 }
 
 
+#' Resolve which document `render_folder()` should render
+#'
+#' Determines the single `.qmd`/`.md` file to treat as the site's index page,
+#' in order of priority:
+#' \enumerate{
+#'   \item `index`, if supplied explicitly (e.g. by [render_folder_addin()]
+#'     via the active editor document) — must exist in `target`.
+#'   \item `index.qmd` or `index.md`, if present directly in `target`.
+#'   \item Otherwise, the most recently modified `.qmd`/`.md` file directly
+#'     in `target` (files starting with `_` are ignored). If more than one
+#'     candidate exists, an informational message names the one picked and
+#'     points to the `index` argument for overriding it.
+#' }
+#' Aborts if `target` has no eligible `.qmd`/`.md` file at all.
+#'
+#' @param target `[character(1)]`\cr Absolute path to the folder being
+#'   rendered.
+#' @param index `[character(1)]`\cr Explicit filename (relative to `target`),
+#'   or `NULL` to auto-resolve.
+#' @param progress `[logical(1)]`\cr Whether to report the auto-pick via
+#'   [cli::cli_alert_info()].
+#'
+#' @returns `[character(1)]` The resolved filename (relative to `target`).
+#' @keywords internal
+adhoc_resolve_index <- function(target, index = NULL, progress = TRUE) {
+  candidates <- fs::dir_ls(target, type = "file", regexp = "\\.(qmd|md)$") |>
+    fs::path_file() |> as.character()
+  candidates <- candidates[!startsWith(candidates, "_")]
+
+  if (!is.null(index)) {
+    if (!index %in% candidates)
+      cli::cli_abort(
+        "Fichier index {.path {index}} non trouv\u00e9 (ou non \u00e9ligible) dans {.path {target}}.")
+    return(index)
+  }
+
+  if (length(candidates) == 0)
+    cli::cli_abort("Aucun fichier .qmd/.md trouv\u00e9 dans {.path {target}}.")
+
+  if ("index.qmd" %in% candidates) return("index.qmd")
+  if ("index.md"  %in% candidates) return("index.md")
+
+  if (length(candidates) > 1) {
+    mtimes <- fs::file_info(fs::path(target, candidates))$modification_time
+    candidates <- candidates[order(mtimes, decreasing = TRUE)]
+    if (progress)
+      cli::cli_alert_info(
+        "Plusieurs fichiers candidats trouv\u00e9s ({paste(candidates, collapse = ', ')}) \\
+         \u2014 {.val {candidates[[1]]}} choisi (le plus r\u00e9cemment modifi\u00e9). \\
+         Utilisez {.arg index} pour en choisir un autre.")
+  }
+
+  candidates[[1]]
+}
+
+
 #' Worker function for render_folder (internal synchronous implementation)
 #'
 #' This function contains the actual render logic, separated so it can be
@@ -184,23 +249,9 @@ render_folder_worker <- function(
   if (!fs::dir_exists(target))
     cli::cli_abort("Dossier {.path {target}} non trouvé.")
 
-  # Auto-detect index if not supplied
-  if (is.null(index)) {
-    qmd_files <- fs::dir_ls(target, type = "file", regexp = "\\.(qmd)$") |>
-      fs::path_file() |> as.character()
-    qmd_files <- qmd_files[!startsWith(qmd_files, "_")]
-    if (length(qmd_files) == 1) {
-      index <- qmd_files[[1]]
-    } else if (length(qmd_files) > 1) {
-      cli::cli_abort(c(
-        "Impossible de détecter un seul fichier index.",
-        "i" = "Candidats trouvés : {paste(qmd_files, collapse = ', ')}",
-        "i" = "Veuillez spécifier {.arg index} explicitement."
-      ))
-    } else {
-      cli::cli_abort("Aucun fichier .qmd trouvé dans {.path {target}}.")
-    }
-  }
+  # Resolve the document to render: explicit `index`, else `index.qmd`/
+  # `index.md`, else the most recently modified `.qmd`/`.md` candidate.
+  index <- adhoc_resolve_index(target, index = index, progress = progress)
 
   index_path <- fs::path(target, index)
   if (!fs::file_exists(index_path))
@@ -268,24 +319,31 @@ render_folder_worker <- function(
     current <- dirname(current)
   }
 
-  # Ensure _quarto.yml exists in temp
+  # Write a minimal _quarto.yml in temp, restricted to `index` only.
+  #
+  # Any `_quarto.yml` copied over from the source folder is deliberately
+  # ignored (not merged) here: a flash render is meant to build exactly one
+  # document, not honor a pre-existing multi-page project configuration —
+  # that belongs to a proper `render_site()`/`render_wp()` pipeline instead.
+  # `project.render` pins the build to `index`, so any other `.qmd`/`.md`
+  # files swept into the temp copy (siblings, or files under collected
+  # `_extensions/`) are not rendered.
   quarto_yml <- fs::path(temp_dir, "_quarto.yml")
-  if (!fs::file_exists(quarto_yml)) {
-    if (progress)
-      cli::cli_h2("Création d'une configuration Quarto minimale")
-    minimal_config <- list(
-      project = list(
-        type      = "default",
-        `output-dir` = "_site"
-      ),
-      format = list(
-        html = list(
-          theme = "cosmo"
-        )
+  if (progress)
+    cli::cli_h2("Écriture d'une configuration Quarto minimale (restreinte à {.path {index}})")
+  minimal_config <- list(
+    project = list(
+      type      = "default",
+      `output-dir` = "_site",
+      render    = list(index)
+    ),
+    format = list(
+      html = list(
+        theme = "cosmo"
       )
     )
-    yaml::write_yaml(minimal_config, quarto_yml)
-  }
+  )
+  yaml::write_yaml(minimal_config, quarto_yml)
 
   # Render
   if (progress)

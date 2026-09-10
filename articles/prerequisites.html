@@ -43,7 +43,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/prerequisites.html">Prérequis (authentification gh, github)</a></li>
     <li><a class="dropdown-item" href="../articles/working-papers.html">Faire un document de travail</a></li>
-    <li><a class="dropdown-item" href="../articles/policy-briefs.html">Policy briefs</a></li>
+    <li><a class="dropdown-item" href="../articles/policy-briefs.html">Faire un Policy brief</a></li>
     <li><a class="dropdown-item" href="../articles/build-a-site.html">Faire un mini-site</a></li>
     <li><a class="dropdown-item" href="../articles/previsions.html">Faire une prévision</a></li>
   </ul>
@@ -79,10 +79,14 @@
 <p>Avant de pouvoir construire et déployer un site avec
 <code>ofceweb</code>, il faut configurer côté machine quelques éléments
 d’authentification GitHub. Ce vignette les passe en revue. Une fois
-cette configuration faite, enchaîner avec <a href="build-a-site.html"><em>Construire un site avec
-ofceweb</em></a>.</p>
-<p>Vue d’ensemble :</p>
+cette configuration faite, enchaîner avec <a href="articles/working-papers.html"><em>Faire un document de
+travail</em></a> ou <a href="articles/build-a-site.html"><em>Faire un
+mini-site</em></a>.</p>
+<div class="section level2">
+<h2 id="vue-densemble">Vue d’ensemble :<a class="anchor" aria-label="anchor" href="#vue-densemble"></a>
+</h2>
 <ul>
+<li>gh/git doivent être installés</li>
 <li>un <strong>PAT</strong> (Personal Access Token) GitHub stocké comme
 variable d’environnement pour que R / git / gh puissent agir en votre
 nom ;</li>
@@ -91,6 +95,20 @@ nom ;</li>
 créer et supprimer les secrets de dépôt (notamment
 <code>STATICRYPT_PASSWORD</code> pour le chiffrement).</li>
 </ul>
+<blockquote>
+<h4 id="pour-installer-ghgit-et-sauthentifier">Pour installer gh/git et
+s’authentifier</h4>
+<h4 id="macos">MacOS</h4>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">brew</span> install git</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="ex">brew</span> install gh</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="ex">gh</span> auth login</span></code></pre></div>
+<h4 id="win">Win</h4>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># installer chocolatey.org</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="ex">choco</span> install git</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="ex">choco</span> install gh</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="ex">gh</span> auth login</span></code></pre></div>
+</blockquote>
+</div>
 <div class="section level2">
 <h2 id="quest-ce-quun-pat-github">1. Qu’est-ce qu’un PAT GitHub ?<a class="anchor" aria-label="anchor" href="#quest-ce-quun-pat-github"></a>
 </h2>
@@ -226,7 +244,7 @@ que vous démarrez, sans avoir à les retaper.</p>
 utilisateur vaut pour toutes vos sessions R, indépendamment du
 projet.</p>
 <p>Depuis R :</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">edit_r_environ</span><span class="op">(</span><span class="op">)</span>   <span class="co"># ouvre ~/.Renviron</span></span></code></pre></div>
 <p>Ajouter (sans guillemets, sans espaces autour de <code>=</code>)
 :</p>
@@ -234,7 +252,7 @@ projet.</p>
 <span><span class="va">DEPLOY_PAT</span><span class="op">=</span><span class="va">ghp_xxxxxxxxxxxxxxxxxxxx</span></span></code></pre>
 <p>Sauvegarder, <strong>redémarrer R</strong> (Session → Restart R dans
 RStudio). Vérifier :</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"GITHUB_PAT"</span><span class="op">)</span><span class="op">)</span>   <span class="co"># doit être &gt; 0</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"DEPLOY_PAT"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Ne <strong>jamais</strong> commiter un <code>.Renviron</code> qui
@@ -247,7 +265,7 @@ contient des tokens. Le <code>.Renviron</code> utilisateur
 <p><code><a href="../reference/site2branch.html">site2branch()</a></code> et <code><a href="../reference/trigger_action.html">trigger_action()</a></code> retombent
 sur le keystore du système (Keychain sur macOS, Credential Manager sur
 Windows) si <code>DEPLOY_PAT</code> n’est pas défini :</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">gitcreds</span><span class="fu">::</span><span class="fu"><a href="https://gitcreds.r-lib.org/reference/gitcreds_get.html" class="external-link">gitcreds_set</a></span><span class="op">(</span><span class="op">)</span>    <span class="co"># demande URL + token, écrit dans le keystore</span></span></code></pre></div>
 <p>C’est pratique mais moins explicite — privilégier
 <code>.Renviron</code> pour <code>ofceweb</code> et garder
@@ -276,27 +294,26 @@ gérer les secrets de dépôt (<code>gh secret set</code> /
 chiffrement staticrypt via le secret <code>STATICRYPT_PASSWORD</code>.
 C’est un binaire indépendant de R.</p>
 <div class="section level3">
-<h3 id="macos">macOS<a class="anchor" aria-label="anchor" href="#macos"></a>
+<h3 id="macos-1">macOS<a class="anchor" aria-label="anchor" href="#macos-1"></a>
 </h3>
 <p>Via Homebrew (recommandé) :</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">brew</span> install gh</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">brew</span> install gh</span></code></pre></div>
 <p>Sans Homebrew : télécharger le <code>.pkg</code> sur <a href="https://github.com/cli/cli/releases" class="external-link uri">https://github.com/cli/cli/releases</a> et l’installer.</p>
 <p>Vérifier :</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">gh</span> <span class="at">--version</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">gh</span> <span class="at">--version</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="windows">Windows<a class="anchor" aria-label="anchor" href="#windows"></a>
 </h3>
-<p>Au choix :</p>
 <ul>
 <li>
 <p><strong>winget</strong> (préinstallé sur Windows 11 / Windows 10
 récents) :</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>winget install <span class="op">--</span>id GitHub<span class="op">.</span><span class="fu">cli</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>winget install <span class="op">--</span>id GitHub<span class="op">.</span><span class="fu">cli</span></span></code></pre></div>
 </li>
 <li>
-<p><strong>Scoop</strong> :</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>scoop install gh</span></code></pre></div>
+<p><strong>chocolatey</strong> :</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>choco install gh</span></code></pre></div>
 </li>
 <li><p><strong>Installeur MSI</strong> : télécharger sur <a href="https://github.com/cli/cli/releases" class="external-link uri">https://github.com/cli/cli/releases</a> et
 exécuter.</p></li>
@@ -304,7 +321,7 @@ exécuter.</p></li>
 <p>Après installation, <strong>fermer puis rouvrir</strong> le terminal
 (et RStudio si lancé) pour que <code>gh</code> soit dans le
 <code>PATH</code>. Vérifier :</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>gh <span class="op">--</span>version</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>gh <span class="op">--</span>version</span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -312,7 +329,7 @@ exécuter.</p></li>
 </h2>
 <p>Authentifie <code>gh</code> auprès de GitHub. À faire une fois par
 machine.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="ex">gh</span> auth login</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="ex">gh</span> auth login</span></code></pre></div>
 <p>Réponses recommandées au prompt interactif :</p>
 <table class="table">
 <colgroup>
@@ -363,7 +380,7 @@ aussi qu’<code>gh</code> gère vos clés SSH). Les fine-grained PAT ne
 sont pas (encore) acceptés ici de manière fiable — préférer le flux
 navigateur si vous n’avez qu’un fine-grained.</p>
 <p>Vérifier :</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">gh</span> auth status</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="ex">gh</span> auth status</span></code></pre></div>
 <p>Doit afficher quelque chose comme :</p>
 <pre><code>github.com
   ✓ Logged in to github.com as &lt;vous&gt; (oauth_token)
@@ -376,33 +393,33 @@ opérationnelle.</p>
 <div class="section level2">
 <h2 id="récapitulatif">Récapitulatif<a class="anchor" aria-label="anchor" href="#r%C3%A9capitulatif"></a>
 </h2>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># dans R</span></span>
 <span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">edit_r_environ</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># y coller :</span></span>
 <span><span class="co">#   GITHUB_PAT=ghp_…</span></span>
 <span><span class="co">#   DEPLOY_PAT=ghp_…</span></span>
 <span><span class="co"># redémarrer R</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># dans un terminal</span></span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="ex">brew</span> install gh        <span class="co"># macOS</span></span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co"># ou : winget install --id GitHub.cli   (Windows)</span></span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="ex">gh</span> auth login          <span class="co"># suivre le prompt, HTTPS + web browser</span></span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="ex">gh</span> auth status         <span class="co"># vérification</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># dans un terminal</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="ex">brew</span> install gh        <span class="co"># macOS</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="co"># ou : choco install gh   (Windows)</span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="ex">gh</span> auth login          <span class="co"># suivre le prompt, HTTPS + web browser</span></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="ex">gh</span> auth status         <span class="co"># vérification</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="vérification-automatique">Vérification automatique<a class="anchor" aria-label="anchor" href="#v%C3%A9rification-automatique"></a>
 </h2>
 <p><code><a href="../reference/setup_prev.html">setup_prev()</a></code>, <code><a href="../reference/setup_wp.html">setup_wp()</a></code>,
-<code><a href="../reference/check_prev.html">check_prev()</a></code> et <code><a href="../reference/check_wp.html">check_wp()</a></code> exécutent tous un
+<code><a href="../reference/setup_pb.html">setup_pb()</a></code> et <code><a href="../reference/check.html">check()</a></code> exécutent tous un
 diagnostic automatique de ces pré-requis (CLI <code>gh</code> installé
 et authentifié, jeton <code>DEPLOY_PAT</code>/<code>gitcreds</code>
 disponible, identité git <code>user.name</code>/<code>user.email</code>
 configurée). Chaque défaut déclenche un simple avertissement (non
 bloquant) qui renvoie vers ce vignette :</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"DEPLOY_PAT"</span><span class="op">)</span><span class="op">)</span>   <span class="co"># doit être &gt; 0</span></span></code></pre></div>
-<p>Ensuite, voir <a href="build-a-site.html"><em>Construire un site avec
-ofceweb</em></a> pour l’enchaînement <code><a href="../reference/setup_site.html">setup_site()</a></code> →
+<p>Ensuite, voir <a href="articles/build-a-site.html"><em>faire un
+mini-site</em></a> pour l’enchaînement <code><a href="../reference/setup_site.html">setup_site()</a></code> →
 <code><a href="../reference/render.html">render()</a></code> → <code><a href="../reference/deploy.html">deploy()</a></code>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

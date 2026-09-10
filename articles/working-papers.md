@@ -5,18 +5,21 @@
 Chaque document de travail (WP) de l’OFCE vit dans son propre dépôt
 GitHub. Un WP produit deux sorties :
 
-- une **page HTML** (site Quarto avec l’extension `wp`)
+- un mini-site **HTML** (site Quarto dont le docuement index.qmd est la
+  page principale)
 - un **PDF** (LaTeX via `wp-pdf` ou Typst via `wp-typst` — `wp-typst`
   est le moteur ajouté par défaut par
   [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
   quand aucun des deux n’est déjà déclaré, car il gère nativement les
-  figures SVG sans dépendance externe ; `wp-pdf` reste disponible en le
-  déclarant explicitement)
+  figures SVG sans dépendance externe, fonctionne mieux que latex et
+  surtout dont le template est maintenu ; `wp-pdf` reste malgré tout
+  disponible en le déclarant explicitement)
 
 Il peut contenir des **annexes** (`annexes.qmd`) et un **historique des
 révisions** (`news.qmd`), ainsi que tout autre document que l’on
 souhaite (code, explications de code, de données, etc…). Le document
-`index.qmd` est le docuement principal (il peut être le seul document).
+`index.qmd` est le document principal (il peut être le seul document).
+Le pdf est construit seulement à partir de `index.qmd`.
 
 1.  On initialise ou corrige une installation avec
     [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
@@ -32,15 +35,17 @@ souhaite (code, explications de code, de données, etc…). Le document
 5.  On demande la validation par
     [`registry_request()`](https://ofceweb.github.io/ofceweb/reference/registry_request.md)
 
-*Note* 1 : le bouton `render` de **Rstudio** ne produit pas le même
-résultat que
-[`render()`](https://ofceweb.github.io/ofceweb/reference/render.md). Le
-menu **Addins** de **RStudio** contient les items render/publish/etc…
+> *Note* 1 : le bouton `render` de **Rstudio** ne produit pas le même
+> résultat que
+> [`render()`](https://ofceweb.github.io/ofceweb/reference/render.md).
+> Le menu **Addins** de **RStudio** contient les items
+> render/publish/etc…
 
-*Note* 2 : tous les .qmd dans le répertoire seront rendus (et ajoutés
-dans la section `Autres liens` de `\_quarto.yml`). Si c’est un problème,
-ajoutez un `\_` au début du nom u `.qmd`. Il sera exclu. Glisser le
-`.qmd` dans un dossier dont le nom commence par `_` fonctionne aussi.
+> *Note* 2 : tous les .qmd dans le répertoire seront rendus (et ajoutés
+> dans la section `Autres liens` de `\_quarto.yml`). Si c’est un
+> problème, ajoutez un `\_` au début du nom u `.qmd`. Il sera exclu.
+> Glisser le `.qmd` dans un sous-dossier dont le nom commence par `_`
+> fonctionne aussi.
 
 ### Prérequis
 

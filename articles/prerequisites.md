@@ -3,16 +3,38 @@
 Avant de pouvoir construire et déployer un site avec `ofceweb`, il faut
 configurer côté machine quelques éléments d’authentification GitHub. Ce
 vignette les passe en revue. Une fois cette configuration faite,
-enchaîner avec [*Construire un site avec
-ofceweb*](https://ofceweb.github.io/ofceweb/articles/build-a-site.md).
+enchaîner avec [*Faire un document de
+travail*](https://ofceweb.github.io/ofceweb/articles/articles/working-papers.md)
+ou [*Faire un
+mini-site*](https://ofceweb.github.io/ofceweb/articles/articles/build-a-site.md).
 
-Vue d’ensemble :
+## Vue d’ensemble :
 
+- gh/git doivent être installés
 - un **PAT** (Personal Access Token) GitHub stocké comme variable
   d’environnement pour que R / git / gh puissent agir en votre nom ;
 - l’outil en ligne de commande **`gh`** (GitHub CLI) authentifié via
   `gh auth login`, utilisé pour créer et supprimer les secrets de dépôt
   (notamment `STATICRYPT_PASSWORD` pour le chiffrement).
+
+> #### Pour installer gh/git et s’authentifier
+>
+> #### MacOS
+>
+> ``` bash
+> brew install git
+> brew install gh
+> gh auth login
+> ```
+>
+> #### Win
+>
+> ``` bash
+> # installer chocolatey.org
+> choco install git
+> choco install gh
+> gh auth login
+> ```
 
 ## 1. Qu’est-ce qu’un PAT GitHub ?
 
@@ -168,18 +190,16 @@ gh --version
 
 ### Windows
 
-Au choix :
-
 - **winget** (préinstallé sur Windows 11 / Windows 10 récents) :
 
   ``` powershell
   winget install --id GitHub.cli
   ```
 
-- **Scoop** :
+- **chocolatey** :
 
   ``` powershell
-  scoop install gh
+  choco install gh
   ```
 
 - **Installeur MSI** : télécharger sur
@@ -254,7 +274,7 @@ usethis::edit_r_environ()
 ``` sh
 # dans un terminal
 brew install gh        # macOS
-# ou : winget install --id GitHub.cli   (Windows)
+# ou : choco install gh   (Windows)
 gh auth login          # suivre le prompt, HTTPS + web browser
 gh auth status         # vérification
 ```
@@ -263,9 +283,8 @@ gh auth status         # vérification
 
 [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md),
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
-[`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
-et
-[`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
+[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+et [`check()`](https://ofceweb.github.io/ofceweb/reference/check.md)
 exécutent tous un diagnostic automatique de ces pré-requis (CLI `gh`
 installé et authentifié, jeton `DEPLOY_PAT`/`gitcreds` disponible,
 identité git `user.name`/`user.email` configurée). Chaque défaut
@@ -277,8 +296,8 @@ vignette :
 nchar(Sys.getenv("DEPLOY_PAT"))   # doit être > 0
 ```
 
-Ensuite, voir [*Construire un site avec
-ofceweb*](https://ofceweb.github.io/ofceweb/articles/build-a-site.md)
+Ensuite, voir [*faire un
+mini-site*](https://ofceweb.github.io/ofceweb/articles/articles/build-a-site.md)
 pour l’enchaînement
 [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
 → [`render()`](https://ofceweb.github.io/ofceweb/reference/render.md) →

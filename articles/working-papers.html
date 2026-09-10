@@ -43,7 +43,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/prerequisites.html">Prérequis (authentification gh, github)</a></li>
     <li><a class="dropdown-item" href="../articles/working-papers.html">Faire un document de travail</a></li>
-    <li><a class="dropdown-item" href="../articles/policy-briefs.html">Policy briefs</a></li>
+    <li><a class="dropdown-item" href="../articles/policy-briefs.html">Faire un Policy brief</a></li>
     <li><a class="dropdown-item" href="../articles/build-a-site.html">Faire un mini-site</a></li>
     <li><a class="dropdown-item" href="../articles/previsions.html">Faire une prévision</a></li>
   </ul>
@@ -82,21 +82,23 @@
 <p>Chaque document de travail (WP) de l’OFCE vit dans son propre dépôt
 GitHub. Un WP produit deux sorties :</p>
 <ul>
-<li>une <strong>page HTML</strong> (site Quarto avec l’extension
-<code>wp</code>)</li>
+<li>un mini-site <strong>HTML</strong> (site Quarto dont le docuement
+index.qmd est la page principale)</li>
 <li>un <strong>PDF</strong> (LaTeX via <code>wp-pdf</code> ou Typst via
 <code>wp-typst</code> — <code>wp-typst</code> est le moteur ajouté par
 défaut par <code><a href="../reference/setup_wp.html">setup_wp()</a></code> quand aucun des deux n’est déjà
-déclaré, car il gère nativement les figures SVG sans dépendance externe
-; <code>wp-pdf</code> reste disponible en le déclarant
+déclaré, car il gère nativement les figures SVG sans dépendance externe,
+fonctionne mieux que latex et surtout dont le template est maintenu ;
+<code>wp-pdf</code> reste malgré tout disponible en le déclarant
 explicitement)</li>
 </ul>
 <p>Il peut contenir des <strong>annexes</strong>
 (<code>annexes.qmd</code>) et un <strong>historique des
 révisions</strong> (<code>news.qmd</code>), ainsi que tout autre
 document que l’on souhaite (code, explications de code, de données,
-etc…). Le document <code>index.qmd</code> est le docuement principal (il
-peut être le seul document).</p>
+etc…). Le document <code>index.qmd</code> est le document principal (il
+peut être le seul document). Le pdf est construit seulement à partir de
+<code>index.qmd</code>.</p>
 <ol style="list-style-type: decimal">
 <li>On initialise ou corrige une installation avec
 <code><a href="../reference/setup_wp.html">setup_wp()</a></code>
@@ -111,16 +113,20 @@ validé)</li>
 <li>On demande la validation par <code><a href="../reference/registry_request.html">registry_request()</a></code>
 </li>
 </ol>
+<blockquote>
 <p><em>Note</em> 1 : le bouton <code>render</code> de
 <strong>Rstudio</strong> ne produit pas le même résultat que
 <code><a href="../reference/render.html">render()</a></code>. Le menu <strong>Addins</strong> de
 <strong>RStudio</strong> contient les items render/publish/etc…</p>
+</blockquote>
+<blockquote>
 <p><em>Note</em> 2 : tous les .qmd dans le répertoire seront rendus (et
 ajoutés dans la section <code>Autres liens</code> de
 <code>\_quarto.yml</code>). Si c’est un problème, ajoutez un
 <code>\_</code> au début du nom u <code>.qmd</code>. Il sera exclu.
-Glisser le <code>.qmd</code> dans un dossier dont le nom commence par
-<code>_</code> fonctionne aussi.</p>
+Glisser le <code>.qmd</code> dans un sous-dossier dont le nom commence
+par <code>_</code> fonctionne aussi.</p>
+</blockquote>
 <div class="section level3">
 <h3 id="prérequis">Prérequis<a class="anchor" aria-label="anchor" href="#pr%C3%A9requis"></a>
 </h3>

@@ -1271,7 +1271,7 @@ inject_quick_publish_banner <- function(site_dir) {
     '<div style="position:fixed;top:0;left:0;right:0;z-index:9999;',
     'background:#e6142d;color:#fff;font:13px sans-serif;',
     'padding:4px 10px;text-align:center;">',
-    'OFCE — publication flash — page non indexée',
+    'OFCE — publication flash (non indexée)',
     '<span class="ofce-push-ts"></span>',
     '</div>',
     sep = ""
@@ -1335,9 +1335,9 @@ stamp_banner_push_time <- function(site_dir) {
   pushed_at <- format(Sys.time(), "%d/%m/%Y %H:%M", tz = "Europe/Paris")
   publisher <- check_gh_login(verbose = FALSE)
   label     <- if (!is.na(publisher)) {
-    glue::glue(" \u2014 publi\u00e9 le {pushed_at} (heure de Paris) par @{publisher}")
+    glue::glue(" \u2014 publié le {pushed_at} par @{publisher}")
   } else {
-    glue::glue(" \u2014 publi\u00e9 le {pushed_at} (heure de Paris)")
+    glue::glue(" \u2014 publié le {pushed_at}")
   }
 
   html_files <- fs::dir_ls(

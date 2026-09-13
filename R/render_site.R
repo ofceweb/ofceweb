@@ -33,7 +33,7 @@ render_site <- function(
     render_site = TRUE,
     site2branch = FALSE,
     trigger = site2branch,
-    workers = 8L) {
+    workers = 1L) {
 
   root <- path |>
     fs::path_expand() |>
@@ -179,7 +179,7 @@ publish_site <- function(
     progress    = TRUE,
     trigger     = TRUE,
     full_deploy = FALSE,
-    workers     = 8L) {
+    workers     = 1L) {
 
   render_site(
     path        = path,

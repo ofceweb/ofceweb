@@ -29,7 +29,7 @@ render_prev <- function(
     profile  = "staging",
     progress   = TRUE,
     preview    = TRUE,
-    workers    = 8L) {
+    workers    = 1L) {
 
   root <- path |>
     fs::path_expand() |>
@@ -121,7 +121,7 @@ stage_prev <- function(
     trigger     = site2branch,
     full_deploy = FALSE,
     preview     = FALSE,
-    workers     = 8L,
+    workers     = 1L,
     trigger_staging_redirect = TRUE) {
 
   check_gh_login()

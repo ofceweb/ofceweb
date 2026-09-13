@@ -41,7 +41,7 @@ render_wp <- function(
     render_site = TRUE,
     site2branch = FALSE,
     trigger     = site2branch,
-    workers     = 8L) {
+    workers     = 1L) {
 
   root <- path |>
     fs::path_expand() |>
@@ -192,7 +192,7 @@ publish_wp <- function(
     progress    = TRUE,
     render_site = TRUE,
     trigger     = TRUE,
-    workers     = 8L) {
+    workers     = 1L) {
 
   root <- path |>
     fs::path_expand() |>

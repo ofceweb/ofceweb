@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,15 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.0.2" id="ofceweb-102">ofceweb 1.0.2<a class="anchor" aria-label="anchor" href="#ofceweb-102"></a></h2>
+<div class="section level3">
+<h3 id="setup_site-ne-génère-plus-la-section-websiteother-links-du-_quartoyml-1-0-2">
+<code>setup_site()</code> ne génère plus la section <code>website.other-links</code> du <code>_quarto.yml</code>
+<a class="anchor" aria-label="anchor" href="#setup_site-ne-g%C3%A9n%C3%A8re-plus-la-section-websiteother-links-du-_quartoyml-1-0-2"></a></h3>
+<p><code><a href="../reference/setup_site.html">setup_site()</a></code> n’injecte plus automatiquement <code>website.other-links</code> avec une entrée par <code>.qmd</code> trouvé. Les sites Quarto gèrent leur propre navigation — typiquement via des liens directs dans <code>index.qmd</code> ou des définitions de <code>navbar</code> personnalisées. L’injection automatique interfère avec cette flexibilité. La section <code>website.other-links</code> (si elle existe) est désormais ignorée par <code><a href="../reference/setup_site.html">setup_site()</a></code>, et les utilisateurs peuvent la maintenir manuellement ou l’omettre.</p>
+</div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.1" id="ofceweb-101">ofceweb 1.0.1<a class="anchor" aria-label="anchor" href="#ofceweb-101"></a></h2>
 <div class="section level3">

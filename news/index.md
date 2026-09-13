@@ -1,5 +1,19 @@
 # Changelog
 
+## ofceweb 1.0.2
+
+### `setup_site()` ne génère plus la section `website.other-links` du `_quarto.yml`
+
+[`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
+n’injecte plus automatiquement `website.other-links` avec une entrée par
+`.qmd` trouvé. Les sites Quarto gèrent leur propre navigation —
+typiquement via des liens directs dans `index.qmd` ou des définitions de
+`navbar` personnalisées. L’injection automatique interfère avec cette
+flexibilité. La section `website.other-links` (si elle existe) est
+désormais ignorée par
+[`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md),
+et les utilisateurs peuvent la maintenir manuellement ou l’omettre.
+
 ## ofceweb 1.0.1
 
 ### La bannière de publication flash affiche désormais l’identité GitHub de l’auteur du déploiement

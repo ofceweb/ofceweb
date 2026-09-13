@@ -36,7 +36,6 @@
 #' | Clé | Valeur imposée |
 #' |-----|----------------|
 #' | `ofce_host` | Valeur de l'argument `ofce_host` |
-#' | `website.other-links` | Liste reconstruite par scan des `.qmd` |
 #' | `website.comments` | `{hypothesis: true}` ou supprimé selon `hypothesis` |
 #'
 #' **Préservées si déjà renseignées** (non écrasées) :
@@ -53,10 +52,9 @@
 #' @section Édition du YAML :
 #' La mise à jour patche uniquement les clés listées ci-dessus dans le texte
 #' du fichier : commentaires, indentation et mise en page du reste du
-#' `_quarto.yml` sont préservés. Les blocs `website.other-links` et
-#' `website.comments` sont entièrement régénérés (ce sont des sections
-#' gérées par le package), donc d'éventuels commentaires à l'intérieur de
-#' ces deux blocs précis ne survivent pas.
+#' `_quarto.yml` sont préservés. Le bloc `website.comments` est entièrement
+#' régénéré (c'est une section gérée par le package), donc d'éventuels
+#' commentaires à l'intérieur de ce bloc ne survivent pas.
 #'
 #' @section Navbar :
 #' La navbar du `_quarto.yml` est synchronisée depuis la source centralisée
@@ -370,32 +368,7 @@ setup_site <- function(
     lines <- yaml_patch_scalar(lines, "website.repo-url", repo_url)
   }
 
-  # chemin absolu (server-root-relative) pour les hrefs other-links :
-  # /site-path/ s'il existe, sinon /{repo}/, sinon /
-  # (Quarto ne réécrit pas les hrefs de la section other-links, mais un chemin
-  # absolu-serveur fonctionne depuis n'importe quelle profondeur de page sans
-  # dépendre du domaine.)
-  sp <- yml$website$`site-path`
-  base_url <- if(!is.null(sp) && nzchar(sp))
-    paste0("/", sub("^/", "", sub("/?$", "/", sp)))
-  else if(!is.na(gh$repo))
-    paste0("/", gh$repo, "/")
-  else
-    "/"
 
-  # other-links : une entrée par qmd, index en tête s'il existe
-  is_index <- vapply(qmd_info,
-                     function(x) tolower(x$file) == "index.qmd",
-                     logical(1))
-  ordered <- c(qmd_info[is_index], qmd_info[!is_index])
-  other <- lapply(ordered,
-    function(x) list(text = x$title,
-                     icon = "newspaper",
-                     href = paste0(base_url, x$href))
-  )
-  if(length(other) > 0) yml$website$`other-links` <- other
-  else yml$website$`other-links` <- NULL
-  lines <- yaml_patch_block(lines, "website.other-links", if (length(other) > 0) other else NULL)
 
   if(isTRUE(hypothesis)) {
     yml$website$comments <- list(hypothesis = TRUE)

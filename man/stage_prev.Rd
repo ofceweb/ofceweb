@@ -11,7 +11,7 @@ stage_prev(
   trigger = site2branch,
   full_deploy = FALSE,
   preview = FALSE,
-  workers = 8L,
+  workers = 1L,
   trigger_staging_redirect = TRUE
 )
 }

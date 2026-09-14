@@ -57,6 +57,14 @@ from the persisted metadata (`_site/.adhoc-meta.json`) if not supplied.
 
 - Verifies that `<path>/_site/` exists (must have been created by
   [render_folder()] or manually).
+- Verifies GitHub / FTP prerequisites via an internal check: `gh` CLI
+  install/auth and git identity are checked for visibility only (never
+  block); a GitHub token (`DEPLOY_PAT`, or `gitcreds` locally) is
+  required and aborts if absent; and the `FTP_SERVER` secret must be
+  visible to the repo (repo-level or inherited from an organization
+  secret) — used as a proxy for "this repo is authorized to publish to
+  OFCE's FTP infrastructure". A confirmed-missing `FTP_SERVER` aborts; an
+  inconclusive check (e.g. GitHub API unreachable) only warns.
 - If `encrypt = FALSE` is requested, checks whether the installed
   `ftp_deploy_profile.yml` workflow supports the `.no-staticrypt` marker
   (added in recent versions). If not, warns and proceeds with encryption.

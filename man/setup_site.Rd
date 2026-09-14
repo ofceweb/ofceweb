@@ -62,7 +62,6 @@ certaines clés. Les autres sont conservées.
 | Clé | Valeur imposée |
 |-----|----------------|
 | `ofce_host` | Valeur de l'argument `ofce_host` |
-| `website.other-links` | Liste reconstruite par scan des `.qmd` |
 | `website.comments` | `{hypothesis: true}` ou supprimé selon `hypothesis` |
 
 **Préservées si déjà renseignées** (non écrasées) :
@@ -81,10 +80,9 @@ lues et réécrites telles quelles.
 
 La mise à jour patche uniquement les clés listées ci-dessus dans le texte
 du fichier : commentaires, indentation et mise en page du reste du
-`_quarto.yml` sont préservés. Les blocs `website.other-links` et
-`website.comments` sont entièrement régénérés (ce sont des sections
-gérées par le package), donc d'éventuels commentaires à l'intérieur de
-ces deux blocs précis ne survivent pas.
+`_quarto.yml` sont préservés. Le bloc `website.comments` est entièrement
+régénéré (c'est une section gérée par le package), donc d'éventuels
+commentaires à l'intérieur de ce bloc ne survivent pas.
 }
 
 \section{Navbar }{

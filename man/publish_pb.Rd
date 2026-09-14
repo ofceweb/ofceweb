@@ -10,7 +10,7 @@ publish_pb(
   progress = TRUE,
   render_site = TRUE,
   trigger = TRUE,
-  workers = 8L
+  workers = 1L
 )
 }
 \arguments{

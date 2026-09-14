@@ -95,16 +95,20 @@ document is built, regardless of how many other \`.qmd\`/\`.md\` files
 got copied alongside it. Any \`\_quarto.yml\` already present in
 \`path\` is deliberately ignored (not merged): a flash render targets
 exactly one document, not a pre-existing multi-page project — use
-\[render_site()\]/\[render_wp()\] for that instead. 6. Renders the
-folder via \`quarto::quarto_render()\` in the temp directory. 7. Locates
-the HTML output for \`index\` and copies it to \`\_site/index.html\`
-(preserving the original filename too). 8. Post-processes all
-\`\*.html\` files to inject a small OFCE quick-publish banner right
-after the opening \`\<body...\>\` tag. 9. Cleans \`.DS_Store\` files,
-then copies the temp \`\_site/\` into \`\<path\>/\_site/\` (replacing if
-present). Writes metadata (slug, index, timestamp) to
-\`\_site/.adhoc-meta.json\`. 10. If \`preview = TRUE\` and \`as_job =
-FALSE\`, launches \[preview_folder()\].
+\[render_site()\]/\[render_wp()\] for that instead. If \`index\`'s own
+YAML frontmatter doesn't declare a \`format\`, \`format: ofce-html\` is
+added to this temp \`\_quarto.yml\` only (never written back to the
+source file); if it does declare one, it's left as the document's own
+frontmatter dictates. 6. Renders the folder via
+\`quarto::quarto_render()\` in the temp directory. 7. Locates the HTML
+output for \`index\` and copies it to \`\_site/index.html\` (preserving
+the original filename too). 8. Post-processes all \`\*.html\` files to
+inject a small OFCE quick-publish banner right after the opening
+\`\<body...\>\` tag. 9. Cleans \`.DS_Store\` files, then copies the temp
+\`\_site/\` into \`\<path\>/\_site/\` (replacing if present). Writes
+metadata (slug, index, timestamp) to \`\_site/.adhoc-meta.json\`. 10. If
+\`preview = TRUE\` and \`as_job = FALSE\`, launches
+\[preview_folder()\].
 
 \## Self-contained folders
 

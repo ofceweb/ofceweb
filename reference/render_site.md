@@ -16,7 +16,7 @@ render_site(
   render_site = TRUE,
   site2branch = FALSE,
   trigger = site2branch,
-  workers = 8L
+  workers = 1L
 )
 ```
 

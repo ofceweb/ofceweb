@@ -15,7 +15,7 @@ publish_site(
   progress = TRUE,
   trigger = TRUE,
   full_deploy = FALSE,
-  workers = 8L
+  workers = 1L
 )
 ```
 

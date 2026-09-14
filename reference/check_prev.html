@@ -102,10 +102,13 @@ un rendu ou un déploiement.</p>
 <li><p>`.github/workflows/ftp_deploy_publish.yml` présent</p></li>
 <li><p>`.github/workflows/ftp_deploy_profile.yml` présent</p></li>
 <li><p>Variables GitHub `FTP_STAGING_DIR` et `FTP_PUBLISH_DIR` définies
-    (vérification via `gh` CLI, avec fallback silencieux si absent)</p></li>
+    (vérification via `gh` CLI, avec fallback silencieux si absent) — le
+    résultat est mis en cache par dépôt pour la session (voir
+    `gh_cached_check()`), tant que `check_gh_setup()` n'a pas tourné de
+    nouveau</p></li>
 <li><p>Secret GitHub `STATICRYPT_PASSWORD` défini (warning non bloquant —
     le rendu local fonctionne sans lui, mais le workflow CI staging
-    échouera)</p></li>
+    échouera) — mis en cache de la même façon</p></li>
 <li><p>Connexion GitHub (`gh::gh("GET /user")`) — warning non bloquant si
     non authentifié</p></li>
 </ol></div>

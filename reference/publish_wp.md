@@ -19,7 +19,7 @@ publish_wp(
   progress = TRUE,
   render_site = TRUE,
   trigger = TRUE,
-  workers = 8L
+  workers = 1L
 )
 ```
 

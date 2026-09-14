@@ -13,7 +13,7 @@ render_prev(
   profile = "staging",
   progress = TRUE,
   preview = TRUE,
-  workers = 8L
+  workers = 1L
 )
 ```
 

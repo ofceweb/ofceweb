@@ -6,7 +6,8 @@ vignette les passe en revue. Une fois cette configuration faite,
 enchaîner avec [*Faire un document de
 travail*](https://ofceweb.github.io/ofceweb/articles/working-papers.md)
 ou [*Faire un
-mini-site*](https://ofceweb.github.io/ofceweb/articles/build-a-site.md).
+mini-site*](https://ofceweb.github.io/ofceweb/articles/build-a-site.md)
+ou .
 
 ## Vue d’ensemble :
 

@@ -49,6 +49,6 @@ provoque un arrêt explicite plutôt qu'un rendu silencieux au mauvais
 endroit.
 }
 \seealso{
-[publish()], [deploy()], [check()], [registry_request()],
-  [render_blog()], [detect_repo_type()]
+[publish()], [deploy()], [check()], [version_up()],
+  [registry_request()], [render_blog()], [detect_repo_type()]
 }

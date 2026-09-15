@@ -7,13 +7,13 @@
 # well after the whole namespace is populated.
 .ofce_repo_types <- function() {
   list(
-    prev = list(render = render_prev, publish = publish_prev, deploy = deploy_prev, check = check_prev, registry = NULL),
-    wp   = list(render = render_wp,   publish = publish_wp,   deploy = deploy_wp,   check = check_wp,   registry = wp_registry_request),
-    pb   = list(render = render_pb,   publish = publish_pb,   deploy = deploy_pb,   check = check_pb,   registry = pb_registry_request),
-    ife  = list(render = render_ife,  publish = publish_ife,  deploy = deploy_ife,  check = NULL,       registry = NULL),
-    blog = list(render = render_blog, publish = publish_blog, deploy = NULL,        check = NULL,       registry = NULL),
-    home = list(render = render_home, publish = publish_home, deploy = deploy_home, check = NULL,       registry = NULL),
-    site = list(render = render_site, publish = publish_site, deploy = deploy_site, check = NULL,       registry = NULL)
+    prev = list(render = render_prev, publish = publish_prev, deploy = deploy_prev, check = check_prev, registry = NULL,               version_up = prev_version_up),
+    wp   = list(render = render_wp,   publish = publish_wp,   deploy = deploy_wp,   check = check_wp,   registry = wp_registry_request, version_up = wp_version_up),
+    pb   = list(render = render_pb,   publish = publish_pb,   deploy = deploy_pb,   check = check_pb,   registry = pb_registry_request, version_up = pb_version_up),
+    ife  = list(render = render_ife,  publish = publish_ife,  deploy = deploy_ife,  check = NULL,       registry = NULL,                version_up = NULL),
+    blog = list(render = render_blog, publish = publish_blog, deploy = NULL,        check = NULL,       registry = NULL,                version_up = NULL),
+    home = list(render = render_home, publish = publish_home, deploy = deploy_home, check = NULL,       registry = NULL,                version_up = NULL),
+    site = list(render = render_site, publish = publish_site, deploy = deploy_site, check = NULL,       registry = NULL,                version_up = site_version_up)
   )
 }
 

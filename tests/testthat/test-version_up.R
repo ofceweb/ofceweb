@@ -156,3 +156,98 @@ test_that("prev_version_up() aborts when not a prevision repo", {
 
   expect_error(prev_version_up(dir), "setup_prev")
 })
+
+# ---- version_up() dispatcher -----------------------------------------------
+#
+# version_up() dispatches to wp_version_up()/pb_version_up()/
+# prev_version_up()/site_version_up() -- the only per-repo-root version
+# incrementers available today (R/repo_type.R). `ife`/`home`/`blog` have no
+# `version_up` entry.
+
+test_that("version_up() dispatches to wp_version_up() for a WP repo", {
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(ofce_wp = TRUE, wp = 12L, annee = 2026L))
+
+  called <- FALSE
+  local_mocked_bindings(
+    wp_version_up = function(path, ...) { called <<- TRUE; invisible(NULL) }
+  )
+
+  suppressMessages(version_up(dir))
+  expect_true(called)
+})
+
+test_that("version_up() dispatches to pb_version_up() for a pb repo", {
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(ofce_pb = TRUE, pb = 5L))
+
+  called <- FALSE
+  local_mocked_bindings(
+    pb_version_up = function(path, ...) { called <<- TRUE; invisible(NULL) }
+  )
+
+  suppressMessages(version_up(dir))
+  expect_true(called)
+})
+
+test_that("version_up() dispatches to prev_version_up() for a prev repo", {
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(ofce_prev = TRUE, prev = 3L, annee = 2026L))
+
+  called <- FALSE
+  local_mocked_bindings(
+    prev_version_up = function(path, ...) { called <<- TRUE; invisible(NULL) }
+  )
+
+  suppressMessages(version_up(dir))
+  expect_true(called)
+})
+
+test_that("version_up() dispatches to site_version_up() for a generic site repo", {
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(title = "Un site quelconque"))
+
+  called <- FALSE
+  local_mocked_bindings(
+    site_version_up = function(path, ...) { called <<- TRUE; invisible(NULL) }
+  )
+
+  suppressMessages(version_up(dir))
+  expect_true(called)
+})
+
+test_that("version_up() has no version_up available for an ife repo", {
+  dir <- fs::path(withr::local_tempdir(), "ife_webhome")
+  fs::dir_create(dir)
+  write_quarto_yml(dir, list(project = list(type = "ife-website")))
+
+  expect_error(suppressMessages(version_up(dir)), "Pas de.*version_up")
+})
+
+test_that("version_up() has no version_up available for a home repo", {
+  dir <- fs::path(withr::local_tempdir(), "webhome")
+  fs::dir_create(dir)
+  write_quarto_yml(dir, list(ofce_home = TRUE))
+
+  expect_error(suppressMessages(version_up(dir)), "Pas de.*version_up")
+})
+
+test_that("version_up() has no version_up available for a blog repo", {
+  dir <- fs::path(withr::local_tempdir(), "webblog")
+  fs::dir_create(dir)
+  write_quarto_yml(dir, list(title = "Un blog"))
+  fs::dir_create(fs::path(dir, "posts"))
+
+  expect_error(suppressMessages(version_up(dir)), "Pas de.*version_up")
+})
+
+test_that("version_up() honours an explicit type= override", {
+  dir <- withr::local_tempdir()
+  called <- FALSE
+  local_mocked_bindings(
+    wp_version_up = function(path, ...) { called <<- TRUE; invisible(NULL) }
+  )
+
+  suppressMessages(version_up(dir, type = "wp"))
+  expect_true(called)
+})

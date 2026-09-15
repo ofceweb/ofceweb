@@ -5,6 +5,17 @@
 #' adapte le `_quarto.yml` avec les métadonnées du WP (titre, numéro, année,
 #' langue, URLs).
 #'
+#' Précondition bloquante : `path` doit déjà être un dépôt git (`git init`,
+#' ou un clone d'un dépôt GitHub existant) — sinon la fonction s'arrête
+#' immédiatement avec [cli::cli_abort()]. `_quarto.yml`, lui, n'a pas besoin
+#' d'exister au préalable : `setup_wp()` le crée depuis le gabarit du
+#' package si absent.
+#'
+#' Juste avant d'appeler [ofce::setup_quarto()] pour poser les extensions
+#' Quarto OFCE, `setup_wp()` vérifie aussi (via `check_ofce_version()`) que le
+#' package **ofce** installé est en version `>= 1.3.39` — sinon la fonction
+#' s'arrête immédiatement avec [cli::cli_abort()].
+#'
 #' La fonction est **non-destructive** pour les fichiers utilisateur : sur un
 #' dépôt existant, les fichiers gabarits `.qmd` et scripts (dont `_quarto.yml`)
 #' ne sont pas écrasés, et les champs YAML ne sont mis à jour que si l'argument
@@ -121,6 +132,12 @@ setup_wp <- function(
 
   if (!fs::dir_exists(root))
     cli::cli_abort("Le dossier {.path {root}} n'existe pas.")
+
+  if (is.na(git_repo_root(root)))
+    cli::cli_abort(c(
+      "Le dossier {.path {root}} n'est pas un d\u00e9p\u00f4t git.",
+      "i" = "Lancer {.code git init} (ou cloner le d\u00e9p\u00f4t GitHub existant) avant {.fn setup_wp}."
+    ))
 
   cli::cli_h1("setup_wp dans {.path {fs::path_file(root)}}")
 
@@ -524,6 +541,7 @@ setup_wp <- function(
   )
 
   # ---- 9. extensions Quarto OFCE (source de vérité : ofce::setup_quarto()) --
+  check_ofce_version()
   tryCatch({
     ofce::setup_quarto(root, quiet = TRUE)
     # `ofce::setup_quarto()` peut réussir (exit code 0) sans avoir réellement
@@ -684,9 +702,13 @@ setup_wp <- function(
   # (probablement le placeholder du gabarit). Si index.qmd n'a pas de clé
   # author, on ne touche à rien (le placeholder, ou une valeur déjà correcte
   # côté _quarto.yml, reste en l'état).
-  if (!is.null(index_yml$author)) {
-    yml$author <- index_yml$author
-    lines <- yaml_patch_block(lines, "author", index_yml$author)
+  # [["author"]] (exact access): `$` silently partial-matches, so an
+  # `author-title` key in index.qmd's frontmatter would masquerade as
+  # `author` and clobber _quarto.yml's author block.
+  index_author <- index_yml[["author"]]
+  if (!is.null(index_author)) {
+    yml[["author"]] <- index_author
+    lines <- yaml_patch_block(lines, "author", index_author)
     yaml_comment_out_frontmatter(dest_index, "author")
     cli::cli_alert_warning(c(
       "Clé {.field author} trouvée dans {.file index.qmd} — déplacée vers \

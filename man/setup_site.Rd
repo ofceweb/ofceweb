@@ -99,7 +99,10 @@ Les extensions OFCE (`_extensions/`) sont installées/mises à jour via
 `OFCE/ofce-quarto-extensions` — un accès réseau est donc nécessaire.
 D'éventuelles extensions périmées (installées par une version antérieure
 du package) sont signalées par un avertissement, jamais supprimées
-automatiquement.
+automatiquement. Juste avant cet appel, `setup_site()` vérifie aussi (via
+`check_ofce_version()`) que le package **ofce** installé est en version
+`>= 1.3.39` — sinon la fonction s'arrête immédiatement avec
+[cli::cli_abort()].
 }
 
 \seealso{

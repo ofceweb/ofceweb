@@ -25,8 +25,8 @@
 #'
 #' @returns La valeur de retour de la fonction de diagnostic appelée
 #'   (généralement un data frame de diagnostics).
-#' @seealso [render()], [publish()], [deploy()], [registry_request()],
-#'   [submit_blog()], [detect_repo_type()]
+#' @seealso [render()], [publish()], [deploy()], [version_up()],
+#'   [registry_request()], [submit_blog()], [detect_repo_type()]
 #' @export
 check <- function(path = ".", type = NULL, ...) {
   .ofce_dispatch("check", path, type, ...)

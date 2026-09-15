@@ -400,6 +400,24 @@ check_gh_login <- function(verbose = TRUE) {
 #' @return Un `data.frame` invisible avec les colonnes `field`, `status`
 #'   (`"ok"` / `"warning"`) et `message` — un enregistrement par vérification
 #'   (`gh:cli`, `gh:auth`, `gh:deploy_pat`, `git:identity`).
+#' Chemin racine du dépôt git local contenant `root`
+#'
+#' Renvoie le chemin renvoyé par [gert::git_find()] (le `.git` peut être à
+#' `root` ou dans un dossier parent), ou `NA_character_` si `root` n'est pas
+#' contenu dans un dépôt git local. Un dépôt tout juste `git init`, sans
+#' remote ni commit, est valide -- seule l'absence totale de `.git` renvoie
+#' `NA`. Précondition partagée par [setup_wp()], [setup_pb()], [check_wp()]
+#' et [check_pb()], qui manipulent des branches (`gh-pages`) et lisent des
+#' remotes et n'ont pas de sens hors d'un dépôt git.
+#'
+#' @param root Chemin vers le dossier à tester.
+#' @return Chaîne de caractères (chemin du dépôt) ou `NA_character_`.
+#' @keywords internal
+#' @noRd
+git_repo_root <- function(root) {
+  tryCatch(gert::git_find(root), error = function(e) NA_character_)
+}
+
 #' @keywords internal
 #' @noRd
 check_gh_setup <- function(root = ".", verbose = TRUE, bump_cache = TRUE) {

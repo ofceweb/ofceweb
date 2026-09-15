@@ -26,6 +26,8 @@ détecter les problèmes bloquants (erreurs) et les situations à corriger
 \details{
 Contrôles effectués :
 \itemize{
+  \item Le dossier est un dépôt git (`git init` ou clone GitHub — erreur
+    bloquante sinon, avant tout autre contrôle)
   \item Présence et validité de `_quarto.yml` (champs `annee`, `author`,
     `date`, `citation` — erreur bloquante si absents)
   \item `project.type: ofce-website` présent dans `_quarto.yml` (warning)

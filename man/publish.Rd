@@ -47,6 +47,6 @@ les sites génériques n'ont pas de distinction staging/publish comme les
 prévisions, donc `publish_site()` (rendu + déploiement) en tient lieu.
 }
 \seealso{
-[render()], [deploy()], [check()], [registry_request()],
-  [publish_blog()], [detect_repo_type()]
+[render()], [deploy()], [check()], [version_up()],
+  [registry_request()], [publish_blog()], [detect_repo_type()]
 }

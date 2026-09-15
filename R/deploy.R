@@ -23,8 +23,8 @@
 #'   erreur R standard ("unused argument").
 #'
 #' @returns La valeur de retour de la fonction de déploiement appelée.
-#' @seealso [render()], [publish()], [check()], [registry_request()],
-#'   [detect_repo_type()]
+#' @seealso [render()], [publish()], [check()], [version_up()],
+#'   [registry_request()], [detect_repo_type()]
 #' @export
 deploy <- function(path = ".", type = NULL, ...) {
   .ofce_dispatch("deploy", path, type, ...)

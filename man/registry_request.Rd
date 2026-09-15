@@ -35,6 +35,6 @@ de la table de dispatch interne (`.ofce_repo_types()`), pas en ajoutant
 une nouvelle fonction exportée.
 }
 \seealso{
-[render()], [publish()], [deploy()], [check()],
+[render()], [publish()], [deploy()], [check()], [version_up()],
   [detect_repo_type()]
 }

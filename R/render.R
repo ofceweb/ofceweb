@@ -35,8 +35,8 @@
 #'   standard ("unused argument").
 #'
 #' @returns La valeur de retour de la fonction de rendu appelée.
-#' @seealso [publish()], [deploy()], [check()], [registry_request()],
-#'   [render_blog()], [detect_repo_type()]
+#' @seealso [publish()], [deploy()], [check()], [version_up()],
+#'   [registry_request()], [render_blog()], [detect_repo_type()]
 #' @export
 render <- function(path = ".", type = NULL, ...) {
   .ofce_dispatch("render", path, type, ...)

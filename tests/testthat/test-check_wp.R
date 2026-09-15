@@ -1,5 +1,5 @@
 test_that("check_wp() reports no error/warning on a fully valid published WP repo", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
 
   df <- check_wp(dir, verbose = FALSE)
@@ -10,7 +10,7 @@ test_that("check_wp() reports no error/warning on a fully valid published WP rep
 })
 
 test_that("check_wp() errors when _quarto.yml is absent", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
 
   df <- check_wp(dir, verbose = FALSE)
 
@@ -19,8 +19,28 @@ test_that("check_wp() errors when _quarto.yml is absent", {
   expect_equal(df$status[1], "error")
 })
 
-test_that("check_wp() errors when _quarto.yml is not valid YAML", {
+test_that("check_wp() blocks with a git:repo error when the directory is not a git repository", {
   dir <- withr::local_tempdir()
+
+  df <- check_wp(dir, verbose = FALSE)
+
+  expect_equal(nrow(df), 1L)
+  expect_equal(df$field[1], "git:repo")
+  expect_equal(df$status[1], "error")
+})
+
+test_that("check_wp() proceeds past the git-repo check for an actual git repository", {
+  dir <- local_git_tempdir()
+
+  df <- check_wp(dir, verbose = FALSE)
+
+  expect_false("git:repo" %in% df$field)
+  expect_true("_quarto.yml" %in% df$field)
+  expect_equal(diag_status(df, "_quarto.yml"), "error")
+})
+
+test_that("check_wp() errors when _quarto.yml is not valid YAML", {
+  dir <- local_git_tempdir()
   writeLines(c("title: [unclosed", "  - broken"), fs::path(dir, "_quarto.yml"))
 
   df <- check_wp(dir, verbose = FALSE)
@@ -30,7 +50,7 @@ test_that("check_wp() errors when _quarto.yml is not valid YAML", {
 })
 
 test_that("check_wp() warns when ofce_wp: true is missing", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$ofce_wp <- NULL
@@ -42,7 +62,7 @@ test_that("check_wp() warns when ofce_wp: true is missing", {
 })
 
 test_that("check_wp() errors when date is missing and warns when citation is missing", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$date     <- NULL
@@ -58,7 +78,7 @@ test_that("check_wp() errors when date is missing and warns when citation is mis
 })
 
 test_that("check_wp() warns (non-blocking) when annee is missing", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$annee <- NULL
@@ -73,7 +93,7 @@ test_that("check_wp() warns (non-blocking) when annee is missing", {
 })
 
 test_that("check_wp() warns (non-blocking) when annee is present but wp is missing", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$wp        <- NULL
@@ -88,7 +108,7 @@ test_that("check_wp() warns (non-blocking) when annee is present but wp is missi
 })
 
 test_that("check_wp() errors when author and authors are both missing", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$author <- NULL
@@ -100,7 +120,7 @@ test_that("check_wp() errors when author and authors are both missing", {
 })
 
 test_that("check_wp() errors when index.qmd is absent", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   fs::file_delete(fs::path(dir, "index.qmd"))
 
@@ -110,7 +130,7 @@ test_that("check_wp() errors when index.qmd is absent", {
 })
 
 test_that("check_wp() errors when neither wp-html nor a PDF format is declared", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$format <- NULL
@@ -123,7 +143,7 @@ test_that("check_wp() errors when neither wp-html nor a PDF format is declared",
 })
 
 test_that("check_wp() errors when index.qmd declares both wp-pdf and wp-typst", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$format$`wp-typst` <- "default"
@@ -135,7 +155,7 @@ test_that("check_wp() errors when index.qmd declares both wp-pdf and wp-typst", 
 })
 
 test_that("check_wp() warns when rsvg-convert is absent and wp-pdf is the sole PDF format", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   local_mocked_bindings(check_rsvg_convert = function(...) invisible(FALSE))
 
@@ -145,7 +165,7 @@ test_that("check_wp() warns when rsvg-convert is absent and wp-pdf is the sole P
 })
 
 test_that("check_wp() does not warn about rsvg-convert when it is present", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   local_mocked_bindings(check_rsvg_convert = function(...) invisible(TRUE))
 
@@ -155,7 +175,7 @@ test_that("check_wp() does not warn about rsvg-convert when it is present", {
 })
 
 test_that("check_wp() errors when a non-index document declares both PDF formats", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   write_qmd(dir, "annexes.qmd", yaml_lines = c(
     "title: Annexes",
@@ -172,7 +192,7 @@ test_that("check_wp() errors when a non-index document declares both PDF formats
 })
 
 test_that("check_wp() warns when references.bib and news.qmd are absent", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   fs::file_delete(fs::path(dir, "references.bib"))
   fs::file_delete(fs::path(dir, "news.qmd"))
@@ -184,7 +204,7 @@ test_that("check_wp() warns when references.bib and news.qmd are absent", {
 })
 
 test_that("check_wp() errors when .github/workflows is entirely absent", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   fs::dir_delete(fs::path(dir, ".github"))
 
@@ -194,7 +214,7 @@ test_that("check_wp() errors when .github/workflows is entirely absent", {
 })
 
 test_that("check_wp() errors when workflows/ exists but ftp_deploy.yml is missing", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   fs::file_delete(fs::path(dir, ".github", "workflows", "ftp_deploy.yml"))
 
@@ -204,7 +224,7 @@ test_that("check_wp() errors when workflows/ exists but ftp_deploy.yml is missin
 })
 
 test_that("check_wp() warns when renv.lock is absent", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   fs::file_delete(fs::path(dir, "renv.lock"))
 
@@ -214,7 +234,7 @@ test_that("check_wp() warns when renv.lock is absent", {
 })
 
 test_that("check_wp() errors when annee is invalid for a published WP", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$annee <- "abc"
@@ -226,7 +246,7 @@ test_that("check_wp() errors when annee is invalid for a published WP", {
 })
 
 test_that("check_wp() warns (non-blocking) when site-path is absent for a published WP", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`site-path` <- NULL
@@ -240,7 +260,7 @@ test_that("check_wp() warns (non-blocking) when site-path is absent for a publis
 })
 
 test_that("check_wp() warns (non-blocking) when site-path has the wrong number of segments", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`site-path` <- "2024"
@@ -252,7 +272,7 @@ test_that("check_wp() warns (non-blocking) when site-path has the wrong number o
 })
 
 test_that("check_wp() warns (non-blocking) when the year segment of site-path is inconsistent with annee", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`site-path` <- "2023/12/v1"
@@ -264,7 +284,7 @@ test_that("check_wp() warns (non-blocking) when the year segment of site-path is
 })
 
 test_that("check_wp() warns (non-blocking) when the WP-number segment of site-path is inconsistent with wp", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`site-path` <- "2024/99/v1"
@@ -276,7 +296,7 @@ test_that("check_wp() warns (non-blocking) when the WP-number segment of site-pa
 })
 
 test_that("check_wp() accepts an unpadded single-digit WP number in site-path", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$wp <- 7L
@@ -292,7 +312,7 @@ test_that("check_wp() accepts an unpadded single-digit WP number in site-path", 
 test_that("check_wp() still accepts a legacy zero-padded WP number in site-path", {
   # Repos published before the padding was dropped keep `2024/007`; the segment
   # is compared numerically, so it must continue to validate.
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$wp <- 7L
@@ -305,7 +325,7 @@ test_that("check_wp() still accepts a legacy zero-padded WP number in site-path"
 })
 
 test_that("check_wp() warns (non-blocking) when the version segment of site-path is inconsistent with version", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`site-path` <- "2024/12/v2"
@@ -317,7 +337,7 @@ test_that("check_wp() warns (non-blocking) when the version segment of site-path
 })
 
 test_that("check_wp() warns when a non-index .qmd is not referenced in other-links", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`other-links` <- NULL
@@ -329,7 +349,7 @@ test_that("check_wp() warns when a non-index .qmd is not referenced in other-lin
 })
 
 test_that("check_wp() warns when the OFCE-org repo name doesn't follow wp-{initial}-{name}", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   local_mocked_bindings(
     gh_slug_from_remote = function(...) "OFCE/mon-super-wp"
@@ -341,7 +361,7 @@ test_that("check_wp() warns when the OFCE-org repo name doesn't follow wp-{initi
 })
 
 test_that("check_wp() is ok when the OFCE-org repo name follows wp-{initial}-{name}", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   local_mocked_bindings(
     gh_slug_from_remote = function(...) "OFCE/wp-t-mon-super-wp"
@@ -353,7 +373,7 @@ test_that("check_wp() is ok when the OFCE-org repo name follows wp-{initial}-{na
 })
 
 test_that("check_wp() skips the repo-name convention check outside the OFCE org", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   local_mocked_bindings(
     gh_slug_from_remote = function(...) "someoneelse/mon-super-wp"
@@ -365,7 +385,7 @@ test_that("check_wp() skips the repo-name convention check outside the OFCE org"
 })
 
 test_that("check_wp() errors when two documents declare the same PDF output-file", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   write_qmd(dir, "index.qmd", yaml_lines = c(
     "title: WP",
@@ -386,7 +406,7 @@ test_that("check_wp() errors when two documents declare the same PDF output-file
 })
 
 test_that("check_wp() warns (non-blocking) when a stray format.* key is still active", {
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_valid_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$format$html <- "default"

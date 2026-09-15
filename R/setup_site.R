@@ -67,7 +67,10 @@
 #' `OFCE/ofce-quarto-extensions` — un accès réseau est donc nécessaire.
 #' D'éventuelles extensions périmées (installées par une version antérieure
 #' du package) sont signalées par un avertissement, jamais supprimées
-#' automatiquement.
+#' automatiquement. Juste avant cet appel, `setup_site()` vérifie aussi (via
+#' `check_ofce_version()`) que le package **ofce** installé est en version
+#' `>= 1.3.39` — sinon la fonction s'arrête immédiatement avec
+#' [cli::cli_abort()].
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @seealso [update_navbar()]
@@ -202,6 +205,7 @@ setup_site <- function(
   )
 
   # ---- 2b. extensions Quarto OFCE (source de vérité : ofce::setup_quarto()) -
+  check_ofce_version()
   tryCatch({
     ofce::setup_quarto(root, quiet = TRUE)
     # `ofce::setup_quarto()` peut réussir (exit code 0) sans avoir réellement

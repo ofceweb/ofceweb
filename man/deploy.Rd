@@ -37,6 +37,6 @@ par [publish_blog()], pas par un déploiement séparé) — `deploy(type =
 explicite plutôt que de tenter quelque chose d'inadapté.
 }
 \seealso{
-[render()], [publish()], [check()], [registry_request()],
-  [detect_repo_type()]
+[render()], [publish()], [check()], [version_up()],
+  [registry_request()], [detect_repo_type()]
 }

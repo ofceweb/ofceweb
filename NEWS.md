@@ -1,4 +1,58 @@
-## ofceweb 1.0.2
+## ofceweb 1.0.3
+
+### `setup_wp()`/`setup_pb()`/`setup_prev()`/`setup_site()` exigent désormais une version minimale du package ofce
+
+Nouvelle précondition bloquante, vérifiée juste avant l'appel à
+`ofce::setup_quarto()` : le package **ofce** installé doit être en
+version `>= 1.3.39`. En dessous de ce seuil (ou si `ofce` n'est pas
+installé), la fonction s'arrête immédiatement avec `cli::cli_abort()`
+plutôt que de laisser `ofce::setup_quarto()` échouer ou installer des
+extensions Quarto incohérentes. Nouveau helper interne
+`check_ofce_version()` (`R/check_ofce_version.R`), sur le modèle de
+`check_quarto_version()` mais bloquant (celui-ci se contente
+d'avertir). Le package `utils` est désormais listé dans `Imports`.
+
+### `setup_wp()`/`setup_pb()`/`check_wp()`/`check_pb()` exigent désormais un dépôt git
+
+Nouvelle précondition bloquante : `setup_wp()`, `setup_pb()`, `check_wp()`
+et `check_pb()` vérifient maintenant, avant tout autre traitement, que
+`path` est bien un dépôt git (`git init` ou clone GitHub existant — un
+dépôt local sans remote ni commit suffit, seule l'absence totale de
+`.git` échoue). Sur `setup_wp()`/`setup_pb()`, une absence de dépôt git
+provoque un `cli::cli_abort()` immédiat. Sur `check_wp()`/`check_pb()`,
+elle produit un unique diagnostic bloquant `git:repo` (avant même la
+connexion GitHub ou la lecture de `_quarto.yml`) plutôt que d'enchaîner
+des diagnostics qui n'auraient pas de sens hors d'un dépôt versionné.
+Nouveau helper interne `git_repo_root()` (`R/git_utils.R`), utilisé par
+les quatre fonctions.
+
+### Nouvelle fonction `version_up()` : dispatch générique d'incrémentation de version
+
+À l'image de `render()`/`publish()`/`deploy()`/`check()`, `version_up()`
+détecte le type de dépôt à `path` (via `detect_repo_type()`, ou `type=`
+explicite) et appelle la fonction d'incrémentation de version interne
+correspondante — `wp_version_up()`, `pb_version_up()`, `prev_version_up()`
+ou `site_version_up()`, qui existaient déjà mais n'avaient jusqu'ici pas de
+point d'entrée unifié. `version_up(type = "ife"|"home"|"blog")` (ou
+auto-détection dans un de ces dépôts) échoue avec un message explicite,
+ces types n'ayant pas d'incrémentation de version disponible.
+
+### `setup_wp()`/`setup_pb()` n'écrasent plus `author` dans `_quarto.yml` à cause d'une clé `author-title`
+
+Bug : la migration de la clé `author` de `index.qmd` vers `_quarto.yml`
+(la clé ne doit vivre que dans `_quarto.yml`) utilisait l'accès partiel R
+`index_yml$author`. En l'absence d'une clé `author` exacte dans le
+frontmatter, `$` correspond silencieusement à tout préfixe — donc une clé
+`author-title` (ou `authors`) était prise pour `author` : sa valeur
+remplaçait le bloc `author` du `_quarto.yml` (généralement le placeholder
+du gabarit), tandis que la clé restait active dans `index.qmd` (le
+commentaire de `yaml_comment_out_frontmatter()`, lui, cible la clé
+exacte). L'accès exact `[["author"]]` est désormais utilisé pour la
+lecture comme pour l'écriture (`$<-` pratique aussi l'appariement
+partiel sur le membre gauche) dans `setup_wp()` et `setup_pb()`, avec un
+test de non-régression dans les deux cas : un frontmatter portant
+`author-title` sans `author` ne déclenche plus la migration et laisse le
+bloc `author` du `_quarto.yml` intact.
 
 ### `setup_wp()` garantit désormais `format.wp-html` dans `index.qmd` aussi
 

@@ -5,6 +5,12 @@
 #' pour la pré-publication, et adapte le `_quarto.yml` avec les métadonnées du
 #' PB (titre, numéro, année, langue, URLs).
 #'
+#' Précondition bloquante : `path` doit déjà être un dépôt git (`git init`,
+#' ou un clone d'un dépôt GitHub existant) — sinon la fonction s'arrête
+#' immédiatement avec [cli::cli_abort()]. `_quarto.yml`, lui, n'a pas besoin
+#' d'exister au préalable : `setup_pb()` le crée depuis le gabarit du package
+#' si absent.
+#'
 #' La fonction est **non-destructive** pour les fichiers utilisateur : sur un
 #' dépôt existant, les fichiers gabarits `.qmd` et scripts (dont `_quarto.yml`)
 #' ne sont pas écrasés, et les champs YAML ne sont mis à jour que si l'argument
@@ -35,6 +41,9 @@
 #' Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour via
 #' [ofce::setup_quarto()], qui les récupère depuis le dépôt GitHub
 #' `OFCE/ofce-quarto-extensions` — la fonction nécessite donc un accès réseau.
+#' Juste avant cet appel, `setup_pb()` vérifie aussi (via `check_ofce_version()`)
+#' que le package **ofce** installé est en version `>= 1.3.39` — sinon la
+#' fonction s'arrête immédiatement avec [cli::cli_abort()].
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param lang Chaîne. Langue principale : `"fr"` (défaut) ou `"en"`.
@@ -66,6 +75,12 @@ setup_pb <- function(
 
   if (!fs::dir_exists(root))
     cli::cli_abort("Le dossier {.path {root}} n'existe pas.")
+
+  if (is.na(git_repo_root(root)))
+    cli::cli_abort(c(
+      "Le dossier {.path {root}} n'est pas un d\u00e9p\u00f4t git.",
+      "i" = "Lancer {.code git init} (ou cloner le d\u00e9p\u00f4t GitHub existant) avant {.fn setup_pb}."
+    ))
 
   cli::cli_h1("setup_pb dans {.path {fs::path_file(root)}}")
 
@@ -309,6 +324,7 @@ setup_pb <- function(
   )
 
   # ---- 9. extensions Quarto OFCE (source de vérité : ofce::setup_quarto()) --
+  check_ofce_version()
   tryCatch({
     ofce::setup_quarto(root, quiet = TRUE)
     if (fs::dir_exists(fs::path(root, "_extensions", "ofce", "pb"))) {
@@ -430,9 +446,13 @@ setup_pb <- function(
   # (probablement le placeholder du gabarit). Si index.qmd n'a pas de clé
   # author, on ne touche à rien (le placeholder, ou une valeur déjà correcte
   # côté _quarto.yml, reste en l'état).
-  if (!is.null(index_yml$author)) {
-    yml$author <- index_yml$author
-    lines <- yaml_patch_block(lines, "author", index_yml$author)
+  # [["author"]] (exact access): `$` silently partial-matches, so an
+  # `author-title` key in index.qmd's frontmatter would masquerade as
+  # `author` and clobber _quarto.yml's author block.
+  index_author <- index_yml[["author"]]
+  if (!is.null(index_author)) {
+    yml[["author"]] <- index_author
+    lines <- yaml_patch_block(lines, "author", index_author)
     yaml_comment_out_frontmatter(dest_index, "author")
     cli::cli_alert_warning(c(
       "Clé {.field author} trouvée dans {.file index.qmd} — déplacée vers \

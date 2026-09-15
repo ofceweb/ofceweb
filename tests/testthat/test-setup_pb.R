@@ -7,6 +7,10 @@ local_stub_pb_side_effects <- function(env = parent.frame()) {
     init_gh_pages_branch   = function(...) invisible(NULL),
     set_gh_var             = function(...) invisible(NULL),
     sync_pb_registry_state = function(...) stop("registry lookup stubbed out for this test"),
+    # setup_pb() aborts if the installed ofce package is below its minimum
+    # version (checked right before ofce::setup_quarto()); stubbed out so
+    # tests don't depend on whatever ofce version happens to be installed.
+    check_ofce_version    = function(...) invisible(TRUE),
     .env = env
   )
   local_mocked_bindings(
@@ -67,7 +71,7 @@ build_draft_pb_repo <- function(dir) {
 
 test_that("setup_pb() computes citation.issue/citation.url and stable_url for a published PB", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_pb_repo(dir, pb = 5L)
 
   suppressMessages(setup_pb(dir))
@@ -81,7 +85,7 @@ test_that("setup_pb() computes citation.issue/citation.url and stable_url for a 
 
 test_that("setup_pb() does not set citation.issue/url/stable_url for a draft (pb = NULL)", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = NULL,
@@ -101,7 +105,7 @@ test_that("setup_pb() does not set citation.issue/url/stable_url for a draft (pb
 
 test_that("setup_pb() rewrites a legacy zero-padded site-path to the unpadded form", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_legacy_padded_pb_repo(dir, pb = 7L)
 
   suppressMessages(setup_pb(dir))
@@ -115,7 +119,7 @@ test_that("setup_pb() rewrites a legacy zero-padded site-path to the unpadded fo
 
 test_that("setup_pb() computes a missing site-path from an existing pb, without re-passing pb", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 4L,
@@ -134,7 +138,7 @@ test_that("setup_pb() computes a missing site-path from an existing pb, without 
 test_that("setup_pb() warns that the deployment URL changes when the site-path is rewritten", {
   local_stub_pb_side_effects()
   withr::local_options(cli.width = 300)
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_legacy_padded_pb_repo(dir, pb = 7L)
 
   msgs <- capture_messages(setup_pb(dir))
@@ -148,7 +152,7 @@ test_that("setup_pb() warns that the deployment URL changes when the site-path i
 test_that("setup_pb() does not warn when the site-path is already unpadded", {
   local_stub_pb_side_effects()
   withr::local_options(cli.width = 300)
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_pb_repo(dir, pb = 7L)
 
   msgs <- capture_messages(setup_pb(dir))
@@ -161,7 +165,8 @@ test_that("setup_pb() installs Quarto extensions via ofce::setup_quarto()", {
   local_mocked_bindings(
     init_gh_pages_branch   = function(...) invisible(NULL),
     set_gh_var             = function(...) invisible(NULL),
-    sync_pb_registry_state = function(...) stop("registry lookup stubbed out for this test")
+    sync_pb_registry_state = function(...) stop("registry lookup stubbed out for this test"),
+    check_ofce_version     = function(...) invisible(TRUE)
   )
   local_mocked_bindings(
     git_remote_list = function(...) data.frame(name = character(), url = character()),
@@ -171,7 +176,7 @@ test_that("setup_pb() installs Quarto extensions via ofce::setup_quarto()", {
     setup_quarto = function(dir, ...) { calls[[length(calls) + 1L]] <<- dir; invisible(NULL) },
     .package = "ofce"
   )
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_pb_repo(dir)
 
   suppressMessages(setup_pb(dir))
@@ -186,13 +191,14 @@ test_that("setup_pb() lets a confirmed registry entry override the existing _qua
     set_gh_var            = function(...) invisible(NULL),
     fetch_pb_entries      = function(...) list(
       list(pb = 4L, type = "repo", `source-repo` = "ofce/pb2026-1")
-    )
+    ),
+    check_ofce_version    = function(...) invisible(TRUE)
   )
   local_mocked_bindings(
     setup_quarto = function(...) invisible(NULL),
     .package = "ofce"
   )
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_pb_repo(dir, pb = 5L)
   gert::git_init(path = dir)
   gert::git_remote_add(url = "https://github.com/ofce/pb2026-1.git", name = "origin", repo = dir)
@@ -213,7 +219,7 @@ test_that("setup_pb() lets a confirmed registry entry override the existing _qua
 test_that("setup_pb() does not assume the ofce org when no git remote is configured and gh is not authenticated", {
   local_stub_pb_side_effects()
   local_mocked_bindings(check_gh_login = function(...) invisible(NA_character_))
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_draft_pb_repo(dir)
 
   expect_message(setup_pb(dir), "URL GitHub Pages")
@@ -226,7 +232,7 @@ test_that("setup_pb() does not assume the ofce org when no git remote is configu
 test_that("setup_pb() uses the authenticated gh account (not 'ofce') for the draft GitHub Pages URL when there is no remote", {
   local_stub_pb_side_effects()
   local_mocked_bindings(check_gh_login = function(...) invisible("someuser"))
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_draft_pb_repo(dir)
 
   suppressMessages(setup_pb(dir))
@@ -245,7 +251,7 @@ test_that("setup_pb() resolves stage-target to ftp and skips the GitHub Pages UR
     ),
     .package = "gert"
   )
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_draft_pb_repo(dir)
 
   suppressMessages(setup_pb(dir))
@@ -264,7 +270,7 @@ test_that("setup_pb() resolves stage-target to gh-pages and uses the real owner 
     ),
     .package = "gert"
   )
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_draft_pb_repo(dir)
 
   suppressMessages(setup_pb(dir))
@@ -276,7 +282,7 @@ test_that("setup_pb() resolves stage-target to gh-pages and uses the real owner 
 
 test_that("setup_pb() comments out pb-pdf (non-blocking warning) when both PDF formats are declared", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 5L,
@@ -310,7 +316,7 @@ test_that("setup_pb() comments out pb-pdf (non-blocking warning) when both PDF f
 
 test_that("setup_pb() syncs format-links to the active PDF engine and computed output-file", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 24L,
@@ -339,7 +345,7 @@ test_that("setup_pb() syncs format-links to the active PDF engine and computed o
 test_that("setup_pb() adds fig-format: png and warns when rsvg-convert is absent and pb-pdf is the sole format", {
   local_stub_pb_side_effects()
   local_mocked_bindings(check_rsvg_convert = function(...) invisible(FALSE))
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 5L,
@@ -362,7 +368,7 @@ test_that("setup_pb() adds fig-format: png and warns when rsvg-convert is absent
 test_that("setup_pb() does not touch fig-format when rsvg-convert is present", {
   local_stub_pb_side_effects()
   local_mocked_bindings(check_rsvg_convert = function(...) invisible(TRUE))
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 5L,
@@ -384,7 +390,7 @@ test_that("setup_pb() does not touch fig-format when rsvg-convert is present", {
 
 test_that("setup_pb() leaves a sole pb-typst declaration untouched -- no pb-pdf is added", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 5L,
@@ -415,7 +421,7 @@ test_that("setup_pb() leaves a sole pb-typst declaration untouched -- no pb-pdf 
 
 test_that("setup_pb() uses the static draft PDF filename when pb is not yet assigned", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = NULL,
@@ -437,7 +443,7 @@ test_that("setup_pb() uses the static draft PDF filename when pb is not yet assi
 
 test_that("setup_pb() is idempotent on an already-clean repo using pb-pdf", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 5L,
@@ -468,7 +474,7 @@ test_that("setup_pb() is idempotent on an already-clean repo using pb-pdf", {
 
 test_that("setup_pb() is idempotent on an already-clean repo using pb-typst", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 5L,
@@ -521,7 +527,7 @@ insert_pb_author_placeholder <- function(dir) {
 
 test_that("setup_pb() moves an author key found in index.qmd into _quarto.yml, replacing the template placeholder", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 8L,
@@ -550,7 +556,7 @@ test_that("setup_pb() moves an author key found in index.qmd into _quarto.yml, r
 
 test_that("setup_pb() leaves _quarto.yml's author untouched when index.qmd has no author key", {
   local_stub_pb_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 9L,
@@ -565,4 +571,31 @@ test_that("setup_pb() leaves _quarto.yml's author untouched when index.qmd has n
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   expect_equal(yml$author[[1]]$name, "Prénom Nom")
   expect_equal(yml$author[[1]]$email, "prenom.nom@sciencespo.fr")
+})
+
+test_that("setup_pb() does not mistake an author-title key for an author key", {
+  local_stub_pb_side_effects()
+  dir <- local_git_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_pb = TRUE,
+    pb      = 10L,
+    lang    = "fr",
+    website = list(title = "Un PB")
+  ))
+  insert_pb_author_placeholder(dir)
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: Un PB",
+    "author-title: Auteurs et affiliations"
+  ))
+
+  expect_no_message(setup_pb(dir), message = "author")
+
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$author[[1]]$name, "Prénom Nom")
+  expect_equal(yml$author[[1]]$email, "prenom.nom@sciencespo.fr")
+  expect_null(yml[["author-title"]])
+
+  # index.qmd's author-title key must remain active (not commented out)
+  idx_lines <- readLines(fs::path(dir, "index.qmd"), warn = FALSE)
+  expect_true(any(grepl("^author-title:", idx_lines)))
 })

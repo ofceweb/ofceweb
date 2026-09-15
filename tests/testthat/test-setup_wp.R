@@ -21,7 +21,7 @@ build_legacy_padded_wp_repo <- function(dir, wp = 7L, annee = 2026L) {
 
 test_that("setup_wp() rewrites a legacy zero-padded site-path to the unpadded form", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_legacy_padded_wp_repo(dir)
 
   suppressMessages(setup_wp(dir))
@@ -38,7 +38,7 @@ test_that("setup_wp() rewrites a legacy zero-padded site-path to the unpadded fo
 
 test_that("setup_wp() computes a missing site-path from an existing wp/annee, without re-passing wp", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 4L,
@@ -59,7 +59,7 @@ test_that("setup_wp() computes a missing site-path from an existing wp/annee, wi
 
 test_that("setup_wp() comments out wp-pdf (non-blocking warning) when both PDF formats are declared", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -100,7 +100,7 @@ test_that("setup_wp() comments out wp-pdf (non-blocking warning) when both PDF f
 
 test_that("setup_wp() syncs format-links to the active PDF engine and computed output-file", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 24L,
@@ -130,7 +130,7 @@ test_that("setup_wp() syncs format-links to the active PDF engine and computed o
 test_that("setup_wp() adds fig-format: png and warns when rsvg-convert is absent and wp-pdf is the sole format", {
   local_stub_wp_side_effects()
   local_mocked_bindings(check_rsvg_convert = function(...) invisible(FALSE))
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -154,7 +154,7 @@ test_that("setup_wp() adds fig-format: png and warns when rsvg-convert is absent
 test_that("setup_wp() does not touch fig-format when rsvg-convert is present", {
   local_stub_wp_side_effects()
   local_mocked_bindings(check_rsvg_convert = function(...) invisible(TRUE))
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -177,7 +177,7 @@ test_that("setup_wp() does not touch fig-format when rsvg-convert is present", {
 
 test_that("setup_wp() computes citation.issue and citation.url for a published WP", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_legacy_padded_wp_repo(dir, wp = 12L, annee = 2027L)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`site-path` <- "2027/12/v0"
@@ -193,7 +193,7 @@ test_that("setup_wp() computes citation.issue and citation.url for a published W
 
 test_that("setup_wp() updates citation.issue when the WP number changes", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_legacy_padded_wp_repo(dir, wp = 5L, annee = 2026L)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`site-path` <- "2026/5/v0"
@@ -213,7 +213,7 @@ test_that("setup_wp() updates citation.issue when the WP number changes", {
 
 test_that("setup_wp() does not set citation.issue/url for a draft (wp = NULL)", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = NULL,
@@ -235,7 +235,7 @@ test_that("setup_wp() does not set citation.issue/url for a draft (wp = NULL)", 
 test_that("setup_wp() warns that the deployment URL changes when the site-path is rewritten", {
   local_stub_wp_side_effects()
   withr::local_options(cli.width = 300)
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_legacy_padded_wp_repo(dir)
 
   msgs <- capture_messages(setup_wp(dir))
@@ -249,7 +249,7 @@ test_that("setup_wp() warns that the deployment URL changes when the site-path i
 test_that("setup_wp() does not warn when the site-path is already unpadded", {
   local_stub_wp_side_effects()
   withr::local_options(cli.width = 300)
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_legacy_padded_wp_repo(dir)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`site-path` <- "2026/7/v0"
@@ -264,7 +264,8 @@ test_that("setup_wp() installs Quarto extensions via ofce::setup_quarto()", {
   calls <- list()
   local_mocked_bindings(
     init_gh_pages_branch = function(...) invisible(NULL),
-    set_gh_var           = function(...) invisible(NULL)
+    set_gh_var           = function(...) invisible(NULL),
+    check_ofce_version    = function(...) invisible(TRUE)
   )
   local_mocked_bindings(
     git_remote_list = function(...) data.frame(name = character(), url = character()),
@@ -274,7 +275,7 @@ test_that("setup_wp() installs Quarto extensions via ofce::setup_quarto()", {
     setup_quarto = function(dir, ...) { calls[[length(calls) + 1L]] <<- dir; invisible(NULL) },
     .package = "ofce"
   )
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_legacy_padded_wp_repo(dir)
 
   suppressMessages(setup_wp(dir))
@@ -289,13 +290,14 @@ test_that("setup_wp() lets a confirmed registry entry override the existing _qua
     set_gh_var           = function(...) invisible(NULL),
     fetch_wp_entries      = function(...) list(
       list(annee = 2027L, wp = 4L, type = "repo", `source-repo` = "ofce/wp2026-1")
-    )
+    ),
+    check_ofce_version    = function(...) invisible(TRUE)
   )
   local_mocked_bindings(
     setup_quarto = function(...) invisible(NULL),
     .package = "ofce"
   )
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_legacy_padded_wp_repo(dir, wp = 5L, annee = 2026L)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   yml$website$`site-path` <- "2026/5/v0"
@@ -318,7 +320,7 @@ test_that("setup_wp() lets a confirmed registry entry override the existing _qua
 
 test_that("setup_wp() warns about legacy stray extensions left on disk", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_legacy_padded_wp_repo(dir)
   # Simulate a leftover flat `wp` extension from before the migration to
   # ofce::setup_quarto().
@@ -349,7 +351,7 @@ build_draft_wp_repo <- function(dir) {
 test_that("setup_wp() does not assume the ofce org when no git remote is configured and gh is not authenticated", {
   local_stub_wp_side_effects()
   local_mocked_bindings(check_gh_login = function(...) invisible(NA_character_))
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_draft_wp_repo(dir)
 
   expect_message(setup_wp(dir), "URL GitHub Pages")
@@ -368,7 +370,7 @@ test_that("setup_wp() does not assume the ofce org when no git remote is configu
 test_that("setup_wp() uses the authenticated gh account (not 'ofce') for the draft GitHub Pages URL when there is no remote", {
   local_stub_wp_side_effects()
   local_mocked_bindings(check_gh_login = function(...) invisible("someuser"))
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_draft_wp_repo(dir)
 
   suppressMessages(setup_wp(dir))
@@ -389,7 +391,7 @@ test_that("setup_wp() resolves stage-target to ftp and skips the GitHub Pages UR
     ),
     .package = "gert"
   )
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_draft_wp_repo(dir)
 
   suppressMessages(setup_wp(dir))
@@ -410,7 +412,7 @@ test_that("setup_wp() resolves stage-target to gh-pages and uses the real owner 
     ),
     .package = "gert"
   )
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_draft_wp_repo(dir)
 
   suppressMessages(setup_wp(dir))
@@ -431,7 +433,7 @@ test_that("setup_wp() injects a default wp-typst format for a brand-new draft wi
     ),
     .package = "gert"
   )
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_draft_wp_repo(dir)
 
   suppressMessages(setup_wp(dir))
@@ -454,7 +456,7 @@ test_that("setup_wp() names a wp-pdf draft file from the repo (wp- prefix stripp
     ),
     .package = "gert"
   )
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   build_draft_wp_repo(dir)
   # Declare wp-pdf explicitly -- the repo-derived draft filename only kicks
   # in for the wp-pdf (LaTeX) engine; wp-typst keeps the historical
@@ -478,7 +480,7 @@ test_that("setup_wp() names a wp-pdf draft file from the repo (wp- prefix stripp
 
 test_that("setup_wp() leaves a sole wp-typst declaration untouched -- no wp-pdf is added", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -502,7 +504,7 @@ test_that("setup_wp() leaves a sole wp-typst declaration untouched -- no wp-pdf 
 
 test_that("setup_wp() comments out a stray PDF key and injects wp-typst when neither wp-pdf nor wp-typst is declared", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -528,7 +530,7 @@ test_that("setup_wp() comments out a stray PDF key and injects wp-typst when nei
 
 test_that("setup_wp() comments out a stray PDF key alongside an existing wp-typst, without adding wp-pdf", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -556,7 +558,7 @@ test_that("setup_wp() comments out a stray PDF key alongside an existing wp-typs
 
 test_that("setup_wp() comments out a stray HTML key in index.qmd, keeping wp-html untouched", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -580,7 +582,7 @@ test_that("setup_wp() comments out a stray HTML key in index.qmd, keeping wp-htm
 
 test_that("setup_wp() adds format.wp-html to _quarto.yml when it's missing (pre-existing repo)", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -602,7 +604,7 @@ test_that("setup_wp() adds format.wp-html to _quarto.yml when it's missing (pre-
 
 test_that("setup_wp() adds format.wp-html to index.qmd when it's missing (pre-existing repo)", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -628,7 +630,7 @@ test_that("setup_wp() adds format.wp-html to index.qmd when it's missing (pre-ex
 
 test_that("setup_wp() adds format.wp-html to index.qmd even with no format block at all", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -650,7 +652,7 @@ test_that("setup_wp() adds format.wp-html to index.qmd even with no format block
 
 test_that("setup_wp() never replaces an existing wp-html in index.qmd", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -675,7 +677,7 @@ test_that("setup_wp() never replaces an existing wp-html in index.qmd", {
 
 test_that("setup_wp() comments out a stray HTML key in index.qmd then adds wp-html when absent", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -700,7 +702,7 @@ test_that("setup_wp() comments out a stray HTML key in index.qmd then adds wp-ht
 
 test_that("setup_wp() is idempotent on an already-clean repo using wp-pdf", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -732,7 +734,7 @@ test_that("setup_wp() is idempotent on an already-clean repo using wp-pdf", {
 
 test_that("setup_wp() is idempotent on an already-clean repo using wp-typst", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 5L,
@@ -785,7 +787,7 @@ insert_author_placeholder <- function(dir) {
 
 test_that("setup_wp() moves an author key found in index.qmd into _quarto.yml, replacing the template placeholder", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 8L,
@@ -815,7 +817,7 @@ test_that("setup_wp() moves an author key found in index.qmd into _quarto.yml, r
 
 test_that("setup_wp() leaves _quarto.yml's author untouched when index.qmd has no author key", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 9L,
@@ -833,6 +835,34 @@ test_that("setup_wp() leaves _quarto.yml's author untouched when index.qmd has n
   expect_equal(yml$author[[1]]$email, "prenom.nom@sciencespo.fr")
 })
 
+test_that("setup_wp() does not mistake an author-title key for an author key", {
+  local_stub_wp_side_effects()
+  dir <- local_git_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 10L,
+    annee   = 2026L,
+    lang    = "fr",
+    website = list(title = "Un WP")
+  ))
+  insert_author_placeholder(dir)
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: Un WP",
+    "author-title: Auteurs et affiliations"
+  ))
+
+  expect_no_message(setup_wp(dir), message = "author")
+
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$author[[1]]$name, "Prénom Nom")
+  expect_equal(yml$author[[1]]$email, "prenom.nom@sciencespo.fr")
+  expect_null(yml[["author-title"]])
+
+  # index.qmd's author-title key must remain active (not commented out)
+  idx_lines <- readLines(fs::path(dir, "index.qmd"), warn = FALSE)
+  expect_true(any(grepl("^author-title:", idx_lines)))
+})
+
 test_that("setup_wp() moves author into a same-indent-sequence author placeholder (dash at column 0)", {
   # Regression test for the yaml_block_end() same-indentation sequence fix:
   # write_quarto_yml() (via yaml::write_yaml()) emits `author:` list items
@@ -840,7 +870,7 @@ test_that("setup_wp() moves author into a same-indent-sequence author placeholde
   # like the real gabarit -- both are valid YAML, and setup_wp() must
   # correctly replace the whole placeholder subtree either way.
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 11L,
@@ -869,7 +899,7 @@ test_that("setup_wp() moves author into a same-indent-sequence author placeholde
 
 test_that("setup_wp() is idempotent after moving author from index.qmd to _quarto.yml", {
   local_stub_wp_side_effects()
-  dir <- withr::local_tempdir()
+  dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_wp = TRUE,
     wp      = 10L,

@@ -33,8 +33,8 @@
 #'   erreur R standard ("unused argument").
 #'
 #' @returns La valeur de retour de la fonction de publication appelée.
-#' @seealso [render()], [deploy()], [check()], [registry_request()],
-#'   [publish_blog()], [detect_repo_type()]
+#' @seealso [render()], [deploy()], [check()], [version_up()],
+#'   [registry_request()], [publish_blog()], [detect_repo_type()]
 #' @export
 publish <- function(path = ".", type = NULL, ...) {
   .ofce_dispatch("publish", path, type, ...)

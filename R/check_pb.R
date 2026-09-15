@@ -6,6 +6,8 @@
 #'
 #' Contrôles effectués :
 #' \itemize{
+#'   \item Le dossier est un dépôt git (`git init` ou clone GitHub — erreur
+#'     bloquante sinon, avant tout autre contrôle)
 #'   \item Présence et validité de `_quarto.yml` (champs `author`,
 #'     `date`, `citation` — erreur bloquante si absents)
 #'   \item `project.type: ofce-website` présent dans `_quarto.yml` (warning)
@@ -55,7 +57,32 @@ check_pb <- function(path = ".", verbose = TRUE) {
     )
   }
 
+  # Assemble le data.frame de diagnostics accumulés jusqu'ici -- utilisé par
+  # les retours anticipés bloquants (dépôt git absent, _quarto.yml absent ou
+  # invalide) et par le résumé final.
+  build_df <- function() {
+    if (length(diags) > 0) {
+      data.frame(
+        field   = sapply(diags, `[[`, "field"),
+        status  = sapply(diags, `[[`, "status"),
+        message = sapply(diags, `[[`, "message"),
+        stringsAsFactors = FALSE
+      )
+    } else {
+      data.frame(field = character(), status = character(), message = character(), stringsAsFactors = FALSE)
+    }
+  }
+
   if (verbose) cli::cli_h1("check_pb : {fs::path_file(root)}")
+
+  # ---- dépôt git -------------------------------------------------------------
+  if (is.na(git_repo_root(root))) {
+    add_diag("git:repo", "error",
+             "Le dossier n'est pas un d\u00e9p\u00f4t git (ni `git init`, ni clone GitHub).")
+    df <- build_df()
+    if (verbose) print_pb_diags(df, root)
+    return(invisible(df))
+  }
 
   # ---- connexion GitHub -------------------------------------------------------
   gh_login <- check_gh_login(verbose = FALSE)
@@ -81,16 +108,7 @@ check_pb <- function(path = ".", verbose = TRUE) {
   yml_path <- fs::path(root, "_quarto.yml")
   if (!fs::file_exists(yml_path)) {
     add_diag("_quarto.yml", "error", "Fichier absent. Lancer setup_pb() d'abord.")
-    df <- if (length(diags) > 0) {
-      data.frame(
-        field   = sapply(diags, `[[`, "field"),
-        status  = sapply(diags, `[[`, "status"),
-        message = sapply(diags, `[[`, "message"),
-        stringsAsFactors = FALSE
-      )
-    } else {
-      data.frame(field = character(), status = character(), message = character(), stringsAsFactors = FALSE)
-    }
+    df <- build_df()
     if (verbose) print_pb_diags(df, root)
     return(invisible(df))
   }
@@ -102,16 +120,7 @@ check_pb <- function(path = ".", verbose = TRUE) {
                     NULL
                   })
   if (is.null(yml)) {
-    df <- if (length(diags) > 0) {
-      data.frame(
-        field   = sapply(diags, `[[`, "field"),
-        status  = sapply(diags, `[[`, "status"),
-        message = sapply(diags, `[[`, "message"),
-        stringsAsFactors = FALSE
-      )
-    } else {
-      data.frame(field = character(), status = character(), message = character(), stringsAsFactors = FALSE)
-    }
+    df <- build_df()
     if (verbose) print_pb_diags(df, root)
     return(invisible(df))
   }

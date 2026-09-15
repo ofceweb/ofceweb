@@ -21,7 +21,7 @@
 #'   registre choisie.
 #'
 #' @returns La valeur de retour de la fonction de registre appelée.
-#' @seealso [render()], [publish()], [deploy()], [check()],
+#' @seealso [render()], [publish()], [deploy()], [check()], [version_up()],
 #'   [detect_repo_type()]
 #' @export
 registry_request <- function(path = ".", type = NULL, ...) {

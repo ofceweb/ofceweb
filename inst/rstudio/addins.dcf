@@ -61,3 +61,10 @@ Description: >
 Binding: deploy
 Package: ofceweb
 Interactive: true
+
+Name: Version up (projet)
+Description: >
+  Incrémente la version du projet
+Binding: version_up
+Package: ofceweb
+Interactive: true

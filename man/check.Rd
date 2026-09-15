@@ -39,6 +39,6 @@ utiliser [submit_blog()] (qui appelle `check_blog()` en interne), pas
 `check()`.
 }
 \seealso{
-[render()], [publish()], [deploy()], [registry_request()],
-  [submit_blog()], [detect_repo_type()]
+[render()], [publish()], [deploy()], [version_up()],
+  [registry_request()], [submit_blog()], [detect_repo_type()]
 }

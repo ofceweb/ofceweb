@@ -1,6 +1,18 @@
 # Shared fixture builders for check_wp() / check_blog() tests.
 # testthat auto-sources files matching ^helper.*\\.R$ before running tests.
 
+# withr::local_tempdir(), but also `git init`-ed. setup_wp()/setup_pb()/
+# check_wp()/check_pb() require their target directory to already be a git
+# repo (blocking precondition, see git_repo_root()) -- most of their
+# fixtures need one even when the test isn't exercising git-specific
+# behaviour itself. No remote/commit is added; a bare `git init` is enough
+# to satisfy the check.
+local_git_tempdir <- function(env = parent.frame()) {
+  dir <- withr::local_tempdir(.local_envir = env)
+  gert::git_init(dir)
+  dir
+}
+
 # Writes a .qmd with YAML frontmatter + body to `dir/name`, returns the path.
 write_qmd <- function(dir, name = "index.qmd", yaml_lines = character(), body_lines = "Corps.") {
   path <- fs::path(dir, name)
@@ -71,6 +83,10 @@ local_stub_wp_side_effects <- function(env = parent.frame()) {
     init_gh_pages_branch   = function(...) invisible(NULL),
     set_gh_var             = function(...) invisible(NULL),
     sync_wp_registry_state = function(...) stop("registry lookup stubbed out for this test"),
+    # setup_wp() aborts if the installed ofce package is below its minimum
+    # version (checked right before ofce::setup_quarto()); stubbed out so
+    # tests don't depend on whatever ofce version happens to be installed.
+    check_ofce_version    = function(...) invisible(TRUE),
     .env = env
   )
   local_mocked_bindings(

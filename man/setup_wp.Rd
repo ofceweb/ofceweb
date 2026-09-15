@@ -109,7 +109,8 @@ généralement le placeholder du gabarit -- puis commentée dans
 Les clés `format.*` de `_quarto.yml`/`index.qmd` sont nettoyées à chaque
 appel : `wp-html` reste l'unique format HTML actif (toute autre clé
 `*-html`, ex. `format.html`, est commentée ; `wp-html` est ajouté à
-`_quarto.yml` s'il est absent). Côté PDF, `wp-pdf` (LaTeX) et `wp-typst`
+`_quarto.yml` **et** à `index.qmd` s'il y est absent). Côté PDF, `wp-pdf`
+(LaTeX) et `wp-typst`
 (Typst) sont les deux seuls moteurs légitimes — toute autre clé PDF
 (`pdf`, `typst`, `ofce-pdf`, ...) est commentée. `wp-typst` est ajouté par
 défaut dans `index.qmd` uniquement quand **ni** `wp-pdf` **ni**

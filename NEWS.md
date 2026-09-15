@@ -1,5 +1,18 @@
 ## ofceweb 1.0.2
 
+### `setup_wp()` garantit désormais `format.wp-html` dans `index.qmd` aussi
+
+Jusqu'ici, `setup_wp()` ne garantissait `format.wp-html` qu'au niveau projet
+(`_quarto.yml`) : un `index.qmd` pré-existant sans cette clé (dépôt créé avec
+un gabarit antérieur, ou édité à la main) n'était jamais réparé, alors que le
+format PDF, lui, est garanti dans `index.qmd` (section 6b). `setup_wp()` ajoute
+désormais `format.wp-html: default` dans le frontmatter de `index.qmd` quand la
+clé y est absente — jamais en remplacement d'une `wp-html` déjà déclarée
+(scalaire ou mapping personnalisé, laissée intacte), et de façon idempotente
+(un second appel ne modifie rien). Comportement inchangé côté `_quarto.yml`,
+où la clé reste requise pour le rendu HTML des autres pages (`annexes.qmd`,
+`news.qmd`, ...).
+
 ### `setup_site()` ne génère plus la section `website.other-links` du `_quarto.yml`
 
 `setup_site()` n'injecte plus automatiquement `website.other-links` avec une

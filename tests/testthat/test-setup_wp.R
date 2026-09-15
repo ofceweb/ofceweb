@@ -600,6 +600,104 @@ test_that("setup_wp() adds format.wp-html to _quarto.yml when it's missing (pre-
   expect_equal(yml$format$`wp-html`, "default")
 })
 
+test_that("setup_wp() adds format.wp-html to index.qmd when it's missing (pre-existing repo)", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default", `wp-pdf` = list(`output-file` = "OFCEWP-draft.pdf"))
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  expect_equal(idx_yml$format$`wp-html`, "default")
+  # The PDF key already declared in index.qmd must survive the add (its
+  # output-file is recomputed by setup_wp(): published repo -> OFCEWP2026-5.pdf).
+  expect_equal(idx_yml$format$`wp-pdf`$`output-file`, "OFCEWP2026-5.pdf")
+})
+
+test_that("setup_wp() adds format.wp-html to index.qmd even with no format block at all", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default", `wp-typst` = list(`output-file` = "OFCEWP-draft.pdf"))
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = "title: WP")
+
+  suppressMessages(setup_wp(dir))
+
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  expect_equal(idx_yml$format$`wp-html`, "default")
+  expect_equal(idx_yml$format$`wp-typst`$`output-file`, "OFCEWP2026-5.pdf")
+  # The document body survives the frontmatter patch untouched.
+  idx_lines <- readLines(fs::path(dir, "index.qmd"))
+  expect_true(any(grepl("title: WP", idx_lines, fixed = TRUE)))
+})
+
+test_that("setup_wp() never replaces an existing wp-html in index.qmd", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default", `wp-typst` = list(`output-file` = "OFCEWP-draft.pdf"))
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-html:",
+    "    toc: true",
+    "  wp-typst:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  expect_equal(idx_yml$format$`wp-html`, list(`toc` = TRUE))
+})
+
+test_that("setup_wp() comments out a stray HTML key in index.qmd then adds wp-html when absent", {
+  local_stub_wp_side_effects()
+  dir <- withr::local_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    wp      = 5L,
+    annee   = 2026L,
+    lang    = "fr",
+    format  = list(`wp-html` = "default", `wp-typst` = list(`output-file` = "OFCEWP-draft.pdf"))
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  html: default"
+  ))
+
+  suppressMessages(setup_wp(dir))
+
+  idx_lines <- readLines(fs::path(dir, "index.qmd"))
+  expect_true(any(grepl("^\\s*#\\s*html:", idx_lines)))
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  expect_equal(idx_yml$format$`wp-html`, "default")
+  expect_null(idx_yml$format$html)
+})
+
 test_that("setup_wp() is idempotent on an already-clean repo using wp-pdf", {
   local_stub_wp_side_effects()
   dir <- withr::local_tempdir()

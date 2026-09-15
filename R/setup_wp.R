@@ -68,7 +68,8 @@
 #' Les clés `format.*` de `_quarto.yml`/`index.qmd` sont nettoyées à chaque
 #' appel : `wp-html` reste l'unique format HTML actif (toute autre clé
 #' `*-html`, ex. `format.html`, est commentée ; `wp-html` est ajouté à
-#' `_quarto.yml` s'il est absent). Côté PDF, `wp-pdf` (LaTeX) et `wp-typst`
+#' `_quarto.yml` **et** à `index.qmd` s'il y est absent). Côté PDF, `wp-pdf`
+#' (LaTeX) et `wp-typst`
 #' (Typst) sont les deux seuls moteurs légitimes — toute autre clé PDF
 #' (`pdf`, `typst`, `ofce-pdf`, ...) est commentée. `wp-typst` est ajouté par
 #' défaut dans `index.qmd` uniquement quand **ni** `wp-pdf` **ni**
@@ -370,6 +371,21 @@ setup_wp <- function(
     project_format_names <- union(project_format_names, "wp-html")
     all_format_names     <- union(all_format_names, "wp-html")
     cli::cli_alert_success("Ajout de {.field format.wp-html: default} dans {.file _quarto.yml}.")
+  }
+
+  # Un index.qmd pré-existant peut lui aussi ne pas déclarer `format.wp-html`
+  # (gabarit antérieur, édition manuelle) -- l'ajouter, jamais en remplacement
+  # d'une valeur déjà présente.
+  if (!"wp-html" %in% index_format_names) {
+    tryCatch({
+      yaml_patch_frontmatter_scalar(dest_index, "format.wp-html", "default")
+      index_yml$format$`wp-html` <- "default"
+      index_format_names <- union(index_format_names, "wp-html")
+      all_format_names   <- union(all_format_names, "wp-html")
+      cli::cli_alert_success("Ajout de {.field format.wp-html: default} dans {.file index.qmd}.")
+    }, error = function(e) {
+      cli::cli_alert_warning("Impossible d'ajouter {.field format.wp-html} dans index.qmd : {conditionMessage(e)}")
+    })
   }
 
   # ---- 6b. format PDF : wp-pdf systématique, sauf si wp-typst déjà présent ---

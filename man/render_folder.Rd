@@ -77,7 +77,10 @@ from the folder's relative path within its repo and persisted in `_site/.adhoc-m
    `_quarto.yml` already present in `path` is deliberately ignored (not
    merged): a flash render targets exactly one document, not a
    pre-existing multi-page project — use [render_site()]/[render_wp()]
-   for that instead.
+   for that instead. If `index`'s own YAML frontmatter doesn't declare a
+   `format`, `format: ofce-html` is added to this temp `_quarto.yml` only
+   (never written back to the source file); if it does declare one, it's
+   left as the document's own frontmatter dictates.
 6. Renders the folder via `quarto::quarto_render()` in the temp directory.
 7. Locates the HTML output for `index` and copies it to `_site/index.html`
    (preserving the original filename too).

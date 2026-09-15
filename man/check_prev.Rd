@@ -48,10 +48,13 @@ Contrôles effectués :
   \item `.github/workflows/ftp_deploy_publish.yml` présent
   \item `.github/workflows/ftp_deploy_profile.yml` présent
   \item Variables GitHub `FTP_STAGING_DIR` et `FTP_PUBLISH_DIR` définies
-    (vérification via `gh` CLI, avec fallback silencieux si absent)
+    (vérification via `gh` CLI, avec fallback silencieux si absent) — le
+    résultat est mis en cache par dépôt pour la session (voir
+    `gh_cached_check()`), tant que `check_gh_setup()` n'a pas tourné de
+    nouveau
   \item Secret GitHub `STATICRYPT_PASSWORD` défini (warning non bloquant —
     le rendu local fonctionne sans lui, mais le workflow CI staging
-    échouera)
+    échouera) — mis en cache de la même façon
   \item Connexion GitHub (`gh::gh("GET /user")`) — warning non bloquant si
     non authentifié
 }

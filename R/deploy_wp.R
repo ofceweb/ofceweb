@@ -83,9 +83,9 @@ deploy_wp <- function(
     ver_seg    <- if (!is.null(version)) paste0(version, "/") else ""
     final_url  <- sprintf("https://www.ofce.fr/wp/%d/%d/%s", annee, wp, ver_seg)
 
-    cli::cli_h2("D\u00e9ploiement WP publi\u00e9 (site2branch \u2192 FTP production)")
-    cli::cli_text(
-      "WP {wp}/{annee}{if (!is.null(version)) paste0(' / ', version) else ''} \u2192 {.url {stable_url}}")
+    # cli::cli_h2("D\u00e9ploiement WP publi\u00e9 (site2branch \u2192 FTP production)")
+    # cli::cli_text(
+    #   "WP {wp}/{annee}{if (!is.null(version)) paste0(' / ', version) else ''} \u2192 {.url {stable_url}}")
 
     res <- site2branch(
       path        = root,

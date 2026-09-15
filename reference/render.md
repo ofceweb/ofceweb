@@ -64,5 +64,5 @@ mauvais endroit.
 
 ## See also
 
-\[publish()\], \[deploy()\], \[check()\], \[registry_request()\],
-\[render_blog()\], \[detect_repo_type()\]
+\[publish()\], \[deploy()\], \[check()\], \[version_up()\],
+\[registry_request()\], \[render_blog()\], \[detect_repo_type()\]

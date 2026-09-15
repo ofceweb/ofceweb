@@ -13,7 +13,7 @@ titre, code de site, commentaires hypothesis, etc.)."><meta property="og:image" 
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -164,7 +164,10 @@ configuration.</p>
 `OFCE/ofce-quarto-extensions` — un accès réseau est donc nécessaire.
 D'éventuelles extensions périmées (installées par une version antérieure
 du package) sont signalées par un avertissement, jamais supprimées
-automatiquement.</p>
+automatiquement. Juste avant cet appel, `setup_site()` vérifie aussi (via
+`check_ofce_version()`) que le package **ofce** installé est en version
+`&gt;= 1.3.39` — sinon la fonction s'arrête immédiatement avec
+[cli::cli_abort()].</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

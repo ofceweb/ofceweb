@@ -224,6 +224,8 @@ rendu ou de publication correspondante.
   Détecte le type d'un dépôt et lance le bon déploiement
 - [`check()`](https://ofceweb.github.io/ofceweb/reference/check.md) :
   Détecte le type d'un dépôt et lance le bon diagnostic
+- [`version_up()`](https://ofceweb.github.io/ofceweb/reference/version_up.md)
+  : Détecte le type d'un dépôt et incrémente sa version
 - [`registry_request()`](https://ofceweb.github.io/ofceweb/reference/registry_request.md)
   : Détecte le type d'un dépôt et lance la bonne demande
   d'enregistrement

@@ -48,6 +48,12 @@ Invisible \`NULL\`. Appelée pour ses effets de bord.
 
 ## Details
 
+Précondition bloquante : \`path\` doit déjà être un dépôt git (\`git
+init\`, ou un clone d'un dépôt GitHub existant) — sinon la fonction
+s'arrête immédiatement avec \[cli::cli_abort()\]. \`\_quarto.yml\`, lui,
+n'a pas besoin d'exister au préalable : \`setup_pb()\` le crée depuis le
+gabarit du package si absent.
+
 La fonction est \*\*non-destructive\*\* pour les fichiers utilisateur :
 sur un dépôt existant, les fichiers gabarits \`.qmd\` et scripts (dont
 \`\_quarto.yml\`) ne sont pas écrasés, et les champs YAML ne sont mis à
@@ -81,7 +87,10 @@ modification.
 Les extensions Quarto OFCE (\`\_extensions/\`) sont installées/mises à
 jour via \[ofce::setup_quarto()\], qui les récupère depuis le dépôt
 GitHub \`OFCE/ofce-quarto-extensions\` — la fonction nécessite donc un
-accès réseau.
+accès réseau. Juste avant cet appel, \`setup_pb()\` vérifie aussi (via
+\`check_ofce_version()\`) que le package \*\*ofce\*\* installé est en
+version \`\>= 1.3.39\` — sinon la fonction s'arrête immédiatement avec
+\[cli::cli_abort()\].
 
 ## See also
 

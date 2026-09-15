@@ -32,6 +32,14 @@ détecter qu'un autre dépôt tente de publier sous le même numéro de PB
 (même \`pb\` — numérotation séquentielle depuis l'origine, indépendante
 de l'année) et bloquer ce déploiement avant d'écraser le PB existant.
 
+Inclut aussi un champ \`pdf-path\` : le chemin du fichier
+\`output-file\` du format \`pb-pdf\`/\`pb-typst\` actif, relatif à la
+racine \`www.ofce.fr\` (ex. \`"pb/5/OFCEPB2026-5.pdf"\`). Calculé dès
+que \`pb\` est connu, indépendamment de \`stage\`/\`url\` : c'est
+l'emplacement de publication final, pas nécessairement celui où le
+fichier est déployé au moment de l'appel. \`NULL\` si \`pb\` ou le
+fichier PDF/Typst ne sont pas encore connus.
+
 ## See also
 
 \[render_pb()\], \[pb_version_up()\]

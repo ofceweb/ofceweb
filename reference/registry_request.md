@@ -46,4 +46,4 @@ exportée.
 ## See also
 
 \[render()\], \[publish()\], \[deploy()\], \[check()\],
-\[detect_repo_type()\]
+\[version_up()\], \[detect_repo_type()\]

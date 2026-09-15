@@ -13,7 +13,7 @@ langue, URLs)."><meta property="og:image" content="https://ofceweb.github.io/ofc
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,7 +108,16 @@ s'applique qu'à un dépôt sans `stage-target`.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>La fonction est **non-destructive** pour les fichiers utilisateur : sur un
+    <p>Précondition bloquante : `path` doit déjà être un dépôt git (`git init`,
+ou un clone d'un dépôt GitHub existant) — sinon la fonction s'arrête
+immédiatement avec [cli::cli_abort()]. `_quarto.yml`, lui, n'a pas besoin
+d'exister au préalable : `setup_wp()` le crée depuis le gabarit du
+package si absent.</p>
+<p>Juste avant d'appeler [ofce::setup_quarto()] pour poser les extensions
+Quarto OFCE, `setup_wp()` vérifie aussi (via `check_ofce_version()`) que le
+package **ofce** installé est en version `&gt;= 1.3.39` — sinon la fonction
+s'arrête immédiatement avec [cli::cli_abort()].</p>
+<p>La fonction est **non-destructive** pour les fichiers utilisateur : sur un
 dépôt existant, les fichiers gabarits `.qmd` et scripts (dont `_quarto.yml`)
 ne sont pas écrasés, et les champs YAML ne sont mis à jour que si l'argument
 correspondant a été fourni explicitement. Les champs déjà absents ne sont pas

@@ -46,5 +46,5 @@ avec un message explicite plutôt que de tenter quelque chose d'inadapté.
 
 ## See also
 
-\[render()\], \[publish()\], \[check()\], \[registry_request()\],
-\[detect_repo_type()\]
+\[render()\], \[publish()\], \[check()\], \[version_up()\],
+\[registry_request()\], \[detect_repo_type()\]

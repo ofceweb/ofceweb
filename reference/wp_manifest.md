@@ -32,6 +32,15 @@ détecter qu'un autre dépôt tente de publier sous le même numéro de WP
 (même \`annee\`/\`wp\`) et bloquer ce déploiement avant d'écraser le WP
 existant.
 
+Inclut aussi un champ \`pdf-path\` : le chemin du fichier
+\`output-file\` du format \`wp-pdf\`/\`wp-typst\` actif, relatif à la
+racine \`www.ofce.fr\` (ex. \`"wp/2026/5/OFCEWP2026-5.pdf"\`). Calculé
+dès que \`wp\`/\`annee\` sont connus, indépendamment de
+\`stage\`/\`url\` : c'est l'emplacement de publication final, pas
+nécessairement celui où le fichier est déployé au moment de l'appel.
+\`NULL\` si \`wp\`/\`annee\` ou le fichier PDF/Typst ne sont pas encore
+connus.
+
 ## See also
 
 \[render_wp()\], \[wp_version_up()\]

@@ -63,5 +63,5 @@ tient lieu.
 
 ## See also
 
-\[render()\], \[deploy()\], \[check()\], \[registry_request()\],
-\[publish_blog()\], \[detect_repo_type()\]
+\[render()\], \[deploy()\], \[check()\], \[version_up()\],
+\[registry_request()\], \[publish_blog()\], \[detect_repo_type()\]

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,16 +41,42 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.0.2" id="ofceweb-102">ofceweb 1.0.2<a class="anchor" aria-label="anchor" href="#ofceweb-102"></a></h2>
+<h2 class="pkg-version" data-toc-text="1.0.3" id="ofceweb-103">ofceweb 1.0.3<a class="anchor" aria-label="anchor" href="#ofceweb-103"></a></h2>
 <div class="section level3">
-<h3 id="setup_wp-garantit-désormais-formatwp-html-dans-indexqmd-aussi-1-0-2">
-<code>setup_wp()</code> garantit désormais <code>format.wp-html</code> dans <code>index.qmd</code> aussi<a class="anchor" aria-label="anchor" href="#setup_wp-garantit-d%C3%A9sormais-formatwp-html-dans-indexqmd-aussi-1-0-2"></a></h3>
+<h3 id="wp_manifestpb_manifest--nouveau-champ-pdf-path-1-0-3">
+<code>wp_manifest()</code>/<code>pb_manifest()</code> : nouveau champ <code>pdf-path</code>
+<a class="anchor" aria-label="anchor" href="#wp_manifestpb_manifest--nouveau-champ-pdf-path-1-0-3"></a></h3>
+<p><code>manifest.json</code> porte désormais un champ <code>pdf-path</code> : le chemin du fichier <code>output-file</code> du format <code>wp-pdf</code>/<code>wp-typst</code> (ou <code>pb-pdf</code>/<code>pb-typst</code>) actif, relatif à la racine <code>www.ofce.fr</code> (ex. <code>"wp/2026/5/OFCEWP2026-5.pdf"</code>, ou <code>"pb/5/v0/OFCEPB2026-5.pdf"</code> si un <code>version</code> est renseigné). Calculé dès que <code>wp</code>/<code>annee</code> (ou <code>pb</code>) sont connus dans <code>_quarto.yml</code>, indépendamment de <code>stage</code>/<code>url</code> — c’est l’emplacement de publication final, pas nécessairement celui où le fichier est déjà déployé au moment de l’appel. <code>NULL</code> tant que <code>wp</code>/<code>annee</code>/<code>pb</code> ou le fichier PDF/Typst ne sont pas encore connus (le champ <code>pdf</code>, lui, ne portait déjà que le nom de fichier, sans chemin).</p>
+</div>
+<div class="section level3">
+<h3 id="setup_wpsetup_pbsetup_prevsetup_site-exigent-désormais-une-version-minimale-du-package-ofce-1-0-3">
+<code>setup_wp()</code>/<code>setup_pb()</code>/<code>setup_prev()</code>/<code>setup_site()</code> exigent désormais une version minimale du package ofce<a class="anchor" aria-label="anchor" href="#setup_wpsetup_pbsetup_prevsetup_site-exigent-d%C3%A9sormais-une-version-minimale-du-package-ofce-1-0-3"></a></h3>
+<p>Nouvelle précondition bloquante, vérifiée juste avant l’appel à <code>ofce::setup_quarto()</code> : le package <strong>ofce</strong> installé doit être en version <code>&gt;= 1.3.39</code>. En dessous de ce seuil (ou si <code>ofce</code> n’est pas installé), la fonction s’arrête immédiatement avec <code><a href="https://cli.r-lib.org/reference/cli_abort.html" class="external-link">cli::cli_abort()</a></code> plutôt que de laisser <code>ofce::setup_quarto()</code> échouer ou installer des extensions Quarto incohérentes. Nouveau helper interne <code><a href="../reference/check_ofce_version.html">check_ofce_version()</a></code> (<code>R/check_ofce_version.R</code>), sur le modèle de <code><a href="../reference/check_quarto_version.html">check_quarto_version()</a></code> mais bloquant (celui-ci se contente d’avertir). Le package <code>utils</code> est désormais listé dans <code>Imports</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="setup_wpsetup_pbcheck_wpcheck_pb-exigent-désormais-un-dépôt-git-1-0-3">
+<code>setup_wp()</code>/<code>setup_pb()</code>/<code>check_wp()</code>/<code>check_pb()</code> exigent désormais un dépôt git<a class="anchor" aria-label="anchor" href="#setup_wpsetup_pbcheck_wpcheck_pb-exigent-d%C3%A9sormais-un-d%C3%A9p%C3%B4t-git-1-0-3"></a></h3>
+<p>Nouvelle précondition bloquante : <code><a href="../reference/setup_wp.html">setup_wp()</a></code>, <code><a href="../reference/setup_pb.html">setup_pb()</a></code>, <code><a href="../reference/check_wp.html">check_wp()</a></code> et <code><a href="../reference/check_pb.html">check_pb()</a></code> vérifient maintenant, avant tout autre traitement, que <code>path</code> est bien un dépôt git (<code>git init</code> ou clone GitHub existant — un dépôt local sans remote ni commit suffit, seule l’absence totale de <code>.git</code> échoue). Sur <code><a href="../reference/setup_wp.html">setup_wp()</a></code>/<code><a href="../reference/setup_pb.html">setup_pb()</a></code>, une absence de dépôt git provoque un <code><a href="https://cli.r-lib.org/reference/cli_abort.html" class="external-link">cli::cli_abort()</a></code> immédiat. Sur <code><a href="../reference/check_wp.html">check_wp()</a></code>/<code><a href="../reference/check_pb.html">check_pb()</a></code>, elle produit un unique diagnostic bloquant <code>git:repo</code> (avant même la connexion GitHub ou la lecture de <code>_quarto.yml</code>) plutôt que d’enchaîner des diagnostics qui n’auraient pas de sens hors d’un dépôt versionné. Nouveau helper interne <code>git_repo_root()</code> (<code>R/git_utils.R</code>), utilisé par les quatre fonctions.</p>
+</div>
+<div class="section level3">
+<h3 id="nouvelle-fonction-version_up--dispatch-générique-dincrémentation-de-version-1-0-3">Nouvelle fonction <code>version_up()</code> : dispatch générique d’incrémentation de version<a class="anchor" aria-label="anchor" href="#nouvelle-fonction-version_up--dispatch-g%C3%A9n%C3%A9rique-dincr%C3%A9mentation-de-version-1-0-3"></a></h3>
+<p>À l’image de <code><a href="../reference/render.html">render()</a></code>/<code><a href="../reference/publish.html">publish()</a></code>/<code><a href="../reference/deploy.html">deploy()</a></code>/<code><a href="../reference/check.html">check()</a></code>, <code><a href="../reference/version_up.html">version_up()</a></code> détecte le type de dépôt à <code>path</code> (via <code><a href="../reference/detect_repo_type.html">detect_repo_type()</a></code>, ou <code>type=</code> explicite) et appelle la fonction d’incrémentation de version interne correspondante — <code><a href="../reference/wp_version_up.html">wp_version_up()</a></code>, <code><a href="../reference/pb_version_up.html">pb_version_up()</a></code>, <code><a href="../reference/prev_version_up.html">prev_version_up()</a></code> ou <code><a href="../reference/site_version_up.html">site_version_up()</a></code>, qui existaient déjà mais n’avaient jusqu’ici pas de point d’entrée unifié. <code>version_up(type = "ife"|"home"|"blog")</code> (ou auto-détection dans un de ces dépôts) échoue avec un message explicite, ces types n’ayant pas d’incrémentation de version disponible.</p>
+</div>
+<div class="section level3">
+<h3 id="setup_wpsetup_pb-nécrasent-plus-author-dans-_quartoyml-à-cause-dune-clé-author-title-1-0-3">
+<code>setup_wp()</code>/<code>setup_pb()</code> n’écrasent plus <code>author</code> dans <code>_quarto.yml</code> à cause d’une clé <code>author-title</code>
+<a class="anchor" aria-label="anchor" href="#setup_wpsetup_pb-n%C3%A9crasent-plus-author-dans-_quartoyml-%C3%A0-cause-dune-cl%C3%A9-author-title-1-0-3"></a></h3>
+<p>Bug : la migration de la clé <code>author</code> de <code>index.qmd</code> vers <code>_quarto.yml</code> (la clé ne doit vivre que dans <code>_quarto.yml</code>) utilisait l’accès partiel R <code>index_yml$author</code>. En l’absence d’une clé <code>author</code> exacte dans le frontmatter, <code>$</code> correspond silencieusement à tout préfixe — donc une clé <code>author-title</code> (ou <code>authors</code>) était prise pour <code>author</code> : sa valeur remplaçait le bloc <code>author</code> du <code>_quarto.yml</code> (généralement le placeholder du gabarit), tandis que la clé restait active dans <code>index.qmd</code> (le commentaire de <code><a href="../reference/yaml_comment_out_frontmatter.html">yaml_comment_out_frontmatter()</a></code>, lui, cible la clé exacte). L’accès exact <code>[["author"]]</code> est désormais utilisé pour la lecture comme pour l’écriture (<code>$&lt;-</code> pratique aussi l’appariement partiel sur le membre gauche) dans <code><a href="../reference/setup_wp.html">setup_wp()</a></code> et <code><a href="../reference/setup_pb.html">setup_pb()</a></code>, avec un test de non-régression dans les deux cas : un frontmatter portant <code>author-title</code> sans <code>author</code> ne déclenche plus la migration et laisse le bloc <code>author</code> du <code>_quarto.yml</code> intact.</p>
+</div>
+<div class="section level3">
+<h3 id="setup_wp-garantit-désormais-formatwp-html-dans-indexqmd-aussi-1-0-3">
+<code>setup_wp()</code> garantit désormais <code>format.wp-html</code> dans <code>index.qmd</code> aussi<a class="anchor" aria-label="anchor" href="#setup_wp-garantit-d%C3%A9sormais-formatwp-html-dans-indexqmd-aussi-1-0-3"></a></h3>
 <p>Jusqu’ici, <code><a href="../reference/setup_wp.html">setup_wp()</a></code> ne garantissait <code>format.wp-html</code> qu’au niveau projet (<code>_quarto.yml</code>) : un <code>index.qmd</code> pré-existant sans cette clé (dépôt créé avec un gabarit antérieur, ou édité à la main) n’était jamais réparé, alors que le format PDF, lui, est garanti dans <code>index.qmd</code> (section 6b). <code><a href="../reference/setup_wp.html">setup_wp()</a></code> ajoute désormais <code>format.wp-html: default</code> dans le frontmatter de <code>index.qmd</code> quand la clé y est absente — jamais en remplacement d’une <code>wp-html</code> déjà déclarée (scalaire ou mapping personnalisé, laissée intacte), et de façon idempotente (un second appel ne modifie rien). Comportement inchangé côté <code>_quarto.yml</code>, où la clé reste requise pour le rendu HTML des autres pages (<code>annexes.qmd</code>, <code>news.qmd</code>, …).</p>
 </div>
 <div class="section level3">
-<h3 id="setup_site-ne-génère-plus-la-section-websiteother-links-du-_quartoyml-1-0-2">
+<h3 id="setup_site-ne-génère-plus-la-section-websiteother-links-du-_quartoyml-1-0-3">
 <code>setup_site()</code> ne génère plus la section <code>website.other-links</code> du <code>_quarto.yml</code>
-<a class="anchor" aria-label="anchor" href="#setup_site-ne-g%C3%A9n%C3%A8re-plus-la-section-websiteother-links-du-_quartoyml-1-0-2"></a></h3>
+<a class="anchor" aria-label="anchor" href="#setup_site-ne-g%C3%A9n%C3%A8re-plus-la-section-websiteother-links-du-_quartoyml-1-0-3"></a></h3>
 <p><code><a href="../reference/setup_site.html">setup_site()</a></code> n’injecte plus automatiquement <code>website.other-links</code> avec une entrée par <code>.qmd</code> trouvé. Les sites Quarto gèrent leur propre navigation — typiquement via des liens directs dans <code>index.qmd</code> ou des définitions de <code>navbar</code> personnalisées. L’injection automatique interfère avec cette flexibilité. La section <code>website.other-links</code> (si elle existe) est désormais ignorée par <code><a href="../reference/setup_site.html">setup_site()</a></code>, et les utilisateurs peuvent la maintenir manuellement ou l’omettre.</p>
 </div>
 </div>

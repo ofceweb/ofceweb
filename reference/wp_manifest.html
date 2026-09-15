@@ -11,7 +11,7 @@ construit un `manifest.json` normalisé et l'écrit à la racine du dépôt
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -76,6 +76,12 @@ l'index des documents de travail OFCE.</p>
 `origin` local) utilisé par le workflow `ftp_deploy.yml` pour détecter
 qu'un autre dépôt tente de publier sous le même numéro de WP (même
 `annee`/`wp`) et bloquer ce déploiement avant d'écraser le WP existant.</p>
+<p>Inclut aussi un champ `pdf-path` : le chemin du fichier `output-file` du
+format `wp-pdf`/`wp-typst` actif, relatif à la racine `www.ofce.fr` (ex.
+`"wp/2026/5/OFCEWP2026-5.pdf"`). Calculé dès que `wp`/`annee` sont connus,
+indépendamment de `stage`/`url` : c'est l'emplacement de publication final,
+pas nécessairement celui où le fichier est déployé au moment de l'appel.
+`NULL` si `wp`/`annee` ou le fichier PDF/Typst ne sont pas encore connus.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

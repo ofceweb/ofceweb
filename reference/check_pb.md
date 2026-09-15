@@ -33,6 +33,9 @@ bloquantes sont présentes.
 
 Contrôles effectués :
 
+- Le dossier est un dépôt git (\`git init\` ou clone GitHub — erreur
+  bloquante sinon, avant tout autre contrôle)
+
 - Présence et validité de \`\_quarto.yml\` (champs \`author\`, \`date\`,
   \`citation\` — erreur bloquante si absents)
 

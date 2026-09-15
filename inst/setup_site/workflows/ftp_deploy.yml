@@ -25,25 +25,25 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Chiffrement staticrypt (si STATICRYPT_PASSWORD défini)
-        run: |
-          if [ -z "$STATICRYPT_PASSWORD" ]; then
-            echo "STATICRYPT_PASSWORD absent — déploiement sans chiffrement."
-          else
-            npm install -g staticrypt
-            mkdir -p /tmp/staticrypt_out
-            staticrypt ./* \
-              --recursive \
-              --directory /tmp/staticrypt_out/ \
-              --password "$STATICRYPT_PASSWORD" \
-              --short \
-              --template-color-primary "#e6142d" \
-              --template-color-secondary "#f9f9f3" \
-              --template-title "Accès restreint" \
-              --template-instructions "Entrez le mot de passe ou contactez un responsable de la page que vous souhaitez atteindre." \
-              --template-button "Accès"
-            cp -r /tmp/staticrypt_out/. ./
-          fi
+      # - name: Chiffrement staticrypt (si STATICRYPT_PASSWORD défini)
+      #   run: |
+      #     if [ -z "$STATICRYPT_PASSWORD" ]; then
+      #       echo "STATICRYPT_PASSWORD absent — déploiement sans chiffrement."
+      #     else
+      #       npm install -g staticrypt
+      #       mkdir -p /tmp/staticrypt_out
+      #       staticrypt ./* \
+      #         --recursive \
+      #         --directory /tmp/staticrypt_out/ \
+      #         --password "$STATICRYPT_PASSWORD" \
+      #         --short \
+      #         --template-color-primary "#e6142d" \
+      #         --template-color-secondary "#f9f9f3" \
+      #         --template-title "Accès restreint" \
+      #         --template-instructions "Entrez le mot de passe ou contactez un responsable de la page que vous souhaitez atteindre." \
+      #         --template-button "Accès"
+      #       cp -r /tmp/staticrypt_out/. ./
+      #     fi
 
       - name: FTP deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0

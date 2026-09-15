@@ -12,6 +12,13 @@
 #' qu'un autre dépôt tente de publier sous le même numéro de WP (même
 #' `annee`/`wp`) et bloquer ce déploiement avant d'écraser le WP existant.
 #'
+#' Inclut aussi un champ `pdf-path` : le chemin du fichier `output-file` du
+#' format `wp-pdf`/`wp-typst` actif, relatif à la racine `www.ofce.fr` (ex.
+#' `"wp/2026/5/OFCEWP2026-5.pdf"`). Calculé dès que `wp`/`annee` sont connus,
+#' indépendamment de `stage`/`url` : c'est l'emplacement de publication final,
+#' pas nécessairement celui où le fichier est déployé au moment de l'appel.
+#' `NULL` si `wp`/`annee` ou le fichier PDF/Typst ne sont pas encore connus.
+#'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #'
 #' @returns La liste du manifeste (invisible).
@@ -112,6 +119,16 @@ wp_manifest <- function(path = ".", stage = NULL) {
     }
   }
 
+  # Chemin du PDF relatif à www.ofce.fr (ex. "wp/2026/5/OFCEWP2026-5.pdf") --
+  # emplacement de publication final, calculé indépendamment de `stage`/`url`
+  # dès que `wp`/`annee` sont connus (même si le WP n'est pas encore déployé
+  # à cet emplacement).
+  pdf_path <- if (!is.null(pdf_file) && !is.null(wp) && !is.null(annee)) {
+    sprintf("wp/%d/%d/%s%s", annee, wp, ver_seg, pdf_file)
+  } else {
+    NULL
+  }
+
   # Assemblage
   manifest <- list(
     title         = title,
@@ -125,6 +142,7 @@ wp_manifest <- function(path = ".", stage = NULL) {
     date_modified = date_mod,
     url           = url,
     pdf           = pdf_file,
+    `pdf-path`    = pdf_path,
     repo          = repo_url,
     lang          = lang,
     `source-repo` = source_repo

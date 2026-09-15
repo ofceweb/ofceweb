@@ -42,6 +42,7 @@ reference:
   - publish
   - deploy
   - check
+  - version_up
   - registry_request
 
 - title: Prévisions

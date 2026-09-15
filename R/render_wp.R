@@ -151,7 +151,7 @@ render_wp <- function(
     ofceweb::site2branch(root, progress = progress, trigger = trigger)
   } else {
     cli::cli_text(
-      "Pour déployer, lancer {.run ofceweb::deploy_wp()}")
+      "Pour déployer, lancer {.run ofceweb::deploy()}")
   }
 
   # ---- 8. prévisualisation locale --------------------------------------------

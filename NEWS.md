@@ -1,5 +1,17 @@
 ## ofceweb 1.0.3
 
+### `wp_manifest()`/`pb_manifest()` : nouveau champ `pdf-path`
+
+`manifest.json` porte désormais un champ `pdf-path` : le chemin du fichier
+`output-file` du format `wp-pdf`/`wp-typst` (ou `pb-pdf`/`pb-typst`) actif,
+relatif à la racine `www.ofce.fr` (ex. `"wp/2026/5/OFCEWP2026-5.pdf"`, ou
+`"pb/5/v0/OFCEPB2026-5.pdf"` si un `version` est renseigné). Calculé dès que
+`wp`/`annee` (ou `pb`) sont connus dans `_quarto.yml`, indépendamment de
+`stage`/`url` — c'est l'emplacement de publication final, pas nécessairement
+celui où le fichier est déjà déployé au moment de l'appel. `NULL` tant que
+`wp`/`annee`/`pb` ou le fichier PDF/Typst ne sont pas encore connus (le champ
+`pdf`, lui, ne portait déjà que le nom de fichier, sans chemin).
+
 ### `setup_wp()`/`setup_pb()`/`setup_prev()`/`setup_site()` exigent désormais une version minimale du package ofce
 
 Nouvelle précondition bloquante, vérifiée juste avant l'appel à

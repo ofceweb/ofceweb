@@ -83,7 +83,7 @@ render_site <- function(
     ofceweb::site2branch(root, progress = progress, trigger = trigger)
   else
     cli::cli_text(
-      "Pour publier _site, lancer {.run ofceweb::deploy_site()}")
+      "Pour publier _site, lancer {.run ofceweb::deploy()}")
 
   if(render_site) {
     cli::cli_h2("Prévisualisation du site")

@@ -13,6 +13,13 @@
 #' numérotation séquentielle depuis l'origine, indépendante de l'année) et
 #' bloquer ce déploiement avant d'écraser le PB existant.
 #'
+#' Inclut aussi un champ `pdf-path` : le chemin du fichier `output-file` du
+#' format `pb-pdf`/`pb-typst` actif, relatif à la racine `www.ofce.fr` (ex.
+#' `"pb/5/OFCEPB2026-5.pdf"`). Calculé dès que `pb` est connu, indépendamment
+#' de `stage`/`url` : c'est l'emplacement de publication final, pas
+#' nécessairement celui où le fichier est déployé au moment de l'appel.
+#' `NULL` si `pb` ou le fichier PDF/Typst ne sont pas encore connus.
+#'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #'
 #' @returns La liste du manifeste (invisible).
@@ -112,6 +119,16 @@ pb_manifest <- function(path = ".", stage = NULL) {
     }
   }
 
+  # Chemin du PDF relatif à www.ofce.fr (ex. "pb/5/OFCEPB2026-5.pdf") --
+  # emplacement de publication final, calculé indépendamment de `stage`/`url`
+  # dès que `pb` est connu (même si le PB n'est pas encore déployé à cet
+  # emplacement).
+  pdf_path <- if (!is.null(pdf_file) && !is.null(pb)) {
+    sprintf("pb/%d/%s%s", pb, ver_seg, pdf_file)
+  } else {
+    NULL
+  }
+
   # Assemblage
   manifest <- list(
     title         = title,
@@ -124,6 +141,7 @@ pb_manifest <- function(path = ".", stage = NULL) {
     date_modified = date_mod,
     url           = url,
     pdf           = pdf_file,
+    `pdf-path`    = pdf_path,
     repo          = repo_url,
     lang          = lang,
     `source-repo` = source_repo

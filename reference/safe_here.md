@@ -1,0 +1,52 @@
+# Résout un chemin ancré à la racine du projet, robuste aux copies temporaires de \`render_flash()\`
+
+Remplacement direct de \[here::here()\] : même signature, même résultat
+dans tous les cas... sauf un. \[render_flash()\] rend le dossier ciblé
+depuis une copie temporaire isolée (voir sa section \*Self-contained
+folders\*), copie qui ne contient aucun marqueur de racine (\`.Rproj\`,
+\`.git\`, \`.here\`) et qui n'inclut pas les fichiers situés hors du
+dossier copié. Dans ce contexte, \[here::here()\] ne peut ni retrouver
+la vraie racine du projet, ni (même s'il le pouvait) atteindre des
+fichiers jamais copiés.
+
+## Usage
+
+``` r
+safe_here(...)
+```
+
+## Arguments
+
+- ...:
+
+  Transmis à \[here::here()\] (segments de chemin relatifs à la racine).
+
+## Value
+
+\`\[character(1)\]\` Un chemin, comme \[here::here()\].
+
+## Details
+
+\`safe_here()\` contourne les deux problèmes : si un marqueur laissé par
+\[render_flash()\] (\`.safe_here-root\`, écrit par
+\`render_flash_worker()\` avant la copie) est trouvé en remontant
+l'arborescence depuis le répertoire de travail courant, le chemin est
+résolu par rapport à la racine \*réelle\* du projet — sur le disque,
+hors de la copie temporaire — exactement comme si le rendu avait eu lieu
+directement dans le projet (y compris pour des fichiers situés hors du
+dossier copié). Sinon (cas normal, hors \`render_flash()\`), l'appel est
+simplement transmis à \[here::here()\].
+
+\## Limites
+
+\`safe_here()\` corrige la résolution de chemin côté R (\`source()\`,
+\`read.csv()\`, etc.) : ces fichiers sont alors lus directement dans
+l'arborescence réelle, jamais copiée. Cela ne rend pas pour autant les
+fichiers hors dossier accessibles à Quarto lui-même — un chemin relatif
+brut dans le Markdown, ou \`\< include ../ailleurs.qmd \>\`, ne passe
+pas par \`safe_here()\`/\[here::here()\] et nécessite toujours que le
+fichier soit physiquement présent dans la copie.
+
+## See also
+
+\[render_flash()\]

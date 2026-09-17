@@ -1,6 +1,6 @@
 # Rendre un document en un clic (rendu flash)
 
-[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
+[`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md)
 rend **un seul document** — celui actif dans l’éditeur RStudio — comme
 un mini-site Quarto autonome, sans toucher au reste du dépôt. Ce
 vignette se concentre sur son usage normal : l’addin RStudio **Rendre
@@ -20,8 +20,8 @@ dans le même dossier), et ouvre un aperçu local immédiatement.
 C’est la première étape du trio d’addins **Rendre → Publier / Déployer
 (flash)** : une fois le rendu validé dans l’aperçu, le même document
 peut être mis en ligne sur `staging.ofce.fr` en un clic supplémentaire
-(voir `publish_folder_addin()` / `deploy_folder_addin()`). C’est une
-mise en ligne protégée par un mot de passe qui n’a pas vocation à être
+(voir `publish_flash_addin()` / `deploy_flash_addin()`). C’est une mise
+en ligne protégée par un mot de passe qui n’a pas vocation à être
 publique. Les mises en ligne publiques doivent être validées.
 
 ## Comment l’utiliser
@@ -42,17 +42,17 @@ dans le dépôt.
 ### Choix du document rendu
 
 Le document actif est explicitement passé à
-[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
+[`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md)
 par l’addin, donc aucune ambiguïté ne se pose en usage normal. En dehors
 de l’addin (par exemple via la console), si aucun `index` n’est fourni,
-[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
+[`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md)
 cherche `index.qmd`/`index.md` dans le dossier, sinon retient le
 `.qmd`/`.md` le plus récemment modifié — un message signale son choix.
 
 ## Utilisation programmatique (secondaire)
 
 L’addin appelle simplement
-[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md).
+[`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md).
 Il est possible de l’invoquer directement depuis la console — utile pour
 automatiser un lot de rendus, ou dans un script :
 
@@ -60,7 +60,7 @@ automatiser un lot de rendus, ou dans un script :
 
 library(ofceweb)
 
-render_folder(
+render_flash(
   path    = "PolMo/Presentation",
   index   = "Presentation_Polmo.qmd",  # optionnel si sans ambiguïté
   preview = TRUE,
@@ -70,12 +70,12 @@ render_folder(
 
 ## Pré-requis
 
-[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
+[`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md)
 ne nécessite **ni PAT GitHub ni `gh`** — ces identifiants ne servent
 qu’à la publication/déploiement
-([`publish_folder()`](https://ofceweb.github.io/ofceweb/reference/publish_folder.md)
+([`publish_flash()`](https://ofceweb.github.io/ofceweb/reference/publish_flash.md)
 /
-[`deploy_folder()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder.md)),
+[`deploy_flash()`](https://ofceweb.github.io/ofceweb/reference/deploy_flash.md)),
 pas au rendu seul. Il suffit :
 
 - d’être dans un dossier situé **à l’intérieur d’un dépôt git** (utilisé
@@ -94,7 +94,7 @@ multi-pages — pour ça, voir
 /
 [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md).
 
-Pour aller jusqu’à la mise en ligne (`publish_folder_addin()` /
-`deploy_folder_addin()`), un PAT GitHub et `gh` authentifié sont
+Pour aller jusqu’à la mise en ligne (`publish_flash_addin()` /
+`deploy_flash_addin()`), un PAT GitHub et `gh` authentifié sont
 nécessaires — voir [*Pré-requis : PAT GitHub, gh CLI, variables
 d’environnement*](https://ofceweb.github.io/ofceweb/articles/prerequisites.md).

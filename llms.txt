@@ -290,13 +290,13 @@ chiffrement staticrypt est appliqué **en CI**, juste avant le transfert
 FTP, via le secret `STATICRYPT_PASSWORD` — aucune manipulation locale
 n’est requise.
 
-- [`preview_folder()`](https://ofceweb.github.io/ofceweb/reference/preview_folder.md)
+- [`preview_flash()`](https://ofceweb.github.io/ofceweb/reference/preview_flash.md)
   : Preview a rendered ad-hoc folder site locally
-- [`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
+- [`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md)
   : Render an arbitrary folder as a standalone Quarto site
-- [`deploy_folder()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder.md)
+- [`deploy_flash()`](https://ofceweb.github.io/ofceweb/reference/deploy_flash.md)
   : Deploy a rendered ad-hoc folder site to staging
-- [`publish_folder()`](https://ofceweb.github.io/ofceweb/reference/publish_folder.md)
+- [`publish_flash()`](https://ofceweb.github.io/ofceweb/reference/publish_flash.md)
   : Render and deploy a folder as a standalone Quarto site, in one step
 
 ## Blog
@@ -342,6 +342,9 @@ Fonctions de bas niveau partagées entre les différents types de dépôts.
   : Download a single file from a GitHub repository
 - [`site2branch()`](https://ofceweb.github.io/ofceweb/reference/site2branch.md)
   : Pousse un dossier de site rendu vers une branche Git
+- [`safe_here()`](https://ofceweb.github.io/ofceweb/reference/safe_here.md)
+  : Résout un chemin ancré à la racine du projet, robuste aux copies
+  temporaires de \`render_flash()\`
 
 # Articles
 

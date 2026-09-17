@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.4.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,7 +77,7 @@
 
     
     
-<p><code><a href="../reference/render_folder.html">render_folder()</a></code> rend <strong>un seul document</strong> —
+<p><code><a href="../reference/render_flash.html">render_flash()</a></code> rend <strong>un seul document</strong> —
 celui actif dans l’éditeur RStudio — comme un mini-site Quarto autonome,
 sans toucher au reste du dépôt. Ce vignette se concentre sur son usage
 normal : l’addin RStudio <strong>Rendre (flash)</strong>.</p>
@@ -95,10 +95,10 @@ ouvre un aperçu local immédiatement.</p>
 <p>C’est la première étape du trio d’addins <strong>Rendre → Publier /
 Déployer (flash)</strong> : une fois le rendu validé dans l’aperçu, le
 même document peut être mis en ligne sur <code>staging.ofce.fr</code> en
-un clic supplémentaire (voir <code>publish_folder_addin()</code> /
-<code>deploy_folder_addin()</code>). C’est une mise en ligne protégée
-par un mot de passe qui n’a pas vocation à être publique. Les mises en
-ligne publiques doivent être validées.</p>
+un clic supplémentaire (voir <code>publish_flash_addin()</code> /
+<code>deploy_flash_addin()</code>). C’est une mise en ligne protégée par
+un mot de passe qui n’a pas vocation à être publique. Les mises en ligne
+publiques doivent être validées.</p>
 </div>
 <div class="section level2">
 <h2 id="comment-lutiliser">Comment l’utiliser<a class="anchor" aria-label="anchor" href="#comment-lutiliser"></a>
@@ -121,9 +121,9 @@ pas ailleurs dans le dépôt.</p>
 <h3 id="choix-du-document-rendu">Choix du document rendu<a class="anchor" aria-label="anchor" href="#choix-du-document-rendu"></a>
 </h3>
 <p>Le document actif est explicitement passé à
-<code><a href="../reference/render_folder.html">render_folder()</a></code> par l’addin, donc aucune ambiguïté ne se
+<code><a href="../reference/render_flash.html">render_flash()</a></code> par l’addin, donc aucune ambiguïté ne se
 pose en usage normal. En dehors de l’addin (par exemple via la console),
-si aucun <code>index</code> n’est fourni, <code><a href="../reference/render_folder.html">render_folder()</a></code>
+si aucun <code>index</code> n’est fourni, <code><a href="../reference/render_flash.html">render_flash()</a></code>
 cherche <code>index.qmd</code>/<code>index.md</code> dans le dossier,
 sinon retient le <code>.qmd</code>/<code>.md</code> le plus récemment
 modifié — un message signale son choix.</p>
@@ -132,13 +132,13 @@ modifié — un message signale son choix.</p>
 <div class="section level2">
 <h2 id="utilisation-programmatique-secondaire">Utilisation programmatique (secondaire)<a class="anchor" aria-label="anchor" href="#utilisation-programmatique-secondaire"></a>
 </h2>
-<p>L’addin appelle simplement <code><a href="../reference/render_folder.html">render_folder()</a></code>. Il est
+<p>L’addin appelle simplement <code><a href="../reference/render_flash.html">render_flash()</a></code>. Il est
 possible de l’invoquer directement depuis la console — utile pour
 automatiser un lot de rendus, ou dans un script :</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ofceweb.github.io/ofceweb/">ofceweb</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/render_folder.html">render_folder</a></span><span class="op">(</span></span>
+<span><span class="fu"><a href="../reference/render_flash.html">render_flash</a></span><span class="op">(</span></span>
 <span>  path    <span class="op">=</span> <span class="st">"PolMo/Presentation"</span>,</span>
 <span>  index   <span class="op">=</span> <span class="st">"Presentation_Polmo.qmd"</span>,  <span class="co"># optionnel si sans ambiguïté</span></span>
 <span>  preview <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -148,10 +148,10 @@ automatiser un lot de rendus, ou dans un script :</p>
 <div class="section level2">
 <h2 id="pré-requis">Pré-requis<a class="anchor" aria-label="anchor" href="#pr%C3%A9-requis"></a>
 </h2>
-<p><code><a href="../reference/render_folder.html">render_folder()</a></code> ne nécessite <strong>ni PAT GitHub ni
+<p><code><a href="../reference/render_flash.html">render_flash()</a></code> ne nécessite <strong>ni PAT GitHub ni
 <code>gh</code></strong> — ces identifiants ne servent qu’à la
-publication/déploiement (<code><a href="../reference/publish_folder.html">publish_folder()</a></code> /
-<code><a href="../reference/deploy_folder.html">deploy_folder()</a></code>), pas au rendu seul. Il suffit :</p>
+publication/déploiement (<code><a href="../reference/publish_flash.html">publish_flash()</a></code> /
+<code><a href="../reference/deploy_flash.html">deploy_flash()</a></code>), pas au rendu seul. Il suffit :</p>
 <ul>
 <li>d’être dans un dossier situé <strong>à l’intérieur d’un dépôt
 git</strong> (utilisé pour calculer le <code>slug</code> et localiser
@@ -168,8 +168,8 @@ répertoire temporaire de rendu. Si ce n’est pas le cas, le rendu
 document, pas un projet multi-pages — pour ça, voir
 <code><a href="../reference/setup_site.html">setup_site()</a></code> / <code><a href="../reference/setup_wp.html">setup_wp()</a></code>.</p>
 <p>Pour aller jusqu’à la mise en ligne
-(<code>publish_folder_addin()</code> /
-<code>deploy_folder_addin()</code>), un PAT GitHub et <code>gh</code>
+(<code>publish_flash_addin()</code> /
+<code>deploy_flash_addin()</code>), un PAT GitHub et <code>gh</code>
 authentifié sont nécessaires — voir <a href="prerequisites.html"><em>Pré-requis : PAT GitHub, gh CLI, variables
 d’environnement</em></a>.</p>
 </div>

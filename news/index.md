@@ -1,6 +1,66 @@
 # Changelog
 
-## ofceweb (development version)
+## ofceweb 1.0.4.9000
+
+## ofceweb 1.0.4
+
+### Renommage de la famille “flash” (`render_folder()` -\> `render_flash()`, etc.) et slug par document
+
+La famille de fonctions de publication rapide d’un dossier est renommée
+pour refléter la terminologie déjà utilisée dans les addins/vignettes («
+rendu flash », « publication flash ») : `render_folder()` devient
+[`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md),
+`deploy_folder()` devient
+[`deploy_flash()`](https://ofceweb.github.io/ofceweb/reference/deploy_flash.md),
+`publish_folder()` devient
+[`publish_flash()`](https://ofceweb.github.io/ofceweb/reference/publish_flash.md),
+`preview_folder()` devient
+[`preview_flash()`](https://ofceweb.github.io/ofceweb/reference/preview_flash.md)
+(ainsi que leurs addins `render_flash_addin()`, `deploy_flash_addin()`,
+`publish_flash_addin()`). Aucun changement de comportement au-delà du
+nom. Par ailleurs, le `slug` auto-calculé par
+[`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md)
+intègre désormais le nom du fichier `.qmd`/`.md` rendu (sans son
+extension), en plus du chemin du dossier : deux documents rendus
+séparément depuis le même dossier (via un `index` explicite) obtiennent
+donc des slugs distincts, là où ils auraient auparavant collisionné
+silencieusement sur la même URL de staging / branche de déploiement.
+
+### Nouvelle fonction `safe_here()`, remplacement direct de `here::here()` robuste à `render_flash()`
+
+[`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md)
+rend le dossier ciblé depuis une copie temporaire isolée (voir sa
+section *Self-contained folders*) qui ne contient aucun marqueur de
+racine (`.Rproj`, `.git`, `.here`) et qui n’inclut jamais les fichiers
+situés hors du dossier copié. Les documents `.qmd` utilisant
+[`here::here()`](https://here.r-lib.org/reference/here.html) pour
+résoudre des chemins ancrés à la racine du projet – y compris vers des
+fichiers hors du dossier rendu – échouaient donc silencieusement une
+fois rendus via
+[`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md),
+sans rien changer aux deux autres contextes d’exécution réels
+(`quarto render` depuis le vrai projet, “Render” RStudio). La nouvelle
+fonction exportée
+[`safe_here()`](https://ofceweb.github.io/ofceweb/reference/safe_here.md)
+a la même signature que
+[`here::here()`](https://here.r-lib.org/reference/here.html) et s’y
+comporte identiquement en dehors d’une copie temporaire de
+[`render_flash()`](https://ofceweb.github.io/ofceweb/reference/render_flash.md)
+; à l’intérieur d’une telle copie, elle résout les chemins par rapport à
+la racine *réelle* du projet (capturée par
+[`render_flash_worker()`](https://ofceweb.github.io/ofceweb/reference/render_flash_worker.md)
+juste avant la copie, et déposée dans un marqueur `.safe_here-root`
+retrouvé en remontant l’arborescence depuis le répertoire de travail
+courant), permettant de lire des fichiers situés hors du dossier copié.
+Cela corrige la résolution de chemin côté R
+([`source()`](https://rdrr.io/r/base/source.html),
+[`read.csv()`](https://rdrr.io/r/utils/read.table.html), …) mais ne
+dispense pas les fichiers référencés directement par Quarto (chemin
+Markdown relatif, `{{< include >}}`) d’être physiquement présents dans
+le dossier rendu. Documents existants : remplacer
+[`here::here()`](https://here.r-lib.org/reference/here.html) par
+[`ofceweb::safe_here()`](https://ofceweb.github.io/ofceweb/reference/safe_here.md)
+pour en bénéficier ; rien ne se fait automatiquement.
 
 ### Nouvelle redirection stable pour les WP/PB en staging FTP
 
@@ -80,6 +140,8 @@ cf. [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/
 [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md))
 est désormais recalculée à chaque appel — elle ne l’était pas du tout
 auparavant, y compris pour un WP/PB déjà publié.
+
+## ofceweb 1.0.3
 
 ### `wp_manifest()`/`pb_manifest()` : nouveau champ `pdf-path`
 
@@ -203,18 +265,15 @@ et les utilisateurs peuvent la maintenir manuellement ou l’omettre.
 
 ### La bannière de publication flash affiche désormais l’identité GitHub de l’auteur du déploiement
 
-`stamp_banner_push_time()`, appelée par
-[`deploy_folder_worker()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder_worker.md)
-juste avant le push (voir
-[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)/[`deploy_folder()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder.md)),
-interroge désormais `check_gh_login()` (`gh::gh("GET /user")`, mis en
-cache — voir entrée suivante) pour ajouter `par @{login}` à côté de
-l’horodatage dans la bannière rouge injectée par
-`inject_quick_publish_banner()`. Si `gh` n’est pas authentifié,
-l’identité est simplement omise (la bannière garde uniquement la
-date/heure) — cohérent avec le principe qu’un défaut de configuration
-`gh` ne bloque jamais le rendu ni le déploiement, seulement un
-diagnostic d’agrément.
+`stamp_banner_push_time()`, appelée par `deploy_folder_worker()` juste
+avant le push (voir `render_folder()`/`deploy_folder()`), interroge
+désormais `check_gh_login()` (`gh::gh("GET /user")`, mis en cache — voir
+entrée suivante) pour ajouter `par @{login}` à côté de l’horodatage dans
+la bannière rouge injectée par `inject_quick_publish_banner()`. Si `gh`
+n’est pas authentifié, l’identité est simplement omise (la bannière
+garde uniquement la date/heure) — cohérent avec le principe qu’un défaut
+de configuration `gh` ne bloque jamais le rendu ni le déploiement,
+seulement un diagnostic d’agrément.
 
 ### `check_gh_login()` et les vérifications FTP de `check_prev()` sont désormais mises en cache, comme `deploy_folder()`
 
@@ -257,17 +316,14 @@ ajoute déjà, avant même de lire `_quarto.yml`, des diagnostics
 `gh:login`/`gh:cli`/… non pris en compte par plusieurs assertions de
 `test-check_wp.R` (échecs préexistants, reproduits à l’identique avant
 et après ce changement) ; et le remplacement conditionnel de `format`
-par `ofce-html` dans
-[`render_folder()`](https://ofceweb.github.io/ofceweb/reference/render_folder.md)
-(voir plus bas) fait désormais échouer certains tests de
-`test-adhoc_site-integration.R` dont les dépôts de test ne fournissent
-pas l’extension `ofce`.
+par `ofce-html` dans `render_folder()` (voir plus bas) fait désormais
+échouer certains tests de `test-adhoc_site-integration.R` dont les
+dépôts de test ne fournissent pas l’extension `ofce`.
 
 ### Le nouveau contrôle GitHub/FTP de `deploy_folder()` est mis en cache par dépôt, et pointe vers la vignette *prerequisites* en cas d’échec
 
 `adhoc_check_deploy_prereqs()` (voir entrée suivante) refaisait l’appel
-API GitHub `FTP_SERVER` à chaque
-[`deploy_folder()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder.md)/[`publish_folder()`](https://ofceweb.github.io/ofceweb/reference/publish_folder.md),
+API GitHub `FTP_SERVER` à chaque `deploy_folder()`/`publish_folder()`,
 même lorsque rien n’avait changé depuis le dernier appel réussi dans la
 session. Le résultat est désormais mis en cache par dépôt
 (`"owner/repo"`), et n’est invalidé que lorsque `check_gh_setup()` est
@@ -284,31 +340,27 @@ R) pour revérifier.
 
 ### `deploy_folder()` vérifie désormais les pré-requis GitHub/FTP avant de pousser quoi que ce soit
 
-[`deploy_folder_worker()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder_worker.md)
-poussait directement vers une branche `site-{slug}` et tentait
-d’installer/déclencher le workflow FTP sans avoir vérifié au préalable
-que le dépôt était correctement configuré pour publier — un jeton GitHub
-absent, ou un dépôt sans accès au secret d’organisation `FTP_SERVER`,
-n’étaient découverts qu’au milieu du pipeline (échec de
-`ensure_adhoc_workflow()`) ou pire, après coup dans les logs d’Actions
-(déploiement FTP silencieusement raté). Une nouvelle vérification
-interne, `adhoc_check_deploy_prereqs()`, s’exécute maintenant en tout
-début de
-[`deploy_folder_worker()`](https://ofceweb.github.io/ofceweb/reference/deploy_folder_worker.md)
-: elle rapporte le diagnostic `gh`/git partagé (`check_gh_setup()`,
-jamais bloquant), exige un jeton GitHub (`DEPLOY_PAT`, ou `gitcreds` en
-local — erreur explicite sinon), puis vérifie que le secret `FTP_SERVER`
-est visible pour le dépôt (au niveau du dépôt ou hérité d’un secret
-d’organisation) — utilisé comme indicateur que le dépôt est autorisé à
-publier sur l’infrastructure FTP de l’OFCE. Un secret `FTP_SERVER`
-confirmé absent bloque le déploiement avec un message explicite ; un
-contrôle non concluant (API GitHub injoignable) se contente d’un
-avertissement.
+`deploy_folder_worker()` poussait directement vers une branche
+`site-{slug}` et tentait d’installer/déclencher le workflow FTP sans
+avoir vérifié au préalable que le dépôt était correctement configuré
+pour publier — un jeton GitHub absent, ou un dépôt sans accès au secret
+d’organisation `FTP_SERVER`, n’étaient découverts qu’au milieu du
+pipeline (échec de `ensure_adhoc_workflow()`) ou pire, après coup dans
+les logs d’Actions (déploiement FTP silencieusement raté). Une nouvelle
+vérification interne, `adhoc_check_deploy_prereqs()`, s’exécute
+maintenant en tout début de `deploy_folder_worker()` : elle rapporte le
+diagnostic `gh`/git partagé (`check_gh_setup()`, jamais bloquant), exige
+un jeton GitHub (`DEPLOY_PAT`, ou `gitcreds` en local — erreur explicite
+sinon), puis vérifie que le secret `FTP_SERVER` est visible pour le
+dépôt (au niveau du dépôt ou hérité d’un secret d’organisation) —
+utilisé comme indicateur que le dépôt est autorisé à publier sur
+l’infrastructure FTP de l’OFCE. Un secret `FTP_SERVER` confirmé absent
+bloque le déploiement avec un message explicite ; un contrôle non
+concluant (API GitHub injoignable) se contente d’un avertissement.
 
 ### `render_folder()` ne rend plus qu’un seul document, et ignore tout `_quarto.yml` préexistant
 
-[`render_folder_worker()`](https://ofceweb.github.io/ofceweb/reference/render_folder_worker.md)
-appelait
+`render_folder_worker()` appelait
 [`quarto::quarto_render()`](https://quarto-dev.github.io/quarto-r/reference/quarto_render.html)
 sans restriction dans la copie temporaire du dossier : si celui-ci (ou
 un `_extensions/` collecté au passage) contenait d’autres fichiers

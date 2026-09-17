@@ -1,9 +1,9 @@
-# Resolve which document \`render_folder()\` should render
+# Resolve which document \`render_flash()\` should render
 
 Determines the single \`.qmd\`/\`.md\` file to treat as the site's index
 page, in order of priority:
 
-1.  \`index\`, if supplied explicitly (e.g. by \[render_folder_addin()\]
+1.  \`index\`, if supplied explicitly (e.g. by \[render_flash_addin()\]
     via the active editor document) — must exist in \`target\`.
 
 2.  \`index.qmd\` or \`index.md\`, if present directly in \`target\`.

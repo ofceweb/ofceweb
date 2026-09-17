@@ -19,11 +19,21 @@ Invisible `NULL`. Appelée pour ses effets de bord.
 \description{
 Lit le champ `version` dans `_quarto.yml`, l'incrémente (`"v0"` → `"v1"`,
 `"v3_4"` → `"v3_5"`, etc.), met à jour `_quarto.yml` (champ `version` et
-dernier segment de `site-path`), met à jour la variable GitHub Actions
-`FTP_SERVER_DIR` et régénère `manifest.json`.
+dernier segment de `site-path`), met à jour les variables GitHub Actions
+`FTP_SERVER_DIR`/`FTP_STAGING_DIR` et régénère `manifest.json`.
 }
 \details{
-Ne fonctionne que pour un WP publié (`wp` non nul dans `_quarto.yml`).
+Fonctionne aussi bien pour un WP publié (`wp` non nul) que pour un
+brouillon (`wp` encore `null`) : un brouillon a déjà une version de revue
+(`_quarto.yml$version`, utilisée dans le nom du dossier de staging FTP et,
+pour un brouillon en `stage-target: ftp`, dans `website.site-url`), qu'il
+est légitime d'incrémenter avant même l'attribution d'un numéro WP. Pour
+un WP publié, en plus de `version`, `website.site-path` (et les variables
+`FTP_SERVER_DIR`/`FTP_REDIRECT_DIR` qui en dérivent) sont mis à jour ; pour
+un brouillon, `website.site-path` n'existe pas — c'est `website.site-url`
+(si elle contient déjà un segment de version, cas `stage-target: ftp`) qui
+est mise à jour à la place. Dans les deux cas, `FTP_STAGING_DIR`
+(toujours `{repo}/{version}/`, cf. [setup_wp()]) est recalculée.
 }
 \seealso{
 [setup_wp()], [site_version_up()]

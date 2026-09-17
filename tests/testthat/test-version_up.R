@@ -59,6 +59,184 @@ test_that("wp_version_up() honours custom_version and updates site-path accordin
   expect_equal(yml$website$`site-path`, "2026/3/v2_corr")
 })
 
+test_that("wp_version_up() strips a custom, non-numeric version segment (v2_corr) from FTP_REDIRECT_DIR", {
+  # Regression test: the redirect-dir computation used to rely on a
+  # purely-numeric regex (`/v\\d+$`), which silently failed to strip custom
+  # version suffixes (e.g. "v2_corr", "v5_AS42") produced by
+  # custom_version = ..., leaving FTP_REDIRECT_DIR identical to the full
+  # versioned FTP_SERVER_DIR path.
+  local_stub_version_up_side_effects()
+  gh_vars <- list()
+  local_mocked_bindings(
+    set_gh_var = function(root, name, value) {
+      gh_vars[[name]] <<- value
+      invisible(NULL)
+    }
+  )
+  dir <- withr::local_tempdir()
+  writeLines(c(
+    "ofce_wp: true",
+    "wp: 3",
+    "annee: 2026",
+    "version: v1",
+    "website:",
+    "  site-path: 2026/3/v1"
+  ), fs::path(dir, "_quarto.yml"))
+
+  suppressMessages(wp_version_up(dir, custom_version = "v2_corr"))
+
+  expect_equal(gh_vars[["FTP_SERVER_DIR"]], "2026/3/v2_corr/")
+  expect_equal(gh_vars[["FTP_REDIRECT_DIR"]], "2026/3/")
+})
+
+test_that("wp_version_up() increments the version of a draft (no wp yet, ftp staging URL)", {
+  local_stub_version_up_side_effects()
+  gh_vars <- list()
+  local_mocked_bindings(
+    set_gh_var = function(root, name, value) {
+      gh_vars[[name]] <<- value
+      invisible(NULL)
+    }
+  )
+  dir <- withr::local_tempdir()
+  writeLines(c(
+    "ofce_wp: true",
+    "draft: true",
+    "version: v0",
+    "website:",
+    "  site-url: https://staging.ofce.fr/wp-fg-loyers/v0/"
+  ), fs::path(dir, "_quarto.yml"))
+
+  expect_no_error(suppressMessages(wp_version_up(dir)))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$version, "v1")
+  expect_null(yml$wp)
+  expect_null(yml$website$`site-path`)
+  expect_equal(yml$website$`site-url`, "https://staging.ofce.fr/wp-fg-loyers/v1/")
+  # A draft is never deployed through ftp_deploy.yml/FTP_SERVER_DIR.
+  expect_null(gh_vars[["FTP_SERVER_DIR"]])
+  expect_null(gh_vars[["FTP_REDIRECT_DIR"]])
+  expect_match(gh_vars[["FTP_STAGING_DIR"]], "/v1/$")
+})
+
+test_that("wp_version_up() increments the version of a draft without a versioned site-url (gh-pages)", {
+  local_stub_version_up_side_effects()
+  dir <- withr::local_tempdir()
+  writeLines(c(
+    "ofce_wp: true",
+    "draft: true",
+    "version: v0",
+    "website:",
+    "  site-url: https://ofce.github.io/wp-fg-loyers/"
+  ), fs::path(dir, "_quarto.yml"))
+
+  suppressMessages(wp_version_up(dir))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$version, "v1")
+  # No version segment in a gh-pages draft URL — left untouched.
+  expect_equal(yml$website$`site-url`, "https://ofce.github.io/wp-fg-loyers/")
+})
+
+test_that("wp_version_up() starts a draft at v0 when no version is set yet", {
+  local_stub_version_up_side_effects()
+  dir <- withr::local_tempdir()
+  writeLines(c(
+    "ofce_wp: true",
+    "draft: true",
+    "website:",
+    "  site-url: https://ofce.github.io/wp-fg-loyers/"
+  ), fs::path(dir, "_quarto.yml"))
+
+  suppressMessages(wp_version_up(dir))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$version, "v0")
+})
+
+# ---- pb_version_up() -------------------------------------------------------
+
+test_that("pb_version_up() preserves comments and layout in _quarto.yml", {
+  local_stub_version_up_side_effects()
+  dir <- withr::local_tempdir()
+  writeLines(c(
+    "# Quarto config for this policy brief",
+    "ofce_pb: true",
+    "pb: 5",
+    "",
+    "# --- website section ---",
+    "website:",
+    "  title: A policy brief",
+    "  site-path: 5/v0",
+    "version: v0"
+  ), fs::path(dir, "_quarto.yml"))
+
+  suppressMessages(pb_version_up(dir))
+  lines <- readLines(fs::path(dir, "_quarto.yml"))
+
+  expect_true(any(grepl("^# Quarto config", lines)))
+  expect_true(any(grepl("^$", lines))) # blank line preserved
+
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$version, "v1")
+  expect_equal(yml$website$`site-path`, "5/v1")
+  expect_equal(yml$pb, 5L)
+})
+
+test_that("pb_version_up() increments the version of a draft (no pb yet, ftp staging URL)", {
+  local_stub_version_up_side_effects()
+  dir <- withr::local_tempdir()
+  writeLines(c(
+    "ofce_pb: true",
+    "draft: true",
+    "version: v0",
+    "website:",
+    "  site-url: https://staging.ofce.fr/pb-example/v0/"
+  ), fs::path(dir, "_quarto.yml"))
+
+  expect_no_error(suppressMessages(pb_version_up(dir)))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_equal(yml$version, "v1")
+  expect_null(yml$pb)
+  expect_null(yml$website$`site-path`)
+  expect_equal(yml$website$`site-url`, "https://staging.ofce.fr/pb-example/v1/")
+})
+
+test_that("pb_version_up() strips a custom, non-numeric version segment (v2_corr) from FTP_REDIRECT_DIR", {
+  # Regression test: same fix as wp_version_up() above.
+  local_stub_version_up_side_effects()
+  gh_vars <- list()
+  local_mocked_bindings(
+    set_gh_var = function(root, name, value) {
+      gh_vars[[name]] <<- value
+      invisible(NULL)
+    }
+  )
+  dir <- withr::local_tempdir()
+  writeLines(c(
+    "ofce_pb: true",
+    "pb: 5",
+    "version: v1",
+    "website:",
+    "  site-path: 5/v1"
+  ), fs::path(dir, "_quarto.yml"))
+
+  suppressMessages(pb_version_up(dir, custom_version = "v2_corr"))
+
+  expect_equal(gh_vars[["FTP_SERVER_DIR"]], "5/v2_corr/")
+  expect_equal(gh_vars[["FTP_REDIRECT_DIR"]], "5/")
+})
+
+test_that("pb_version_up() aborts when not a pb repo", {
+  local_stub_version_up_side_effects()
+  dir <- withr::local_tempdir()
+  writeLines(c("ofce_wp: true"), fs::path(dir, "_quarto.yml"))
+
+  expect_error(pb_version_up(dir), "setup_pb")
+})
+
 # ---- site_version_up() -----------------------------------------------------
 
 test_that("site_version_up() preserves comments and layout in _quarto.yml", {

@@ -121,6 +121,12 @@ deploy_pb <- function(
       ...
     )
 
+    tryCatch(
+      push_pb_staging_redirect(root, progress = progress, trigger = trigger),
+      error = function(e)
+        cli::cli_alert_warning("Redirection staging non mise à jour : {e$message}")
+    )
+
     cli::cli_alert_success(
       "PB staging disponible après déploiement FTP : {.url {final_url}}")
     return(invisible(res))

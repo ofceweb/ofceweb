@@ -20,11 +20,14 @@ Invisible `NULL`. Appelée pour ses effets de bord.
 Équivalent PB de [wp_version_up()]. Lit le champ `version` dans
 `_quarto.yml`, l'incrémente (`"v0"` → `"v1"`, `"v3_4"` → `"v3_5"`, etc.),
 met à jour `_quarto.yml` (champ `version` et dernier segment de `site-path`),
-met à jour les variables GitHub Actions `FTP_SERVER_DIR`/`FTP_REDIRECT_DIR`
-et régénère `manifest.json`.
+met à jour les variables GitHub Actions
+`FTP_SERVER_DIR`/`FTP_REDIRECT_DIR`/`FTP_STAGING_DIR` et régénère
+`manifest.json`.
 }
 \details{
-Ne fonctionne que pour un PB publié (`pb` non nul dans `_quarto.yml`).
+Fonctionne aussi bien pour un PB publié (`pb` non nul) que pour un
+brouillon (`pb` encore `null`) : voir [wp_version_up()] pour le détail du
+traitement (identique, au champ `pb`/`wp` près).
 }
 \seealso{
 [setup_pb()], [wp_version_up()], [site_version_up()]

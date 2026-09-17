@@ -67,6 +67,8 @@ versionnage ou publié, la propriété du dépôt doit être transférée à
 l'organisation OFCE. Convention de nommage recommandée : `pb-{initiale de
 l'auteur.e}-{nom court du projet}`, tout en minuscule (ex. `pb-gaxt-relance`).
 
+> L'accès aux modifications du document, ainsi que la possibilité de le publier (staging ou définitif) découle des droits du dépôt. Ils sont definis dans les `settings` accessible sur la page `github.com` du dépôt. Par défaut, ce sont les auteurs et les administrateurs du site, que le dépôt soit privé ou public.
+ file
 ------------------------------------------------------------------------
 
 ## 1. Initialiser un nouveau PB

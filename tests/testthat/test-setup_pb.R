@@ -419,13 +419,21 @@ test_that("setup_pb() leaves a sole pb-typst declaration untouched -- no pb-pdf 
 # unless the key is literally named pb-pdf or pb-typst. Not covered here
 # since it isn't implemented; flagged as a possible follow-up.
 
-test_that("setup_pb() uses the static draft PDF filename when pb is not yet assigned", {
+test_that("setup_pb() derives the draft PDF filename from the repo name and version when pb is not yet assigned", {
   local_stub_pb_side_effects()
+  local_mocked_bindings(
+    git_remote_list = function(...) data.frame(
+      name = "origin",
+      url  = "https://github.com/ofce/pb-example.git"
+    ),
+    .package = "gert"
+  )
   dir <- local_git_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = NULL,
     lang    = "fr",
+    version = "v1",
     format  = list(`pb-html` = "default")
   ))
   write_qmd(dir, "index.qmd", yaml_lines = c(
@@ -438,7 +446,7 @@ test_that("setup_pb() uses the static draft PDF filename when pb is not yet assi
   suppressMessages(setup_pb(dir))
 
   idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
-  expect_equal(idx_yml$format$`pb-pdf`$`output-file`, "OFCEPB-draft.pdf")
+  expect_equal(idx_yml$format$`pb-pdf`$`output-file`, "ofce-draft-pb-example-v1.pdf")
 })
 
 test_that("setup_pb() is idempotent on an already-clean repo using pb-pdf", {

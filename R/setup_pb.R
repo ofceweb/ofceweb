@@ -45,6 +45,13 @@
 #' que le package **ofce** installé est en version `>= 1.3.39` — sinon la
 #' fonction s'arrête immédiatement avec [cli::cli_abort()].
 #'
+#' Côté PDF, `pb-pdf` (LaTeX) et `pb-typst` (Typst) sont les deux moteurs
+#' légitimes. Le nom du PDF de brouillon (`pb` non attribué) est
+#' `ofce-draft-{repo}-{version}.pdf` (ex. `ofce-draft-pb-example-v1.pdf`),
+#' identique quel que soit le moteur actif — sans segment de version si
+#' `version` n'est pas encore renseignée — recalculé à chaque appel. Une
+#' fois publié (`pb` connu), les deux moteurs produisent `OFCEPB{pb}.pdf`.
+#'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param lang Chaîne. Langue principale : `"fr"` (défaut) ou `"en"`.
 #' @param hypothesis Logique. Active les commentaires Hypothesis. Défaut `FALSE`.
@@ -569,18 +576,25 @@ setup_pb <- function(
     lines <- yaml_patch_scalar(lines, "comments.hypothesis", isTRUE(hypothesis))
   }
 
-  # output-file PDF : uniquement si pb est déjà connu ET si un format PDF
-  # est effectivement actif (pb-pdf OU pb-typst).
+  # output-file PDF : toujours recalculé pour le format PDF effectivement
+  # actif (pb-pdf OU pb-typst).
   active_pdf_format <- if (length(pdf_formats_declared) == 1L) pdf_formats_declared else NA_character_
   uses_pb_pdf <- !is.na(active_pdf_format)
-  if (pb_provided && uses_pb_pdf) {
-    pdf_output <- if (!is.null(pb)) {
-      sprintf("OFCEPB%d.pdf", pb)
+  if (uses_pb_pdf) {
+    if (!is.null(pb)) {
+      # Publié : inchangé, quel que soit le moteur PDF actif.
+      pdf_output <- sprintf("OFCEPB%d.pdf", pb)
     } else {
-      "OFCEPB-draft.pdf"
+      # Brouillon : même nom quel que soit le moteur PDF actif (pb-pdf ou
+      # pb-typst) -- dérivé du nom complet du dépôt et de la version de
+      # revue courante (ex. ofce-draft-pb-example-v1.pdf), recalculé et
+      # repatché à chaque appel.
+      pdf_output <- if (!is.null(version) && nzchar(as.character(version))) {
+        sprintf("ofce-draft-%s-%s.pdf", repo_name, version)
+      } else {
+        sprintf("ofce-draft-%s.pdf", repo_name)
+      }
     }
-  } else if (uses_pb_pdf) {
-    pdf_output <- index_yml$format[[active_pdf_format]]$`output-file` %||% NA_character_
   } else {
     pdf_output <- NA_character_
   }
@@ -633,9 +647,20 @@ setup_pb <- function(
     if (!is.null(server_dir) && nzchar(server_dir)) {
       if (!grepl("/$", server_dir)) server_dir <- paste0(server_dir, "/")
       set_gh_var(root, "FTP_SERVER_DIR", server_dir)
+      # URL stable : répertoire parent du site-path (sans le segment de
+      # version). Le dernier segment est censé être `yml$version` -- on le
+      # retire par sa valeur connue (comparaison de chaîne) plutôt que par
+      # une regex numérique, qui échouerait sur une version personnalisée
+      # (ex. "v2_corr", "v5_AS42").
       server_dir_clean <- sub("/$", "", server_dir)
-      redirect_dir <- if (grepl("/v\\d+$", server_dir_clean)) {
-        paste0(sub("/v\\d+$", "", server_dir_clean), "/")
+      current_version  <- as.character(yml$version %||% "")
+      version_suffix    <- paste0("/", current_version)
+      redirect_dir <- if (nzchar(current_version) &&
+                           endsWith(server_dir_clean, version_suffix)) {
+        paste0(
+          substr(server_dir_clean, 1L, nchar(server_dir_clean) - nchar(version_suffix)),
+          "/"
+        )
       } else {
         paste0(server_dir_clean, "/")
       }

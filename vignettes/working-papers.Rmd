@@ -72,7 +72,7 @@ de nommage suitante :
 `wp-{initiales de l'auteur.e}-{nom court du projet}`, le TOUT EN
 MINUSCULE. Par exemple `wp-gaxt-trec`.
 
-
+> L'accès aux modifications du document, ainsi que la possibilité de le publier (staging ou définitif) découle des droits du dépôt. Ils sont definis dans les `settings` accessible sur la page `github.com` du dépôt. Par défaut, ce sont les auteurs et les administrateurs du site, que le dépôt soit privé ou public.
 
 ------------------------------------------------------------------------
 

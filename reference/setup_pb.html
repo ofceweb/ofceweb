@@ -13,7 +13,7 @@ PB (titre, numéro, année, langue, URLs)."><meta property="og:image" content="h
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -132,6 +132,12 @@ généralement le placeholder du gabarit – puis commentée dans
 Juste avant cet appel, `setup_pb()` vérifie aussi (via `check_ofce_version()`)
 que le package **ofce** installé est en version `&gt;= 1.3.39` — sinon la
 fonction s'arrête immédiatement avec [cli::cli_abort()].</p>
+<p>Côté PDF, `pb-pdf` (LaTeX) et `pb-typst` (Typst) sont les deux moteurs
+légitimes. Le nom du PDF de brouillon (`pb` non attribué) est
+`ofce-draft-repo-version.pdf` (ex. `ofce-draft-pb-example-v1.pdf`),
+identique quel que soit le moteur actif — sans segment de version si
+`version` n'est pas encore renseignée — recalculé à chaque appel. Une
+fois publié (`pb` connu), les deux moteurs produisent `OFCEPBpb.pdf`.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

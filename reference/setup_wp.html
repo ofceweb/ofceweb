@@ -13,7 +13,7 @@ langue, URLs)."><meta property="og:image" content="https://ofceweb.github.io/ofc
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -180,10 +180,11 @@ défaut dans `index.qmd` uniquement quand **ni** `wp-pdf` **ni**
 `wp-typst` n'est déjà déclaré : un `wp-pdf` déjà présent n'est jamais
 remplacé. Si les deux sont déclarés simultanément, `wp-pdf` est commenté
 et `wp-typst` l'emporte. Le nom du PDF de brouillon (`wp` non attribué)
-dépend du moteur actif : `ofce-draft-repo sans préfixe "wp-".pdf` pour
-`wp-pdf`, `OFCEWP-draft.pdf` (inchangé, y compris pour le défaut
-`wp-typst`) — recalculé à chaque appel. Une fois publié (`wp`/`annee`
-connus), les deux moteurs produisent `OFCEWPannee-wp.pdf`.</p>
+est `ofce-draft-repo-version.pdf` (ex. `ofce-draft-wp-fg-loyers-v1.pdf`),
+identique quel que soit le moteur actif (`wp-pdf`/`wp-typst`) — sans
+segment de version si `version` n'est pas encore renseignée — recalculé à
+chaque appel. Une fois publié (`wp`/`annee` connus), les deux moteurs
+produisent `OFCEWPannee-wp.pdf`.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

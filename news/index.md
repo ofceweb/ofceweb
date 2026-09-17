@@ -1,6 +1,85 @@
 # Changelog
 
-## ofceweb 1.0.3
+## ofceweb (development version)
+
+### Nouvelle redirection stable pour les WP/PB en staging FTP
+
+[`push_wp_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_staging_redirect.md)/[`push_pb_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_staging_redirect.md)
+(analogues, côté staging, de
+[`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)/[`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md))
+génèrent désormais un `index.html` de redirection pointant vers la
+version courante d’un WP/PB en révision sur `staging.ofce.fr` (lue
+depuis `website.site-url`), le poussent sur la branche
+`site-staging-redirect`, et déclenchent le nouveau workflow
+`ftp_redirect_staging.yml` (gabarit ajouté à `inst/setup_wp/workflows/`
+et `inst/setup_pb/workflows/`) pour le publier à l’URL stable
+`staging.ofce.fr/{repo}/`, à l’aide de la nouvelle variable GitHub
+Actions `FTP_STAGING_REDIRECT_DIR`. Appelé automatiquement par
+[`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)/
+[`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md)
+à chaque déploiement en staging FTP, comme l’était déjà le cas pour la
+redirection stable en production. Jusqu’ici, seules les prévisions
+disposaient d’une redirection stable de ce type en staging
+([`push_prev_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_staging_redirect.md))
+; un WP/PB en révision n’avait qu’un lien versionné, à mettre à jour à
+chaque nouvelle version envoyée aux relecteurs.
+
+### Correction : le calcul du répertoire de redirection échouait sur une version personnalisée
+
+[`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)/[`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md)
+(redirection stable en production) et
+[`wp_version_up()`](https://ofceweb.github.io/ofceweb/reference/wp_version_up.md)/[`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md)
+(mise à jour de `FTP_REDIRECT_DIR` lors d’un changement de version)
+retiraient le segment de version du `site-path` à l’aide d’une
+expression régulière supposant une version purement numérique (`/v\d+$`,
+ex. `v0`, `v1`, `v12`). Une version personnalisée ou suffixée
+(`custom_version = "v2_corr"`, ou auto-incrémentée en
+`"v3_4"`/`"v5_AS42"`), pourtant explicitement prise en charge par
+[`wp_version_up()`](https://ofceweb.github.io/ofceweb/reference/wp_version_up.md)/[`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md),
+ne correspondait pas à ce motif : le segment de version n’était alors
+pas retiré, et `FTP_REDIRECT_DIR` se retrouvait identique au chemin
+versionné complet (`FTP_SERVER_DIR`) au lieu du répertoire parent
+attendu — la redirection stable de l’URL sans version ne fonctionnait
+plus. Le calcul retire désormais le segment par comparaison directe avec
+la valeur de version connue, plutôt que par une regex numérique.
+
+### `setup_wp()`/`setup_pb()` : nom de PDF de brouillon unifié, avec version
+
+Le nom du PDF de brouillon (`wp`/`pb` non attribué) suit désormais le
+même gabarit `ofce-draft-{repo}-{version}.pdf` (ex.
+`ofce-draft-wp-fg-loyers-v1.pdf`) quel que soit le moteur PDF actif
+(`wp-pdf`/`wp-typst`, `pb-pdf`/`pb-typst`) — recalculé et repatché à
+chaque appel de
+[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md),
+sans segment de version tant que `version` n’est pas encore renseignée.
+Auparavant, `wp-typst` gardait le nom historique `OFCEWP-draft.pdf`
+(sans nom de dépôt ni version) alors que `wp-pdf` utilisait
+`ofce-draft-{repo sans préfixe "wp-"}.pdf` (sans version) ; côté PB, le
+nom de brouillon n’était en pratique **jamais** recalculé (`pb` est
+toujours `null` pour un brouillon, ce qui rendait la condition de
+déclenchement toujours fausse) — le fichier gardait le nom du gabarit
+initial, `OFCEPB-draft.pdf`, quel que soit le dépôt ou la version.
+
+### `wp_version_up()`/`pb_version_up()` fonctionnent désormais sur un brouillon
+
+[`wp_version_up()`](https://ofceweb.github.io/ofceweb/reference/wp_version_up.md)/[`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md)
+refusaient jusqu’ici tout brouillon (`wp`/`pb` encore `null` dans
+`_quarto.yml`) avec un
+[`cli::cli_abort()`](https://cli.r-lib.org/reference/cli_abort.html),
+alors qu’un brouillon porte déjà une version de revue (`version` dans
+`_quarto.yml`, utilisée dans le nom du dossier de staging FTP et, pour
+un brouillon en `stage-target: ftp`, dans `website.site-url`) qu’il est
+légitime d’incrémenter avant même l’attribution d’un numéro WP/PB. Pour
+un brouillon, `website.site-path` (qui n’existe pas encore) n’est bien
+sûr plus mis à jour ; c’est `website.site-url` qui l’est à la place,
+quand elle contient déjà un segment de version (cas `stage-target: ftp`
+— un brouillon `gh-pages` n’a pas de segment de version dans son URL,
+qui reste inchangée). Dans les deux cas (brouillon ou publié), la
+variable GitHub Actions `FTP_STAGING_DIR` (`{repo}/{version}/`,
+cf. [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/
+[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md))
+est désormais recalculée à chaque appel — elle ne l’était pas du tout
+auparavant, y compris pour un WP/PB déjà publié.
 
 ### `wp_manifest()`/`pb_manifest()` : nouveau champ `pdf-path`
 

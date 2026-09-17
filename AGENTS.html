@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,11 +63,15 @@
 </li>
 <li>Variable <code>FTP_REDIRECT_DIR</code> : parent path for stable redirect (without version segment)
 <ul><li>
-<strong>WP</strong>: <code>{annee}/{wp}/</code> → generates <code>index.html</code> redirecting to latest version</li>
+<strong>WP</strong>/<strong>PB</strong>: <code>{annee}/{wp}/</code> / <code>pb/{pb}/</code> → generates <code>index.html</code> redirecting to latest version</li>
 <li>
 <strong>Prevision</strong>: <code>derniere/</code> → redirects to current published prevision</li>
 </ul></li>
 <li>Branch: <code>site-redirect</code> (separate from content branches)</li>
+<li>
+<code><a href="reference/push_wp_redirect.html">push_wp_redirect()</a></code>/<code><a href="reference/push_pb_redirect.html">push_pb_redirect()</a></code> compute the parent dir by stripping the trailing <code>/&lt;version&gt;</code> segment from <code>site-path</code>, matched by value (not by a numeric regex) — a custom/suffixed version (e.g. <code>v2_corr</code>, <code>v5_AS42</code>) must still be stripped correctly.</li>
+<li>
+<strong>Automatic vs. manual</strong>: for WP/PB, called automatically from <code><a href="reference/deploy_wp.html">deploy_wp()</a></code>/<code><a href="reference/deploy_pb.html">deploy_pb()</a></code> on every production deploy (redirect always follows the current version). For <code>prev</code>, <code><a href="reference/push_prev_redirect.html">push_prev_redirect()</a></code> is <strong>not</strong> called automatically — republishing a prevision can also mean <em>correcting an old one</em>, in which case <code>/prev/derniere/</code> must not be repointed; call it manually once a new prevision should become “current”.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="staging--content-deployment-ftp_deploy_stagingyml">Staging — Content Deployment (<code>ftp_deploy_staging.yml</code>)<a class="anchor" aria-label="anchor" href="#staging--content-deployment-ftp_deploy_stagingyml"></a></h3>
@@ -88,10 +92,13 @@
 <li>Variable <code>FTP_STAGING_REDIRECT_DIR</code> : parent path for staging redirect
 <ul><li>
 <strong>Prevision</strong>: <code>prev{YYMM}/</code> → generates <code>index.html</code> redirecting to latest version</li>
-<li>Effective server path: <code>www/staging/prev{YYMM}/</code>
+<li>
+<strong>WP</strong>/<strong>PB</strong>: <code>{repo}/</code> → generates <code>index.html</code> redirecting to latest version (<code><a href="reference/push_wp_staging_redirect.html">push_wp_staging_redirect()</a></code>/<code><a href="reference/push_pb_staging_redirect.html">push_pb_staging_redirect()</a></code>, reading the versioned <code>website.site-url</code> of the form <code>https://staging.ofce.fr/{repo}/{version}/</code>)</li>
+<li>Effective server path: <code>www/staging/prev{YYMM}/</code> or <code>www/staging/{repo}/</code>
 </li>
 </ul></li>
 <li>Branch: <code>site-staging-redirect</code> (separate from staging content branch <code>site-staging</code>)</li>
+<li>Called automatically: for <code>prev</code>, from <code><a href="reference/render_prev.html">render_prev()</a></code> after <code><a href="reference/site2staging.html">site2staging()</a></code>; for WP/PB, from <code><a href="reference/deploy_wp.html">deploy_wp()</a></code>/<code><a href="reference/deploy_pb.html">deploy_pb()</a></code> on every staging FTP deploy.</li>
 </ul></div>
 </div>
 <div class="section level2">

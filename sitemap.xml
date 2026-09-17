@@ -65,10 +65,12 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/publish_site.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/publish_wp.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/push_pb_staging_redirect.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/push_prev_redirect.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/push_prev_staging_redirect.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/push_site_redirect.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/push_wp_staging_redirect.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/registry_request.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/remove_encrypt.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/render.html</loc></url>

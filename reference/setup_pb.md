@@ -92,6 +92,14 @@ accès réseau. Juste avant cet appel, \`setup_pb()\` vérifie aussi (via
 version \`\>= 1.3.39\` — sinon la fonction s'arrête immédiatement avec
 \[cli::cli_abort()\].
 
+Côté PDF, \`pb-pdf\` (LaTeX) et \`pb-typst\` (Typst) sont les deux
+moteurs légitimes. Le nom du PDF de brouillon (\`pb\` non attribué) est
+\`ofce-draft-repo-version.pdf\` (ex. \`ofce-draft-pb-example-v1.pdf\`),
+identique quel que soit le moteur actif — sans segment de version si
+\`version\` n'est pas encore renseignée — recalculé à chaque appel. Une
+fois publié (\`pb\` connu), les deux moteurs produisent
+\`OFCEPBpb.pdf\`.
+
 ## See also
 
 \[render_pb()\], \[deploy_pb()\], \[pb_version_up()\],

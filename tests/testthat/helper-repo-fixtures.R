@@ -109,8 +109,10 @@ local_stub_version_up_side_effects <- function(env = parent.frame()) {
   local_mocked_bindings(
     set_gh_var         = function(...) invisible(NULL),
     wp_manifest        = function(...) invisible(NULL),
+    pb_manifest        = function(...) invisible(NULL),
     rescan_site        = function(...) invisible(NULL),
     push_site_redirect = function(...) invisible(NULL),
+    check_gh_login     = function(...) invisible(NA_character_),
     .env = env
   )
 }

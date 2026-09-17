@@ -10,9 +10,11 @@
 ### Production — Redirection (`ftp_redirect.yml`)
 - Credentials : `FTP_SERVER` / `FTP_USER` / `FTP_PASSWORD`
 - Variable `FTP_REDIRECT_DIR` : parent path for stable redirect (without version segment)
-  - **WP**: `{annee}/{wp}/` → generates `index.html` redirecting to latest version
+  - **WP**/**PB**: `{annee}/{wp}/` / `pb/{pb}/` → generates `index.html` redirecting to latest version
   - **Prevision**: `derniere/` → redirects to current published prevision
 - Branch: `site-redirect` (separate from content branches)
+- `push_wp_redirect()`/`push_pb_redirect()` compute the parent dir by stripping the trailing `/<version>` segment from `site-path`, matched by value (not by a numeric regex) — a custom/suffixed version (e.g. `v2_corr`, `v5_AS42`) must still be stripped correctly.
+- **Automatic vs. manual**: for WP/PB, called automatically from `deploy_wp()`/`deploy_pb()` on every production deploy (redirect always follows the current version). For `prev`, `push_prev_redirect()` is **not** called automatically — republishing a prevision can also mean *correcting an old one*, in which case `/prev/derniere/` must not be repointed; call it manually once a new prevision should become "current".
 
 ### Staging — Content Deployment (`ftp_deploy_staging.yml`)
 - Credentials : `FTP_SERVER` / `STAGING_USER` / `STAGING_PASSWORD`
@@ -24,8 +26,10 @@
 - Credentials : `FTP_SERVER` / `STAGING_USER` / `STAGING_PASSWORD`
 - Variable `FTP_STAGING_REDIRECT_DIR` : parent path for staging redirect
   - **Prevision**: `prev{YYMM}/` → generates `index.html` redirecting to latest version
-  - Effective server path: `www/staging/prev{YYMM}/`
+  - **WP**/**PB**: `{repo}/` → generates `index.html` redirecting to latest version (`push_wp_staging_redirect()`/`push_pb_staging_redirect()`, reading the versioned `website.site-url` of the form `https://staging.ofce.fr/{repo}/{version}/`)
+  - Effective server path: `www/staging/prev{YYMM}/` or `www/staging/{repo}/`
 - Branch: `site-staging-redirect` (separate from staging content branch `site-staging`)
+- Called automatically: for `prev`, from `render_prev()` after `site2staging()`; for WP/PB, from `deploy_wp()`/`deploy_pb()` on every staging FTP deploy.
 
 ## JSON read/write conventions
 

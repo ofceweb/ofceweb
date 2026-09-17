@@ -128,10 +128,11 @@ défaut dans `index.qmd` uniquement quand **ni** `wp-pdf` **ni**
 `wp-typst` n'est déjà déclaré : un `wp-pdf` déjà présent n'est jamais
 remplacé. Si les deux sont déclarés simultanément, `wp-pdf` est commenté
 et `wp-typst` l'emporte. Le nom du PDF de brouillon (`wp` non attribué)
-dépend du moteur actif : `ofce-draft-{repo sans préfixe "wp-"}.pdf` pour
-`wp-pdf`, `OFCEWP-draft.pdf` (inchangé, y compris pour le défaut
-`wp-typst`) — recalculé à chaque appel. Une fois publié (`wp`/`annee`
-connus), les deux moteurs produisent `OFCEWP{annee}-{wp}.pdf`.
+est `ofce-draft-{repo}-{version}.pdf` (ex. `ofce-draft-wp-fg-loyers-v1.pdf`),
+identique quel que soit le moteur actif (`wp-pdf`/`wp-typst`) — sans
+segment de version si `version` n'est pas encore renseignée — recalculé à
+chaque appel. Une fois publié (`wp`/`annee` connus), les deux moteurs
+produisent `OFCEWP{annee}-{wp}.pdf`.
 }
 \seealso{
 [render_wp()], [deploy_wp()], [wp_version_up()], [update_navbar()]

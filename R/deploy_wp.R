@@ -144,6 +144,12 @@ deploy_wp <- function(
       ...
     )
 
+    tryCatch(
+      push_wp_staging_redirect(root, progress = progress, trigger = trigger),
+      error = function(e)
+        cli::cli_alert_warning("Redirection staging non mise \u00e0 jour : {e$message}")
+    )
+
     cli::cli_alert_success(
       "WP staging disponible apr\u00e8s d\u00e9ploiement FTP : {.url {final_url}}")
     return(invisible(res))

@@ -440,14 +440,14 @@ test_that("setup_wp() injects a default wp-typst format for a brand-new draft wi
 
   idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
   expect_null(idx_yml$format$`wp-pdf`)
-  expect_equal(idx_yml$format$`wp-typst`$`output-file`, "OFCEWP-draft.pdf")
+  expect_equal(idx_yml$format$`wp-typst`$`output-file`, "ofce-draft-wp-pam-pmq.pdf")
   links <- idx_yml$`format-links`
   pdf_link <- links[[which(vapply(links, is.list, logical(1L)))]]
   expect_equal(pdf_link$format, "wp-typst")
-  expect_equal(pdf_link$text, "OFCEWP-draft.pdf")
+  expect_equal(pdf_link$text, "ofce-draft-wp-pam-pmq.pdf")
 })
 
-test_that("setup_wp() names a wp-pdf draft file from the repo (wp- prefix stripped) when wp-pdf is the declared engine", {
+test_that("setup_wp() names a wp-pdf draft file from the full repo name when wp-pdf is the declared engine", {
   local_stub_wp_side_effects()
   local_mocked_bindings(
     git_remote_list = function(...) data.frame(
@@ -458,9 +458,8 @@ test_that("setup_wp() names a wp-pdf draft file from the repo (wp- prefix stripp
   )
   dir <- local_git_tempdir()
   build_draft_wp_repo(dir)
-  # Declare wp-pdf explicitly -- the repo-derived draft filename only kicks
-  # in for the wp-pdf (LaTeX) engine; wp-typst keeps the historical
-  # "OFCEWP-draft.pdf" name regardless of repo (see test above).
+  # Declare wp-pdf explicitly -- the repo-derived draft filename is the same
+  # regardless of engine (wp-pdf or wp-typst, see test above).
   write_qmd(dir, "index.qmd", yaml_lines = c(
     "title: WP",
     "format:",
@@ -471,11 +470,41 @@ test_that("setup_wp() names a wp-pdf draft file from the repo (wp- prefix stripp
   suppressMessages(setup_wp(dir))
 
   idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
-  expect_equal(idx_yml$format$`wp-pdf`$`output-file`, "ofce-draft-pam-pmq.pdf")
+  expect_equal(idx_yml$format$`wp-pdf`$`output-file`, "ofce-draft-wp-pam-pmq.pdf")
   links <- idx_yml$`format-links`
   pdf_link <- links[[which(vapply(links, is.list, logical(1L)))]]
   expect_equal(pdf_link$format, "wp-pdf")
-  expect_equal(pdf_link$text, "ofce-draft-pam-pmq.pdf")
+  expect_equal(pdf_link$text, "ofce-draft-wp-pam-pmq.pdf")
+})
+
+test_that("setup_wp() includes the version segment in the draft PDF name once version is set", {
+  local_stub_wp_side_effects()
+  local_mocked_bindings(
+    git_remote_list = function(...) data.frame(
+      name = "origin",
+      url  = "https://github.com/ofce/wp-pam-pmq.git"
+    ),
+    .package = "gert"
+  )
+  dir <- local_git_tempdir()
+  build_draft_wp_repo(dir)
+  write_quarto_yml(dir, list(
+    ofce_wp = TRUE,
+    lang    = "fr",
+    version = "v1",
+    format  = list(`wp-html` = "default")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: WP",
+    "format:",
+    "  wp-pdf:",
+    "    output-file: OFCEWP-draft.pdf"
+  ))
+
+  suppressMessages(setup_wp(dir))
+
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+  expect_equal(idx_yml$format$`wp-pdf`$`output-file`, "ofce-draft-wp-pam-pmq-v1.pdf")
 })
 
 test_that("setup_wp() leaves a sole wp-typst declaration untouched -- no wp-pdf is added", {

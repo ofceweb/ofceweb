@@ -2,7 +2,7 @@
 % Please edit documentation in R/adhoc_site.R
 \name{adhoc_resolve_index}
 \alias{adhoc_resolve_index}
-\title{Resolve which document `render_folder()` should render}
+\title{Resolve which document `render_flash()` should render}
 \usage{
 adhoc_resolve_index(target, index = NULL, progress = TRUE)
 }
@@ -23,7 +23,7 @@ or `NULL` to auto-resolve.}
 Determines the single `.qmd`/`.md` file to treat as the site's index page,
 in order of priority:
 \enumerate{
-  \item `index`, if supplied explicitly (e.g. by [render_folder_addin()]
+  \item `index`, if supplied explicitly (e.g. by [render_flash_addin()]
     via the active editor document) — must exist in `target`.
   \item `index.qmd` or `index.md`, if present directly in `target`.
   \item Otherwise, the most recently modified `.qmd`/`.md` file directly

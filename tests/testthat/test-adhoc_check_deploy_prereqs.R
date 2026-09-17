@@ -1,5 +1,5 @@
 # adhoc_check_deploy_prereqs() is the preflight gate run at the top of
-# deploy_folder_worker(): it delegates GitHub/git diagnostics to the shared
+# deploy_flash_worker(): it delegates GitHub/git diagnostics to the shared
 # check_gh_setup() (never blocking), then requires a GitHub token and checks
 # that the FTP_SERVER secret is visible to the repo (proxy for "authorized
 # to publish"). These tests mock out check_gh_setup(), gh_slug_from_remote()

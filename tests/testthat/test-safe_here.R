@@ -72,7 +72,7 @@ test_that("find_safe_here_marker: NULL when no marker exists up to filesystem ro
 })
 
 test_that("safe_here: reaches a file outside the marker's own directory tree", {
-  # Simulates the render_folder() scenario: the marker (and safe_here() call)
+  # Simulates the render_flash() scenario: the marker (and safe_here() call)
   # live in a temp copy, but the recorded root is a *different*, untouched
   # directory containing a file that was never copied into the temp tree.
   temp_dir <- tempfile()

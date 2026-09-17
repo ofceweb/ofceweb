@@ -18,14 +18,16 @@
 #'   Only this single document is rendered — see Details.
 #' @param slug `[character(1)]`\cr
 #'   Override the auto-computed slug (unique identifier). If `NULL` (default),
-#'   computed from the folder's relative path using [adhoc_slug()]. Persisted
-#'   in `_site/.adhoc-meta.json` for [deploy_folder()].
+#'   computed via [adhoc_slug()] from the folder's relative path *and* the
+#'   resolved `index` document's filename (without extension) -- so two
+#'   documents rendered separately out of the same folder get distinct
+#'   slugs. Persisted in `_site/.adhoc-meta.json` for [deploy_flash()].
 #' @param progress `[logical(1)]`\cr
 #'   If `TRUE` (default), progress is reported to the console.
 #' @param preview `[logical(1)]`\cr
 #'   If `TRUE` (default), launches a live preview server via [servr::httw()]
 #'   on the rendered site **when `as_job = FALSE`** only (ignored when
-#'   `as_job = TRUE` — use [preview_folder()] afterwards instead).
+#'   `as_job = TRUE` — use [preview_flash()] afterwards instead).
 #' @param as_job `[logical(1)]`\cr
 #'   If `TRUE` (default), and RStudio is available (checked via
 #'   `rstudioapi::isAvailable()`), runs the render pipeline as a background job
@@ -69,7 +71,7 @@
 #' 9. Cleans `.DS_Store` files, then copies the temp `_site/` into `<path>/_site/`
 #'    (replacing if present). Writes metadata (slug, index, timestamp) to
 #'    `_site/.adhoc-meta.json`.
-#' 10. If `preview = TRUE` and `as_job = FALSE`, launches [preview_folder()].
+#' 10. If `preview = TRUE` and `as_job = FALSE`, launches [preview_flash()].
 #'
 #' ## Self-contained folders
 #'
@@ -85,7 +87,7 @@
 #' disk (recorded before the copy is made), including for files that live
 #' outside the copied folder, rather than against the tempdir (which has no
 #' root marker of its own, and never contains those outside files anyway).
-#' It's a drop-in replacement -- outside of a `render_folder()` temp copy it
+#' It's a drop-in replacement -- outside of a `render_flash()` temp copy it
 #' behaves identically to [here::here()].
 #'
 #' ## `.gitignore` housekeeping
@@ -96,7 +98,7 @@
 #' echo "_site/" >> <path>/.gitignore
 #' ```
 #'
-#' @seealso [deploy_folder()], [publish_folder()], [preview_folder()], [render_prev()], [safe_here()]
+#' @seealso [deploy_flash()], [publish_flash()], [preview_flash()], [render_prev()], [safe_here()]
 #' @importFrom fs path_expand path_abs path_norm path_rel dir_create dir_copy
 #'             file_exists dir_exists dir_delete dir_ls file_delete
 #'             path_file path_join
@@ -109,7 +111,7 @@
 #' @importFrom stringr str_replace_all str_trim
 #' @importFrom rlang env env_names
 #' @export
-render_folder <- function(
+render_flash <- function(
     path     = ".",
     index    = NULL,
     slug     = NULL,
@@ -130,9 +132,9 @@ render_folder <- function(
     # Create a job script that will run the worker, capture errors, and export result
     job_script <- tempfile(fileext = ".R")
     script_content <- glue::glue(
-      '# Auto-generated job script for render_folder
+      '# Auto-generated job script for render_flash
        result <- tryCatch({{
-         url <- ofceweb:::render_folder_worker(
+         url <- ofceweb:::render_flash_worker(
           path = "{path}", index = {if (is.null(index)) "NULL" else paste0("\\"", index, "\\"")}, slug = {if (is.null(slug)) "NULL" else paste0("\\"", slug, "\\"")},
           progress = {progress}, preview = {preview}
         )
@@ -167,7 +169,7 @@ render_folder <- function(
   }
 
   # Otherwise run synchronously
-  ofceweb:::render_folder_worker(
+  ofceweb:::render_flash_worker(
     path     = path,
     index    = index,
     slug     = slug,
@@ -179,12 +181,12 @@ render_folder <- function(
 }
 
 
-#' Resolve which document `render_folder()` should render
+#' Resolve which document `render_flash()` should render
 #'
 #' Determines the single `.qmd`/`.md` file to treat as the site's index page,
 #' in order of priority:
 #' \enumerate{
-#'   \item `index`, if supplied explicitly (e.g. by [render_folder_addin()]
+#'   \item `index`, if supplied explicitly (e.g. by [render_flash_addin()]
 #'     via the active editor document) — must exist in `target`.
 #'   \item `index.qmd` or `index.md`, if present directly in `target`.
 #'   \item Otherwise, the most recently modified `.qmd`/`.md` file directly
@@ -235,15 +237,15 @@ adhoc_resolve_index <- function(target, index = NULL, progress = TRUE) {
 }
 
 
-#' Worker function for render_folder (internal synchronous implementation)
+#' Worker function for render_flash (internal synchronous implementation)
 #'
 #' This function contains the actual render logic, separated so it can be
 #' called either directly (synchronous) or from a background job script.
 #'
-#' @inheritParams render_folder
+#' @inheritParams render_flash
 #' @keywords internal
 #' @return Invisibly returns the resulting URL (character string).
-render_folder_worker <- function(
+render_flash_worker <- function(
     path,
     index,
     slug,
@@ -275,10 +277,15 @@ render_folder_worker <- function(
   if (!fs::file_exists(index_path))
     cli::cli_abort("Fichier index {.path {index}} non trouvé dans {.path {target}}.")
 
-  # Compute slug if not supplied
+  # Compute slug if not supplied. Includes the rendered document's own
+  # filename (without extension), not just the enclosing folder's path, so
+  # that two documents rendered separately out of the same folder (e.g. via
+  # an explicit `index`) get distinct slugs -- and therefore distinct
+  # staging URLs / deploy branches -- instead of silently colliding.
   if (is.null(slug)) {
     rel_path <- fs::path_rel(target, repo_root)
-    slug <- adhoc_slug(rel_path)
+    index_stem <- sub("\\.(qmd|md)$", "", index, ignore.case = TRUE)
+    slug <- adhoc_slug(fs::path(rel_path, index_stem))
   }
 
   if (progress)
@@ -451,14 +458,14 @@ render_folder_worker <- function(
     cli::cli_alert_success("Rendu terminé")
     if (!preview) {
       cli::cli_alert_info(
-        "Pour prévisualiser : {.code ofceweb::preview_folder('{path}')}"
+        "Pour prévisualiser : {.code ofceweb::preview_flash('{path}')}"
       )
     }
   }
 
   # Launch preview if requested and synchronous
   if (preview) {
-    preview_folder(path)
+    preview_flash(path)
   }
 
   invisible(url)
@@ -516,7 +523,7 @@ adhoc_gh_config_hint <- function() {
 
 #' Preflight check before deploying an ad-hoc folder site
 #'
-#' Run once at the top of [deploy_folder_worker()], before any git push or
+#' Run once at the top of [deploy_flash_worker()], before any git push or
 #' workflow install/dispatch, so a misconfigured environment or an
 #' unauthorized repo fails fast with one clear message instead of pushing a
 #' branch that a downstream CI job can never actually deploy. Two things are
@@ -534,7 +541,7 @@ adhoc_gh_config_hint <- function() {
 #' 2. **The `FTP_SERVER` GitHub Actions secret is visible to this repo**
 #'    (either set at the repo level, or inherited from an organization-level
 #'    secret). Every FTP deployment workflow this package installs —
-#'    including `ftp_deploy_profile.yml`, used by [deploy_folder()] — reads
+#'    including `ftp_deploy_profile.yml`, used by [deploy_flash()] — reads
 #'    `secrets.FTP_SERVER`; if it isn't visible to the repo, the workflow is
 #'    guaranteed to fail once dispatched (empty FTP host). This is used as a
 #'    proxy for "is this repo authorized to publish to OFCE's FTP
@@ -554,7 +561,7 @@ adhoc_gh_config_hint <- function() {
 #' mechanism used by [check_gh_login()] and `check_prev()`'s FTP
 #' variable/secret checks (see git_utils.R) — keyed by the `"owner/repo"`
 #' slug (falling back to `repo_root` if no `origin` remote is found), so
-#' repeated [deploy_folder()]/[publish_folder()] calls in the same session
+#' repeated [deploy_flash()]/[publish_flash()] calls in the same session
 #' don't re-hit the GitHub API every time. The cache is invalidated — for
 #' that repo's next call only, transparently — as soon as [check_gh_setup()]
 #' runs again for *any* reason, including a direct call by the user (e.g.
@@ -660,14 +667,14 @@ adhoc_check_deploy_prereqs <- function(repo_root, progress = TRUE) {
 
 #' Deploy a rendered ad-hoc folder site to staging
 #'
-#' Pushes the `_site/` folder (previously rendered by [render_folder()]) to a
+#' Pushes the `_site/` folder (previously rendered by [render_flash()]) to a
 #' git branch and triggers FTP deployment to `staging.ofce.fr`. The slug is read
 #' from the persisted metadata (`_site/.adhoc-meta.json`) if not supplied.
 #'
 #' @param path `[character(1)]`\cr
 #'   Folder to deploy (relative or absolute). Defaults to `"."`.
 #' @param slug `[character(1)]`\cr
-#'   Deployment identifier (must match the slug used in [render_folder()]).
+#'   Deployment identifier (must match the slug used in [render_flash()]).
 #'   If `NULL` (default), read from `_site/.adhoc-meta.json` or recomputed
 #'   from the folder's path.
 #' @param encrypt `[logical(1)]`\cr
@@ -694,7 +701,7 @@ adhoc_check_deploy_prereqs <- function(repo_root, progress = TRUE) {
 #' ## Pre-flight checks
 #'
 #' - Verifies that `<path>/_site/` exists (must have been created by
-#'   [render_folder()] or manually).
+#'   [render_flash()] or manually).
 #' - Verifies GitHub / FTP prerequisites via an internal check: `gh` CLI
 #'   install/auth and git identity are checked for visibility only (never
 #'   block); a GitHub token (`DEPLOY_PAT`, or `gitcreds` locally) is
@@ -709,7 +716,7 @@ adhoc_check_deploy_prereqs <- function(repo_root, progress = TRUE) {
 #'
 #' ## Workflow auto-install
 #'
-#' The first time `deploy_folder()` is called on a repo, it auto-installs
+#' The first time `deploy_flash()` is called on a repo, it auto-installs
 #' `.github/workflows/ftp_deploy_profile.yml` from the package if missing.
 #' This is an idempotent, additive operation:
 #'
@@ -717,12 +724,12 @@ adhoc_check_deploy_prereqs <- function(repo_root, progress = TRUE) {
 #' - On protected default branches, a PR is opened and you're asked to merge it
 #'   (one-time per repo). After merge, subsequent calls proceed normally.
 #'
-#' @seealso [render_folder()], [publish_folder()], [preview_folder()], [deploy_prev()]
+#' @seealso [render_flash()], [publish_flash()], [preview_flash()], [deploy_prev()]
 #' @importFrom fs path_expand path_abs path_norm path_rel path_file dir_exists file_exists
 #' @importFrom cli cli_h1 cli_abort cli_alert_success cli_alert_warning cli_alert_info
 #' @importFrom rlang env
 #' @export
-deploy_folder <- function(
+deploy_flash <- function(
     path        = ".",
     slug        = NULL,
     encrypt     = TRUE,
@@ -744,9 +751,9 @@ deploy_folder <- function(
 
     job_script <- tempfile(fileext = ".R")
     script_content <- glue::glue(
-      '# Auto-generated job script for deploy_folder
+      '# Auto-generated job script for deploy_flash
        result <- tryCatch({{
-         url <- ofceweb::deploy_folder_worker(
+         url <- ofceweb::deploy_flash_worker(
            path = "{path}", slug = {if (is.null(slug)) "NULL" else paste0("\\"", slug, "\\"")},
            encrypt = {encrypt}, progress = {progress}, trigger = {trigger},
            full_deploy = {full_deploy}
@@ -762,7 +769,7 @@ deploy_folder <- function(
 
     writeLines(script_content, job_script)
     # Note: do NOT unlink(job_script) here — see the equivalent comment in
-    # render_folder() above; the job reads the file asynchronously.
+    # render_flash() above; the job reads the file asynchronously.
 
     repo_root <- find_git_root(path)
     rstudioapi::jobRunScript(
@@ -780,7 +787,7 @@ deploy_folder <- function(
   }
 
   # Otherwise run synchronously
-  deploy_folder_worker(
+  deploy_flash_worker(
     path        = path,
     slug        = slug,
     encrypt     = encrypt,
@@ -793,12 +800,12 @@ deploy_folder <- function(
 }
 
 
-#' Worker function for deploy_folder (internal synchronous implementation)
+#' Worker function for deploy_flash (internal synchronous implementation)
 #'
-#' @inheritParams deploy_folder
+#' @inheritParams deploy_flash
 #' @keywords internal
 #' @return Invisibly returns the resulting URL (character string).
-deploy_folder_worker <- function(
+deploy_flash_worker <- function(
     path,
     slug,
     encrypt,
@@ -819,7 +826,7 @@ deploy_folder_worker <- function(
   if (!fs::dir_exists(site_dir))
     cli::cli_abort(
       "Dossier {.path _site} non trouvé dans {.path {target}}. \\
-       Veuillez d'abord lancer {.code ofceweb::render_folder()}."
+       Veuillez d'abord lancer {.code ofceweb::render_flash()}."
     )
 
   if (progress)
@@ -843,6 +850,14 @@ deploy_folder_worker <- function(
       if (progress)
         cli::cli_alert_info("Slug lu depuis les métadonnées : {.code {slug}}")
     } else {
+      # Degraded fallback: without `.adhoc-meta.json` we have no record of
+      # which document was rendered, so the document-filename component
+      # render_flash_worker() now folds into the slug can't be reproduced
+      # here -- this recomputed slug will only match the original if the
+      # folder has a single document (or happened to use the folder-only
+      # slug scheme from before this change). Normally unreachable: _site/
+      # is only ever produced by render_flash_worker(), which always writes
+      # the metadata file alongside it.
       rel_path <- fs::path_rel(target, repo_root)
       slug <- adhoc_slug(rel_path)
       if (progress)
@@ -941,31 +956,31 @@ deploy_folder_worker <- function(
 
 #' Render and deploy a folder as a standalone Quarto site, in one step
 #'
-#' Convenience wrapper chaining [render_folder()] and [deploy_folder()]:
+#' Convenience wrapper chaining [render_flash()] and [deploy_flash()]:
 #' renders `path` as a standalone Quarto site, then immediately pushes and
 #' deploys it to `staging.ofce.fr`. This is the typical entry point for ad-hoc
-#' folder publishing. Call [render_folder()] and [deploy_folder()] separately
-#' instead when you want to iterate on the render (e.g. via [preview_folder()])
+#' folder publishing. Call [render_flash()] and [deploy_flash()] separately
+#' instead when you want to iterate on the render (e.g. via [preview_flash()])
 #' before deploying.
 #'
 #' @param path `[character(1)]`\cr
 #'   Folder to render and deploy (relative or absolute). Defaults to `"."`.
 #' @param index `[character(1)]`\cr
-#'   See [render_folder()].
+#'   See [render_flash()].
 #' @param slug `[character(1)]`\cr
 #'   Override the auto-computed slug (unique identifier). If `NULL` (default),
-#'   [render_folder()] computes it and persists it in `_site/.adhoc-meta.json`,
-#'   from which [deploy_folder()] then reads it back — so both steps agree on
+#'   [render_flash()] computes it and persists it in `_site/.adhoc-meta.json`,
+#'   from which [deploy_flash()] then reads it back — so both steps agree on
 #'   the same slug without it needing to be passed explicitly.
 #' @param encrypt `[logical(1)]`\cr
-#'   See [deploy_folder()]. Defaults to `TRUE`.
+#'   See [deploy_flash()]. Defaults to `TRUE`.
 #' @param progress `[logical(1)]`\cr
 #'   If `TRUE` (default), progress is reported to the console (or the Jobs
 #'   pane console when `as_job = TRUE`).
 #' @param trigger `[logical(1)]`\cr
-#'   See [deploy_folder()]. Defaults to `TRUE`.
+#'   See [deploy_flash()]. Defaults to `TRUE`.
 #' @param full_deploy `[logical(1)]`\cr
-#'   See [deploy_folder()]. Defaults to `FALSE`.
+#'   See [deploy_flash()]. Defaults to `FALSE`.
 #' @param as_job `[logical(1)]`\cr
 #'   If `TRUE` (default) and RStudio is available (checked via
 #'   `rstudioapi::isAvailable()`), runs the full render + deploy pipeline as a
@@ -974,7 +989,7 @@ deploy_folder_worker <- function(
 #'   summary appears in the global environment as `adhoc_last_publish` (a list
 #'   with `ok`, `url`, and optionally `error`). If `FALSE` or RStudio is
 #'   unavailable, runs synchronously in the current session. The local
-#'   preview server ([preview_folder()]) is not launched in either mode —
+#'   preview server ([preview_flash()]) is not launched in either mode —
 #'   call it separately if you want a local preview.
 #'
 #' @return Invisibly returns the resulting URL (character string) when
@@ -983,10 +998,10 @@ deploy_folder_worker <- function(
 #'   populates `adhoc_last_publish` in the global environment when the job
 #'   finishes.
 #'
-#' @seealso [render_folder()], [deploy_folder()], [preview_folder()]
+#' @seealso [render_flash()], [deploy_flash()], [preview_flash()]
 #' @importFrom rlang env
 #' @export
-publish_folder <- function(
+publish_flash <- function(
     path        = ".",
     index       = NULL,
     slug        = NULL,
@@ -998,17 +1013,17 @@ publish_folder <- function(
 
   # If as_job = TRUE and RStudio is available, spin off a single background
   # job that runs both steps sequentially (rather than two separate jobs,
-  # which would race: deploy_folder() needs render_folder()'s _site/ output).
+  # which would race: deploy_flash() needs render_flash()'s _site/ output).
   if (as_job && rstudioapi::isAvailable()) {
     job_script <- tempfile(fileext = ".R")
     script_content <- glue::glue(
-      '# Auto-generated job script for publish_folder
+      '# Auto-generated job script for publish_flash
        result <- tryCatch({{
-         ofceweb:::render_folder_worker(
+         ofceweb:::render_flash_worker(
            path = "{path}", index = {if (is.null(index)) "NULL" else paste0("\\"", index, "\\"")}, slug = {if (is.null(slug)) "NULL" else paste0("\\"", slug, "\\"")},
            progress = {progress}, preview = FALSE
          )
-         url <- ofceweb:::deploy_folder_worker(
+         url <- ofceweb:::deploy_flash_worker(
            path = "{path}", slug = {if (is.null(slug)) "NULL" else paste0("\\"", slug, "\\"")},
            encrypt = {encrypt}, progress = {progress}, trigger = {trigger},
            full_deploy = {full_deploy}
@@ -1024,7 +1039,7 @@ publish_folder <- function(
 
     writeLines(script_content, job_script)
     # Note: do NOT unlink(job_script) here — see the equivalent comment in
-    # render_folder() above; the job reads the file asynchronously.
+    # render_flash() above; the job reads the file asynchronously.
 
     repo_root <- find_git_root(path)
     rstudioapi::jobRunScript(
@@ -1042,7 +1057,7 @@ publish_folder <- function(
   }
 
   # Otherwise run both steps synchronously in the current session
-  ofceweb:::render_folder_worker(
+  ofceweb:::render_flash_worker(
     path     = path,
     index    = index,
     slug     = slug,
@@ -1050,7 +1065,7 @@ publish_folder <- function(
     preview  = FALSE
   )
 
-  url <- ofceweb:::deploy_folder_worker(
+  url <- ofceweb:::deploy_flash_worker(
     path        = path,
     slug        = slug,
     encrypt     = encrypt,
@@ -1065,8 +1080,8 @@ publish_folder <- function(
 
 #' Resolve the ad-hoc addin context from the active RStudio document
 #'
-#' The ad-hoc "quick publish" addins ([render_folder_addin()],
-#' [deploy_folder_addin()], [publish_folder_addin()]) operate on the document
+#' The ad-hoc "quick publish" addins ([render_flash_addin()],
+#' [deploy_flash_addin()], [publish_flash_addin()]) operate on the document
 #' currently open and focused in the RStudio editor, not on the enclosing
 #' RStudio *project* root: the relevant folder is the active document's own
 #' directory, and the relevant index file is the active document itself. This
@@ -1120,7 +1135,7 @@ adhoc_active_doc_context <- function(action) {
 
 #' RStudio addin: Render + deploy the active document as an ad-hoc site
 #'
-#' Interactive wrapper for [publish_folder()] designed for use as an RStudio
+#' Interactive wrapper for [publish_flash()] designed for use as an RStudio
 #' addin. Uses the document currently active in the RStudio editor as
 #' context: the folder to render is that document's own directory, and the
 #' document itself is used as the site's index page (see
@@ -1132,7 +1147,7 @@ adhoc_active_doc_context <- function(action) {
 #'
 #' @keywords internal
 #' @noRd
-publish_folder_addin <- function() {
+publish_flash_addin <- function() {
   ctx <- adhoc_active_doc_context("publier le document ad-hoc")
 
   cli::cli_h1("Publier le document ad-hoc : {.path {ctx$index}}")
@@ -1145,7 +1160,7 @@ publish_folder_addin <- function() {
   # Publish (render + deploy) synchronously so the console/Viewer stay in
   # this session (a background job runs in a separate R process and can't
   # drive the RStudio Viewer pane or keep a preview server alive).
-  publish_folder(
+  publish_flash(
     path        = ctx$dir,
     index       = ctx$index,
     slug        = NULL,
@@ -1164,8 +1179,8 @@ publish_folder_addin <- function() {
 #'
 #' Launches a live preview server on the `_site/` folder via [servr::httw()],
 #' allowing real-time browser refresh as files change. Works any time after
-#' [render_folder()] has produced `_site/`, including mid-iteration
-#' (re-running `render_folder()` while preview is active auto-reloads the
+#' [render_flash()] has produced `_site/`, including mid-iteration
+#' (re-running `render_flash()` while preview is active auto-reloads the
 #' browser tab).
 #'
 #' @param path `[character(1)]`\cr
@@ -1173,12 +1188,12 @@ publish_folder_addin <- function() {
 #'
 #' @return Invisibly returns `NULL`. Starts a daemon server.
 #'
-#' @seealso [render_folder()], [preview_qmd()]
+#' @seealso [render_flash()], [preview_qmd()]
 #' @importFrom fs path_expand path_abs path_norm path dir_exists
 #' @importFrom cli cli_h1 cli_abort cli_alert_success
 #' @importFrom servr httw
 #' @export
-preview_folder <- function(path = ".") {
+preview_flash <- function(path = ".") {
   target <- path |>
     fs::path_expand() |>
     fs::path_abs() |>
@@ -1188,7 +1203,7 @@ preview_folder <- function(path = ".") {
   if (!fs::dir_exists(site_dir))
     cli::cli_abort(
       "Dossier {.path _site} non trouvé dans {.path {target}}. \\
-       Veuillez d'abord lancer {.code ofceweb::render_folder()}."
+       Veuillez d'abord lancer {.code ofceweb::render_flash()}."
     )
 
   cli::cli_h1("Prévisualisation : {.path {fs::path_file(target)}}/_site/")
@@ -1241,9 +1256,13 @@ find_git_root <- function(start = ".") {
 }
 
 
-#' Compute a deterministic slug for a folder path
+#' Compute a deterministic slug from a relative path
 #'
-#' Generates a stable, URL-safe identifier for an arbitrary folder within a repo.
+#' Generates a stable, URL-safe identifier for an arbitrary relative path
+#' within a repo. Callers pass either a bare folder path, or (as
+#' [render_flash_worker()] does) a folder path plus the rendered document's
+#' own filename stem appended via [fs::path()], so that two documents
+#' rendered separately out of the same folder get distinct slugs.
 #' Slugification: lowercase the relative path, replace non-alphanumeric sequences
 #' with `-`, trim leading/trailing dashes, truncate to 40 characters, then append
 #' a 6-character CRC32 hash of the original path to avoid collisions.
@@ -1284,7 +1303,7 @@ adhoc_slug <- function(rel_path) {
 inject_quick_publish_banner <- function(site_dir) {
   # The <span class="ofce-push-ts"> placeholder is left empty here (render
   # time) and filled in later by stamp_banner_push_time(), called right
-  # before the git push in deploy_folder_worker() — so the banner reflects
+  # before the git push in deploy_flash_worker() — so the banner reflects
   # when the site was actually pushed, not when it was rendered.
   banner_html <- paste(
     '<div style="position:fixed;top:0;left:0;right:0;z-index:9999;',
@@ -1332,10 +1351,10 @@ inject_quick_publish_banner <- function(site_dir) {
 #' with the current date/time in the `Europe/Paris` timezone and, when
 #' available, the GitHub identity of whoever is deploying (via the cached
 #' [check_gh_login()] diagnostic — `gh::gh("GET /user")`). Called from
-#' [deploy_folder_worker()] right before the git push, so the banner reflects
+#' [deploy_flash_worker()] right before the git push, so the banner reflects
 #' who actually pushed the site and when, not when it was rendered. By the
 #' time this runs, [adhoc_check_deploy_prereqs()] has already invoked
-#' [check_gh_setup()] earlier in [deploy_folder_worker()], so this call is a
+#' [check_gh_setup()] earlier in [deploy_flash_worker()], so this call is a
 #' cache hit (`"gh:login"` key) rather than a fresh network request. If `gh`
 #' isn't authenticated, the identity is silently omitted from the banner
 #' rather than blocking the deploy — consistent with how `gh` checks never
@@ -1725,7 +1744,7 @@ ensure_adhoc_workflow <- function(repo_root, progress = TRUE) {
     pr_body <- list(
       title = "Add ftp_deploy_profile.yml workflow for ad-hoc site publishing",
       body  = "Auto-generated PR to install the FTP deployment workflow. \\
-               Please merge to enable `render_folder()`/`deploy_folder()` functionality.",
+               Please merge to enable `render_flash()`/`deploy_flash()` functionality.",
       head  = side_branch,
       base  = default_branch
     )
@@ -1750,7 +1769,7 @@ ensure_adhoc_workflow <- function(repo_root, progress = TRUE) {
           "PR ouverte : {.url {pr_url}}"
         )
         cli::cli_alert_warning(
-          "Veuillez la fusionner avant de relancer {.code deploy_folder()}."
+          "Veuillez la fusionner avant de relancer {.code deploy_flash()}."
         )
       }
       return(invisible(NULL))
@@ -1768,29 +1787,29 @@ ensure_adhoc_workflow <- function(repo_root, progress = TRUE) {
 
 #' RStudio addin: Render the active document as an ad-hoc site
 #'
-#' Interactive wrapper for [render_folder()] designed for use as an RStudio
+#' Interactive wrapper for [render_flash()] designed for use as an RStudio
 #' addin. Uses the document currently active in the RStudio editor as
 #' context: the folder to render is that document's own directory, and the
 #' document itself is used as the site's index page (see
 #' [adhoc_active_doc_context()]). Renders synchronously in the current
 #' console session (rather than as a background job) so that the trailing
-#' [preview_folder()] call can actually launch a live preview server and
+#' [preview_flash()] call can actually launch a live preview server and
 #' open the RStudio Viewer pane.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effect of launching a render job.
 #'
 #' @keywords internal
 #' @noRd
-render_folder_addin <- function() {
+render_flash_addin <- function() {
   ctx <- adhoc_active_doc_context("rendre le document ad-hoc")
 
   cli::cli_h1("Rendre le document ad-hoc : {.path {ctx$index}}")
 
-  # Render synchronously so preview_folder() (called at the end of
-  # render_folder() when preview = TRUE) runs in this interactive session
+  # Render synchronously so preview_flash() (called at the end of
+  # render_flash() when preview = TRUE) runs in this interactive session
   # and can actually drive the RStudio Viewer pane; a background job would
   # exit (killing its preview server) as soon as rendering finished.
-  render_folder(
+  render_flash(
     path     = ctx$dir,
     index    = ctx$index,
     slug     = NULL,
@@ -1805,10 +1824,10 @@ render_folder_addin <- function() {
 
 #' RStudio addin: Deploy the active document's ad-hoc site
 #'
-#' Interactive wrapper for [deploy_folder()] designed for use as an RStudio
+#' Interactive wrapper for [deploy_flash()] designed for use as an RStudio
 #' addin. Uses the document currently active in the RStudio editor as
 #' context: the folder to deploy is that document's own directory (see
-#' [adhoc_active_doc_context()]) -- i.e. wherever [render_folder_addin()]
+#' [adhoc_active_doc_context()]) -- i.e. wherever [render_flash_addin()]
 #' last produced a `_site/` next to it. Prompts for an encryption
 #' preference, then deploys synchronously in the current console session.
 #'
@@ -1816,7 +1835,7 @@ render_folder_addin <- function() {
 #'
 #' @keywords internal
 #' @noRd
-deploy_folder_addin <- function() {
+deploy_flash_addin <- function() {
   ctx <- adhoc_active_doc_context("déployer le document ad-hoc")
 
   cli::cli_h1("Déployer le document ad-hoc : {.path {ctx$index}}")
@@ -1825,7 +1844,7 @@ deploy_folder_addin <- function() {
   site_dir <- fs::path(ctx$dir, "_site")
   if (!fs::dir_exists(site_dir)) {
     cli::cli_abort(
-      "Dossier {.path _site} non trouvé dans {.path {ctx$dir}}.        Lancez d'abord {.code render_folder()} (ou l'addin        {.emph Rendre le document courant (ad-hoc)})."
+      "Dossier {.path _site} non trouvé dans {.path {ctx$dir}}.        Lancez d'abord {.code render_flash()} (ou l'addin        {.emph Rendre le document courant (ad-hoc)})."
     )
   }
 
@@ -1835,7 +1854,7 @@ deploy_folder_addin <- function() {
   encrypt <- TRUE
 
   # Deploy synchronously so console output stays visible in this session.
-  deploy_folder(
+  deploy_flash(
     path        = ctx$dir,
     slug        = NULL,
     encrypt     = encrypt,

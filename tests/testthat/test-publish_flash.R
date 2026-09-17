@@ -1,24 +1,24 @@
-# publish_folder() is a thin orchestrator: it should call render_folder_worker()
-# then deploy_folder_worker(), forwarding the same `slug` to both, and return
-# deploy_folder_worker()'s URL. Both workers are mocked out so this test
+# publish_flash() is a thin orchestrator: it should call render_flash_worker()
+# then deploy_flash_worker(), forwarding the same `slug` to both, and return
+# deploy_flash_worker()'s URL. Both workers are mocked out so this test
 # exercises only the orchestration logic (order + argument propagation), not
 # quarto rendering or any network/git side effects.
 
-test_that("publish_folder(): calls render_folder_worker() then deploy_folder_worker(), sharing the same slug", {
+test_that("publish_flash(): calls render_flash_worker() then deploy_flash_worker(), sharing the same slug", {
   calls <- list()
 
   local_mocked_bindings(
-    render_folder_worker = function(path, index, slug, progress, preview) {
+    render_flash_worker = function(path, index, slug, progress, preview) {
       calls[[length(calls) + 1]] <<- list(fn = "render", path = path, slug = slug)
       invisible(NULL)
     },
-    deploy_folder_worker = function(path, slug, encrypt, progress, trigger, full_deploy) {
+    deploy_flash_worker = function(path, slug, encrypt, progress, trigger, full_deploy) {
       calls[[length(calls) + 1]] <<- list(fn = "deploy", path = path, slug = slug)
       invisible("https://staging.ofce.fr/some-repo/my-slug/")
     }
   )
 
-  url <- publish_folder(
+  url <- publish_flash(
     path     = "some/path",
     slug     = "my-slug",
     progress = FALSE,
@@ -28,7 +28,7 @@ test_that("publish_folder(): calls render_folder_worker() then deploy_folder_wor
   # Both workers were called, exactly once each
   expect_length(calls, 2)
 
-  # render_folder_worker() ran before deploy_folder_worker()
+  # render_flash_worker() ran before deploy_flash_worker()
   expect_equal(calls[[1]]$fn, "render")
   expect_equal(calls[[2]]$fn, "deploy")
 
@@ -42,21 +42,21 @@ test_that("publish_folder(): calls render_folder_worker() then deploy_folder_wor
   expect_equal(url, "https://staging.ofce.fr/some-repo/my-slug/")
 })
 
-test_that("publish_folder(): still shares a NULL slug across both workers when unset", {
+test_that("publish_flash(): still shares a NULL slug across both workers when unset", {
   calls <- list()
 
   local_mocked_bindings(
-    render_folder_worker = function(path, index, slug, progress, preview) {
+    render_flash_worker = function(path, index, slug, progress, preview) {
       calls[[length(calls) + 1]] <<- list(fn = "render", slug = slug)
       invisible(NULL)
     },
-    deploy_folder_worker = function(path, slug, encrypt, progress, trigger, full_deploy) {
+    deploy_flash_worker = function(path, slug, encrypt, progress, trigger, full_deploy) {
       calls[[length(calls) + 1]] <<- list(fn = "deploy", slug = slug)
       invisible("https://staging.ofce.fr/some-repo/auto-slug/")
     }
   )
 
-  publish_folder(path = "some/path", progress = FALSE, as_job = FALSE)
+  publish_flash(path = "some/path", progress = FALSE, as_job = FALSE)
 
   expect_length(calls, 2)
   expect_equal(calls[[1]]$fn, "render")
@@ -65,12 +65,12 @@ test_that("publish_folder(): still shares a NULL slug across both workers when u
   expect_null(calls[[2]]$slug)
 })
 
-test_that("publish_folder(): forwards encrypt/trigger/full_deploy/progress to deploy_folder_worker()", {
+test_that("publish_flash(): forwards encrypt/trigger/full_deploy/progress to deploy_flash_worker()", {
   captured <- NULL
 
   local_mocked_bindings(
-    render_folder_worker = function(path, index, slug, progress, preview) invisible(NULL),
-    deploy_folder_worker = function(path, slug, encrypt, progress, trigger, full_deploy) {
+    render_flash_worker = function(path, index, slug, progress, preview) invisible(NULL),
+    deploy_flash_worker = function(path, slug, encrypt, progress, trigger, full_deploy) {
       captured <<- list(
         encrypt     = encrypt,
         progress    = progress,
@@ -81,7 +81,7 @@ test_that("publish_folder(): forwards encrypt/trigger/full_deploy/progress to de
     }
   )
 
-  publish_folder(
+  publish_flash(
     path        = "some/path",
     slug        = "my-slug",
     encrypt     = FALSE,

@@ -1,4 +1,4 @@
-test_that("render_folder_worker: renders a simple .qmd to _site/", {
+test_that("render_flash_worker: renders a simple .qmd to _site/", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
@@ -17,7 +17,7 @@ test_that("render_folder_worker: renders a simple .qmd to _site/", {
   writeLines(test_qmd, file.path(temp_repo, "index.qmd"))
 
   # Render using the worker function (not as_job)
-  url <- render_folder_worker(
+  url <- render_flash_worker(
     path     = temp_repo,
     index    = "index.qmd",
     slug     = NULL,
@@ -48,7 +48,7 @@ test_that("render_folder_worker: renders a simple .qmd to _site/", {
   expect_true(grepl("OFCE", html_content))
 })
 
-test_that("render_folder_worker: auto-detects index when only one .qmd exists", {
+test_that("render_flash_worker: auto-detects index when only one .qmd exists", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
@@ -66,7 +66,7 @@ test_that("render_folder_worker: auto-detects index when only one .qmd exists", 
 
   # Should not error on missing index argument
   expect_no_error({
-    render_folder_worker(
+    render_flash_worker(
       path     = temp_repo,
       index    = NULL,  # Let it auto-detect
       slug     = NULL,
@@ -78,7 +78,7 @@ test_that("render_folder_worker: auto-detects index when only one .qmd exists", 
   expect_true(file.exists(file.path(temp_repo, "_site", "index.html")))
 })
 
-test_that("render_folder_worker: picks most recently modified .qmd when multiple exist and no index specified", {
+test_that("render_flash_worker: picks most recently modified .qmd when multiple exist and no index specified", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
@@ -102,7 +102,7 @@ title: 'Two'
 Content", file.path(temp_repo, "doc2.qmd"))
 
   # No error: falls back to the most recently modified candidate (doc2.qmd)
-  render_folder_worker(
+  render_flash_worker(
     path     = temp_repo,
     index    = NULL,
     slug     = NULL,
@@ -118,7 +118,7 @@ Content", file.path(temp_repo, "doc2.qmd"))
   expect_false(file.exists(file.path(temp_repo, "_site", "doc1.html")))
 })
 
-test_that("render_folder_worker: errors when no .qmd files exist", {
+test_that("render_flash_worker: errors when no .qmd files exist", {
   skip_if_not_installed("gert")
 
   temp_repo <- tempfile(pattern = "adhoc_empty_")
@@ -130,7 +130,7 @@ test_that("render_folder_worker: errors when no .qmd files exist", {
   gert::git_config_set("user.email", "test@example.com", repo = temp_repo)
 
   expect_error(
-    render_folder_worker(
+    render_flash_worker(
       path     = temp_repo,
       index    = NULL,
       slug     = NULL,
@@ -141,7 +141,7 @@ test_that("render_folder_worker: errors when no .qmd files exist", {
   )
 })
 
-test_that("render_folder_worker: ignores any pre-existing _quarto.yml in the source folder", {
+test_that("render_flash_worker: ignores any pre-existing _quarto.yml in the source folder", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
@@ -177,7 +177,7 @@ title: 'Other'
 ---
 Content", file.path(temp_repo, "other.qmd"))
 
-  render_folder_worker(
+  render_flash_worker(
     path     = temp_repo,
     index    = "index.qmd",
     slug     = NULL,
@@ -200,7 +200,7 @@ Content", file.path(temp_repo, "other.qmd"))
   expect_false(file.exists(file.path(site_dir, "other.html")))
 })
 
-test_that("render_folder_worker: cleans up temp directory after render", {
+test_that("render_flash_worker: cleans up temp directory after render", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
@@ -218,7 +218,7 @@ test_that("render_folder_worker: cleans up temp directory after render", {
   temp_dir <- tempdir()
   files_before <- length(dir(temp_dir))
 
-  render_folder_worker(
+  render_flash_worker(
     path     = temp_repo,
     index    = "index.qmd",
     slug     = NULL,
@@ -234,7 +234,7 @@ test_that("render_folder_worker: cleans up temp directory after render", {
   expect_true(files_after - files_before < 100)
 })
 
-test_that("render_folder_worker: returns URL string", {
+test_that("render_flash_worker: returns URL string", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
@@ -248,7 +248,7 @@ test_that("render_folder_worker: returns URL string", {
 
   writeLines("---\ntitle: 'Test'\n---\nContent", file.path(temp_repo, "index.qmd"))
 
-  url <- render_folder_worker(
+  url <- render_flash_worker(
     path     = temp_repo,
     index    = "index.qmd",
     slug     = NULL,
@@ -260,7 +260,7 @@ test_that("render_folder_worker: returns URL string", {
   expect_true(grepl("https://staging.ofce.fr/", url))
 })
 
-test_that("render_folder_worker + safe_here(): reads a file outside the rendered folder", {
+test_that("render_flash_worker + safe_here(): reads a file outside the rendered folder", {
   skip_if_not_installed("quarto")
   skip_if_not_installed("gert")
 
@@ -272,7 +272,7 @@ test_that("render_folder_worker + safe_here(): reads a file outside the rendered
   gert::git_config_set("user.name", "Test User", repo = temp_repo)
   gert::git_config_set("user.email", "test@example.com", repo = temp_repo)
 
-  # File living *outside* the folder that gets rendered -- render_folder()
+  # File living *outside* the folder that gets rendered -- render_flash()
   # never copies it into its temp copy, so only safe_here() (not a plain
   # relative path, nor here::here()) can reach it from inside the render.
   shared_dir <- file.path(temp_repo, "shared")
@@ -294,7 +294,7 @@ test_that("render_folder_worker + safe_here(): reads a file outside the rendered
   )
   writeLines(index_qmd, file.path(target, "index.qmd"))
 
-  render_folder_worker(
+  render_flash_worker(
     path     = target,
     index    = "index.qmd",
     slug     = NULL,
@@ -308,4 +308,43 @@ test_that("render_folder_worker + safe_here(): reads a file outside the rendered
   html_content <- readLines(file.path(site_dir, "index.html"), warn = FALSE) |>
     paste(collapse = "\n")
   expect_true(grepl("fortytwo", html_content))
+})
+
+test_that("render_flash_worker: slug incorporates the rendered document's filename", {
+  skip_if_not_installed("quarto")
+  skip_if_not_installed("gert")
+
+  # Two documents in the *same* folder, rendered separately via an explicit
+  # `index` -- since the slug now folds in the document's own filename (not
+  # just the folder path), they must not collide.
+  temp_repo <- tempfile(pattern = "adhoc_slug_by_doc_")
+  dir.create(temp_repo, recursive = TRUE)
+  on.exit(unlink(temp_repo, recursive = TRUE))
+
+  gert::git_init(temp_repo)
+  gert::git_config_set("user.name", "Test User", repo = temp_repo)
+  gert::git_config_set("user.email", "test@example.com", repo = temp_repo)
+
+  writeLines("---\ntitle: 'One'\n---\nContent", file.path(temp_repo, "one.qmd"))
+  writeLines("---\ntitle: 'Two'\n---\nContent", file.path(temp_repo, "two.qmd"))
+
+  render_flash_worker(
+    path     = temp_repo,
+    index    = "one.qmd",
+    slug     = NULL,
+    progress = FALSE,
+    preview  = FALSE
+  )
+  meta_one <- jsonlite::read_json(file.path(temp_repo, "_site", ".adhoc-meta.json"))
+
+  render_flash_worker(
+    path     = temp_repo,
+    index    = "two.qmd",
+    slug     = NULL,
+    progress = FALSE,
+    preview  = FALSE
+  )
+  meta_two <- jsonlite::read_json(file.path(temp_repo, "_site", ".adhoc-meta.json"))
+
+  expect_false(identical(meta_one$slug, meta_two$slug))
 })

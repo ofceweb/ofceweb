@@ -96,10 +96,10 @@ reference:
     transfert FTP, via le secret `STATICRYPT_PASSWORD` — aucune manipulation
     locale n'est requise.
   contents:
-  - preview_folder
-  - render_folder
-  - deploy_folder
-  - publish_folder
+  - preview_flash
+  - render_flash
+  - deploy_flash
+  - publish_flash
 
 - title: Blog
   desc: >

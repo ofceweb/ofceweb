@@ -1,7 +1,7 @@
-#' Résout un chemin ancré à la racine du projet, robuste aux copies temporaires de `render_folder()`
+#' Résout un chemin ancré à la racine du projet, robuste aux copies temporaires de `render_flash()`
 #'
 #' Remplacement direct de [here::here()] : même signature, même résultat dans
-#' tous les cas... sauf un. [render_folder()] rend le dossier ciblé depuis une
+#' tous les cas... sauf un. [render_flash()] rend le dossier ciblé depuis une
 #' copie temporaire isolée (voir sa section *Self-contained folders*), copie
 #' qui ne contient aucun marqueur de racine (`.Rproj`, `.git`, `.here`) et qui
 #' n'inclut pas les fichiers situés hors du dossier copié. Dans ce contexte,
@@ -9,13 +9,13 @@
 #' s'il le pouvait) atteindre des fichiers jamais copiés.
 #'
 #' `safe_here()` contourne les deux problèmes : si un marqueur laissé par
-#' [render_folder()] (`.safe_here-root`, écrit par `render_folder_worker()`
+#' [render_flash()] (`.safe_here-root`, écrit par `render_flash_worker()`
 #' avant la copie) est trouvé en remontant l'arborescence depuis le
 #' répertoire de travail courant, le chemin est résolu par rapport à la
 #' racine *réelle* du projet — sur le disque, hors de la copie temporaire —
 #' exactement comme si le rendu avait eu lieu directement dans le projet
 #' (y compris pour des fichiers situés hors du dossier copié). Sinon (cas
-#' normal, hors `render_folder()`), l'appel est simplement transmis à
+#' normal, hors `render_flash()`), l'appel est simplement transmis à
 #' [here::here()].
 #'
 #' ## Limites
@@ -32,7 +32,7 @@
 #'   racine).
 #'
 #' @returns `[character(1)]` Un chemin, comme [here::here()].
-#' @seealso [render_folder()]
+#' @seealso [render_flash()]
 #' @importFrom fs path path_abs path_dir file_exists
 #' @export
 safe_here <- function(...) {
@@ -71,7 +71,7 @@ find_safe_here_marker <- function(start) {
 
 #' Détermine la racine « réelle » du projet pour un futur marqueur `safe_here()`
 #'
-#' Appelée par `render_folder_worker()`, avant toute copie, pour déterminer la
+#' Appelée par `render_flash_worker()`, avant toute copie, pour déterminer la
 #' racine que [safe_here()] devra utiliser une fois le rendu effectué depuis
 #' la copie temporaire. Utilise directement [rprojroot::find_root()] avec un
 #' critère équivalent à celui de [here::here()] (fichier `.here`, `*.Rproj`,
@@ -81,13 +81,13 @@ find_safe_here_marker <- function(start) {
 #' C'est un choix délibéré, pas une simplification anodine : [here::here()]
 #' mémorise sa racine pour toute la durée de la session R dès son premier
 #' appel et ne la recalcule jamais ensuite, quel que soit le répertoire de
-#' travail courant au moment d'un appel ultérieur. Si `render_folder()` a
+#' travail courant au moment d'un appel ultérieur. Si `render_flash()` a
 #' déjà rendu un dossier plus tôt dans la même session, le `_quarto.yml`
 #' minimal qu'il écrit dans sa copie temporaire (reconnu comme racine par ce
 #' même critère) aurait alors pu être mis en cache comme racine -- et y
 #' resterait pour le reste de la session, contaminant silencieusement tout
 #' appel ultérieur à [here::here()], y compris ici. Reproduit et vérifié
-#' empiriquement : appeler [here::here()] après un premier `render_folder()`
+#' empiriquement : appeler [here::here()] après un premier `render_flash()`
 #' dans une session RStudio renvoie la racine (fausse) du rendu précédent,
 #' quel que soit le dossier réellement ciblé ensuite. [rprojroot::find_root()]
 #' recalcule toujours à neuf à partir de `target`, sans effet de bord sur
@@ -116,7 +116,7 @@ resolve_origin_root <- function(target) {
 
 #' Écrit le marqueur `.safe_here-root` dans une copie temporaire
 #'
-#' Appelée par `render_folder_worker()` juste après avoir copié le dossier
+#' Appelée par `render_flash_worker()` juste après avoir copié le dossier
 #' ciblé dans son répertoire temporaire de rendu. N'écrit rien si
 #' `origin_root` est `NA` (racine introuvable même dans l'arborescence
 #' réelle) : [safe_here()] se comportera alors, dans la copie, exactement

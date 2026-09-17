@@ -1,20 +1,37 @@
 ## ofceweb (development version)
 
-### Nouvelle fonction `safe_here()`, remplacement direct de `here::here()` robuste à `render_folder()`
+### Renommage de la famille "flash" (`render_folder()` -> `render_flash()`, etc.) et slug par document
 
-`render_folder()` rend le dossier ciblé depuis une copie temporaire isolée
+La famille de fonctions de publication rapide d'un dossier est renommée
+pour refléter la terminologie déjà utilisée dans les addins/vignettes
+(« rendu flash », « publication flash ») : `render_folder()` devient
+`render_flash()`, `deploy_folder()` devient `deploy_flash()`,
+`publish_folder()` devient `publish_flash()`, `preview_folder()` devient
+`preview_flash()` (ainsi que leurs addins `render_flash_addin()`,
+`deploy_flash_addin()`, `publish_flash_addin()`). Aucun changement de
+comportement au-delà du nom. Par ailleurs, le `slug` auto-calculé par
+`render_flash()` intègre désormais le nom du fichier `.qmd`/`.md` rendu
+(sans son extension), en plus du chemin du dossier : deux documents
+rendus séparément depuis le même dossier (via un `index` explicite)
+obtiennent donc des slugs distincts, là où ils auraient auparavant
+collisionné silencieusement sur la même URL de staging / branche de
+déploiement.
+
+### Nouvelle fonction `safe_here()`, remplacement direct de `here::here()` robuste à `render_flash()`
+
+`render_flash()` rend le dossier ciblé depuis une copie temporaire isolée
 (voir sa section *Self-contained folders*) qui ne contient aucun marqueur de
 racine (`.Rproj`, `.git`, `.here`) et qui n'inclut jamais les fichiers situés
 hors du dossier copié. Les documents `.qmd` utilisant `here::here()` pour
 résoudre des chemins ancrés à la racine du projet -- y compris vers des
 fichiers hors du dossier rendu -- échouaient donc silencieusement une fois
-rendus via `render_folder()`, sans rien changer aux deux autres contextes
+rendus via `render_flash()`, sans rien changer aux deux autres contextes
 d'exécution réels (`quarto render` depuis le vrai projet, "Render" RStudio).
 La nouvelle fonction exportée `safe_here()` a la même signature que
 `here::here()` et s'y comporte identiquement en dehors d'une copie
-temporaire de `render_folder()` ; à l'intérieur d'une telle copie, elle
+temporaire de `render_flash()` ; à l'intérieur d'une telle copie, elle
 résout les chemins par rapport à la racine *réelle* du projet (capturée par
-`render_folder_worker()` juste avant la copie, et déposée dans un marqueur
+`render_flash_worker()` juste avant la copie, et déposée dans un marqueur
 `.safe_here-root` retrouvé en remontant l'arborescence depuis le répertoire
 de travail courant), permettant de lire des fichiers situés hors du dossier
 copié. Cela corrige la résolution de chemin côté R (`source()`,

@@ -17,7 +17,7 @@ de [here::here()] appelé depuis le dossier source, avant copie), ou
 Invisiblement `NULL`.
 }
 \description{
-Appelée par `render_folder_worker()` juste après avoir copié le dossier
+Appelée par `render_flash_worker()` juste après avoir copié le dossier
 ciblé dans son répertoire temporaire de rendu. N'écrit rien si
 `origin_root` est `NA` (racine introuvable même dans l'arborescence
 réelle) : [safe_here()] se comportera alors, dans la copie, exactement

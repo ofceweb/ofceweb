@@ -12,9 +12,9 @@ Name: Rendre (flash)
 Description: >
   Rend le document actif dans l'éditeur RStudio (et le dossier qui le
   contient) comme un site Quarto autonome dans _site/, avec un slug
-  déterministe. Injecte une bannière OFCE. Prêt pour deploy_folder_addin()
+  déterministe. Injecte une bannière OFCE. Prêt pour deploy_flash_addin()
   (ou le déploiement) après rendu.
-Binding: render_folder_addin
+Binding: render_flash_addin
 Package: ofceweb
 Interactive: true
 
@@ -25,7 +25,7 @@ Description: >
   déterministe, puis le déploie immédiatement vers staging.ofce.fr en
   un seul job d'arrière-plan. Injecte une bannière OFCE. Auto-installe
   le workflow GitHub si absent. Prend en charge l'opt-out de chiffrement.
-Binding: publish_folder_addin
+Binding: publish_flash_addin
 Package: ofceweb
 Interactive: true
 
@@ -36,7 +36,7 @@ Description: >
   déterministe, puis le déploie immédiatement vers staging.ofce.fr en
   un seul job d'arrière-plan. Injecte une bannière OFCE. Auto-installe
   le workflow GitHub si absent. Prend en charge l'opt-out de chiffrement.
-Binding: deploy_folder_addin
+Binding: deploy_flash_addin
 Package: ofceweb
 Interactive: true
 

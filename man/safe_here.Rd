@@ -2,7 +2,7 @@
 % Please edit documentation in R/safe_here.R
 \name{safe_here}
 \alias{safe_here}
-\title{Résout un chemin ancré à la racine du projet, robuste aux copies temporaires de `render_folder()`}
+\title{Résout un chemin ancré à la racine du projet, robuste aux copies temporaires de `render_flash()`}
 \usage{
 safe_here(...)
 }
@@ -15,7 +15,7 @@ racine).}
 }
 \description{
 Remplacement direct de [here::here()] : même signature, même résultat dans
-tous les cas... sauf un. [render_folder()] rend le dossier ciblé depuis une
+tous les cas... sauf un. [render_flash()] rend le dossier ciblé depuis une
 copie temporaire isolée (voir sa section *Self-contained folders*), copie
 qui ne contient aucun marqueur de racine (`.Rproj`, `.git`, `.here`) et qui
 n'inclut pas les fichiers situés hors du dossier copié. Dans ce contexte,
@@ -24,13 +24,13 @@ s'il le pouvait) atteindre des fichiers jamais copiés.
 }
 \details{
 `safe_here()` contourne les deux problèmes : si un marqueur laissé par
-[render_folder()] (`.safe_here-root`, écrit par `render_folder_worker()`
+[render_flash()] (`.safe_here-root`, écrit par `render_flash_worker()`
 avant la copie) est trouvé en remontant l'arborescence depuis le
 répertoire de travail courant, le chemin est résolu par rapport à la
 racine *réelle* du projet — sur le disque, hors de la copie temporaire —
 exactement comme si le rendu avait eu lieu directement dans le projet
 (y compris pour des fichiers situés hors du dossier copié). Sinon (cas
-normal, hors `render_folder()`), l'appel est simplement transmis à
+normal, hors `render_flash()`), l'appel est simplement transmis à
 [here::here()].
 
 ## Limites
@@ -44,5 +44,5 @@ par `safe_here()`/[here::here()] et nécessite toujours que le fichier
 soit physiquement présent dans la copie.
 }
 \seealso{
-[render_folder()]
+[render_flash()]
 }

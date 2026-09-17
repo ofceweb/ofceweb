@@ -106,7 +106,7 @@ render_folder <- function(
     slug     = NULL,
     progress = TRUE,
     preview  = TRUE,
-    as_job   = TRUE) {
+    as_job   = FALSE) {
 
   # If as_job = TRUE and RStudio is available, spin off a background job
   if (as_job && rstudioapi::isAvailable()) {
@@ -975,7 +975,7 @@ publish_folder <- function(
     progress    = TRUE,
     trigger     = TRUE,
     full_deploy = FALSE,
-    as_job      = TRUE) {
+    as_job      = FALSE) {
 
   # If as_job = TRUE and RStudio is available, spin off a single background
   # job that runs both steps sequentially (rather than two separate jobs,

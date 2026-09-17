@@ -1,3 +1,29 @@
+## ofceweb (development version)
+
+### Nouvelle fonction `safe_here()`, remplacement direct de `here::here()` robuste à `render_folder()`
+
+`render_folder()` rend le dossier ciblé depuis une copie temporaire isolée
+(voir sa section *Self-contained folders*) qui ne contient aucun marqueur de
+racine (`.Rproj`, `.git`, `.here`) et qui n'inclut jamais les fichiers situés
+hors du dossier copié. Les documents `.qmd` utilisant `here::here()` pour
+résoudre des chemins ancrés à la racine du projet -- y compris vers des
+fichiers hors du dossier rendu -- échouaient donc silencieusement une fois
+rendus via `render_folder()`, sans rien changer aux deux autres contextes
+d'exécution réels (`quarto render` depuis le vrai projet, "Render" RStudio).
+La nouvelle fonction exportée `safe_here()` a la même signature que
+`here::here()` et s'y comporte identiquement en dehors d'une copie
+temporaire de `render_folder()` ; à l'intérieur d'une telle copie, elle
+résout les chemins par rapport à la racine *réelle* du projet (capturée par
+`render_folder_worker()` juste avant la copie, et déposée dans un marqueur
+`.safe_here-root` retrouvé en remontant l'arborescence depuis le répertoire
+de travail courant), permettant de lire des fichiers situés hors du dossier
+copié. Cela corrige la résolution de chemin côté R (`source()`,
+`read.csv()`, ...) mais ne dispense pas les fichiers référencés directement
+par Quarto (chemin Markdown relatif, `{{< include >}}`) d'être physiquement
+présents dans le dossier rendu. Documents existants : remplacer
+`here::here()` par `ofceweb::safe_here()` pour en bénéficier ; rien ne se
+fait automatiquement.
+
 ## ofceweb 1.0.3
 
 ### `wp_manifest()`/`pb_manifest()` : nouveau champ `pdf-path`

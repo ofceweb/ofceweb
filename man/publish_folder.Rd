@@ -12,7 +12,7 @@ publish_folder(
   progress = TRUE,
   trigger = TRUE,
   full_deploy = FALSE,
-  as_job = TRUE
+  as_job = FALSE
 )
 }
 \arguments{

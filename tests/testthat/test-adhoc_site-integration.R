@@ -259,3 +259,53 @@ test_that("render_folder_worker: returns URL string", {
   expect_type(url, "character")
   expect_true(grepl("https://staging.ofce.fr/", url))
 })
+
+test_that("render_folder_worker + safe_here(): reads a file outside the rendered folder", {
+  skip_if_not_installed("quarto")
+  skip_if_not_installed("gert")
+
+  temp_repo <- tempfile(pattern = "adhoc_safe_here_")
+  dir.create(temp_repo, recursive = TRUE)
+  on.exit(unlink(temp_repo, recursive = TRUE))
+
+  gert::git_init(temp_repo)
+  gert::git_config_set("user.name", "Test User", repo = temp_repo)
+  gert::git_config_set("user.email", "test@example.com", repo = temp_repo)
+
+  # File living *outside* the folder that gets rendered -- render_folder()
+  # never copies it into its temp copy, so only safe_here() (not a plain
+  # relative path, nor here::here()) can reach it from inside the render.
+  shared_dir <- file.path(temp_repo, "shared")
+  dir.create(shared_dir)
+  writeLines("fortytwo", file.path(shared_dir, "value.txt"))
+
+  target <- file.path(temp_repo, "sub")
+  dir.create(target)
+
+  index_qmd <- c(
+    "---",
+    "title: 'Outside file test'",
+    "---",
+    "```{r}",
+    "value_path <- ofceweb::safe_here('shared', 'value.txt')",
+    "if (!file.exists(value_path)) stop('outside file not found via safe_here()')",
+    "readLines(value_path)",
+    "```"
+  )
+  writeLines(index_qmd, file.path(target, "index.qmd"))
+
+  render_folder_worker(
+    path     = target,
+    index    = "index.qmd",
+    slug     = NULL,
+    progress = FALSE,
+    preview  = FALSE
+  )
+
+  site_dir <- file.path(target, "_site")
+  expect_true(file.exists(file.path(site_dir, "index.html")))
+
+  html_content <- readLines(file.path(site_dir, "index.html"), warn = FALSE) |>
+    paste(collapse = "\n")
+  expect_true(grepl("fortytwo", html_content))
+})

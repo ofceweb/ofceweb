@@ -79,6 +79,15 @@
 #' is copied over. If `quarto_render()` fails on a missing file, check whether
 #' any includes are pointing outside the folder.
 #'
+#' For R code (not Quarto includes/relative Markdown paths -- see below), use
+#' [safe_here()] instead of [here::here()] in documents that might get
+#' rendered this way: it resolves paths against the *real* project root on
+#' disk (recorded before the copy is made), including for files that live
+#' outside the copied folder, rather than against the tempdir (which has no
+#' root marker of its own, and never contains those outside files anyway).
+#' It's a drop-in replacement -- outside of a `render_folder()` temp copy it
+#' behaves identically to [here::here()].
+#'
 #' ## `.gitignore` housekeeping
 #'
 #' We recommend adding `_site/` to the folder's `.gitignore` if not already
@@ -87,7 +96,7 @@
 #' echo "_site/" >> <path>/.gitignore
 #' ```
 #'
-#' @seealso [deploy_folder()], [publish_folder()], [preview_folder()], [render_prev()]
+#' @seealso [deploy_folder()], [publish_folder()], [preview_folder()], [render_prev()], [safe_here()]
 #' @importFrom fs path_expand path_abs path_norm path_rel dir_create dir_copy
 #'             file_exists dir_exists dir_delete dir_ls file_delete
 #'             path_file path_join
@@ -252,6 +261,12 @@ render_folder_worker <- function(
   if (!fs::dir_exists(target))
     cli::cli_abort("Dossier {.path {target}} non trouvé.")
 
+  # Real project root that safe_here() should use once documents get
+  # rendered out of this folder's temp copy -- see resolve_origin_root()
+  # (R/safe_here.R) for why this deliberately does not call here::here()
+  # itself.
+  origin_root <- resolve_origin_root(target)
+
   # Resolve the document to render: explicit `index`, else `index.qmd`/
   # `index.md`, else the most recently modified `.qmd`/`.md` candidate.
   index <- adhoc_resolve_index(target, index = index, progress = progress)
@@ -283,6 +298,10 @@ render_folder_worker <- function(
     temp_dir,
     overwrite = TRUE
   )
+
+  # Leave a marker recording the real project root, for safe_here() calls
+  # made from documents rendered out of this temp copy (see R/safe_here.R).
+  write_safe_here_marker(temp_dir, origin_root)
 
   # Remove any pre-existing build artifacts from temp copy
   for (artifact in c("_site", ".quarto", "_freeze", ".git")) {

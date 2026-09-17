@@ -10,7 +10,7 @@ render_folder(
   slug = NULL,
   progress = TRUE,
   preview = TRUE,
-  as_job = TRUE
+  as_job = FALSE
 )
 }
 \arguments{
@@ -99,6 +99,15 @@ in the temp copy, since only the folder itself (plus discovered `_extensions/`)
 is copied over. If `quarto_render()` fails on a missing file, check whether
 any includes are pointing outside the folder.
 
+For R code (not Quarto includes/relative Markdown paths -- see below), use
+[safe_here()] instead of [here::here()] in documents that might get
+rendered this way: it resolves paths against the *real* project root on
+disk (recorded before the copy is made), including for files that live
+outside the copied folder, rather than against the tempdir (which has no
+root marker of its own, and never contains those outside files anyway).
+It's a drop-in replacement -- outside of a `render_folder()` temp copy it
+behaves identically to [here::here()].
+
 ## `.gitignore` housekeeping
 
 We recommend adding `_site/` to the folder's `.gitignore` if not already
@@ -108,5 +117,5 @@ echo "_site/" >> <path>/.gitignore
 ```
 }
 \seealso{
-[deploy_folder()], [publish_folder()], [preview_folder()], [render_prev()]
+[deploy_folder()], [publish_folder()], [preview_folder()], [render_prev()], [safe_here()]
 }

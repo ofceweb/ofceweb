@@ -433,7 +433,7 @@ check_gh_setup <- function(root = ".", verbose = TRUE, bump_cache = TRUE) {
   if (bump_cache)
     .gh_setup_generation$n <- .gh_setup_generation$n + 1L
 
-  see_vignette <- "Voir vignette(\"prerequisites\", package = \"ofceweb\") pour la configuration."
+  see_vignette <- "{.url https://ofceweb.github.io/ofceweb}"
 
   rows <- list()
   add <- function(field, ok, msg) {
@@ -459,12 +459,12 @@ check_gh_setup <- function(root = ".", verbose = TRUE, bump_cache = TRUE) {
   # ---- CLI gh authentifi\u00e9 (gh auth status) --------------------------
   gh_auth_ok <- FALSE
   if (nzchar(gh_bin)) {
-    gh_auth_ok <- identical(
+    gh_auth_ok <- ! identical(
       tryCatch(
         system2("gh", c("auth", "status"), stdout = FALSE, stderr = FALSE),
         error = function(e) 1L
       ),
-      0L
+      1L
     )
   }
   add(

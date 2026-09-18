@@ -74,7 +74,7 @@ sync_wp_registry_state <- function(root = ".", quiet = FALSE) {
   registry_entry <- NULL
   stage <- if (!is.na(source_repo)) {
     matched <- Filter(
-      function(e) identical(e$type, "repo") && identical(e[["source-repo"]], source_repo),
+      function(e) identical(e$type, "repo") && repo_slug_equal(e[["source-repo"]], source_repo),
       entries
     )
     if (length(matched) > 0L) {

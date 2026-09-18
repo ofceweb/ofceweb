@@ -749,3 +749,14 @@ gh_slug_from_remote <- function(root = ".") {
   if (length(m) < 3) return(NA_character_)
   paste0(m[[2]], "/", m[[3]])
 }
+
+# Compare deux slugs "owner/repo" en ignorant la casse. GitHub traite les
+# noms de depot (et d'organisation) de facon insensible a la casse, mais le
+# registre stocke le `source-repo` tel que resolu au moment de
+# l'enregistrement (via gh_slug_from_remote(), qui preserve la casse du
+# remote local) -- une divergence de casse entre-temps (remote reconfigure,
+# renommage GitHub, etc.) ne doit pas faire echouer le rapprochement.
+repo_slug_equal <- function(a, b) {
+  if (is.na(a) || is.na(b)) return(FALSE)
+  identical(tolower(a), tolower(b))
+}

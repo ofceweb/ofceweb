@@ -42,7 +42,12 @@ jobs:
             echo "manifest.json existant sans champ source-repo (déploiement antérieur à ce contrôle) — vérification ignorée."
             exit 0
           fi
-          if [ "$REMOTE_REPO" != "${{ github.repository }}" ]; then
+          # Comparaison insensible à la casse : GitHub traite owner/repo sans
+          # tenir compte de la casse, mais source-repo est écrit tel que
+          # résolu localement (gh_slug_from_remote()) au moment du déploiement
+          # d'origine — une divergence de casse ne doit pas déclencher un faux
+          # positif d'anti-collision.
+          if [ "$(echo "$REMOTE_REPO" | tr '[:upper:]' '[:lower:]')" != "$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" ]; then
             echo "::error::$TARGET_URL appartient déjà au dépôt '$REMOTE_REPO' — attendu '${{ github.repository }}'. Déploiement annulé pour éviter d'écraser un WP existant."
             exit 1
           fi

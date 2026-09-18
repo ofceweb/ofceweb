@@ -1,5 +1,21 @@
 ## ofceweb 1.0.4.9000
 
+### Rapprochement du dépôt courant avec le registre insensible à la casse
+
+`sync_wp_registry_state()`/`sync_pb_registry_state()` comparaient le
+`source-repo` du remote `origin` local aux entrées du registre central
+(`ofce/wp-registry`) avec `identical()`, sensible à la casse -- une
+divergence de casse (remote reconfiguré, renommage GitHub, etc.) entre la
+casse enregistrée au moment de `wp_registry_request()`/`pb_registry_request()`
+et celle résolue localement lors d'un `setup_wp()`/`publish_wp()` ultérieur
+pouvait donc faire passer un dépôt pourtant déjà publié pour un dépôt en
+staging. Nouvelle fonction interne `repo_slug_equal()` (`R/git_utils.R`),
+utilisée dans les deux fonctions de synchronisation pour une comparaison
+`"owner/repo"` insensible à la casse. Le contrôle anti-collision des workflows
+`ftp_deploy.yml` (WP et PB), qui comparait `source-repo` du `manifest.json`
+distant à `github.repository` avec un `!=` bash tout aussi sensible à la
+casse, est corrigé de la même façon (comparaison après passage en minuscules).
+
 ## ofceweb 1.0.4
 
 ### Renommage de la famille "flash" (`render_folder()` -> `render_flash()`, etc.) et slug par document

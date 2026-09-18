@@ -42,6 +42,10 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.4.9000" id="ofceweb-1049000">ofceweb 1.0.4.9000<a class="anchor" aria-label="anchor" href="#ofceweb-1049000"></a></h2>
+<div class="section level3">
+<h3 id="rapprochement-du-dépôt-courant-avec-le-registre-insensible-à-la-casse-1-0-4-9000">Rapprochement du dépôt courant avec le registre insensible à la casse<a class="anchor" aria-label="anchor" href="#rapprochement-du-d%C3%A9p%C3%B4t-courant-avec-le-registre-insensible-%C3%A0-la-casse-1-0-4-9000"></a></h3>
+<p><code>sync_wp_registry_state()</code>/<code>sync_pb_registry_state()</code> comparaient le <code>source-repo</code> du remote <code>origin</code> local aux entrées du registre central (<code>ofce/wp-registry</code>) avec <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code>, sensible à la casse – une divergence de casse (remote reconfiguré, renommage GitHub, etc.) entre la casse enregistrée au moment de <code><a href="../reference/wp_registry_request.html">wp_registry_request()</a></code>/<code><a href="../reference/pb_registry_request.html">pb_registry_request()</a></code> et celle résolue localement lors d’un <code><a href="../reference/setup_wp.html">setup_wp()</a></code>/<code><a href="../reference/publish_wp.html">publish_wp()</a></code> ultérieur pouvait donc faire passer un dépôt pourtant déjà publié pour un dépôt en staging. Nouvelle fonction interne <code>repo_slug_equal()</code> (<code>R/git_utils.R</code>), utilisée dans les deux fonctions de synchronisation pour une comparaison <code>"owner/repo"</code> insensible à la casse. Le contrôle anti-collision des workflows <code>ftp_deploy.yml</code> (WP et PB), qui comparait <code>source-repo</code> du <code>manifest.json</code> distant à <code>github.repository</code> avec un <code>!=</code> bash tout aussi sensible à la casse, est corrigé de la même façon (comparaison après passage en minuscules).</p>
+</div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.4" id="ofceweb-104">ofceweb 1.0.4<a class="anchor" aria-label="anchor" href="#ofceweb-104"></a></h2>

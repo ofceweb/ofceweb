@@ -48,6 +48,10 @@ Contrôles effectués :
 
 - \`news.qmd\` présent (warning)
 
+- Cohérence avec le registre central \`ofce/wp-registry\` (lecture seule
+  – ne modifie jamais \`\_quarto.yml\`, contrairement à
+  \`setup_wp()\`/\`publish_wp()\`)
+
 - Si WP publié (\`wp\` non nul) : \`annee\` entier valide, cohérence
   \`version\` / dernier segment de \`site-path\`
 

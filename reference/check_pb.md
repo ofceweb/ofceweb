@@ -48,6 +48,10 @@ Contrôles effectués :
 
 - \`news.qmd\` présent (warning)
 
+- Cohérence avec le registre central \`ofce/wp-registry\` (lecture seule
+  – ne modifie jamais \`\_quarto.yml\`, contrairement à
+  \`setup_pb()\`/\`publish_pb()\`)
+
 - Si PB publié (\`pb\` non nul) : cohérence \`version\` / dernier
   segment de \`site-path\` (\`N\` ou \`N/vX\` ; \`annee\` n'est pas
   utilisé pour les PB, numérotés séquentiellement depuis l'origine)

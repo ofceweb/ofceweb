@@ -83,6 +83,10 @@ format `pb-pdf`/`pb-typst` actif, relatif à la racine `www.ofce.fr` (ex.
 de `stage`/`url` : c'est l'emplacement de publication final, pas
 nécessairement celui où le fichier est déployé au moment de l'appel.
 `NULL` si `pb` ou le fichier PDF/Typst ne sont pas encore connus.</p>
+<p>Inclut aussi un champ `ofceweb-version` : la version du package
+**ofceweb** ([utils::packageVersion()]) ayant généré le manifeste — utile
+pour diagnostiquer un manifeste produit par une version antérieure du
+package.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

@@ -69,6 +69,72 @@
   [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)/[`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md)
   on every staging FTP deploy.
 
+## Console verbosity conventions (`setup_wp()`/`setup_pb()`)
+
+- `check_gh_setup()` (called by
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)/[`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
+  with `bump_cache = FALSE`) prints a single condensed
+  `cli_alert_success()` line (“gh installé et configuré à {user_name}
+  \<{user_email}\> (jeton : {source})”) when all 4 sub-checks (`gh:cli`,
+  `gh:auth`, `gh:deploy_pat`, `git:identity`) pass. It falls back to one
+  line per check (as before) only when at least one fails.
+  [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)/[`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)/[`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
+  still call it with `verbose = FALSE` and read the returned
+  `data.frame` themselves — unaffected.
+- Template installation (`_quarto.yml`, `index.qmd`, `annexes.qmd`,
+  `news.qmd`, `www/`) no longer prints a success/info line per file.
+  Each is tracked into a `tmpl_status` named vector
+  (`"copié"`/`"existant"`/`"synchronisé"`) and reported as one
+  `cli_alert_info("Gabarits : ...")` line after the `www/` copy step.
+- `set_gh_var(root, name, value, verbose = TRUE)` gained a `verbose`
+  argument and now always returns (invisibly)
+  `list(ok = logical, message = chaîne)`.
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  call it with `verbose = FALSE` for
+  `FTP_SERVER_DIR`/`FTP_REDIRECT_DIR`/`FTP_STAGING_DIR` and collapse the
+  results into one
+  `cli_alert_success("Variables GitHub mises à jour : ...")` (+ a
+  separate warning line listing any that failed). All other callers
+  (`wp_redirect.R`, `pb_redirect.R`, `prev_redirect.R`,
+  `site_redirect.R`,
+  [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md),
+  [`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md),
+  `*_version_up()`,
+  [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md),
+  [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md))
+  keep the default `verbose = TRUE` and are unaffected.
+
+## Registry consistency check in `check_wp()`/`check_pb()`
+
+- `registry_diag_rows(entries, source_repo, local_id, local_annee = NULL, kind = c("wp", "pb"))`
+  (`R/git_utils.R`) is a shared, **read-only** diagnostic: it compares
+  `_quarto.yml`’s `wp`/`annee` (or `pb`) against the matching entry in
+  `ofce/wp-registry` (found via `repo_slug_equal()` on the `origin`
+  remote), and returns `list(field = "registry", status, message)` rows
+  for `add_diag()`. Unlike
+  `sync_wp_registry_state()`/`sync_pb_registry_state()` (called by
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)/[`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md)/[`publish_pb()`](https://ofceweb.github.io/ofceweb/reference/publish_pb.md)),
+  it never writes `_quarto.yml` — safe to call unconditionally from
+  [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)/[`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+  on every invocation.
+- [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
+  calls it with `fetch_wp_entries()` + `yml$wp`/`yml$annee`,
+  `kind = "wp"`;
+  [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+  with `fetch_pb_entries()` + `yml$pb` (no `local_annee` — PBs are
+  numbered sequentially, independent of year), `kind = "pb"`. Both fetch
+  calls are unauthenticated (`raw.githubusercontent.com`), so this check
+  runs even without `gh` auth.
+- Outcomes: `"ok"` when local and registry numbers match (or when absent
+  from both, i.e. still a draft); `"warning"` for any mismatch, a
+  registered entry not yet reflected locally (relancer
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)),
+  a local number no longer found in the registry, an unreachable
+  registry, or an unresolved `origin` remote.
+  [`check_prev()`](https://ofceweb.github.io/ofceweb/reference/check_prev.md)
+  has no equivalent — previsions have no registry (`repo_type.R` lists
+  `registry = NULL` for `prev`).
+
 ## JSON read/write conventions
 
 - Always pair

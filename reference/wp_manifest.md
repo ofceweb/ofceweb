@@ -41,6 +41,11 @@ nécessairement celui où le fichier est déployé au moment de l'appel.
 \`NULL\` si \`wp\`/\`annee\` ou le fichier PDF/Typst ne sont pas encore
 connus.
 
+Inclut aussi un champ \`ofceweb-version\` : la version du package
+\*\*ofceweb\*\* (\[utils::packageVersion()\]) ayant généré le manifeste
+— utile pour diagnostiquer un manifeste produit par une version
+antérieure du package.
+
 ## See also
 
 \[render_wp()\], \[wp_version_up()\]

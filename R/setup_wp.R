@@ -313,14 +313,17 @@ setup_wp <- function(
   if (!nzchar(pkg_share))
     pkg_share <- fs::path(root, "inst", "share")
 
+  # Récapitulatif condensé de l'installation des gabarits (sections 5-8) --
+  # une seule ligne en fin de section 8, plutôt qu'un succès/info par fichier.
+  tmpl_status <- character()
+
   # ---- 5. copie _quarto.yml (seulement si absent) ---------------------------
   src_yaml  <- fs::path(pkg_setup_wp, "_quarto.yml")
   if (!fs::file_exists(dest_yaml)) {
     fs::file_copy(src_yaml, dest_yaml, overwrite = FALSE)
-
-    cli::cli_alert_success("Copie de {.file _quarto.yml}")
+    tmpl_status["_quarto.yml"] <- "copié"
   } else {
-    cli::cli_alert_info("{.file _quarto.yml} déjà présent — non écrasé.")
+    tmpl_status["_quarto.yml"] <- "existant"
   }
 
   # ---- 6. copie index.qmd (si absent) ---------------------------------------
@@ -330,9 +333,9 @@ setup_wp <- function(
   if (created_index) {
     fs::file_copy(src_index, dest_index, overwrite = FALSE)
     index_yml <- get_yaml(dest_index)
-    cli::cli_alert_success("Copie de {.file index.qmd}")
+    tmpl_status["index.qmd"] <- "copié"
   } else {
-    cli::cli_alert_info("{.file index.qmd} déjà présent — non écrasé.")
+    tmpl_status["index.qmd"] <- "existant"
   }
 
   # ---- 6a. format HTML : wp-html reste l'unique format HTML actif --------
@@ -514,9 +517,9 @@ setup_wp <- function(
     dest_qmd <- fs::path(root, qmd)
     if (!fs::file_exists(dest_qmd)) {
       fs::file_copy(fs::path(pkg_setup_wp, qmd), dest_qmd, overwrite = FALSE)
-      cli::cli_alert_success("Copie de {.file {qmd}}")
+      tmpl_status[qmd] <- "copié"
     } else {
-      cli::cli_alert_info("{.file {qmd}} déjà présent — non écrasé.")
+      tmpl_status[qmd] <- "existant"
     }
   }
 
@@ -531,8 +534,12 @@ setup_wp <- function(
       else
         fs::file_copy(f, fs::path(dest_www, fs::path_file(f)), overwrite = TRUE)
     }
-    cli::cli_alert_success("Copie du dossier {.path www/}")
+    tmpl_status["www/"] <- "synchronisé"
   }
+
+  cli::cli_alert_info(
+    "Gabarits : {paste(names(tmpl_status), paste0('(', tmpl_status, ')'), collapse = ', ')}"
+  )
 
   # ---- 8b. polices Google (thèmes OFCE) -------------------------------------
   tryCatch(
@@ -928,6 +935,15 @@ setup_wp <- function(
       cli::cli_alert_warning("update_navbar() a échoué : {conditionMessage(e)}")
   )
 
+  # Variables GitHub Actions posées ci-dessous (sections 12/12b) -- un seul
+  # récapitulatif ligne unique après FTP_STAGING_DIR, plutôt qu'un
+  # succès/avertissement par variable (chaque set_gh_var() appelé en
+  # verbose = FALSE).
+  gh_var_status <- character()
+  record_gh_var <- function(name, res) {
+    gh_var_status[[name]] <<- if (isTRUE(res$ok)) "ok" else "échec"
+  }
+
   # ---- 12. server-dir dans le workflow FTP ----------------------------------
   # yml$wp est la valeur effective : argument fourni (mis à jour en section 11)
   # ou valeur déjà présente dans le YAML. NULL uniquement pour les brouillons.
@@ -936,7 +952,7 @@ setup_wp <- function(
     server_dir <- yml_after$website$`site-path`
     if (!is.null(server_dir) && nzchar(server_dir)) {
       if (!grepl("/$", server_dir)) server_dir <- paste0(server_dir, "/")
-      set_gh_var(root, "FTP_SERVER_DIR", server_dir)
+      record_gh_var("FTP_SERVER_DIR", set_gh_var(root, "FTP_SERVER_DIR", server_dir, verbose = FALSE))
       # URL stable : répertoire parent du site-path (sans le segment de
       # version). Le dernier segment est censé être `yml$version` -- on le
       # retire par sa valeur connue (comparaison de chaîne) plutôt que par
@@ -954,7 +970,7 @@ setup_wp <- function(
       } else {
         paste0(server_dir_clean, "/")
       }
-      set_gh_var(root, "FTP_REDIRECT_DIR", redirect_dir)
+      record_gh_var("FTP_REDIRECT_DIR", set_gh_var(root, "FTP_REDIRECT_DIR", redirect_dir, verbose = FALSE))
     }
   }
 
@@ -968,7 +984,16 @@ setup_wp <- function(
   staging_ver_seg <- if (!is.null(staging_version) && nzchar(as.character(staging_version)))
     paste0(staging_version, "/") else ""
   staging_dir <- sprintf("%s/%s", staging_slug, staging_ver_seg)
-  set_gh_var(root, "FTP_STAGING_DIR", staging_dir)
+  record_gh_var("FTP_STAGING_DIR", set_gh_var(root, "FTP_STAGING_DIR", staging_dir, verbose = FALSE))
+
+  if (length(gh_var_status) > 0L) {
+    ok_vars  <- names(gh_var_status)[gh_var_status == "ok"]
+    bad_vars <- names(gh_var_status)[gh_var_status == "échec"]
+    if (length(ok_vars) > 0L)
+      cli::cli_alert_success("Variables GitHub mises à jour : {paste(ok_vars, collapse = ', ')}")
+    if (length(bad_vars) > 0L)
+      cli::cli_alert_warning("Variables GitHub en échec : {paste(bad_vars, collapse = ', ')}")
+  }
 
   # ---- 13. .gitignore -------------------------------------------------------
   gi_path      <- fs::path(root, ".gitignore")

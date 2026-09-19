@@ -14,6 +14,9 @@
 #'   \item `index.qmd` présent, déclare `wp-html` et `wp-pdf` / `wp-typst`
 #'   \item `references.bib` présent (warning)
 #'   \item `news.qmd` présent (warning)
+#'   \item Cohérence avec le registre central `ofce/wp-registry` (lecture
+#'     seule -- ne modifie jamais `_quarto.yml`, contrairement à
+#'     `setup_wp()`/`publish_wp()`)
 #'   \item Si WP publié (`wp` non nul) : `annee` entier valide, cohérence
 #'     `version` / dernier segment de `site-path`
 #'   \item Nom du dépôt conforme à `wp-{initiale}-{nom court}` (minuscules)
@@ -166,6 +169,16 @@ check_wp <- function(path = ".", verbose = TRUE) {
     add_diag("author", "error", "Champ `author` absent de _quarto.yml.")
   } else {
     add_diag("author", "ok", "Champ `author` présent.")
+  }
+
+  # ---- registre central wp-registry (lecture seule) ------------------------
+  # Diagnostic uniquement : contrairement à setup_wp()/publish_wp(), ne
+  # modifie jamais _quarto.yml. Signale une divergence (numéro repris,
+  # entrée supprimée, setup_wp() pas relancé après enregistrement, etc.).
+  registry_entries <- tryCatch(fetch_wp_entries(), error = function(e) NULL)
+  registry_repo    <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
+  for (r in registry_diag_rows(registry_entries, registry_repo, yml$wp, yml$annee, kind = "wp")) {
+    add_diag(r$field, r$status, r$message)
   }
 
   # ---- project.type: ofce-website -------------------------------------------

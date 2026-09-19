@@ -190,11 +190,27 @@ download_gh_file <- function(path, dest = path, owner="ofceweb", repo = "webblog
 # Crée ou met à jour une GitHub Actions repository variable (publique).
 # Utilise PATCH pour mettre à jour, POST pour créer si 404.
 # Avertit sans lever d'erreur en cas d'absence de token ou d'échec API.
-set_gh_var <- function(root = ".", name, value) {
+# `verbose = FALSE` supprime l'affichage individuel (succès/avertissement) --
+# utilisé par les appelants qui posent plusieurs variables d'affilée et
+# préfèrent n'afficher qu'un seul récapitulatif (ex. setup_wp()/setup_pb()).
+# Renvoie toujours, invisible, list(ok = logical, message = chaîne) : les
+# appelants silencieux s'en servent pour construire leur propre résumé.
+set_gh_var <- function(root = ".", name, value, verbose = TRUE) {
+  # `ok`/`plain` alimentent le résumé renvoyé à l'appelant silencieux ;
+  # `cli_fun`/`cli_msg` reproduisent l'affichage détaillé d'origine quand
+  # verbose = TRUE (défaut).
+  report <- function(ok, plain, cli_fun = NULL, cli_msg = plain) {
+    if (verbose) {
+      if (is.null(cli_fun)) cli_fun <- if (ok) cli::cli_alert_success else cli::cli_alert_warning
+      cli_fun(cli_msg)
+    }
+    invisible(list(ok = ok, message = plain))
+  }
+
   remotes <- tryCatch(gert::git_remote_list(repo = root), error = function(e) NULL)
   if (is.null(remotes) || nrow(remotes) == 0) {
-    cli::cli_alert_warning("Pas de remote git — variable GitHub {.val {name}} non définie.")
-    return(invisible(NULL))
+    return(report(FALSE, sprintf("Pas de remote git — variable GitHub %s non définie.", name),
+                  cli_msg = "Pas de remote git — variable GitHub {.val {name}} non définie."))
   }
   origin_url <- remotes$url[remotes$name == "origin"]
   if (length(origin_url) == 0) origin_url <- remotes$url[[1]]
@@ -213,11 +229,13 @@ set_gh_var <- function(root = ".", name, value) {
       error = function(e) ""
     )
   if (!nchar(token)) {
-    cli::cli_alert_warning(c(
-      "Pas de token GitHub — variable {.val {name}} non définie sur GitHub.",
-      "i" = "Définissez {.envvar DEPLOY_PAT} ou connectez-vous avec {.run usethis::create_github_token()}."
+    return(report(
+      FALSE, sprintf("Pas de token GitHub — variable %s non définie sur GitHub.", name),
+      cli_msg = c(
+        "Pas de token GitHub — variable {.val {name}} non définie sur GitHub.",
+        "i" = "Définissez {.envvar DEPLOY_PAT} ou connectez-vous avec {.run usethis::create_github_token()}."
+      )
     ))
-    return(invisible(NULL))
   }
 
   value <- as.character(value)
@@ -243,8 +261,8 @@ set_gh_var <- function(root = ".", name, value) {
   )
 
   if (httr2::resp_status(patch_resp) == 204L) {
-    cli::cli_alert_success("Variable GitHub {.val {name}} mise à jour : {.val {value}}")
-    return(invisible(NULL))
+    return(report(TRUE, sprintf("Variable GitHub %s mise à jour : %s", name, value),
+                  cli_msg = "Variable GitHub {.val {name}} mise à jour : {.val {value}}"))
   }
 
   if (httr2::resp_status(patch_resp) == 404L) {
@@ -254,23 +272,25 @@ set_gh_var <- function(root = ".", name, value) {
       list(name = name, value = value)
     )
     if (httr2::resp_status(post_resp) == 201L) {
-      cli::cli_alert_success("Variable GitHub {.val {name}} créée : {.val {value}}")
-      return(invisible(NULL))
+      return(report(TRUE, sprintf("Variable GitHub %s créée : %s", name, value),
+                    cli_msg = "Variable GitHub {.val {name}} créée : {.val {value}}"))
     }
     body_msg <- tryCatch(httr2::resp_body_json(post_resp)$message, error = \(e) "?")
-    cli::cli_alert_warning(
-      "Impossible de créer la variable GitHub {.val {name}} \\
+    return(report(
+      FALSE, sprintf("Impossible de créer la variable GitHub %s (HTTP %s) : %s",
+                      name, httr2::resp_status(post_resp), body_msg),
+      cli_msg = "Impossible de créer la variable GitHub {.val {name}} \\
        (HTTP {httr2::resp_status(post_resp)}) : {body_msg}"
-    )
-    return(invisible(NULL))
+    ))
   }
 
   body_msg <- tryCatch(httr2::resp_body_json(patch_resp)$message, error = \(e) "?")
-  cli::cli_alert_warning(
-    "Impossible de mettre à jour la variable GitHub {.val {name}} \\
+  report(
+    FALSE, sprintf("Impossible de mettre à jour la variable GitHub %s (HTTP %s) : %s",
+                    name, httr2::resp_status(patch_resp), body_msg),
+    cli_msg = "Impossible de mettre à jour la variable GitHub {.val {name}} \\
      (HTTP {httr2::resp_status(patch_resp)}) : {body_msg}"
   )
-  invisible(NULL)
 }
 
 #' Compteur de générations pour [check_gh_setup()]
@@ -435,15 +455,13 @@ check_gh_setup <- function(root = ".", verbose = TRUE, bump_cache = TRUE) {
 
   see_vignette <- "{.url https://ofceweb.github.io/ofceweb}"
 
+  # L'affichage détaillé (une ligne par vérification) n'a lieu qu'en cas
+  # d'anomalie -- voir le résumé condensé après la boucle `add()` ci-dessous.
   rows <- list()
   add <- function(field, ok, msg) {
     status <- if (ok) "ok" else "warning"
     full_msg <- if (ok) msg else paste(msg, see_vignette)
     rows[[length(rows) + 1L]] <<- list(field = field, status = status, message = full_msg)
-    if (verbose) {
-      if (ok) cli::cli_alert_success(msg)
-      else cli::cli_alert_warning(c(msg, "i" = see_vignette))
-    }
   }
 
   # ---- CLI gh installé -------------------------------------------------
@@ -518,6 +536,23 @@ check_gh_setup <- function(root = ".", verbose = TRUE, bump_cache = TRUE) {
     message = vapply(rows, `[[`, character(1), "message"),
     stringsAsFactors = FALSE
   )
+
+  if (verbose) {
+    if (all(df$status == "ok")) {
+      # Tout est en ordre : un seul récapitulatif plutôt que 4 lignes
+      # (gh:cli, gh:auth, gh:deploy_pat, git:identity).
+      cli::cli_alert_success(
+        "gh install\u00e9 et configur\u00e9 \u00e0 {user_name} <{user_email}> (jeton : {token_source})."
+      )
+    } else {
+      # Au moins une anomalie : détail ligne par ligne, comme avant.
+      for (r in rows) {
+        if (r$status == "ok") cli::cli_alert_success(r$message)
+        else cli::cli_alert_warning(r$message)
+      }
+    }
+  }
+
   invisible(df)
 }
 
@@ -759,4 +794,107 @@ gh_slug_from_remote <- function(root = ".") {
 repo_slug_equal <- function(a, b) {
   if (is.na(a) || is.na(b)) return(FALSE)
   identical(tolower(a), tolower(b))
+}
+
+#' Diagnostic (lecture seule) de cohérence avec le registre central
+#'
+#' Compare l'état local (`local_id`/`local_annee` lus dans `_quarto.yml`) à
+#' l'entrée trouvée dans `ofce/wp-registry` (recherchée par correspondance
+#' sur le remote `origin`, via [repo_slug_equal()]). Purement diagnostique :
+#' contrairement à [sync_wp_registry_state()]/`sync_pb_registry_state()`
+#' (appelées par `setup_wp()`/`setup_pb()`), cette fonction ne fait jamais
+#' que lire le réseau -- elle n'écrit jamais `_quarto.yml`. Partagée par
+#' [check_wp()] (`kind = "wp"`, avec `local_annee`) et [check_pb()]
+#' (`kind = "pb"`, sans année -- numérotation séquentielle).
+#'
+#' @param entries Liste d'entrées renvoyée par `fetch_wp_entries()`/
+#'   `fetch_pb_entries()`, ou `NULL` si le registre est inaccessible.
+#' @param source_repo Slug `"owner/repo"` du dépôt local
+#'   ([gh_slug_from_remote()]), ou `NA` si le remote `origin` est introuvable.
+#' @param local_id Valeur de `yml$wp`/`yml$pb` (entier ou `NULL`).
+#' @param local_annee Valeur de `yml$annee` (WP uniquement) ; `NULL` pour PB.
+#' @param kind Chaîne `"wp"` ou `"pb"` -- utilisée pour les messages
+#'   (`setup_{kind}()`, `{kind}_registry_request()`).
+#' @return Liste de listes `list(field, status, message)`, à transmettre une
+#'   à une à `add_diag()`.
+#' @keywords internal
+#' @noRd
+registry_diag_rows <- function(entries, source_repo, local_id, local_annee = NULL,
+                                kind = c("wp", "pb")) {
+  kind <- match.arg(kind)
+  setup_fn   <- sprintf("setup_%s", kind)
+  request_fn <- sprintf("%s_registry_request", kind)
+
+  rows <- list()
+  push <- function(status, message) {
+    rows[[length(rows) + 1L]] <<- list(field = "registry", status = status, message = message)
+  }
+
+  if (is.null(entries)) {
+    push("warning",
+         "Registre central inaccessible (wp-registry) \u2014 impossible de v\u00e9rifier la coh\u00e9rence avec le registre.")
+    return(rows)
+  }
+
+  if (is.na(source_repo)) {
+    push("warning",
+         "Remote origin introuvable ou non reconnu \u2014 impossible de v\u00e9rifier l'inscription au registre central.")
+    return(rows)
+  }
+
+  matched <- Filter(
+    function(e) identical(e$type, "repo") && repo_slug_equal(e[["source-repo"]], source_repo),
+    entries
+  )
+
+  if (length(matched) == 0L) {
+    if (!is.null(local_id)) {
+      push("warning", sprintf(
+        "%s = %s pr\u00e9sent dans _quarto.yml mais le d\u00e9p\u00f4t est absent du registre central \u2014 v\u00e9rifier (entr\u00e9e supprim\u00e9e, ou PR %s() pas encore fusionn\u00e9e).",
+        kind, local_id, request_fn))
+    } else {
+      push("ok", sprintf(
+        "D\u00e9p\u00f4t non trouv\u00e9 dans le registre central \u2014 brouillon (normal avant fusion de %s()).",
+        request_fn))
+    }
+    return(rows)
+  }
+
+  entry  <- matched[[1L]]
+  reg_id <- suppressWarnings(as.integer(entry[[kind]]))
+
+  if (is.null(local_id)) {
+    push("warning", sprintf(
+      "D\u00e9p\u00f4t enregistr\u00e9 (%s = %s) mais _quarto.yml ne porte pas encore ce num\u00e9ro \u2014 relancer %s().",
+      kind, reg_id, setup_fn))
+    return(rows)
+  }
+
+  local_id_int <- suppressWarnings(as.integer(local_id))
+  id_ok <- !is.na(local_id_int) && !is.na(reg_id) && identical(local_id_int, reg_id)
+
+  if (!is.null(local_annee)) {
+    reg_annee       <- suppressWarnings(as.integer(entry[["annee"]]))
+    local_annee_int <- suppressWarnings(as.integer(local_annee))
+    annee_ok <- !is.na(local_annee_int) && !is.na(reg_annee) && identical(local_annee_int, reg_annee)
+    if (id_ok && annee_ok) {
+      push("ok", sprintf(
+        "%s/annee locaux (%s/%s) coh\u00e9rents avec le registre central.",
+        kind, local_id_int, local_annee_int))
+    } else {
+      push("warning", sprintf(
+        "%s/annee locaux (%s/%s) ne correspondent pas au registre central (%s/%s) \u2014 relancer %s().",
+        kind, local_id, local_annee, reg_id, reg_annee, setup_fn))
+    }
+  } else {
+    if (id_ok) {
+      push("ok", sprintf("%s local (%s) coh\u00e9rent avec le registre central.", kind, local_id_int))
+    } else {
+      push("warning", sprintf(
+        "%s local (%s) ne correspond pas au registre central (%s) \u2014 relancer %s().",
+        kind, local_id, reg_id, setup_fn))
+    }
+  }
+
+  rows
 }

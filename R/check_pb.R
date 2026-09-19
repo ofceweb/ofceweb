@@ -14,6 +14,9 @@
 #'   \item `index.qmd` présent, déclare `pb-html` et `pb-pdf` / `pb-typst`
 #'   \item `references.bib` présent (warning)
 #'   \item `news.qmd` présent (warning)
+#'   \item Cohérence avec le registre central `ofce/wp-registry` (lecture
+#'     seule -- ne modifie jamais `_quarto.yml`, contrairement à
+#'     `setup_pb()`/`publish_pb()`)
 #'   \item Si PB publié (`pb` non nul) : cohérence `version` / dernier
 #'     segment de `site-path` (`N` ou `N/vX` ; `annee` n'est pas utilisé
 #'     pour les PB, numérotés séquentiellement depuis l'origine)
@@ -158,6 +161,16 @@ check_pb <- function(path = ".", verbose = TRUE) {
     add_diag("author", "error", "Champ `author` absent de _quarto.yml.")
   } else {
     add_diag("author", "ok", "Champ `author` présent.")
+  }
+
+  # ---- registre central wp-registry (lecture seule) ------------------------
+  # Diagnostic uniquement : contrairement à setup_pb()/publish_pb(), ne
+  # modifie jamais _quarto.yml. Signale une divergence (numéro repris,
+  # entrée supprimée, setup_pb() pas relancé après enregistrement, etc.).
+  registry_entries <- tryCatch(fetch_pb_entries(), error = function(e) NULL)
+  registry_repo    <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
+  for (r in registry_diag_rows(registry_entries, registry_repo, yml$pb, kind = "pb")) {
+    add_diag(r$field, r$status, r$message)
   }
 
   # ---- project.type: ofce-website -------------------------------------------

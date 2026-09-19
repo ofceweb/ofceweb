@@ -32,6 +32,11 @@ format `wp-pdf`/`wp-typst` actif, relatif à la racine `www.ofce.fr` (ex.
 indépendamment de `stage`/`url` : c'est l'emplacement de publication final,
 pas nécessairement celui où le fichier est déployé au moment de l'appel.
 `NULL` si `wp`/`annee` ou le fichier PDF/Typst ne sont pas encore connus.
+
+Inclut aussi un champ `ofceweb-version` : la version du package
+**ofceweb** ([utils::packageVersion()]) ayant généré le manifeste — utile
+pour diagnostiquer un manifeste produit par une version antérieure du
+package.
 }
 \seealso{
 [render_wp()], [wp_version_up()]

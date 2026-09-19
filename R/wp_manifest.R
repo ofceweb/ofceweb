@@ -19,6 +19,11 @@
 #' pas nécessairement celui où le fichier est déployé au moment de l'appel.
 #' `NULL` si `wp`/`annee` ou le fichier PDF/Typst ne sont pas encore connus.
 #'
+#' Inclut aussi un champ `ofceweb-version` : la version du package
+#' **ofceweb** ([utils::packageVersion()]) ayant généré le manifeste — utile
+#' pour diagnostiquer un manifeste produit par une version antérieure du
+#' package.
+#'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #'
 #' @returns La liste du manifeste (invisible).
@@ -145,7 +150,8 @@ wp_manifest <- function(path = ".", stage = NULL) {
     `pdf-path`    = pdf_path,
     repo          = repo_url,
     lang          = lang,
-    `source-repo` = source_repo
+    `source-repo` = source_repo,
+    `ofceweb-version` = as.character(utils::packageVersion("ofceweb"))
   )
 
   json_str <- jsonlite::toJSON(

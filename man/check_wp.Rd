@@ -34,6 +34,9 @@ Contrôles effectués :
   \item `index.qmd` présent, déclare `wp-html` et `wp-pdf` / `wp-typst`
   \item `references.bib` présent (warning)
   \item `news.qmd` présent (warning)
+  \item Cohérence avec le registre central `ofce/wp-registry` (lecture
+    seule -- ne modifie jamais `_quarto.yml`, contrairement à
+    `setup_wp()`/`publish_wp()`)
   \item Si WP publié (`wp` non nul) : `annee` entier valide, cohérence
     `version` / dernier segment de `site-path`
   \item Nom du dépôt conforme à `wp-{initiale}-{nom court}` (minuscules)

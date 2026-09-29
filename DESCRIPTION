@@ -65,6 +65,7 @@ Imports:
     purrr,
     qs2,
     quarto,
+    rlang,
     rprojroot,
     servr,
     staticryptR,

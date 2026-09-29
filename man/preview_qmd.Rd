@@ -21,6 +21,13 @@ Passé à [quarto::quarto_render()] et utilisé pour lire le bon
 \item{daemon}{Logique. Si `TRUE` (défaut), le serveur HTTP tourne en
 arrière-plan sans bloquer la console.}
 
+\item{use_freezer}{Logique (défaut `FALSE`). Passé à
+[quarto::quarto_render()] pour activer/désactiver l'usage du cache de
+type freezer lors du rendu.}
+
+\item{as_job}{Logique (défaut `FALSE`). Passé à [quarto::quarto_render()]
+pour exécuter le rendu dans un RStudio Job plutôt que dans la console.}
+
 \item{...}{Arguments supplémentaires passés à [quarto::quarto_render()].}
 }
 \value{
@@ -44,5 +51,11 @@ Le répertoire servi et le chemin initial sont déduits automatiquement via
     `_quarto.yml` et `_quarto-{profile}.yml`.
   \item Sans projet détecté ou sans `output-dir` configuré, le serveur
     pointe sur le dossier du `.qmd` lui-même.
+  \item Si aucun `_quarto.yml` n'existe dans l'arborescence au-dessus du
+    fichier, un `_quarto.yml` minimal est créé temporairement dans le
+    dossier du fichier (frontière de projet pour le CLI `quarto`, qui
+    sinon peut remonter jusqu'à des dossiers sans rapport comme `$HOME`).
+    Il est supprimé automatiquement à la fin de l'appel, que le rendu
+    réussisse ou échoue.
 }
 }

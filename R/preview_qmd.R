@@ -16,6 +16,12 @@
 #'     `_quarto.yml` et `_quarto-{profile}.yml`.
 #'   \item Sans projet détecté ou sans `output-dir` configuré, le serveur
 #'     pointe sur le dossier du `.qmd` lui-même.
+#'   \item Si aucun `_quarto.yml` n'existe dans l'arborescence au-dessus du
+#'     fichier, un `_quarto.yml` minimal est créé temporairement dans le
+#'     dossier du fichier (frontière de projet pour le CLI `quarto`, qui
+#'     sinon peut remonter jusqu'à des dossiers sans rapport comme `$HOME`).
+#'     Il est supprimé automatiquement à la fin de l'appel, que le rendu
+#'     réussisse ou échoue.
 #' }
 #'
 #' @param profile `[character(1)]` ou `NULL`.\cr
@@ -24,6 +30,11 @@
 #'   `_quarto-{profile}.yml`. `NULL` (défaut) = rendu sans profil.
 #' @param daemon Logique. Si `TRUE` (défaut), le serveur HTTP tourne en
 #'   arrière-plan sans bloquer la console.
+#' @param use_freezer Logique (défaut `FALSE`). Passé à
+#'   [quarto::quarto_render()] pour activer/désactiver l'usage du cache de
+#'   type freezer lors du rendu.
+#' @param as_job Logique (défaut `FALSE`). Passé à [quarto::quarto_render()]
+#'   pour exécuter le rendu dans un RStudio Job plutôt que dans la console.
 #' @param ... Arguments supplémentaires passés à [quarto::quarto_render()].
 #'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
@@ -48,17 +59,20 @@ preview_qmd <- function(profile = NULL,
 
   ctx <- rstudioapi::getSourceEditorContext()
 
-  project <- rstudioapi::getActiveProject() |> fs::path_file()
+  active_project <- rstudioapi::getActiveProject()
 
-  if(is.null(project))
-    cli::cli_abort("{.fn preview_qmd} requiet un project RStudio ouvert")
+  if (is.null(active_project))
+    cli::cli_abort("{.fn preview_qmd} requiert un projet RStudio ouvert.")
+
+  project <- active_project |> fs::path_file()
 
   path <- ctx$path |> stringr::str_extract(".+/{project}/(.+)" |> glue::glue(), group = 1)
 
-  if (!nzchar(path))
+  if (is.na(path) || !nzchar(path))
     cli::cli_abort(
-      "Aucun fichier sauvegardé n'est ouvert dans RStudio. \\
-       Enregistrer le document avant de lancer {.fn preview_qmd}.")
+      "Aucun fichier sauvegardé, appartenant au projet RStudio actif \\
+       ({.path {project}}), n'est ouvert dans l'éditeur. \\
+       Ouvrir ou enregistrer le document avant de lancer {.fn preview_qmd}.")
 
   if (!identical(tolower(fs::path_ext(path)), "qmd"))
     cli::cli_abort(
@@ -69,6 +83,23 @@ preview_qmd <- function(profile = NULL,
   qmd_name <- fs::path_file(qmd_abs)
 
   cli::cli_h1("preview_qmd : {qmd_name}")
+
+  # ---- Injection d'un _quarto.yml temporaire si aucun projet ancestral -----
+  # Détection préalable, peu coûteuse (simple test d'existence de fichier à
+  # chaque niveau, pas de scan de répertoire) : évite d'exposer le CLI
+  # `quarto` au bug de remontée d'arborescence décrit ci-dessus quand aucun
+  # `_quarto.yml` n'existe nulle part au-dessus du fichier.
+  qmd_dir <- fs::path_dir(qmd_abs)
+  if (is.null(.find_quarto_root(qmd_abs))) {
+    tmp_quarto_yml <- .inject_temp_quarto_yml(qmd_dir)
+    if (!is.null(tmp_quarto_yml)) {
+      # Nettoyage garanti même si le rendu échoue plus bas.
+      on.exit(fs::file_delete(tmp_quarto_yml), add = TRUE)
+      cli::cli_alert_info(
+        "Aucun projet Quarto détecté — {.file _quarto.yml} temporaire créé \\
+         dans {.path {fs::path_file(qmd_dir)}/} pour le rendu.")
+    }
+  }
 
   # ---- Détection du répertoire de sortie via quarto_inspect ----------------
   html_rel <- fs::path_ext_set(qmd_name, "html")  # fallback (fichier seul)
@@ -95,15 +126,13 @@ preview_qmd <- function(profile = NULL,
   } else {
     # Repli : remontée de l'arborescence + lecture manuelle des YAML
     root <- tryCatch(
-      rprojroot::find_root(rprojroot::is_quarto_project),
-      error = function(e) {
-        cli::cli_abort("ce n'est pas un projet quarto ({conditionMessage(e)}).")
-      }
+      rprojroot::find_root(rprojroot::is_quarto_project, path = fs::path_dir(qmd_abs)),
+      error = function(e) NULL  # pas de projet Quarto : .qmd autonome
     )
     if (!is.null(root))
       output_dir <- .detect_output_dir(root, profile)
   }
-  setwd(root)
+  if (!is.null(root)) setwd(root)
   if (!is.null(output_dir)) {
     render_dir <- output_dir
     # Chemin HTML relatif à output_dir = chemin du .qmd relatif à la racine,
@@ -151,6 +180,33 @@ preview_qmd <- function(profile = NULL,
     if (identical(as.character(parent), as.character(dir))) return(NULL)
     dir <- parent
   }
+}
+
+
+# Écrit un _quarto.yml minimal dans `dir` si nécessaire (aucun projet Quarto
+# ancestral détecté). Objectif : donner au CLI `quarto` une frontière de
+# projet immédiate, pour éviter qu'il ne remonte l'arborescence jusqu'à des
+# dossiers sans rapport (ex. $HOME) à la recherche d'un contexte de projet —
+# remontée qui peut échouer sur des permissions de lecture (ex.
+# `PermissionDenied: readdir '~/Music'`). Renvoie le chemin écrit (à
+# supprimer par l'appelant), ou NULL si rien n'a été écrit (fichier déjà
+# présent, ou écriture impossible).
+.inject_temp_quarto_yml <- function(dir) {
+  target <- fs::path(dir, "_quarto.yml")
+  if (fs::file_exists(target)) return(NULL)  # défensif : ne jamais écraser
+
+  ok <- tryCatch({
+    writeLines(c("project:", "  type: default"), target)
+    TRUE
+  }, warning = function(w) FALSE, error = function(e) FALSE)
+
+  if (!ok) {
+    cli::cli_alert_warning(
+      "Impossible de créer un {.file _quarto.yml} temporaire dans \\
+       {.path {dir}} : le rendu se fera sans contexte de projet.")
+    return(NULL)
+  }
+  target
 }
 
 

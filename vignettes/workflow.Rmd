@@ -1,0 +1,76 @@
+---
+title: "Comment organiser son travail"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comment organiser son travail}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+## Etape 1 : le travail de recherche
+
+Le travail initial est exploratoire, il part dans différentes directions et procède par essai et par erreur. Il doit y avoir le moins de contraintes possibles. Quelques principes importants sont à suivre, ils permettent d'arrêter et de reprendre son travail ou de le partager avec un co-auteur.
+
+### Chemins relatifs
+
+Pour partir sur de bonnes bases, le travail foit être localisé dans un dossier unique. Il peut contenir des sous-dossiers, mais astreignez vous à ne pas utiliser des chemins absolus ("c:/users/23098/documents/mes données/data.xlsx") mais des chemins relatifs et qui ne sortent pas de votre dossier. En suivant cette règle, on peut porter son travail sur un autre ordinateur, ce qui est la clé pour le travail collaboratif. C'est également important pour permettre un changement dans l'environnement de travail (mise à jour, nouvel ordinateur) et éviter de se retrouver coincé par des appels à des fichiers qui n'existent pas.
+
+### Séparer les données des programmes
+
+C'est par les données des programmes et une hygiène qu'il faut suivre. Idéalement, les données sont enregistrées dans un dossier qui pourra être ajouté au .gitignore. Les programmes, quant à eux, sont dans un dossier aussi identifié, et on essaye de nommer les fichiers de données ou de programmes par des noms courts, faciles à taper, qui sont significants. On évite d'utiliser des majuscules, et des caractères spéciaux. On évite de rajouter la date dans le nom du fichier. On peut se définir des conventions de nommage, mais il est important surtout de les suivre, de façon à ne jamais hésiter sur la façon d'orthographier le nom de fichier. Un nom de fichier court est aussi un nom de fichier que l'on peut taper plus facilement, plus rapidement, avec moins d'erreurs. 
+
+Dans certains cas, on veut pouvoir utiliser des données qui sont dans un dossier différent de celui du projet. C'est le cas de données partagées, de données centralisées. Dans ce cas, on peut utiliser plusieurs procédures. La première est de localiser les données sur un disque partagé, et donc jamais en local. La seconde méthode est d'utiliser les variables d'environnement de façon à définir le chemin d'accès vers les données dans un environnement de travail différent (un autre ordinateur), Il suffit d'adapter le chemin d'accès dans la variable d'environnement pour que tout fonctionne. 
+
+```{r}
+file_prix_fr <- Sys.getenv("PRIX_IMMO_FR")
+arrow::open_dataset(file_prix_fr)
+```
+Avec `usethis::edit_r_environ()`, on édite le .Renviron (voir la documentation de la fonction pour la différence entre le scope `user` ou `projet`).
+
+```text
+DROPBOX = /Users/xt/Library/CloudStorage/Dropbox/
+PRIX_IMMO_FR = /Users/xt/Library/CloudStorage/Dropbox/dv3f/dv3f2025-1/mutation
+```
+Chaque utilisateur s'occupe de définir le chemin dans la Dropbox (souvent par un copier coller dans le finder/explorateur). Si les données sont migrées vers un google drive, il suffit de changer la variable d'environnement. Rien n'empêche de faire les choses en cascade.
+
+```{r}
+dropbox <- Sys.getenv("DROPBOX")
+file_prix_fr <- fs::path_join(c(dropbox, "dv3f/dv3f2025-1/mutation"))
+```
+
+### Garder la trace des données
+
+### Projet Rstudio et github
+
+## Etape 2 : la rédaction d'un document de travail
+
+### Retructurer le dossier et en faire un projet quarto
+
+### Rédiger et optimiser
+
+### Organiser la relecture
+
+-------------------------------------------
+## Structure d'un dépôt WP
+
+```         
+mon-wp/
+├── _quarto.yml          # métadonnées WP (wp, annee, version, auteurs, …)
+├── index.qmd            # corps du document
+├── annexes.qmd          # annexes (optionnel)
+├── news.qmd             # historique des révisions
+├── references.bib       # bibliographie
+├── manifest.json        # manifeste JSON (généré par render_wp)
+├── www/                 # assets OFCE (logos, icônes)
+├── _extensions/ofce/      # extension Quarto ofce
+└── .github/workflows/
+    ├── ftp_deploy.yml   # déploiement FTP (WP publié)
+    └── gh-pages.yml     # déploiement GitHub Pages (brouillon)
+```

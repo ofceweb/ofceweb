@@ -41,7 +41,8 @@ posts_db <- function(path) {
       description_en = yaml_en$description %||% NA_character_,
       pdf_link_fr = pdf_link_fr,
       pdf_link_en = pdf_link_en,
-      gow = yaml$gow %||% FALSE)
+      gow = yaml$gow %||% FALSE,
+      ecograph = yaml$ecograph %||% FALSE)
 
   }) |>
     futurize::futurize()
@@ -151,10 +152,15 @@ copy_post <- function(posts, lang = "fr",
       pdf_link <- glue::glue("{post_name}.{lang}.pdf")
       yaml <- get_yaml(new_qmd)
 
-      # Determine format based on whether this is a GoW post
-      is_gow_post <- isTRUE(yaml$gow)
-      html_fmt <- if(is_gow_post) "gow-html" else "blog-html"
-      typst_fmt <- if(is_gow_post) "gow-typst" else "blog-typst"
+      # Determine format based on the post type (GoW, EcoGraph, or standard blog)
+      post_fmt <- if(isTRUE(yaml$gow))
+        "gow"
+      else if(isTRUE(yaml$ecograph))
+        "ecograph"
+      else
+        "blog"
+      html_fmt <- stringr::str_c(post_fmt, "-html")
+      typst_fmt <- stringr::str_c(post_fmt, "-typst")
 
       # Clear any existing format specifications
       yaml[["format"]] <- list()

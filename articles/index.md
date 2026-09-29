@@ -12,5 +12,7 @@
   d'environnement](https://ofceweb.github.io/ofceweb/articles/prerequisites.md):
 - [Prévisions OFCE : initialisation, rendu et
   déploiement](https://ofceweb.github.io/ofceweb/articles/previsions.md):
+- [Comment organiser son
+  travail](https://ofceweb.github.io/ofceweb/articles/workflow.md):
 - [Documents de travail (Working
   Papers)](https://ofceweb.github.io/ofceweb/articles/working-papers.md):

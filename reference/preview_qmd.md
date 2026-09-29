@@ -32,6 +32,16 @@ preview_qmd(
   Logique. Si \`TRUE\` (défaut), le serveur HTTP tourne en arrière-plan
   sans bloquer la console.
 
+- use_freezer:
+
+  Logique (défaut \`FALSE\`). Passé à \[quarto::quarto_render()\] pour
+  activer/désactiver l'usage du cache de type freezer lors du rendu.
+
+- as_job:
+
+  Logique (défaut \`FALSE\`). Passé à \[quarto::quarto_render()\] pour
+  exécuter le rendu dans un RStudio Job plutôt que dans la console.
+
 - ...:
 
   Arguments supplémentaires passés à \[quarto::quarto_render()\].
@@ -56,3 +66,10 @@ via \[quarto::quarto_inspect()\] :
 
 3.  Sans projet détecté ou sans \`output-dir\` configuré, le serveur
     pointe sur le dossier du \`.qmd\` lui-même.
+
+4.  Si aucun \`\_quarto.yml\` n'existe dans l'arborescence au-dessus du
+    fichier, un \`\_quarto.yml\` minimal est créé temporairement dans le
+    dossier du fichier (frontière de projet pour le CLI \`quarto\`, qui
+    sinon peut remonter jusqu'à des dossiers sans rapport comme
+    \`\$HOME\`). Il est supprimé automatiquement à la fin de l'appel,
+    que le rendu réussisse ou échoue.

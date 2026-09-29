@@ -81,6 +81,17 @@ Passé à [quarto::quarto_render()] et utilisé pour lire le bon
 arrière-plan sans bloquer la console.</p></dd>
 
 
+<dt id="arg-use-freezer">use_freezer<a class="anchor" aria-label="anchor" href="#arg-use-freezer"></a></dt>
+<dd><p>Logique (défaut `FALSE`). Passé à
+[quarto::quarto_render()] pour activer/désactiver l'usage du cache de
+type freezer lors du rendu.</p></dd>
+
+
+<dt id="arg-as-job">as_job<a class="anchor" aria-label="anchor" href="#arg-as-job"></a></dt>
+<dd><p>Logique (défaut `FALSE`). Passé à [quarto::quarto_render()]
+pour exécuter le rendu dans un RStudio Job plutôt que dans la console.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Arguments supplémentaires passés à [quarto::quarto_render()].</p></dd>
 
@@ -100,6 +111,12 @@ arrière-plan sans bloquer la console.</p></dd>
     `_quarto.yml` et `_quarto-profile.yml`.</p></li>
 <li><p>Sans projet détecté ou sans `output-dir` configuré, le serveur
     pointe sur le dossier du `.qmd` lui-même.</p></li>
+<li><p>Si aucun `_quarto.yml` n'existe dans l'arborescence au-dessus du
+    fichier, un `_quarto.yml` minimal est créé temporairement dans le
+    dossier du fichier (frontière de projet pour le CLI `quarto`, qui
+    sinon peut remonter jusqu'à des dossiers sans rapport comme `$HOME`).
+    Il est supprimé automatiquement à la fin de l'appel, que le rendu
+    réussisse ou échoue.</p></li>
 </ol></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

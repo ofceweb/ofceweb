@@ -19,6 +19,9 @@ build_sitemap <- function(root = ".", progress=TRUE) {
     "https://www.ofce.sciences-po.fr/blog2024/"
   if (!stringr::str_ends(site_url, "/"))
     site_url <- paste0(site_url, "/")
+  site_path  <- quarto_yml$website[["site-path"]]
+  if (!is.null(site_path) && nzchar(site_path))
+    site_url <- paste0(site_url, sub("^/", "", sub("/?$", "/", site_path)))
 
   sitemap_path <- "_site/sitemap.xml"
 

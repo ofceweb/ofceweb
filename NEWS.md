@@ -1,5 +1,9 @@
 ## ofceweb 1.0.4.9000
 
+### `build_sitemap()` : URLs préfixées par `website.site-path`
+
+Les URLs du sitemap sont construites avec `website.site-url` suivi de `website.site-path`. Le sitemap du blog liste ainsi `https://www.ofce.fr/blog2024/fr/...` (issue `ofceweb/webblog#62`).
+
 ### Rapprochement du dépôt courant avec le registre insensible à la casse
 
 `sync_wp_registry_state()`/`sync_pb_registry_state()` comparaient le

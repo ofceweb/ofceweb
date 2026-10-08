@@ -4,6 +4,8 @@
 
 Les URLs du sitemap sont construites avec `website.site-url` suivi de `website.site-path`. Le sitemap du blog liste ainsi `https://www.ofce.fr/blog2024/fr/...` (issue `ofceweb/webblog#62`).
 
+Pour un WP ou un PB publié, `render_wp()` et `render_pb()` insèrent `wp/` ou `pb/` avant `site-path`. Le sitemap liste ainsi `https://www.ofce.fr/wp/2026/10/v0/...`.
+
 ### Rapprochement du dépôt courant avec le registre insensible à la casse
 
 `sync_wp_registry_state()`/`sync_pb_registry_state()` comparaient le

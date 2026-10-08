@@ -37,3 +37,26 @@ test_that("build_sitemap() uses site-url alone when site-path is absent", {
     "https://example.org/en/2024/post_a/index.html"
   ))
 })
+
+test_that("build_sitemap() inserts the prefix between site-url and site-path", {
+  dir <- withr::local_tempdir()
+  build_rendered_site(dir, list(
+    `site-url` = "https://www.ofce.fr/", `site-path` = "2026/10/v0"
+  ))
+  withr::local_dir(dir)
+
+  urls <- suppressMessages(build_sitemap(dir, progress = FALSE, prefix = "wp/"))
+
+  expect_true(all(startsWith(urls$loc, "https://www.ofce.fr/wp/2026/10/v0/")))
+})
+
+test_that("build_sitemap() ignores the prefix when site-path is absent", {
+  dir <- withr::local_tempdir()
+  build_rendered_site(dir, list(`site-url` = "https://ofce.github.io/mon_wp/"))
+  withr::local_dir(dir)
+
+  urls <- suppressMessages(build_sitemap(dir, progress = FALSE, prefix = "wp/"))
+
+  expect_true(all(startsWith(urls$loc, "https://ofce.github.io/mon_wp/")))
+  expect_false(any(grepl("/wp/", urls$loc, fixed = TRUE)))
+})

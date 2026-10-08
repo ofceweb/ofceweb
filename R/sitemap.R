@@ -10,7 +10,7 @@
 # Strategy: build the sitemap from scratch by scanning _site/ directly,
 # so the result is always in sync with what is actually on disk.
 
-build_sitemap <- function(root = ".", progress=TRUE) {
+build_sitemap <- function(root = ".", progress=TRUE, prefix = "") {
   setwd(root)
 
   # ── Base URL from _quarto.yml ────────────────────────────────────────────────
@@ -21,7 +21,7 @@ build_sitemap <- function(root = ".", progress=TRUE) {
     site_url <- paste0(site_url, "/")
   site_path  <- quarto_yml$website[["site-path"]]
   if (!is.null(site_path) && nzchar(site_path))
-    site_url <- paste0(site_url, sub("^/", "", sub("/?$", "/", site_path)))
+    site_url <- paste0(site_url, prefix, sub("^/", "", sub("/?$", "/", site_path)))
 
   sitemap_path <- "_site/sitemap.xml"
 

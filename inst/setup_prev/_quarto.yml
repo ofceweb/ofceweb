@@ -96,7 +96,7 @@ website:
         href: "https://www.facebook.com/ofcesciencespo/"
 
   sidebar:
-    logo: "www/ofce_m.png"
+    logo: "www/ifeofce.png"
     collapse-level: 1
     contents:
       - section: "<b>France</b>"

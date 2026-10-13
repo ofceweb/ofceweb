@@ -43,6 +43,11 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.4.9000" id="ofceweb-1049000">ofceweb 1.0.4.9000<a class="anchor" aria-label="anchor" href="#ofceweb-1049000"></a></h2>
 <div class="section level3">
+<h3 id="détection-amont-des-collisions-de-fichiers-de-sortie-dans-render_flash-1-0-4-9000">Détection amont des collisions de fichiers de sortie dans <code>render_flash()</code>
+<a class="anchor" aria-label="anchor" href="#d%C3%A9tection-amont-des-collisions-de-fichiers-de-sortie-dans-render_flash-1-0-4-9000"></a></h3>
+<p>Un document ad-hoc déclarant plusieurs formats (ex. <code>pres-revealjs</code> et <code>wp-html</code>) dont deux résolvent vers le même fichier de sortie faisait planter le rendu Quarto avec une erreur <code>NotFound ... rename</code> cryptique (le premier format déplace le fichier dans <code>_site/</code>, le second n’a plus rien à déplacer). <code><a href="../reference/render_flash.html">render_flash()</a></code> interroge désormais <code>quarto inspect</code> avant le rendu pour connaître le fichier de sortie <em>résolu</em> de chaque format et s’arrête avec un message explicite (accompagné d’un exemple de correctif <code>output-file</code>) en cas de collision certaine ; si la vérification est impossible, une heuristique sur le seul frontmatter émet un avertissement non bloquant. Nouvelles fonctions internes dans <code>R/adhoc_site.R</code> : <code><a href="../reference/adhoc_quarto_bin.html">adhoc_quarto_bin()</a></code>, <code><a href="../reference/adhoc_output_collisions.html">adhoc_output_collisions()</a></code>, <code><a href="../reference/adhoc_collide_outputs.html">adhoc_collide_outputs()</a></code>, <code><a href="../reference/adhoc_output_collisions_heuristic.html">adhoc_output_collisions_heuristic()</a></code>, <code><a href="../reference/adhoc_guess_output_ext.html">adhoc_guess_output_ext()</a></code>.</p>
+</div>
+<div class="section level3">
 <h3 id="build_sitemap--urls-préfixées-par-websitesite-path-1-0-4-9000">
 <code>build_sitemap()</code> : URLs préfixées par <code>website.site-path</code>
 <a class="anchor" aria-label="anchor" href="#build_sitemap--urls-pr%C3%A9fix%C3%A9es-par-websitesite-path-1-0-4-9000"></a></h3>
@@ -615,7 +620,7 @@
 <h3 id="corrections-0-5-0">Corrections<a class="anchor" aria-label="anchor" href="#corrections-0-5-0"></a></h3>
 <ul><li>
 <code>render_wp.R</code> : correction d’un bug où le chiffrement <code>encrypt_site: true</code> n’était pas appliqué lors du rendu local.</li>
-<li>plus d’utilisation de “/tmp” mais <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code> à la place pour éviter un bug possible sur windows<br></li>
+<li>plus d’utilisation de “/tmp” mais <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code> à la place pour éviter un bug possible sur windows</li>
 <li>NAMESPACE mis à jour avec les 9 nouvelles exportations.</li>
 </ul></div>
 </div>

@@ -456,10 +456,16 @@ construire l’index des WPs de l’OFCE.
     ├── index.qmd            # corps du document
     ├── annexes.qmd          # annexes (optionnel)
     ├── news.qmd             # historique des révisions
+    ├── une_presentation.qmd # un quarto revealjs 
     ├── references.bib       # bibliographie
     ├── manifest.json        # manifeste JSON (généré par render_wp)
+    ├── R/                   # codes
+    ├── data/                # données (générés, téléchargées)
+    ├── .sourcoise/          # cache d'exécution (si source_data/sourcoise est utilisé)
+    ├── renv/                # contexte des packages (si renv est utilisé)
+    ├── _arkiv/              # un dossier ignoré par quarto (_*) 
     ├── www/                 # assets OFCE (logos, icônes)
-    ├── _extensions/ofce/      # extension Quarto ofce
+    ├── _extensions/ofce/    # extension Quarto ofce
     └── .github/workflows/
         ├── ftp_deploy.yml   # déploiement FTP (WP publié)
         └── gh-pages.yml     # déploiement GitHub Pages (brouillon)

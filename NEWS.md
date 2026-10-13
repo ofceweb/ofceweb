@@ -15,6 +15,12 @@ non bloquant. Nouvelles fonctions internes dans `R/adhoc_site.R` :
 `adhoc_quarto_bin()`, `adhoc_output_collisions()`, `adhoc_collide_outputs()`,
 `adhoc_output_collisions_heuristic()`, `adhoc_guess_output_ext()`.
 
+### `build_sitemap()` : URLs préfixées par `website.site-path`
+
+Les URLs du sitemap sont construites avec `website.site-url` suivi de `website.site-path`. Le sitemap du blog liste ainsi `https://www.ofce.fr/blog2024/fr/...` (issue `ofceweb/webblog#62`).
+
+Pour un WP ou un PB publié, `render_wp()` et `render_pb()` insèrent `wp/` ou `pb/` avant `site-path`. Le sitemap liste ainsi `https://www.ofce.fr/wp/2026/10/v0/...`.
+
 ### Rapprochement du dépôt courant avec le registre insensible à la casse
 
 `sync_wp_registry_state()`/`sync_pb_registry_state()` comparaient le
@@ -988,7 +994,7 @@ unique — et réutilise tous les helpers déjà génériques
 * Docstring de `setup_wp()` clarifiée : explique désormais que les fichiers
   utilisateur (`.qmd`, YAML) sont non-destructifs, mais les workflows
   (gabarits du package) sont toujours remplacés.
-  
+
 ### divers
 
 * plus d'appel à `future::plan()` dans `render()`
@@ -1191,8 +1197,8 @@ Cela ferme deux failles de sécurité de la Phase 1 (contournement via
 
 ## ofceweb v0.5.5
 
-* Nouvelle stratégie commune pour l'encryption : l'encryption est faite pour le staging uniquement, à condition que le secret STATICRYPT_PASSWORD soit défini. 
-L'encryption est faite par github.com (CI) juste avant d'envoyer en FTP. 
+* Nouvelle stratégie commune pour l'encryption : l'encryption est faite pour le staging uniquement, à condition que le secret STATICRYPT_PASSWORD soit défini.
+L'encryption est faite par github.com (CI) juste avant d'envoyer en FTP.
 * Cette stratégie sera la même pour tous les types de documents.
 * La redirection éventuelle est aussi ajoutée à la fin du process de rendu (que ce soit en local ou sur la CI).
 
@@ -1209,7 +1215,7 @@ L'encryption est faite par github.com (CI) juste avant d'envoyer en FTP.
 ## ofceweb v0.5.2
 
 * Corrections de bugs pour la prévision, nettoyage des paramètres (dont `profile`).
-* profils génériques (ie `review`) en plus de `publish`et `staging` déployés sur staging et cryptés avec ALT_STATICRYPT_PASSWORD u 
+* profils génériques (ie `review`) en plus de `publish`et `staging` déployés sur staging et cryptés avec ALT_STATICRYPT_PASSWORD u
 * Documentation mise à jour pour la prévision, avec une vignette
 
 ## ofceweb v0.5.1
@@ -1257,7 +1263,7 @@ L'encryption est faite par github.com (CI) juste avant d'envoyer en FTP.
 
 * `render_wp.R` : correction d'un bug où le chiffrement `encrypt_site: true`
   n'était pas appliqué lors du rendu local.
-* plus d'utilisation de "/tmp" mais `tempdir()` à la place pour éviter un bug possible sur windows  
+* plus d'utilisation de "/tmp" mais `tempdir()` à la place pour éviter un bug possible sur windows
 * NAMESPACE mis à jour avec les 9 nouvelles exportations.
 
 ## ofceweb v0.4.1

@@ -117,7 +117,7 @@ render_wp <- function(
 
   # ---- 5. sitemap ----------------------------------------------------------
   cli::cli_h2("Construction du sitemap")
-  tryCatch(build_sitemap(root, progress = progress),
+  tryCatch(build_sitemap(root, progress = progress, prefix = "wp/"),
            error = function(e)
              cli::cli_alert_warning("Sitemap non généré : {conditionMessage(e)}"))
 

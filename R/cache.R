@@ -164,6 +164,7 @@ get_from_cache <- function(lang, root, force_freeze = TRUE, progress = TRUE) {
       author = format_name_yaml(yaml[['author']]),
       `reading-time` = yaml[['reading-time']],
       gow = yaml[['gow']],
+      ecograph = yaml[['ecograph']],
       nb = yaml[['nb']],
       path = stringr::str_c(lang, "/", name, "/index.html") ) |>
       purrr::compact()

@@ -1,5 +1,20 @@
 ## ofceweb 1.0.4.9000
 
+### Détection amont des collisions de fichiers de sortie dans `render_flash()`
+
+Un document ad-hoc déclarant plusieurs formats (ex. `pres-revealjs` et
+`wp-html`) dont deux résolvent vers le même fichier de sortie faisait
+planter le rendu Quarto avec une erreur `NotFound ... rename` cryptique (le
+premier format déplace le fichier dans `_site/`, le second n'a plus rien
+à déplacer). `render_flash()` interroge désormais `quarto inspect` avant
+le rendu pour connaître le fichier de sortie *résolu* de chaque format et
+s'arrête avec un message explicite (accompagné d'un exemple de correctif
+`output-file`) en cas de collision certaine ; si la vérification est
+impossible, une heuristique sur le seul frontmatter émet un avertissement
+non bloquant. Nouvelles fonctions internes dans `R/adhoc_site.R` :
+`adhoc_quarto_bin()`, `adhoc_output_collisions()`, `adhoc_collide_outputs()`,
+`adhoc_output_collisions_heuristic()`, `adhoc_guess_output_ext()`.
+
 ### Rapprochement du dépôt courant avec le registre insensible à la casse
 
 `sync_wp_registry_state()`/`sync_pb_registry_state()` comparaient le

@@ -348,3 +348,86 @@ test_that("render_flash_worker: slug incorporates the rendered document's filena
 
   expect_false(identical(meta_one$slug, meta_two$slug))
 })
+
+# ---------------------------------------------------------------------------
+# Output-file collision check (see also test-adhoc_output_collisions.R)
+# ---------------------------------------------------------------------------
+
+test_that("render_flash_worker: aborts on output-file collision between formats", {
+  skip_if_not_installed("quarto")
+  skip_if_not_installed("gert")
+
+  temp_repo <- tempfile(pattern = "adhoc_collide_")
+  dir.create(temp_repo, recursive = TRUE)
+  on.exit(unlink(temp_repo, recursive = TRUE))
+
+  gert::git_init(temp_repo)
+  gert::git_config_set("user.name", "Test User", repo = temp_repo)
+  gert::git_config_set("user.email", "test@example.com", repo = temp_repo)
+
+  # Both formats default to index.html -> certain collision.
+  writeLines(c(
+    "---",
+    "title: 'Collision'",
+    "format:",
+    "  html: default",
+    "  revealjs: default",
+    "---",
+    "",
+    "# Slide",
+    ""
+  ), file.path(temp_repo, "index.qmd"))
+
+  expect_error(
+    render_flash_worker(
+      path     = temp_repo,
+      index    = "index.qmd",
+      slug     = NULL,
+      progress = FALSE,
+      preview  = FALSE
+    ),
+    regexp = "Collision de fichiers de sortie"
+  )
+})
+
+test_that("render_flash_worker: renders when formats have distinct output files", {
+  skip_if_not_installed("quarto")
+  skip_if_not_installed("gert")
+
+  temp_repo <- tempfile(pattern = "adhoc_nocollide_")
+  dir.create(temp_repo, recursive = TRUE)
+  on.exit(unlink(temp_repo, recursive = TRUE))
+
+  gert::git_init(temp_repo)
+  gert::git_config_set("user.name", "Test User", repo = temp_repo)
+  gert::git_config_set("user.email", "test@example.com", repo = temp_repo)
+
+  # Distinct explicit output-file per format -> no collision, both rendered.
+  # The html format must keep the document basename (index.html) since
+  # render_flash_worker looks for it in _site/ after the render.
+  writeLines(c(
+    "---",
+    "title: 'Pas de collision'",
+    "format:",
+    "  html:",
+    "    output-file: index.html",
+    "  revealjs:",
+    "    output-file: slides.html",
+    "---",
+    "",
+    "# Slide",
+    ""
+  ), file.path(temp_repo, "index.qmd"))
+
+  render_flash_worker(
+    path     = temp_repo,
+    index    = "index.qmd",
+    slug     = NULL,
+    progress = FALSE,
+    preview  = FALSE
+  )
+
+  site_dir <- file.path(temp_repo, "_site")
+  expect_true(file.exists(file.path(site_dir, "index.html")))
+  expect_true(file.exists(file.path(site_dir, "slides.html")))
+})

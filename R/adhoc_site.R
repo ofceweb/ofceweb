@@ -63,15 +63,22 @@
 #'    `format`, `format: ofce-html` is added to this temp `_quarto.yml` only
 #'    (never written back to the source file); if it does declare one, it's
 #'    left as the document's own frontmatter dictates.
-#' 6. Renders the folder via `quarto::quarto_render()` in the temp directory.
-#' 7. Locates the HTML output for `index` and copies it to `_site/index.html`
+#' 6. Checks for output-file collisions between the formats declared in
+#'    `index` (only when there are 2+): each format's *resolved* output
+#'    file is queried from `quarto inspect` and, if two formats write the
+#'    same file -- which would otherwise crash quarto's project step with
+#'    a cryptic `NotFound ... rename` error -- the render aborts early
+#'    with an actionable message. If the query itself fails (exceptional),
+#'    a frontmatter-only heuristic issues a non-blocking warning instead.
+#' 7. Renders the folder via `quarto::quarto_render()` in the temp directory.
+#' 8. Locates the HTML output for `index` and copies it to `_site/index.html`
 #'    (preserving the original filename too).
-#' 8. Post-processes all `*.html` files to inject a small OFCE quick-publish
+#' 9. Post-processes all `*.html` files to inject a small OFCE quick-publish
 #'    banner right after the opening `<body...>` tag.
-#' 9. Cleans `.DS_Store` files, then copies the temp `_site/` into `<path>/_site/`
+#' 10. Cleans `.DS_Store` files, then copies the temp `_site/` into `<path>/_site/`
 #'    (replacing if present). Writes metadata (slug, index, timestamp) to
 #'    `_site/.adhoc-meta.json`.
-#' 10. If `preview = TRUE` and `as_job = FALSE`, launches [preview_flash()].
+#' 11. If `preview = TRUE` and `as_job = FALSE`, launches [preview_flash()].
 #'
 #' ## Self-contained folders
 #'
@@ -237,6 +244,155 @@ adhoc_resolve_index <- function(target, index = NULL, progress = TRUE) {
 }
 
 
+#' Locate the quarto CLI binary
+#'
+#' Prefers a `quarto` found on the PATH (what `system2()` would resolve
+#' anyway); falls back to the quarto R package's internal locator, which
+#' also knows about RStudio-bundled installs. Reaching into `quarto:::` is a
+#' pragmatic last resort: if that internal moves or disappears, we degrade
+#' to the bare name and let `system2()` raise the error.
+#'
+#' @returns `[character(1)]` Path (or bare name) of the quarto CLI binary.
+#' @keywords internal
+adhoc_quarto_bin <- function() {
+  bin <- Sys.which("quarto")
+  if (nzchar(bin)) return(unname(bin))
+  tryCatch(quarto:::quarto_path(), error = function(e) "quarto")
+}
+
+#' Predict output-file collisions between the formats of a document
+#'
+#' A document declaring 2+ formats renders all of them; when two formats
+#' resolve to the same output file, quarto's project step crashes with a
+#' cryptic `NotFound ... rename` error (the first format's move into the
+#' output dir consumes the file, the second has nothing left to move).
+#' This asks `quarto inspect` for each format's *resolved* output file --
+#' defaults included -- so a reported collision is deterministic, never a
+#' false positive.
+#'
+#' Only runs the inspect call when the document's frontmatter declares 2+
+#' formats (single-format documents can never collide), keeping the common
+#' case free of the extra CLI round-trip.
+#'
+#' @param index_path `[character(1)]` Absolute path of the document to
+#'   check. Must be run with the enclosing project (temp `_quarto.yml`)
+#'   as the working directory.
+#'
+#' @returns `NULL` when no collision is possible or none is found; the
+#'   scalar string `"unverified"` when quarto inspect fails or its output
+#'   can't be parsed (caller should fall back to
+#'   [adhoc_output_collisions_heuristic()]); otherwise a list of collision
+#'   entries, each `list(file = <output file>, formats = <format names>)`.
+#' @keywords internal
+adhoc_output_collisions <- function(index_path) {
+  fmt <- tryCatch(get_yaml(index_path)[["format"]], error = function(e) NULL)
+  fmt_names <- if (is.null(fmt)) character(0)
+    else if (is.character(fmt)) fmt
+    else names(fmt)
+  if (length(fmt_names) < 2L) return(NULL)
+
+  out <- tryCatch(
+    suppressWarnings(system2(
+      adhoc_quarto_bin(),
+      c("inspect", shQuote(as.character(fs::path_file(index_path)))),
+      stdout = TRUE, stderr = FALSE
+    )),
+    error = function(e) NULL
+  )
+  if (is.null(out)) return("unverified")
+  status <- attr(out, "status")
+  if (!is.null(status) && status != 0) return("unverified")
+  js <- tryCatch(
+    jsonlite::fromJSON(paste(out, collapse = "\n"), simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+  formats <- js$formats
+  if (!is.list(formats) || length(formats) < 2L) return("unverified")
+
+  outputs <- vapply(formats, function(f) {
+    of <- f$pandoc$`output-file`
+    if (is.null(of) || !nzchar(as.character(of))) NA_character_
+    else as.character(of)
+  }, character(1))
+  names(outputs) <- names(formats)
+  outputs <- outputs[!is.na(outputs)]
+  if (length(outputs) < 2L) return(NULL)
+
+  adhoc_collide_outputs(outputs)
+}
+
+#' Group output files and return the colliding groups
+#'
+#' Shared by [adhoc_output_collisions()] and
+#' [adhoc_output_collisions_heuristic()]: normalizes paths for comparison
+#' (forward slashes; case-insensitive on Windows) and groups them.
+#'
+#' @param outputs Named character vector: format name -> output file.
+#'
+#' @returns `NULL` if every output file is unique, else a list of collision
+#'   entries (each `list(file = ..., formats = ...)`).
+#' @keywords internal
+adhoc_collide_outputs <- function(outputs) {
+  norm <- gsub("\\\\", "/", outputs)
+  if (.Platform$OS.type == "windows") norm <- tolower(norm)
+
+  dup_vals <- unique(norm[duplicated(norm)])
+  if (length(dup_vals) == 0L) return(NULL)
+
+  lapply(dup_vals, function(v) {
+    list(
+      file    = outputs[[which(norm == v)[[1]]]],
+      formats = names(outputs)[norm == v]
+    )
+  })
+}
+
+#' Heuristic output-file collision guess, frontmatter-only
+#'
+#' Fallback used when [adhoc_output_collisions()] can't reach quarto
+#' inspect: guesses each format's output file from the frontmatter alone --
+#' explicit `output-file` when set, else the document stem with an extension
+#' guessed from the format name. Warn-only material, hence heuristic.
+#'
+#' @inheritParams adhoc_output_collisions
+#' @inherit adhoc_output_collisions return
+#' @keywords internal
+adhoc_output_collisions_heuristic <- function(index_path) {
+  fmt <- tryCatch(get_yaml(index_path)[["format"]], error = function(e) NULL)
+  if (is.null(fmt) || is.character(fmt)) return(NULL)
+
+  # Skip formats not expressed as a named map (no explicit output-file to
+  # read, but a guessable default) -- map form only, like the caller's gate.
+  n_fmt <- length(fmt)
+  if (n_fmt < 2L) return(NULL)
+
+  stem <- fs::path_ext_remove(fs::path_file(index_path))
+  outputs <- vapply(names(fmt), function(name) {
+    cfg <- fmt[[name]]
+    of <- if (is.list(cfg)) cfg[["output-file"]] else NULL
+    if (!is.null(of) && nzchar(as.character(of))) as.character(of)
+    else paste0(stem, adhoc_guess_output_ext(name))
+  }, character(1))
+
+  adhoc_collide_outputs(outputs)
+}
+
+#' Guess a format's output extension from its name
+#'
+#' @param name `[character(1)]` Format name (e.g. `"wp-pdf"`,
+#'   `"pres-revealjs"`).
+#'
+#' @returns `[character(1)]` The guessed extension, `".html"` by default.
+#' @keywords internal
+adhoc_guess_output_ext <- function(name) {
+  n <- tolower(name)
+  if (grepl("pdf", n)) ".pdf"
+  else if (grepl("typst", n)) ".typ"
+  else if (grepl("docx|word", n)) ".docx"
+  else ".html"
+}
+
+
 #' Worker function for render_flash (internal synchronous implementation)
 #'
 #' This function contains the actual render logic, separated so it can be
@@ -297,7 +453,7 @@ render_flash_worker <- function(
     glue::glue("adhoc-{slug}-{as.integer(Sys.time())}")
   )
   fs::dir_create(temp_dir, recurse = TRUE)
-  on.exit(fs::dir_delete(temp_dir), add = TRUE)
+  # on.exit(fs::dir_delete(temp_dir), add = TRUE)
 
   # Copy target folder contents into temp (excluding build artifacts)
   fs::dir_copy(
@@ -387,6 +543,47 @@ render_flash_worker <- function(
   oldwd <- getwd()
   on.exit(setwd(oldwd), add = TRUE)
   setwd(temp_dir)
+
+  # Upstream output-file collision check. When 2+ formats are declared,
+  # ask quarto (via `quarto inspect`) for each format's *resolved* output
+  # file before rendering. Two formats writing the same file make quarto's
+  # project step crash with a cryptic "NotFound ... rename" error (the
+  # first format's move consumes the file, the second has nothing left to
+  # move) -- block early with an actionable message instead. If the
+  # inspect call itself fails (exceptional), fall back to a frontmatter
+  # heuristic and only warn.
+  collisions <- adhoc_output_collisions(index_path)
+  if (identical(collisions, "unverified")) {
+    possible <- adhoc_output_collisions_heuristic(index_path)
+    if (!is.null(possible)) {
+      files_txt <- paste(vapply(possible, function(cl) cl$file, character(1)),
+                         collapse = ", ")
+      fmts_txt <- paste(unique(unlist(
+        lapply(possible, function(cl) cl$formats)
+      )), collapse = " + ")
+      cli::cli_warn(c(
+        "Impossible de v\u00e9rifier les fichiers de sortie aupr\u00e8s de quarto ;",
+        "collision possible entre {fmts_txt} sur {files_txt}.",
+        "i" = paste("Si le rendu \u00e9choue avec une erreur {.val rename} de quarto,",
+                    "donnez un {.val output-file} distinct \u00e0 chaque format dans le frontmatter.")
+      ))
+    }
+  } else if (!is.null(collisions)) {
+    cli::cli_abort(c(
+      "Collision de fichiers de sortie entre formats d\u00e9clar\u00e9s dans {.path {index}}.",
+      vapply(collisions, function(cl) {
+        fmts <- paste(cl$formats, collapse = " + ")
+        glue::glue("Formats {fmts} : tous produisent le m\u00eame fichier de sortie \"{cl$file}\"")
+      }, character(1)),
+      "i" = paste("Donnez un {.val output-file} distinct \u00e0 chaque format dans le",
+                  "frontmatter du document. Par exemple :"),
+      "format:",
+      "  pres-revealjs:",
+      '    output-file: "slides.html"',
+      "  wp-html:",
+      '    output-file: "document.html"'
+    ))
+  }
 
   quarto::quarto_render(as_job = FALSE)
 

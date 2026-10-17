@@ -198,6 +198,10 @@ copy_post <- function(posts, lang = "fr",
         location = "socialshare",
         permalink = glue::glue("https://ofce.sciences-po.fr/blog2024/{lang}/{post_folder}/index.html"),
         description = title)
+      # image: fig-{label} -> vignette générée à partir du chunk {label}
+      # (cf. _utils/thumbnail.R du blog), il faut un vrai fichier pour le listing
+      if(!is.null(yaml$image) && stringr::str_detect(yaml$image, "^fig-[^./]+$"))
+        yaml$image <- stringr::str_c(yaml$image, ".png")
       if(is.null(yaml$image)) {
         if(length(fs::dir_ls(new_path, glob="*.jpg"))>0)
           new_img <- fs::dir_ls(new_path, glob="*.jpg")[[1]] |> fs::path_file()

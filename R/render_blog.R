@@ -128,6 +128,7 @@ render_blog <- function(
     root,
     progress = progress)
   sync_back_sourcoise(cached_fr, "fr")
+  sync_back_thumbnail(cached_fr, "fr")
 
   # en anglais
   cli::cli_h2("Génération du blog en {.emph anglais}")
@@ -151,6 +152,7 @@ render_blog <- function(
     root,
     progress = progress)
   sync_back_sourcoise(cached_en, "en")
+  sync_back_thumbnail(cached_en, "en")
 
   if (check_freeze) {
     uncached <- dplyr::bind_rows(cached_fr, cached_en) |>

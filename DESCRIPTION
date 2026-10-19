@@ -86,6 +86,6 @@ Suggests:
 VignetteBuilder: knitr
 remotes:
   github::ofce/ofce
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
 URL: https://ofceweb.github.io/ofceweb/
 Config/testthat/edition: 3

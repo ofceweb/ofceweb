@@ -37,6 +37,19 @@ utilisée dans les deux fonctions de synchronisation pour une comparaison
 distant à `github.repository` avec un `!=` bash tout aussi sensible à la
 casse, est corrigé de la même façon (comparaison après passage en minuscules).
 
+### `check_fonts()` installe désormais les polices pour tous les utilisateurs sous Windows
+
+Sous Windows, `check_fonts()`/`install_fonts()` copiaient les fichiers `.ttf`
+dans `%LOCALAPPDATA%/Microsoft/Windows/Fonts` et les inscrivaient dans la
+ruche registre `HKCU` : les polices n'étaient alors visibles que de
+l'utilisateur ayant lancé l'installation. Elles sont désormais copiées dans le
+dossier système `C:/Windows/Fonts` et inscrites dans la ruche machine `HKLM`,
+donc disponibles pour tous les comptes de la machine ; l'installation requiert
+une session R lancée en administrateur (détectée par la nouvelle fonction
+interne `is_windows_admin()`, via `net session`) et s'arrête sinon avec un
+message explicite invitant à relancer R/RStudio en tant qu'administrateur.
+`user_font_dir()` est renommée `font_dir()` en conséquence.
+
 ## ofceweb 1.0.4
 
 ### Renommage de la famille "flash" (`render_folder()` -> `render_flash()`, etc.) et slug par document

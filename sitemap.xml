@@ -50,10 +50,12 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/encrypt_wp.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/fetch_google_font_css.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/find_safe_here_marker.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/font_dir.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/font_installed.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/google_font_css_url.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/index.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/install_fonts.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/is_windows_admin.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/ofce_fonts.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/parse_google_font_css.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/pb_manifest.html</loc></url>
@@ -110,7 +112,6 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/sync_back_sourcoise.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/trigger_action.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/update_navbar.html</loc></url>
-<url><loc>https://ofceweb.github.io/ofceweb/reference/user_font_dir.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/version_up.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/wp_manifest.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/wp_registry_request.html</loc></url>

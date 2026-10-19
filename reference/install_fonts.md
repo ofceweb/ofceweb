@@ -3,7 +3,7 @@
 Sur un système Unix (macOS, Linux) où Homebrew est disponible,
 l'installation passe par \`brew install –cask font-\<famille\>\`. Sinon
 (ou en cas d'échec), les fichiers \`.ttf\` sont téléchargés depuis l'API
-Google Fonts et copiés dans le dossier de polices de l'utilisateur :
+Google Fonts et copiés dans le dossier de polices du système :
 
 ## Usage
 
@@ -39,4 +39,7 @@ famille s'est déroulée sans erreur.
 ## Details
 
 \* macOS : \`~/Library/Fonts\` \* Linux : \`~/.local/share/fonts\` (+
-\`fc-cache -f\`) \* Windows : \` \`HKCU\\..\Fonts\`)
+\`fc-cache -f\`) \* Windows : \`C:/Windows/Fonts\` (+ enregistrement
+dans \`HKLM\\..\Fonts\`) — installation pour \*\*tous\*\* les
+utilisateurs, qui requiert une session R lancée en administrateur (voir
+\[is_windows_admin()\])

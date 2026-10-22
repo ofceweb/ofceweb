@@ -56,7 +56,7 @@
 
 render_blog <- function(
     path = ".",
-    force_freeze = TRUE,
+    force_freeze = FALSE,
     workers = 8L,
     check_repo = TRUE,
     progress = TRUE,

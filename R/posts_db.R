@@ -41,6 +41,7 @@ posts_db <- function(path) {
       description_en = yaml_en$description %||% NA_character_,
       pdf_link_fr = pdf_link_fr,
       pdf_link_en = pdf_link_en,
+      draft = isTRUE(yaml$draft),
       gow = yaml$gow %||% FALSE,
       ecograph = yaml$ecograph %||% FALSE)
 

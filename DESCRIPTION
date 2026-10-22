@@ -41,6 +41,7 @@ SystemRequirements: Quarto CLI (>= 1.9.38) <https://quarto.org>, checked at
     runtime by check_ofce_version() in setup_wp()/setup_pb()/setup_prev()/
     setup_site()
 Imports:
+    blastula,
     callr,
     cli,
     credentials,

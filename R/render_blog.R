@@ -42,10 +42,6 @@
 #' @param freeze Logique. Si `TRUE` (défaut), transmis à [copy_files()] pour
 #'   activer le mode freeze de Quarto lors de la copie de l'ossature du
 #'   projet.
-#' @param notify Logique. Si `TRUE`, après le déploiement, envoie un mail
-#'   pour chaque nouveau billet via [notify_new_posts()] (destinataires dans
-#'   `_notify.yml`, SMTP dans les variables `OFCE_SMTP_*`). Défaut
-#'   `site2branch` : les mails ne partent que si le site est publié.
 #'
 #' @return Un data frame des changements git préparés (sortie de
 #'   [gert::git_status()]), renvoyé invisiblement.
@@ -67,8 +63,7 @@ render_blog <- function(
     render_site = TRUE,
     check_freeze = FALSE,
     site2branch = FALSE,
-    trigger = site2branch, freeze = TRUE,
-    notify = site2branch) {
+    trigger = site2branch, freeze = TRUE) {
 
   root <- path |>
     fs::path_expand() |>
@@ -133,7 +128,6 @@ render_blog <- function(
     root,
     progress = progress)
   sync_back_sourcoise(cached_fr, "fr")
-  sync_back_thumbnail(cached_fr, "fr")
 
   # en anglais
   cli::cli_h2("Génération du blog en {.emph anglais}")
@@ -157,7 +151,6 @@ render_blog <- function(
     root,
     progress = progress)
   sync_back_sourcoise(cached_en, "en")
-  sync_back_thumbnail(cached_en, "en")
 
   if (check_freeze) {
     uncached <- dplyr::bind_rows(cached_fr, cached_en) |>
@@ -215,11 +208,6 @@ render_blog <- function(
     )
   }
 
-  if (notify) {
-    cli::cli_h2("Notification des nouveaux billets")
-    notify_new_posts(posts, root)
-  }
-
   if(render_site) {
     cli::cli_h2("Render du site")
     servr::httw("_site", daemon = TRUE)
@@ -250,8 +238,7 @@ publish_blog <- function(
     render_site = FALSE,
     check_freeze = FALSE,
     trigger = TRUE,
-    freeze = TRUE,
-    notify = TRUE) {
+    freeze = TRUE) {
   render_blog(
     path = path,
     force_freeze = force_freeze,
@@ -262,8 +249,7 @@ publish_blog <- function(
     check_freeze = check_freeze,
     site2branch = TRUE,
     trigger = trigger,
-    freeze = freeze,
-    notify = notify
+    freeze = freeze
   )
 }
 

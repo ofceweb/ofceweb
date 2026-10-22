@@ -14,8 +14,7 @@ render_blog(
   check_freeze = FALSE,
   site2branch = FALSE,
   trigger = site2branch,
-  freeze = TRUE,
-  notify = site2branch
+  freeze = TRUE
 )
 }
 \arguments{
@@ -52,11 +51,6 @@ option un workflow GitHub Actions après le déploiement. Défaut `FALSE`.}
 \item{freeze}{Logique. Si `TRUE` (défaut), transmis à [copy_files()] pour
 activer le mode freeze de Quarto lors de la copie de l'ossature du
 projet.}
-
-\item{notify}{Logique. Si `TRUE`, après le déploiement, envoie un mail
-pour chaque nouveau billet via [notify_new_posts()] (destinataires dans
-`_notify.yml`, SMTP dans les variables `OFCE_SMTP_*`). Défaut
-`site2branch` : les mails ne partent que si le site est publié.}
 }
 \value{
 Un data frame des changements git préparés (sortie de

@@ -13,13 +13,13 @@
 ## Citation
 
 Timbeau X, Saumtally A, Aurissergues E, Bordet C (2026). *ofceweb: Tous
-les outils pour le fonctionnement du web OFCE*. R package version
-1.0.4.9000, <https://ofceweb.github.io/ofceweb/>.
+les outils pour le fonctionnement du web OFCE*. R package version 1.0.5,
+<https://ofceweb.github.io/ofceweb/>.
 
     @Manual{,
       title = {ofceweb: Tous les outils pour le fonctionnement du web OFCE},
       author = {Xavier Timbeau and Anissa Saumtally and Elliot Aurissergues and Charles Bordet},
       year = {2026},
-      note = {R package version 1.0.4.9000},
+      note = {R package version 1.0.5},
       url = {https://ofceweb.github.io/ofceweb/},
     }

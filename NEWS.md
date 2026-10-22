@@ -1,4 +1,10 @@
-## ofceweb 1.0.4.9000
+## ofceweb 1.0.5
+
+### Les variables github sont à jour
+
+Elles sont maintenant écrites au `deploy` pour éviter les retards.
+
+## ofceweb 1.0.4
 
 ### Détection amont des collisions de fichiers de sortie dans `render_flash()`
 

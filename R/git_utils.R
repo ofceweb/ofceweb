@@ -625,7 +625,7 @@ detect_gh_owner <- function(root) {
   list(owner = owner, repo = repo_slug, org = org)
 }
 
-check_repo_status <- function(repo = ".", prompt = TRUE, timeout = 10) {
+check_repo_status <- function(repo = ".", prompt = TRUE, timeout = 30) {
   # Fetch latest refs from remote (no merge).
   # Runs in a callr subprocess so the timeout is enforced cross-platform.
   fetch <- tryCatch(

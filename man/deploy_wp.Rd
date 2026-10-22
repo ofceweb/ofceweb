@@ -53,6 +53,14 @@ Route le déploiement selon l'\u00e9tat du registre (`stage` dans
     }
 }
 }
+\details{
+Dans les deux cas, la variable GitHub Actions FTP correspondante
+(`FTP_SERVER_DIR` ou `FTP_STAGING_DIR`) est resynchronis\u00e9e depuis
+`_quarto.yml` juste avant de d\u00e9clencher le workflow (voir
+[sync_ftp_dir_var()]), pour rester correcte m\u00eame si `version`/
+`website.site-path` a \u00e9t\u00e9 modifi\u00e9 en dehors de [wp_version_up()]/
+[setup_wp()] depuis le dernier d\u00e9ploiement.
+}
 \section{Working Paper (WP) Users}{
 
 }

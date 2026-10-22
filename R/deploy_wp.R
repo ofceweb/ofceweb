@@ -25,6 +25,13 @@
 #'     }
 #' }
 #'
+#' Dans les deux cas, la variable GitHub Actions FTP correspondante
+#' (`FTP_SERVER_DIR` ou `FTP_STAGING_DIR`) est resynchronis\u00e9e depuis
+#' `_quarto.yml` juste avant de d\u00e9clencher le workflow (voir
+#' [sync_ftp_dir_var()]), pour rester correcte m\u00eame si `version`/
+#' `website.site-path` a \u00e9t\u00e9 modifi\u00e9 en dehors de [wp_version_up()]/
+#' [setup_wp()] depuis le dernier d\u00e9ploiement.
+#'
 #' @param path Chemin vers la racine du d\u00e9p\u00f4t. D\u00e9faut `"."`.
 #' @param progress Logique. Affichage de la progression. D\u00e9faut `TRUE`.
 #' @param trigger Pass\u00e9 \u00e0 [site2branch()] (WP staged ou publi\u00e9 uniquement).
@@ -87,6 +94,11 @@ deploy_wp <- function(
     # cli::cli_text(
     #   "WP {wp}/{annee}{if (!is.null(version)) paste0(' / ', version) else ''} \u2192 {.url {stable_url}}")
 
+    # Resynchronise FTP_SERVER_DIR depuis le site-path *actuel* -- au cas o\u00f9
+    # _quarto.yml aurait \u00e9t\u00e9 modifi\u00e9 (\u00e9dition manuelle, merge, ...) sans
+    # repasser par wp_version_up()/setup_wp() depuis le dernier d\u00e9ploiement.
+    sync_ftp_dir_var(root, "FTP_SERVER_DIR", yml$website$`site-path`)
+
     res <- site2branch(
       path        = root,
       progress    = progress,
@@ -133,6 +145,11 @@ deploy_wp <- function(
     cli::cli_text(
       "{if (isTRUE(stage)) 'En attente d\u2019enregistrement' else 'Brouillon'} \\
        {if (!is.null(version)) paste0('/ ', version, ' ') else ''}\u2192 {.url {final_url}}")
+
+    # Resynchronise FTP_STAGING_DIR \u00e0 partir des m\u00eames repo_slug/ver_seg que
+    # final_url ci-dessus -- garantit que la variable GitHub et l'URL affich\u00e9e
+    # ne peuvent jamais diverger, m\u00eame si la version a \u00e9t\u00e9 chang\u00e9e \u00e0 la main.
+    sync_ftp_dir_var(root, "FTP_STAGING_DIR", paste0(repo_slug, "/", ver_seg))
 
     res <- site2branch(
       path        = root,

@@ -4,6 +4,15 @@
 #' sans relancer le rendu Quarto. Pour staging, pousse `_site_staging/` vers
 #' `site-staging` ; pour publish, pousse `_site_publish/` vers `site-publish`.
 #'
+#' Pour les profils `"staging"`/`"publish"`, la variable GitHub Actions FTP
+#' correspondante (`FTP_STAGING_DIR`/`FTP_PUBLISH_DIR`) est resynchronisée
+#' depuis `_quarto-staging.yml`/`_quarto-publish.yml` juste avant de
+#' déclencher le workflow (voir [sync_ftp_dir_var()]), pour rester correcte
+#' même si leur `site-path` a été modifié en dehors de [prev_version_up()]/
+#' [setup_prev()] depuis le dernier déploiement. Un profil personnalisé n'a
+#' aucune variable à resynchroniser : `ftp_deploy_profile.yml` calcule le
+#' répertoire cible directement à partir du nom du dépôt et du profil.
+#'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param profile `"staging"` (défaut), `"publish"`, ou tout autre profil
 #'   Quarto déclaré dans `_quarto.yml`. Les profils personnalisés sont déployés
@@ -17,6 +26,7 @@
 #' @returns Invisible `NULL`.
 #' @seealso [stage_prev()], [publish_prev()], [site2staging()]
 #' @importFrom cli cli_abort
+#' @importFrom yaml read_yaml
 #' @keywords internal
 deploy_prev <- function(
     path        = ".",
@@ -36,6 +46,17 @@ deploy_prev <- function(
       cli::cli_abort(
         "Pas de dossier {.path _site_staging} — lancer \\
          {.run ofceweb::render_prev(profile = 'staging')} d'abord.")
+
+    # Resynchronise FTP_STAGING_DIR depuis le site-path actuel de
+    # _quarto-staging.yml -- au cas où il aurait été modifié (édition
+    # manuelle, merge, ...) sans repasser par prev_version_up()/setup_prev()
+    # depuis le dernier déploiement.
+    stg_yml_path <- fs::path(root, "_quarto-staging.yml")
+    if (fs::file_exists(stg_yml_path)) {
+      stg <- tryCatch(yaml::read_yaml(stg_yml_path), error = function(e) NULL)
+      sync_ftp_dir_var(root, "FTP_STAGING_DIR", stg$website$`site-path`)
+    }
+
     site2staging(
       path        = root,
       progress    = progress,
@@ -48,6 +69,16 @@ deploy_prev <- function(
       cli::cli_abort(
         "Pas de dossier {.path _site_publish} — lancer \\
          {.run ofceweb::render_prev(profile = 'publish')} d'abord.")
+
+    # Resynchronise FTP_PUBLISH_DIR depuis le site-path actuel de
+    # _quarto-publish.yml -- même garde-fou que ci-dessus pour le profil
+    # staging.
+    pub_yml_path <- fs::path(root, "_quarto-publish.yml")
+    if (fs::file_exists(pub_yml_path)) {
+      pub <- tryCatch(yaml::read_yaml(pub_yml_path), error = function(e) NULL)
+      sync_ftp_dir_var(root, "FTP_PUBLISH_DIR", pub$website$`site-path`)
+    }
+
     site2publish(
       path        = root,
       progress    = progress,
@@ -60,6 +91,9 @@ deploy_prev <- function(
       cli::cli_abort(
         "Pas de dossier {.path _site_{profile}} — lancer \\
          {.run ofceweb::render_prev(profile = '{profile}')} d'abord.")
+    # Pas de variable GitHub à resynchroniser ici : ftp_deploy_profile.yml
+    # calcule server-dir directement depuis le nom du dépôt et l'entrée
+    # `profile` passée au déclenchement du workflow (cf. site2profile()).
     site2profile(
       path        = root,
       profile     = profile,

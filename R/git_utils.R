@@ -293,6 +293,39 @@ set_gh_var <- function(root = ".", name, value, verbose = TRUE) {
   )
 }
 
+#' Resynchronise une variable GitHub de répertoire FTP juste avant déploiement
+#'
+#' Pousse `dir_value` (normalisé avec un slash final) vers la variable GitHub
+#' Actions `name` via [set_gh_var()]. No-op silencieux si `dir_value` est
+#' `NULL`/vide (rien à synchroniser). Un échec réseau/jeton produit un
+#' avertissement non bloquant -- ne fait jamais échouer l'appelant.
+#'
+#' Centralise la resynchronisation appelée par [deploy_wp()]/[deploy_pb()]/
+#' [deploy_prev()] immédiatement avant de déclencher le workflow FTP
+#' correspondant, pour rester correcte même si `_quarto.yml`/
+#' `_quarto-staging.yml`/`_quarto-publish.yml` a été modifié en dehors de
+#' `setup_*()`/`*_version_up()` (ces derniers restent la source de vérité
+#' "proactive" ; ceci est un filet de sécurité "au moment du déploiement").
+#'
+#' @param root Chemin vers la racine du dépôt.
+#' @param name Nom de la variable GitHub Actions (ex. `"FTP_SERVER_DIR"`).
+#' @param dir_value Chaîne ou `NULL`. Chemin FTP cible ; `NULL`/vide = rien à
+#'   faire.
+#'
+#' @returns Invisible `NULL`.
+#' @seealso [set_gh_var()], [deploy_wp()], [deploy_pb()], [deploy_prev()]
+#' @keywords internal
+sync_ftp_dir_var <- function(root, name, dir_value) {
+  if (is.null(dir_value) || !nzchar(dir_value)) return(invisible(NULL))
+  if (!grepl("/$", dir_value)) dir_value <- paste0(dir_value, "/")
+  tryCatch(
+    set_gh_var(root, name, dir_value),
+    error = function(e)
+      cli::cli_alert_warning("{name} non resynchronisé : {conditionMessage(e)}")
+  )
+  invisible(NULL)
+}
+
 #' Compteur de générations pour [check_gh_setup()]
 #'
 #' Incrémenté à chaque appel de [check_gh_setup()] (voir son corps). Sert de

@@ -12,6 +12,13 @@
 #'     `"gh-pages"` sinon ; `"ftp"` ou `"gh-pages"` forcent la destination).
 #' }
 #'
+#' Dans les deux cas, la variable GitHub Actions FTP correspondante
+#' (`FTP_SERVER_DIR` ou `FTP_STAGING_DIR`) est resynchronisée depuis
+#' `_quarto.yml` juste avant de déclencher le workflow (voir
+#' [sync_ftp_dir_var()]), pour rester correcte même si `version`/
+#' `website.site-path` a été modifié en dehors de [pb_version_up()]/
+#' [setup_pb()] depuis le dernier déploiement.
+#'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param progress Logique. Affichage de la progression. Défaut `TRUE`.
 #' @param trigger Passé à [site2branch()]. Déclenche le workflow GitHub Actions
@@ -71,6 +78,11 @@ deploy_pb <- function(
     cli::cli_text(
       "PB {pb}{if (!is.null(version)) paste0(' / ', version) else ''} → {.url {stable_url}}")
 
+    # Resynchronise FTP_SERVER_DIR depuis le site-path actuel -- au cas où
+    # _quarto.yml aurait été modifié (édition manuelle, merge, ...) sans
+    # repasser par pb_version_up()/setup_pb() depuis le dernier déploiement.
+    sync_ftp_dir_var(root, "FTP_SERVER_DIR", yml$website$`site-path`)
+
     res <- site2branch(
       path        = root,
       progress    = progress,
@@ -110,6 +122,11 @@ deploy_pb <- function(
     cli::cli_text(
       "{if (isTRUE(stage)) 'En attente d’enregistrement' else 'Brouillon'} \\
        {if (!is.null(version)) paste0('/ ', version, ' ') else ''}→ {.url {final_url}}")
+
+    # Resynchronise FTP_STAGING_DIR à partir des mêmes repo_slug/ver_seg que
+    # final_url ci-dessus -- garantit que la variable GitHub et l'URL affichée
+    # ne peuvent jamais diverger, même si la version a été changée à la main.
+    sync_ftp_dir_var(root, "FTP_STAGING_DIR", paste0(repo_slug, "/", ver_seg))
 
     res <- site2branch(
       path        = root,

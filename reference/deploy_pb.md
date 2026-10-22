@@ -52,6 +52,15 @@ deploy_pb(
 
 Invisible \`NULL\`.
 
+## Details
+
+Dans les deux cas, la variable GitHub Actions FTP correspondante
+(\`FTP_SERVER_DIR\` ou \`FTP_STAGING_DIR\`) est resynchronisée depuis
+\`\_quarto.yml\` juste avant de déclencher le workflow (voir
+\[sync_ftp_dir_var()\]), pour rester correcte même si \`version\`/
+\`website.site-path\` a été modifié en dehors de \[pb_version_up()\]/
+\[setup_pb()\] depuis le dernier déploiement.
+
 ## See also
 
 \[render_pb()\], \[site2branch()\], \[pb_version_up()\],

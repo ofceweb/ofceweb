@@ -11,7 +11,7 @@ option, déploie le site ou lance un serveur de prévisualisation local.
 ``` r
 render_blog(
   path = ".",
-  force_freeze = TRUE,
+  force_freeze = FALSE,
   workers = 8L,
   check_repo = TRUE,
   progress = TRUE,

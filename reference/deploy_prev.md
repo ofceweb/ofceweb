@@ -47,6 +47,18 @@ deploy_prev(
 
 Invisible \`NULL\`.
 
+## Details
+
+Pour les profils \`"staging"\`/\`"publish"\`, la variable GitHub Actions
+FTP correspondante (\`FTP_STAGING_DIR\`/\`FTP_PUBLISH_DIR\`) est
+resynchronisée depuis \`\_quarto-staging.yml\`/\`\_quarto-publish.yml\`
+juste avant de déclencher le workflow (voir \[sync_ftp_dir_var()\]),
+pour rester correcte même si leur \`site-path\` a été modifié en dehors
+de \[prev_version_up()\]/ \[setup_prev()\] depuis le dernier
+déploiement. Un profil personnalisé n'a aucune variable à resynchroniser
+: \`ftp_deploy_profile.yml\` calcule le répertoire cible directement à
+partir du nom du dépôt et du profil.
+
 ## See also
 
 \[stage_prev()\], \[publish_prev()\], \[site2staging()\]

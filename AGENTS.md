@@ -69,6 +69,41 @@
   [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)/[`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md)
   on every staging FTP deploy.
 
+### Deploy-time resync of `FTP_SERVER_DIR`/`FTP_STAGING_DIR`/`FTP_PUBLISH_DIR`
+
+- `sync_ftp_dir_var(root, name, dir_value)` (`R/git_utils.R`) is a small
+  shared helper: normalizes `dir_value` with a trailing slash and pushes
+  it via `set_gh_var()`, no-op on `NULL`/empty, downgrades a
+  `set_gh_var()` failure to a non-blocking `cli_alert_warning()`.
+- [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)/[`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md)
+  call it immediately before triggering the relevant workflow:
+  `FTP_SERVER_DIR` from the live `yml$website$site-path` in the “Publié”
+  (production) branch, `FTP_STAGING_DIR` from the same
+  `repo_slug`/`ver_seg` used to build `final_url` in the “FTP staging”
+  branch (so the GitHub variable and the URL shown to the user can never
+  disagree).
+  [`deploy_prev()`](https://ofceweb.github.io/ofceweb/reference/deploy_prev.md)
+  does the same for `profile = "staging"`/`"publish"`, reading
+  `_quarto-staging.yml`/`_quarto-publish.yml` fresh each time. A custom
+  `deploy_prev(profile = ...)` has nothing to resync —
+  `ftp_deploy_profile.yml` computes `server-dir` inline from the repo
+  name + profile input, no GitHub variable involved.
+- This exists as a **defensive, deploy-time checkpoint** on top of the
+  “proactive” writers
+  ([`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)/[`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md),
+  [`wp_version_up()`](https://ofceweb.github.io/ofceweb/reference/wp_version_up.md)/[`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md)/[`prev_version_up()`](https://ofceweb.github.io/ofceweb/reference/prev_version_up.md),
+  which are unchanged): if
+  `_quarto.yml`/`_quarto-staging.yml`/`_quarto-publish.yml` is edited by
+  some other path (manual edit, merge, …) without rerunning one of
+  those, the next
+  [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)/[`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md)/[`deploy_prev()`](https://ofceweb.github.io/ofceweb/reference/deploy_prev.md)
+  still deploys to the right FTP directory.
+  `FTP_REDIRECT_DIR`/`FTP_STAGING_REDIRECT_DIR` were already safe
+  without this —
+  [`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)/[`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md)/[`push_wp_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_staging_redirect.md)/[`push_pb_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_staging_redirect.md)
+  already recompute them fresh from `_quarto.yml` on every call (see
+  above).
+
 ## Console verbosity conventions (`setup_wp()`/`setup_pb()`)
 
 - `check_gh_setup()` (called by

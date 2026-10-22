@@ -64,6 +64,15 @@ deploy_wp(
 
 Invisible \`NULL\`.
 
+## Details
+
+Dans les deux cas, la variable GitHub Actions FTP correspondante
+(\`FTP_SERVER_DIR\` ou \`FTP_STAGING_DIR\`) est resynchronis depuis
+\`\_quarto.yml\` juste avant de d le workflow (voir
+\[sync_ftp_dir_var()\]), pour rester correcte m si \`version\`/
+\`website.site-path\` a 9 modifi9 en dehors de \[wp_version_up()\]/
+\[setup_wp()\] depuis le dernier d.
+
 ## Working Paper (WP) Users
 
 ## See also

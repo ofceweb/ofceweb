@@ -148,6 +148,15 @@ D le workflow GitHub Actions FTP. D `TRUE`.</p></dd>
     <p>Invisible `NULL`.</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Dans les deux cas, la variable GitHub Actions FTP correspondante
+(`FTP_SERVER_DIR` ou `FTP_STAGING_DIR`) est resynchronis depuis
+`_quarto.yml` juste avant de d le workflow (voir
+[sync_ftp_dir_var()]), pour rester correcte m si `version`/
+`website.site-path` a 9 modifi9 en dehors de [wp_version_up()]/
+[setup_wp()] depuis le dernier d.</p>
+    </div>
+    <div class="section level2">
     <h2 id="working-paper-wp-users">Working Paper (WP) Users<a class="anchor" aria-label="anchor" href="#working-paper-wp-users"></a></h2>
 
 

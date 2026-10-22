@@ -32,9 +32,24 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt-get install -y cmake libcurl4-openssl-dev libgit2-dev pandoc libmagick++-dev libnode-dev locales fonts-open-sans
+          sudo apt-get install -y cmake gsfonts libcurl4-openssl-dev libgit2-dev libnode-dev pandoc
+          sudo apt-get install -y libmagick++-dev libudunits2-dev locales fonts-open-sans \
+            fonts-croscore libgdal-dev libgeos-dev libproj-dev
           sudo locale-gen fr_FR.UTF-8
           sudo update-locale LANG=fr_FR.UTF-8
+          fc-cache -fv
+
+      - name: Install Merriweather font (static, non-variable)
+        run: |
+          mkdir -p ~/.local/share/fonts/merriweather
+          # Google's distribution only ships variable fonts; use the static
+          # OpenType build from the CTAN TeX Live "merriweather" package instead.
+          base="https://tug.ctan.org/fonts/merriweather/opentype"
+          for style in Regular Bold Italic BoldItalic; do
+            curl -fsSL -o ~/.local/share/fonts/merriweather/Merriweather-$style.otf \
+              "$base/Merriweather-$style.otf"
+          done
+          fc-cache -fv ~/.local/share/fonts
 
       - name: Configure git identity
         run: |

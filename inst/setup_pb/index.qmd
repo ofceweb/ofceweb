@@ -4,14 +4,16 @@ abstract: |
   Résumé du policy brief. Remplacer ce texte par le résumé
   (environ 150 mots). Il apparaîtra sur la page HTML et dans le PDF.
 
+institut: "ife"
+
 format:
   pb-html: default
   pb-typst:
-    output-file: "OFCEPB-draft.pdf"
+    output-file: "IFEPB-draft.pdf"
 format-links:
   - typst
   - format: pb-typst
-    text: "OFCEPB-draft.pdf"
+    text: "IFEPB-draft.pdf"
     icon: file-pdf
 ---
 

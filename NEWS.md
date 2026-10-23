@@ -6,18 +6,6 @@ Elles sont maintenant écrites au `deploy` pour éviter les retards.
 
 ## ofceweb 1.0.4
 
-### Vignettes du blog reportées dans `posts/`
-
-`render_blog()` appelle `sync_back_thumbnail()` après le rendu de chaque
-langue : la vignette générée pendant l'exécution d'un post (hook
-`_utils/thumbnail.R` du blog, à partir du premier ggplot passé à
-`girafy()`) est recopiée de la copie de rendu vers `posts/<post>/`, avec le
-message « image créée à partir du #{label} du document ». Une image fournie
-par l'auteur n'est jamais écrasée (seules `thumbnail*` et `fig-*.png` sont
-régénérées). `copy_post()` transforme `image: fig-{label}` en
-`image: fig-{label}.png` dans l'`index.qmd` de rendu pour choisir le
-graphique du chunk `{label}`.
-
 ### Détection amont des collisions de fichiers de sortie dans `render_flash()`
 
 Un document ad-hoc déclarant plusieurs formats (ex. `pres-revealjs` et

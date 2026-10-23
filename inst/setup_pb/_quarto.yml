@@ -6,6 +6,7 @@ version: v0
 # Écrite/synchronisée automatiquement par render_pb() d'après le registre
 # central (ofce/wp-registry, sous-dossier pb/) ; lue par les extensions
 # ofce-quarto-extensions pour le bandeau "Version provisoire — non publiée".
+institut: ife
 draft: true
 author:
   - name: "Prénom Nom"

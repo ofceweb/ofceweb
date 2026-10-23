@@ -4,8 +4,6 @@ abstract: |
   Résumé du policy brief. Remplacer ce texte par le résumé
   (environ 150 mots). Il apparaîtra sur la page HTML et dans le PDF.
 
-institut: "ife"
-
 format:
   pb-html: default
   pb-typst:

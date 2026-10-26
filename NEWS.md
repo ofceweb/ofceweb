@@ -51,6 +51,13 @@ Seul un brouillon est versionné. À la publication :
 * Correction : `yml$pb` correspondait partiellement à `pb_series` quand
   `pb` est absent (brouillon) ; les lectures passent par `yml[["pb"]]`.
 * `manifest.json` gagne un champ `pb_series`.
+* `setup_pb()` ajoute `institut: ife` à `_quarto.yml` quand `institut`
+  n'est déclaré ni dans `_quarto.yml` ni dans `index.qmd` ; une valeur
+  existante n'est jamais modifiée.
+* Correction : sur un dépôt neuf, `setup_pb()` lisait `_quarto.yml` avant
+  d'y copier le gabarit. Au premier appel, il ignorait donc `version: v0`
+  (URL de staging et PDF brouillon sans version) et aurait écrit
+  `pb_series: ofce` au lieu du `ife` du gabarit.
 
 ## ofceweb 1.0.5
 

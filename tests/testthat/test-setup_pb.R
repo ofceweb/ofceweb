@@ -746,3 +746,47 @@ test_that("setup_pb() does not mistake an author-title key for an author key", {
   idx_lines <- readLines(fs::path(dir, "index.qmd"), warn = FALSE)
   expect_true(any(grepl("^author-title:", idx_lines)))
 })
+test_that("setup_pb() on a fresh repo keeps the template's pb_series, institut and version from the first call", {
+  local_stub_pb_side_effects()
+  dir <- local_git_tempdir()
+
+  suppressMessages(setup_pb(dir))
+  yml     <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+
+  # The template's values, not the "ofce" fallback of an empty in-memory yml.
+  expect_equal(yml$pb_series, "ife")
+  expect_equal(yml$institut, "ife")
+  expect_equal(yml$version, "v0")
+  # The version is already in the draft PDF name on the first call.
+  expect_equal(
+    idx_yml$format$`pb-typst`$`output-file`,
+    sprintf("ife-draft-%s-v0.pdf", fs::path_file(dir))
+  )
+})
+
+test_that("setup_pb() adds institut: ife when it is declared neither in _quarto.yml nor in index.qmd", {
+  local_stub_pb_side_effects()
+  dir <- local_git_tempdir()
+  build_draft_pb_repo(dir)
+
+  suppressMessages(setup_pb(dir))
+  expect_equal(yaml::read_yaml(fs::path(dir, "_quarto.yml"))$institut, "ife")
+})
+
+test_that("setup_pb() never changes an existing institut, in _quarto.yml or in index.qmd", {
+  local_stub_pb_side_effects()
+
+  dir <- local_git_tempdir()
+  write_quarto_yml(dir, list(ofce_pb = TRUE, lang = "fr", institut = "ife-ofce"))
+  write_qmd(dir, "index.qmd", yaml_lines = "title: Brouillon")
+  suppressMessages(setup_pb(dir))
+  expect_equal(yaml::read_yaml(fs::path(dir, "_quarto.yml"))$institut, "ife-ofce")
+
+  dir2 <- local_git_tempdir()
+  write_quarto_yml(dir2, list(ofce_pb = TRUE, lang = "fr"))
+  write_qmd(dir2, "index.qmd", yaml_lines = c("title: Brouillon", "institut: ofce"))
+  suppressMessages(setup_pb(dir2))
+  expect_null(yaml::read_yaml(fs::path(dir2, "_quarto.yml"))$institut)
+  expect_equal(get_yaml(fs::path(dir2, "index.qmd"))$institut, "ofce")
+})

@@ -138,6 +138,9 @@ Différences notables :
   manquait) et en tire, d'après `pb/index.json`, le `site-path`, le nom
   du PDF et `citation.container-title`. Si l'index est inaccessible, ces
   champs ne sont pas recalculés et un avertissement l'indique.
+- `institut` (le logo) vaut `ife` par défaut : `setup_pb()` l'ajoute à
+  `_quarto.yml` s'il n'est déclaré ni là ni dans `index.qmd`, sans jamais
+  modifier une valeur existante. Il ne dépend pas de `pb_series`.
 - L'argument `versionning` est obsolète et ignoré : un brouillon est
   toujours versionné, un PB publié ne l'est plus.
 

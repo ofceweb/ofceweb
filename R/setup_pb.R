@@ -42,6 +42,10 @@
 #' `nb` (numéro lu par l'extension `pb` pour distinguer brouillon et
 #' publié) est écrit à la publication et retiré pour un brouillon.
 #'
+#' `institut` (logo du PB) vaut `"ife"` par défaut : il est ajouté à
+#' `_quarto.yml` s'il n'est déclaré ni là ni dans `index.qmd`. Il ne dépend
+#' pas de `pb_series`, et une valeur existante n'est jamais modifiée.
+#'
 #' `author` est destiné à ne vivre que dans `_quarto.yml` : si `index.qmd`
 #' en porte une (héritage d'un ancien gabarit, ou ajout manuel), elle est
 #' déplacée vers `_quarto.yml` -- remplaçant la valeur qui y était déjà,
@@ -256,6 +260,13 @@ setup_pb <- function(
   if (!fs::file_exists(dest_yaml)) {
     fs::file_copy(src_yaml, dest_yaml, overwrite = FALSE)
     tmpl_status["_quarto.yml"] <- "copié"
+    # Dépôt neuf : `yml` a été lu avant cette copie (liste vide). On relit le
+    # gabarit pour que ses valeurs (version: v0, pb_series, institut) soient
+    # prises en compte dès ce premier appel -- sinon pb_series retomberait
+    # sur "ofce" et la version serait absente de l'URL de staging et du nom
+    # du PDF brouillon jusqu'au deuxième appel.
+    yml     <- tryCatch(yaml::read_yaml(dest_yaml), error = function(e) list())
+    version <- yml[["version"]]
   } else {
     tmpl_status["_quarto.yml"] <- "existant"
   }
@@ -484,6 +495,18 @@ setup_pb <- function(
   # dépôt antérieur aux séries).
   yml$pb_series <- series
   lines <- yaml_patch_scalar(lines, "pb_series", series)
+
+  # institut (logo du PB, lu par l'extension `pb`) : "ife" par défaut s'il
+  # n'est déclaré ni dans _quarto.yml ni dans index.qmd. Indépendant de
+  # pb_series ; une valeur existante (ex. co-marquage "ife-ofce") n'est
+  # jamais modifiée.
+  if (is.null(yml[["institut"]]) && is.null(index_yml[["institut"]])) {
+    yml$institut <- "ife"
+    lines <- yaml_patch_scalar(lines, "institut", "ife")
+    cli::cli_alert_info(
+      "{.field institut} absent — {.val ife} ajouté à {.file _quarto.yml} \\
+       (logo du PB ; à modifier si besoin : ofce, ife-ofce, ife-cepii, …).")
+  }
 
   if (pb_provided)    { yml[["pb"]]    <- pb;    lines <- yaml_patch_scalar_or_delete(lines, "pb", pb) }
   if (lang_provided)  { yml$lang  <- lang;  lines <- yaml_patch_scalar(lines, "lang", lang) }

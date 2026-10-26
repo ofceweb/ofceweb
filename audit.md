@@ -163,14 +163,19 @@ Avant l'étape C, ce défaut restait invisible : ofceweb n'écrivait jamais `nb`
 
 À faire : afficher `n°$nb$` et choisir le logo selon `institut`, comme le fait déjà le gabarit Typst (`typst-template.typ`, table `instituts`). Ce changement concerne un autre dépôt, partagé par tous les sites : il n'a pas été fait ici.
 
-### 6.2 Brouillons existants sans `pb_series`
+### 6.2 Brouillons existants à faire entrer dans la série `ife`
 
-`pb/pb-ceskvv-chn` (version `v1`) et `pb-gv-segregation` (version `v0`) sont des brouillons créés avant les séries. Leur `_quarto.yml` n'a pas de clé `pb_series`.
+`pb/pb-ceskvv-chn` (version `v1`) et `pb-gv-segregation` (version `v0`) sont des brouillons créés avant les séries. Ils doivent entrer dans la série `ife` (décision d'Elliot).
 
-- Au prochain `setup_pb()`, la clé sera écrite à `ofce`, la série close.
-- `registry_request()` refusera alors la demande de numéro, avec un message qui invite à choisir une série ouverte.
+| Dépôt | `pb_series` | `institut` |
+|---|---|---|
+| `pb-ceskvv-chn` | `ofce`, déjà écrit par un `setup_pb()` récent | `ife`, dans `index.qmd` |
+| `pb-gv-segregation` | absent | absent |
 
-À faire : ajouter `pb_series: ife` (et, si besoin, `institut`) dans leur `_quarto.yml`, puis relancer `setup_pb()`. Le PDF brouillon prendra alors le nom `ife-draft-{repo}-{version}.pdf`.
+- `setup_pb()` ne change jamais une `pb_series` existante, et prend `ofce` quand elle est absente. Sans intervention, les deux dépôts seraient donc dans la série close, et `registry_request()` refuserait leur demande de numéro.
+- `institut` : `setup_pb()` ajoute désormais `institut: ife` quand il n'est déclaré nulle part. `pb-gv-segregation` le recevra automatiquement ; `pb-ceskvv-chn` garde celui de son `index.qmd`.
+
+À faire : mettre `pb_series: ife` dans leur `_quarto.yml` (remplacer `ofce` pour `pb-ceskvv-chn`, ajouter la ligne pour `pb-gv-segregation`), puis relancer `setup_pb()`. Le PDF brouillon prendra alors le nom `ife-draft-{repo}-{version}.pdf`, et `citation.container-title` deviendra « Policy Brief de l'IFE ». Un argument `setup_pb(pb_series = "ife")` qui évite l'édition à la main a été proposé, mais n'est pas implémenté.
 
 ### 6.3 Mise à jour du package chez les auteurs
 

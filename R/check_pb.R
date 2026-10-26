@@ -143,7 +143,7 @@ check_pb <- function(path = ".", verbose = TRUE) {
   # citation : non requis en staging (pas de pb défini) ; calculé
   # automatiquement par setup_pb() quand pb est fourni, donc son absence
   # n'est jamais un bloquant pour le rendu.
-  if (!is.null(yml$pb)) {
+  if (!is.null(yml[["pb"]])) {
     if (is.null(yml[["citation"]])) {
       add_diag("citation", "warning",
                "Champ `citation` absent — relancer setup_pb() pour le recalculer.")
@@ -169,7 +169,8 @@ check_pb <- function(path = ".", verbose = TRUE) {
   # entrée supprimée, setup_pb() pas relancé après enregistrement, etc.).
   registry_entries <- tryCatch(fetch_pb_entries(), error = function(e) NULL)
   registry_repo    <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
-  for (r in registry_diag_rows(registry_entries, registry_repo, yml$pb, kind = "pb")) {
+  for (r in registry_diag_rows(registry_entries, registry_repo, yml[["pb"]], kind = "pb",
+                               local_series = pb_series(yml))) {
     add_diag(r$field, r$status, r$message)
   }
 
@@ -276,7 +277,7 @@ check_pb <- function(path = ".", verbose = TRUE) {
   }
 
   # ---- Contrôles spécifiques PB publié -------------------------------------
-  if (!is.null(yml$pb)) {
+  if (!is.null(yml[["pb"]])) {
     # site-path : présence et cohérence structurelle (N[/vX])
     # site-path est entièrement calculé par setup_pb() — toute incohérence
     # se résout en relançant setup_pb(). Jamais bloquant pour le rendu.
@@ -303,7 +304,7 @@ check_pb <- function(path = ".", verbose = TRUE) {
       } else {
         # Segment N (numéro PB, non zéro-padé)
         pb_seg <- suppressWarnings(as.integer(segs[1L]))
-        pb_yml <- suppressWarnings(as.integer(yml$pb))
+        pb_yml <- suppressWarnings(as.integer(yml[["pb"]]))
         if (!is.na(pb_seg) && !is.na(pb_yml) && pb_seg == pb_yml) {
           add_diag("site-path/pb", "ok",
                    sprintf("Segment numéro PB `%s` cohérent avec pb.", segs[1L]))
@@ -311,7 +312,7 @@ check_pb <- function(path = ".", verbose = TRUE) {
           add_diag("site-path/pb", "warning",
                    sprintf(
                      "Segment numéro PB `%s` dans site-path incohérent avec pb = `%s` — relancer setup_pb().",
-                     segs[1L], yml$pb))
+                     segs[1L], yml[["pb"]]))
         }
 
         # Segment version (optionnel)

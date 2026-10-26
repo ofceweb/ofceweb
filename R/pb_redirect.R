@@ -37,7 +37,7 @@ push_pb_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
 
   yml <- yaml::read_yaml(yml_path)
 
-  if (is.null(yml$pb)) {
+  if (is.null(yml[["pb"]])) {
     cli::cli_alert_info("PB brouillon — pas de redirection stable à déployer.")
     return(invisible(NULL))
   }
@@ -74,7 +74,7 @@ push_pb_redirect <- function(path = ".", progress = TRUE, trigger = TRUE) {
 
   # ---- Génération du HTML de redirection -----------------------------------
   lang     <- yml$lang %||% "fr"
-  pb_num   <- yml$pb
+  pb_num   <- yml[["pb"]]
   site_url <- yml$website$`site-url` %||% ""
   if (!grepl("/$", site_url)) site_url <- paste0(site_url, "/")
 

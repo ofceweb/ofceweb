@@ -61,7 +61,7 @@ deploy_pb <- function(
   }
 
   stage   <- manifest$stage
-  pb      <- manifest$pb    %||% yml$pb
+  pb      <- manifest[["pb"]] %||% yml[["pb"]]
   version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
 
   if (!fs::dir_exists(fs::path(root, "_site")))

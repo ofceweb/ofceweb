@@ -48,7 +48,7 @@ pb_manifest <- function(path = ".", stage = NULL) {
   yml <- yaml::read_yaml(yml_path)
 
   # Champs de base
-  pb      <- yml$pb       # NULL ou integer
+  pb      <- yml[["pb"]]       # NULL ou integer
   version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
   lang    <- if (!is.null(yml$lang))    as.character(yml$lang)    else "fr"
   title   <- if (!is.null(yml$title))   as.character(yml$title)   else ""

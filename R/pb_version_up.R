@@ -39,7 +39,7 @@ pb_version_up <- function(path = ".", custom_version = NULL) {
     )
   }
 
-  is_draft <- is.null(yml$pb)
+  is_draft <- is.null(yml[["pb"]])
 
   if (is.null(yml$version)) {
     current_version <- "∅"

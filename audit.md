@@ -59,14 +59,26 @@ Le changement est plus large que `pb_registry_request()`. Le numéro PB ne sert 
 4. **Sort de `pb/pb.json`.** Recommandation : le **garder figé** et ajouter une règle CI qui refuse toute PR qui le modifie. Ça neutralise les anciennes versions du package. On le supprimera plus tard.
 5. **Sigle du PDF publié.** `IFEPB{N}.pdf`, ou `PB-IFE-{N}.pdf` ? Et le sigle du PDF brouillon ?
 
+### Décisions retenues (2026-10-26)
+
+1. **URL** : `www.ofce.fr/pb/ife/{N}/`, avec `site-path` = `ife/{N}[/vX]`. La série `ofce` garde ses URL sans préfixe. Le domaine `ife.eco` n'est pas faisable pour le moment.
+2. **Série** : une clé YAML séparée **`pb_series`** dans `_quarto.yml`, indépendante de `institut`. `institut` ne sert plus qu'au logo (extension), `pb_series` qu'à la numérotation et aux chemins. Pas de déduction de l'une à partir de l'autre. Dans le registre, le champ `institut` de `pb/ofce.json` devient `pb_series`.
+3. **Liste et statut des séries** : `pb/index.json` dans le registre ; aucune série codée en dur dans ofceweb.
+4. **`pb/pb.json`** : gardé figé, et toute PR qui le modifie est refusée par la CI.
+5. **PDF** : `IFEPB{N}.pdf` une fois publié. Le brouillon s'appelle `ife-draft-{repo}-{vX}.pdf`, où `{repo}` suit la convention `pb-{initiales auteurs}-{thème court}` (ex. `ife-draft-pb-csskvv-chn-v1.pdf`). C'est le schéma actuel `ofce-draft-{repo}-{version}.pdf`, avec un préfixe tiré de la série.
+
 ## 4. Plan d'action proposé (dans l'ordre)
 
 ### Étape A — registre (`wp-registry`, avant tout le reste)
 
-1. Ajouter `institut` au schéma, avec un `enum` des séries. Ajouter `pb/index.json`.
+> **Fait le 2026-10-26** (points 1 et 2, branche `new_pb`, non commité). Elliot ouvre la PR lui-même.
+> `pb/index.json` porte aussi, par série, les paramètres dérivés : `label`, `path-prefix` (`""` pour ofce, `"ife/"` pour ife), `pdf-prefix` (`OFCEPB`/`IFEPB`), `draft-prefix` (`ofce-draft`/`ife-draft`) et `container-title`. Son schéma est `pb/index.schema.json`. À l'étape C, `pb_paths()` lira ces valeurs dans l'index au lieu de les coder en dur dans ofceweb (décision 3).
+
+1. Renommer le champ `institut` en `pb_series` dans `pb/ofce.json`. Ajouter `pb_series` au schéma, avec un `enum` des séries. Ajouter `pb/index.json`.
 2. Étendre `validate-registry.yml` à `pb/**` :
    - JSON valide et conformité au schéma ;
-   - cohérence entre le nom de fichier et `institut` ;
+   - cohérence entre le nom de fichier et `pb_series` ;
+   - cohérence entre `pb/index.json` et les fichiers `pb/{serie}.json` présents ;
    - unicité de `pb` dans chaque fichier ;
    - unicité de `source-repo` entre tous les fichiers ;
    - refus des modifications de `pb.json`.
@@ -76,23 +88,58 @@ Le changement est plus large que `pb_registry_request()`. Le numéro PB ne sert 
 
 ### Étape B — couche registre d'ofceweb
 
-4. Ajouter `pb_series()` et `fetch_pb_series_index()`. Réécrire `fetch_pb_registry()` et `fetch_pb_entries()` en mode multi-fichiers. Le registre est indisponible si l'index est inaccessible ; un fichier de série absent compte comme une liste vide.
+4. Ajouter un helper `pb_series()`, qui lit la clé `pb_series` de `_quarto.yml` (`ofce` par défaut pour les dépôts existants), et `fetch_pb_series_index()`. Réécrire `fetch_pb_registry()` et `fetch_pb_entries()` en mode multi-fichiers. Le registre est indisponible si l'index est inaccessible ; un fichier de série absent compte comme une liste vide.
 5. Réécrire `pb_registry_request()` : lire la série depuis `_quarto.yml`, refuser si elle est close ou si le dépôt est déjà enregistré, puis appliquer `max+1` dans la série.
 6. Adapter `sync_pb_registry_state()` et `registry_diag_rows(kind = "pb")` pour comparer le couple (série, numéro).
 
 ### Étape C — chemins dérivés
 
-7. Ajouter un helper unique, par exemple `pb_paths(serie, pb, version)`, qui renvoie `site_path`, `stable_url`, `final_url`, `pdf_name` et `container_title`. L'utiliser dans `setup_pb`, `pb_manifest`, `deploy_pb`, `check_pb`, `complete_pb_yaml` et `pb_redirect`, au lieu de répéter les `sprintf` à six endroits.
+7. Ajouter un helper unique, par exemple `pb_paths(serie, pb, version)`, qui renvoie `site_path`, `stable_url`, `final_url`, `pdf_name` et `container_title`. Pour `ife`, il produit `ife/{N}`, `IFEPB{N}.pdf` et `ife-draft-{repo}-{vX}.pdf` ; pour `ofce`, il garde `{N}`, `OFCEPB{N}.pdf` et `ofce-draft-…`. L'utiliser dans `setup_pb`, `pb_manifest`, `deploy_pb`, `check_pb`, `complete_pb_yaml` et `pb_redirect`, au lieu de répéter les `sprintf` à six endroits.
 8. Corriger `pb_version_up()` pour un `site-path` sans segment de version.
 9. Faire écrire `nb` par `setup_pb()`, ou faire lire `pb` par l'extension. Mettre à jour le `toc.html` de l'extension (dépôt `ofce-quarto-extensions`).
 
 ### Étape D — gabarits, docs, tests, version
 
-10. Gabarit `_quarto.yml` et vignette `policy-briefs.Rmd`. Ajouter à `NEWS.md` une entrée « PB multi-séries ».
+10. Ajouter `pb_series: ife` au gabarit `_quarto.yml`, à côté de `institut`. Mettre à jour la vignette `policy-briefs.Rmd` et corriger l'affirmation selon laquelle webhome collecte `manifest.json` (voir section 5). Ajouter à `NEWS.md` une entrée « PB multi-séries ».
 11. Tests :
     - un registre multi-séries simulé ;
     - une série close ;
     - la reprise de la numérotation à 1 ;
     - la collision d'URL entre séries ;
-    - `institut` absent qui retombe sur `ofce`.
+    - `pb_series` absent qui retombe sur `ofce` (série close, donc demande refusée avec un message explicite).
 12. Monter la version minimale d'ofceweb exigée, via `check_gh_setup()` ou `check_pb()`, pour que les anciennes installations ne puissent plus faire de demande.
+
+## 5. Compatibilité avec webhome et ife_webhome
+
+*Vérifié le 2026-10-26 sur `web/webhome` (`main`, à jour avec `origin/main`) et `web/ife_webhome`.*
+
+Le plan est compatible avec les workflows en place : rien ne casse. L'affichage public des PB IFE restera simplement manuel, comme celui des PB OFCE.
+
+### Constats
+
+1. **Pas de conflit de dossiers FTP avec webhome.** `webhome/.github/workflows/ftp_deploy.yml` envoie `_site/` à la racine du serveur (`server-dir: ./`). L'option `dangerous-clean-slate` est à `false`, et le fichier d'état de l'action ne suit que ce que webhome a lui-même déposé. Comme `_site/` ne contient pas de dossier `pb/`, un futur `/pb/ife/{N}/` déposé par un dépôt PB ne sera jamais écrasé ni supprimé.
+   - Règle à garder : webhome ne doit jamais créer de page sous `/pb/`.
+2. **ife_webhome n'est pas concerné.** Il se connecte avec un autre compte FTP, publie dans `./www/` (le site `ife.eco`) et ne liste aucun PB. Les PB IFE vivront sur `www.ofce.fr/pb/ife/{N}/`, et ife.eco pourra y renvoyer par des liens ajoutés à la main (par exemple dans `_index_jsons/actualite.json`).
+3. **Personne ne lit encore `manifest.json`.** webhome n'a aucun script ni workflow qui le récupère. Les scripts `scripts/generate_pbrief_yaml.R` et `scripts/generate_working_papers_yaml.R` sont des migrations ponctuelles depuis l'ancienne base MySQL.
+   - On peut donc ajouter `pb_series` au manifeste et changer les URL sans rien casser.
+   - La vignette `policy-briefs.Rmd` affirme à tort que webhome collecte ce fichier (corrigé à l'étape D).
+   - Un futur collecteur devra identifier un PB par le couple (`pb_series`, `pb`), pas par `pb` seul.
+4. **Le sitemap des PB reste correct.** `render_pb()` appelle `build_sitemap(prefix = "pb/")`, qui ajoute le `site-path` à la suite. Avec `site-path: ife/12/v0`, les URL produites sont bien `www.ofce.fr/pb/ife/12/v0/`. Rien à modifier.
+
+### Points éditoriaux côté webhome (hors ofceweb)
+
+- `publications/policy.yml` est tenu à la main et ne distingue les PB que par `num`. Une fois la numérotation IFE lancée, il y aura de nouveau des n°1, 2, 3…
+  - Conseil : y ajouter un champ `pb_series`, ou une catégorie « IFE ».
+  - Rien ne casse : la page n'affiche pas `num` et trie par date.
+  - Il faut décider si les PB IFE apparaissent sur `publications/policy.qmd`, aujourd'hui titrée « OFCE Policy Briefs ».
+- `_index_jsons/parutions.json` affiche l'en-tête « Policy Brief de l'OFCE » écrit à la main : à adapter quand le premier PB IFE sortira.
+- Les PDF des PB historiques (entrées `pdf-only` du registre) sont rangés sous `pdf/pbrief/{année}/OFCEpbriefNNN.pdf` dans webhome. Si un PB IFE est un jour publié en PDF seul, il faudra une convention, par exemple `pdf/pbrief/ife/…`. Le motif du schéma (`^pdf/pbrief/`) l'accepte déjà.
+
+## Annexe — réponses d'Elliot aux questions de la section 3
+
+1) Ok pour les recommandations. L'option d'un domaine `ife.eco/pb/{N}/` n'est pas faisable pour le moment. On reste sur l'option 1.
+2) En fait, je crois qu'il faut bien séparer l'institut qui a effectivement été utilisé pour décider du logo et l'aspect séries de PB. 
+j'aurais donc tendance à choisir l'option 2, une clé yaml séparé pb_series. Il faut peut être adpaté ofce.json du coup
+3) Ok pour la recommandation, pas de séries en dur dans ofceweb
+4)ok pour la recommandation
+5) On part sur `IFEPB{N}.pdf` et `ife-draft-pb-{auteurs}-{theme}-{vx}.pdf` Par convention, les repo github des wp/pb sont nommés pb-{auteurs}-{theme} avec les initiales pour les auteurs et une version condensée pour le theme. exemple "pb-csskvv-chn"

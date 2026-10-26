@@ -426,26 +426,30 @@ setup_pb <- function(
     }
   )
   if (!is.null(registry_state) && isTRUE(registry_state$network_error)) {
-    if (!is.null(pb) || !is.null(yml$pb))
+    if (!is.null(pb) || !is.null(yml[["pb"]]))
       cli::cli_alert_warning(
         "{.field pb} non revalidé par le registre — traité comme absent \\
          pour cet appel (site-path, citation.*, FTP_SERVER_DIR non \\
          recalculés sur l'ancien numéro)."
       )
     pb          <- NULL
-    yml$pb      <- NULL
+    yml[["pb"]]      <- NULL
     pb_provided <- FALSE
   } else if (!is.null(registry_state) && !isTRUE(registry_state$network_error) &&
       !is.null(registry_state$registry_entry)) {
     pb          <- as.integer(registry_state$registry_entry$pb)
     pb_provided <- TRUE
+    # Le registre fait foi aussi pour la serie (deja ecrite dans _quarto.yml
+    # par sync_pb_registry_state()) : on aligne le yml en memoire.
+    if (!is.null(registry_state$pb_series))
+      yml$pb_series <- registry_state$pb_series
   }
 
   # ---- 11. édition du _quarto.yml ------------------------------------------
   lines_before <- readLines(dest_yaml, warn = FALSE)
   lines <- lines_before
 
-  if (pb_provided)    { yml$pb    <- pb;    lines <- yaml_patch_scalar_or_delete(lines, "pb", pb) }
+  if (pb_provided)    { yml[["pb"]]    <- pb;    lines <- yaml_patch_scalar_or_delete(lines, "pb", pb) }
   if (lang_provided)  { yml$lang  <- lang;  lines <- yaml_patch_scalar(lines, "lang", lang) }
   # On enlève pb/annee de l'index si jamais présents (annee n'est plus
   # utilisé pour les PB, mais on nettoie une valeur résiduelle éventuelle).
@@ -557,8 +561,8 @@ setup_pb <- function(
   # pour les PBs publiés.
   # - citation.url  : https://www.ofce.fr/pb/{pb}/ (URL stable, sans version)
   # - citation.issue: "{pb}"
-  if (!is.null(yml$pb)) {
-    citation_pb <- suppressWarnings(as.integer(yml$pb))
+  if (!is.null(yml[["pb"]])) {
+    citation_pb <- suppressWarnings(as.integer(yml[["pb"]]))
     if (!is.na(citation_pb)) {
       stable_url <- sprintf("https://www.ofce.fr/pb/%d/", citation_pb)
       if (is.null(yml$citation)) yml$citation <- list()
@@ -657,7 +661,7 @@ setup_pb <- function(
   }
 
   # ---- 12. server-dir dans le workflow FTP ----------------------------------
-  if (!is.null(yml$pb)) {
+  if (!is.null(yml[["pb"]])) {
     yml_after  <- tryCatch(yaml::read_yaml(dest_yaml), error = function(e) NULL)
     server_dir <- yml_after$website$`site-path`
     if (!is.null(server_dir) && nzchar(server_dir)) {
@@ -723,13 +727,13 @@ setup_pb <- function(
   # ---- Résumé ---------------------------------------------------------------
   cli::cli_h2("Résumé")
   cli::cli_li("titre       : {final_title}")
-  cli::cli_li("pb          : {if (is.null(yml$pb)) 'brouillon (null)' else yml$pb}")
+  cli::cli_li("pb          : {if (is.null(yml[['pb']])) 'brouillon (null)' else yml[['pb']]}")
   cli::cli_li("version     : {yml$version}")
   cli::cli_li("lang        : {yml[['lang']]}")
   cli::cli_li("site-url    : {yml$website$`site-url`}")
   if (!is.null(yml$website$`site-path`))
     cli::cli_li("site-path   : {yml$website$`site-path`}")
-  if (is.null(yml$pb) && identical(stage_target_resolved, "ftp")) {
+  if (is.null(yml[["pb"]]) && identical(stage_target_resolved, "ftp")) {
     cli::cli_li("staging url : https://staging.ofce.fr/{staging_dir}")
   }
   cli::cli_li(

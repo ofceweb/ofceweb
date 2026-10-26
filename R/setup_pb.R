@@ -27,9 +27,20 @@
 #' l'appelant. Un dépôt sans `_quarto.yml` et sans entrée de registre reste un
 #' brouillon (`pb` absent) ; pour obtenir un numéro, utiliser
 #' [pb_registry_request()] puis relancer `setup_pb()` une fois la PR
-#' fusionnée. Le champ `annee` n'est pas utilisé pour les PB : les numéros
-#' sont attribués séquentiellement depuis l'origine, indépendamment de
-#' l'année de publication.
+#' fusionnée. Le champ `annee` n'est pas utilisé pour les PB : chaque série
+#' (clé `pb_series` de `_quarto.yml`, `"ofce"` si absente) est numérotée à
+#' partir de 1, indépendamment de l'année de publication. Les paramètres de
+#' la série (préfixe d'URL, préfixes des PDF, `container-title`) sont lus
+#' dans `pb/index.json` du registre central ; si l'index est inaccessible,
+#' les champs qui en dépendent ne sont pas recalculés.
+#'
+#' **Versions** : seul un brouillon est versionné (clé `version`, URL de
+#' staging `staging.ofce.fr/{repo}/{version}/`). À la publication (`pb`
+#' attribué), la clé `version` est supprimée de `_quarto.yml` et le PB est
+#' déployé sans segment de version à `www.ofce.fr/pb/{path-prefix}{pb}/` ;
+#' une correction ultérieure se fait en redéployant à la même adresse.
+#' `nb` (numéro lu par l'extension `pb` pour distinguer brouillon et
+#' publié) est écrit à la publication et retiré pour un brouillon.
 #'
 #' `author` est destiné à ne vivre que dans `_quarto.yml` : si `index.qmd`
 #' en porte une (héritage d'un ancien gabarit, ou ajout manuel), elle est
@@ -47,16 +58,17 @@
 #'
 #' Côté PDF, `pb-pdf` (LaTeX) et `pb-typst` (Typst) sont les deux moteurs
 #' légitimes. Le nom du PDF de brouillon (`pb` non attribué) est
-#' `ofce-draft-{repo}-{version}.pdf` (ex. `ofce-draft-pb-example-v1.pdf`),
+#' `{draft-prefix}-{repo}-{version}.pdf` (ex. `ife-draft-pb-csskvv-chn-v1.pdf`),
 #' identique quel que soit le moteur actif — sans segment de version si
 #' `version` n'est pas encore renseignée — recalculé à chaque appel. Une
-#' fois publié (`pb` connu), les deux moteurs produisent `OFCEPB{pb}.pdf`.
+#' fois publié (`pb` connu), les deux moteurs produisent
+#' `{pdf-prefix}{pb}.pdf` (ex. `IFEPB12.pdf`).
 #'
 #' @param path Chemin vers la racine du dépôt. Défaut `"."`.
 #' @param lang Chaîne. Langue principale : `"fr"` (défaut) ou `"en"`.
 #' @param hypothesis Logique. Active les commentaires Hypothesis. Défaut `FALSE`.
-#' @param versionning Logique. Si `TRUE` et PB publié (`pb` non `NULL`),
-#'   ajoute `/v0` au `site-path`.
+#' @param versionning Obsolète et ignoré (avertissement s'il est fourni) : un
+#'   brouillon est toujours versionné, un PB publié ne l'est plus.
 #' @param stage_target Chaîne. Destination de pré-publication (brouillon,
 #'   `pb` non encore attribué) : `"auto"` (défaut), `"ftp"` (staging OFCE),
 #'   `"gh-pages"`. Cf. [setup_wp()] pour la sémantique détaillée.
@@ -195,14 +207,13 @@ setup_pb <- function(
   }
   stage_target_resolved <- resolve_stage_target(stage_target, org = gh_org)
 
+  # version : uniquement pour un brouillon (supprimée à la publication,
+  # section 11). `versionning` n'a plus d'effet.
   version <- yml[["version"]]
-  if(version_provided & is.null(yml[["version"]]) & isTRUE(versionning))
-    version <- "v0"
-
-  if(!version_provided & !is.null(yml[["version"]])) {
-    version_provided <- TRUE
-    versionning <- TRUE
-  }
+  if (version_provided)
+    cli::cli_alert_warning(
+      "{.arg versionning} est obsolète et ignoré : un PB brouillon est \\
+       toujours versionné, un PB publié ne l'est plus.")
 
   # ---- 0. validation des arguments -----------------------------------------
   if (!is.null(pb)) {
@@ -445,9 +456,34 @@ setup_pb <- function(
       yml$pb_series <- registry_state$pb_series
   }
 
+  # ---- 10e. série PB et ses paramètres (pb/index.json) ---------------------
+  # Les préfixes d'URL et de PDF et le container-title dépendent de la série ;
+  # aucune série n'est codée en dur ici. Sans index (réseau) ou pour une série
+  # inconnue, les champs qui en dépendent sont laissés tels quels.
+  series        <- pb_series(yml)
+  series_index  <- tryCatch(fetch_pb_series_index(), error = function(e) NULL)
+  series_params <- pb_series_params(series, series_index)
+  if (is.null(series_index)) {
+    cli::cli_alert_warning(
+      "Index des séries PB inaccessible ({.file pb/index.json}) — \\
+       {.field site-path}, nom du PDF et {.field citation.container-title} \\
+       non recalculés.")
+  } else if (is.null(series_params)) {
+    cli::cli_alert_warning(
+      "Série PB {.val {series}} inconnue du registre (séries : \\
+       {.val {names(series_index)}}) — corriger {.field pb_series} dans \\
+       {.file _quarto.yml} ; {.field site-path}, nom du PDF et \\
+       {.field citation.container-title} non recalculés.")
+  }
+
   # ---- 11. édition du _quarto.yml ------------------------------------------
   lines_before <- readLines(dest_yaml, warn = FALSE)
   lines <- lines_before
+
+  # pb_series : toujours explicite dans _quarto.yml (défaut "ofce" pour un
+  # dépôt antérieur aux séries).
+  yml$pb_series <- series
+  lines <- yaml_patch_scalar(lines, "pb_series", series)
 
   if (pb_provided)    { yml[["pb"]]    <- pb;    lines <- yaml_patch_scalar_or_delete(lines, "pb", pb) }
   if (lang_provided)  { yml$lang  <- lang;  lines <- yaml_patch_scalar(lines, "lang", lang) }
@@ -507,34 +543,42 @@ setup_pb <- function(
 
   # site-url / site-path : toujours recalculés
   #
-  # Publié (pb non nul)  : site-url = www.ofce.fr,  site-path = {pb}/[{version}/]
+  # Publié (pb non nul)  : site-url = www.ofce.fr,  site-path = {path-prefix}{pb}
+  #                        (pas de version : un PB publié n'est plus versionné)
   # Brouillon gh-pages : site-url = {org}.github.io/{repo}/,       pas de site-path
   # Staging FTP        : site-url = staging.ofce.fr/{repo}/[{version}/], pas de site-path
   if (!is.null(pb)) {
     yml$website$`site-url`  <- "https://www.ofce.fr/"
     lines <- yaml_patch_scalar(lines, "website.site-url", "https://www.ofce.fr/")
-    site_path_base <- sprintf("%d", pb)
-    if (isTRUE(versionning))
-      site_path <- paste0(site_path_base, "/", version)
-    else
-      site_path <- site_path_base
-    yml$version <- version
-    lines <- yaml_patch_scalar_or_delete(lines, "version", version)
 
-    old_site_path <- as.character(yml$website$`site-path` %||% "")
-    if (nzchar(old_site_path) && !identical(old_site_path, site_path)) {
-      cli::cli_alert_warning(
-        "site-path modifié : {.val {old_site_path}} → {.val {site_path}} \r
-         — le prochain déploiement ira sur une {.strong URL différente}."
-      )
+    # Passage en publication : la version de revue n'a plus cours.
+    if (!is.null(yml[["version"]])) {
       cli::cli_alert_info(
-        "L'ancien répertoire {.val {old_site_path}} reste en place sur le \r
-         serveur : le supprimer ou y poser une redirection si nécessaire."
-      )
+        "PB publié : {.field version} ({.val {yml[['version']]}}) supprimée de \\
+         {.file _quarto.yml} — une correction se fait en redéployant à la \\
+         même adresse.")
+      yml$version <- NULL
+      lines <- yaml_patch_delete(lines, "version")
     }
+    version <- NULL
 
-    yml$website$`site-path` <- site_path
-    lines <- yaml_patch_scalar(lines, "website.site-path", site_path)
+    if (!is.null(series_params)) {
+      site_path <- pb_site_path(series_params, pb)
+      old_site_path <- as.character(yml$website$`site-path` %||% "")
+      if (nzchar(old_site_path) && !identical(old_site_path, site_path)) {
+        cli::cli_alert_warning(
+          "site-path modifié : {.val {old_site_path}} → {.val {site_path}} \r
+           — le prochain déploiement ira sur une {.strong URL différente}."
+        )
+        cli::cli_alert_info(
+          "L'ancien répertoire {.val {old_site_path}} reste en place sur le \r
+           serveur : le supprimer ou y poser une redirection si nécessaire."
+        )
+      }
+
+      yml$website$`site-path` <- site_path
+      lines <- yaml_patch_scalar(lines, "website.site-path", site_path)
+    }
   } else {
     yml$website$`site-path` <- NULL
     lines <- yaml_patch_delete(lines, "website.site-path")
@@ -557,15 +601,19 @@ setup_pb <- function(
     lines <- yaml_patch_scalar_or_delete(lines, "website.site-url", draft_site_url)
   }
 
-  # citation.url / citation.issue : valeurs dérivées, toujours mises à jour
-  # pour les PBs publiés.
-  # - citation.url  : https://www.ofce.fr/pb/{pb}/ (URL stable, sans version)
+  # citation.url / citation.issue / nb : valeurs dérivées, toujours mises à
+  # jour pour les PBs publiés.
+  # - citation.url  : https://www.ofce.fr/pb/{site-path}/ (URL du PB publié)
   # - citation.issue: "{pb}"
-  if (!is.null(yml[["pb"]])) {
-    citation_pb <- suppressWarnings(as.integer(yml[["pb"]]))
-    if (!is.na(citation_pb)) {
-      stable_url <- sprintf("https://www.ofce.fr/pb/%d/", citation_pb)
-      if (is.null(yml$citation)) yml$citation <- list()
+  # - nb            : {pb}, lu par l'extension `pb` (Typst et HTML) pour
+  #                   afficher le numéro et distinguer brouillon/publié ;
+  #                   retiré pour un brouillon.
+  citation_pb <- suppressWarnings(as.integer(yml[["pb"]] %||% NA_integer_))
+  if (!is.na(citation_pb)) {
+    if (is.null(yml$citation)) yml$citation <- list()
+    published_site_path <- yml$website$`site-path`
+    if (!is.null(published_site_path) && nzchar(published_site_path)) {
+      stable_url <- pb_public_url(published_site_path)
       yml$citation$url <- stable_url
       lines <- yaml_patch_scalar(lines, "citation.url", stable_url)
 
@@ -574,11 +622,25 @@ setup_pb <- function(
       # bannière/meta sur la page rendue.
       yml$stable_url <- stable_url
       lines <- yaml_patch_scalar(lines, "stable_url", stable_url)
-
-      issue <- sprintf("%d", citation_pb)
-      yml$citation$issue <- issue
-      lines <- yaml_patch_scalar(lines, "citation.issue", issue)
     }
+
+    issue <- sprintf("%d", citation_pb)
+    yml$citation$issue <- issue
+    lines <- yaml_patch_scalar(lines, "citation.issue", issue)
+
+    yml$nb <- citation_pb
+    lines <- yaml_patch_scalar(lines, "nb", citation_pb)
+  } else {
+    yml$nb <- NULL
+    lines <- yaml_patch_delete(lines, "nb")
+  }
+
+  # citation.container-title : dépend de la série (brouillon comme publié).
+  if (!is.null(series_params) && !is.null(series_params$container_title)) {
+    if (is.null(yml$citation)) yml$citation <- list()
+    yml$citation$`container-title` <- series_params$container_title
+    lines <- yaml_patch_scalar(lines, "citation.container-title",
+                               series_params$container_title)
   }
 
   # hypothesis : uniquement si fourni explicitement
@@ -591,22 +653,14 @@ setup_pb <- function(
   # actif (pb-pdf OU pb-typst).
   active_pdf_format <- if (length(pdf_formats_declared) == 1L) pdf_formats_declared else NA_character_
   uses_pb_pdf <- !is.na(active_pdf_format)
-  if (uses_pb_pdf) {
-    if (!is.null(pb)) {
-      # Publié : inchangé, quel que soit le moteur PDF actif.
-      pdf_output <- sprintf("OFCEPB%d.pdf", pb)
-    } else {
-      # Brouillon : même nom quel que soit le moteur PDF actif (pb-pdf ou
-      # pb-typst) -- dérivé du nom complet du dépôt et de la version de
-      # revue courante (ex. ofce-draft-pb-example-v1.pdf), recalculé et
-      # repatché à chaque appel.
-      pdf_output <- if (!is.null(version) && nzchar(as.character(version))) {
-        sprintf("ofce-draft-%s-%s.pdf", repo_name, version)
-      } else {
-        sprintf("ofce-draft-%s.pdf", repo_name)
-      }
-    }
+  if (uses_pb_pdf && !is.null(series_params)) {
+    # Publié : {pdf-prefix}{pb}.pdf. Brouillon : {draft-prefix}-{repo}-{version}.pdf
+    # (ex. ife-draft-pb-csskvv-chn-v1.pdf), recalculé et repatché à chaque
+    # appel. Même nom quel que soit le moteur PDF actif (pb-pdf ou pb-typst).
+    pdf_output <- pb_pdf_name(series_params, pb = pb, repo = repo_name, version = version)
   } else {
+    # Pas de moteur PDF unique, ou paramètres de série inconnus (index
+    # inaccessible) : output-file laissé tel quel.
     pdf_output <- NA_character_
   }
 
@@ -667,34 +721,21 @@ setup_pb <- function(
     if (!is.null(server_dir) && nzchar(server_dir)) {
       if (!grepl("/$", server_dir)) server_dir <- paste0(server_dir, "/")
       record_gh_var("FTP_SERVER_DIR", set_gh_var(root, "FTP_SERVER_DIR", server_dir, verbose = FALSE))
-      # URL stable : répertoire parent du site-path (sans le segment de
-      # version). Le dernier segment est censé être `yml$version` -- on le
-      # retire par sa valeur connue (comparaison de chaîne) plutôt que par
-      # une regex numérique, qui échouerait sur une version personnalisée
-      # (ex. "v2_corr", "v5_AS42").
-      server_dir_clean <- sub("/$", "", server_dir)
-      current_version  <- as.character(yml$version %||% "")
-      version_suffix    <- paste0("/", current_version)
-      redirect_dir <- if (nzchar(current_version) &&
-                           endsWith(server_dir_clean, version_suffix)) {
-        paste0(
-          substr(server_dir_clean, 1L, nchar(server_dir_clean) - nchar(version_suffix)),
-          "/"
-        )
-      } else {
-        paste0(server_dir_clean, "/")
-      }
-      record_gh_var("FTP_REDIRECT_DIR", set_gh_var(root, "FTP_REDIRECT_DIR", redirect_dir, verbose = FALSE))
+      # Pas de FTP_REDIRECT_DIR : un PB publié n'a qu'une seule adresse (pas
+      # de versions), donc pas de page de redirection vers la dernière.
     }
   }
 
-  # ---- 12b. FTP_STAGING_DIR (toujours, indépendant du numéro PB) -----------
-  staging_slug    <- if (!is.na(gh$repo)) gh$repo else fs::path_file(root)
-  staging_version <- yml$version
-  staging_ver_seg <- if (!is.null(staging_version) && nzchar(as.character(staging_version)))
-    paste0(staging_version, "/") else ""
-  staging_dir <- sprintf("%s/%s", staging_slug, staging_ver_seg)
-  record_gh_var("FTP_STAGING_DIR", set_gh_var(root, "FTP_STAGING_DIR", staging_dir, verbose = FALSE))
+  # ---- 12b. FTP_STAGING_DIR (brouillon uniquement : {repo}/{version}/) ------
+  staging_slug <- if (!is.na(gh$repo)) gh$repo else fs::path_file(root)
+  staging_dir  <- NULL
+  if (is.null(yml[["pb"]])) {
+    staging_version <- yml$version
+    staging_ver_seg <- if (!is.null(staging_version) && nzchar(as.character(staging_version)))
+      paste0(staging_version, "/") else ""
+    staging_dir <- sprintf("%s/%s", staging_slug, staging_ver_seg)
+    record_gh_var("FTP_STAGING_DIR", set_gh_var(root, "FTP_STAGING_DIR", staging_dir, verbose = FALSE))
+  }
 
   if (length(gh_var_status) > 0L) {
     ok_vars  <- names(gh_var_status)[gh_var_status == "ok"]
@@ -727,8 +768,9 @@ setup_pb <- function(
   # ---- Résumé ---------------------------------------------------------------
   cli::cli_h2("Résumé")
   cli::cli_li("titre       : {final_title}")
+  cli::cli_li("série       : {series}{if (!is.null(series_params)) paste0(' (', series_params$label, ')') else ''}")
   cli::cli_li("pb          : {if (is.null(yml[['pb']])) 'brouillon (null)' else yml[['pb']]}")
-  cli::cli_li("version     : {yml$version}")
+  cli::cli_li("version     : {if (is.null(yml$version)) '(aucune)' else yml$version}")
   cli::cli_li("lang        : {yml[['lang']]}")
   cli::cli_li("site-url    : {yml$website$`site-url`}")
   if (!is.null(yml$website$`site-path`))

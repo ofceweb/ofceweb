@@ -278,70 +278,64 @@ check_pb <- function(path = ".", verbose = TRUE) {
 
   # ---- Contrôles spécifiques PB publié -------------------------------------
   if (!is.null(yml[["pb"]])) {
-    # site-path : présence et cohérence structurelle (N[/vX])
-    # site-path est entièrement calculé par setup_pb() — toute incohérence
-    # se résout en relançant setup_pb(). Jamais bloquant pour le rendu.
-    # `annee` n'intervient pas ici : les PB sont numérotés séquentiellement
-    # depuis l'origine, indépendamment de l'année de publication.
-    sp      <- yml$website$`site-path`
-    version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
+    # site-path : `{path-prefix}{pb}` (ex. `ife/12`, ou `158` pour une série
+    # sans préfixe), sans segment de version -- un PB publié n'est pas
+    # versionné. Entièrement calculé par setup_pb() : toute incohérence se
+    # résout en relançant setup_pb(). Jamais bloquant pour le rendu.
+    sp     <- yml$website$`site-path`
+    pb_yml <- suppressWarnings(as.integer(yml[["pb"]]))
 
     if (is.null(sp) || !nzchar(sp)) {
       add_diag("site-path", "warning",
                "site-path absent de _quarto.yml — relancer setup_pb() pour le calculer.")
     } else {
-      segs <- strsplit(sp, "/", fixed = TRUE)[[1]]
-      n    <- length(segs)
-
-      # Structure attendue : N  ou  N/vX
-      struct_ok <- n %in% c(1L, 2L)
-
-      if (!struct_ok) {
-        add_diag("site-path", "warning",
-                 sprintf(
-                   "site-path `%s` mal formé (attendu : `N` ou `N/vX`) — relancer setup_pb().",
-                   sp))
-      } else {
-        # Segment N (numéro PB, non zéro-padé)
-        pb_seg <- suppressWarnings(as.integer(segs[1L]))
-        pb_yml <- suppressWarnings(as.integer(yml[["pb"]]))
-        if (!is.na(pb_seg) && !is.na(pb_yml) && pb_seg == pb_yml) {
-          add_diag("site-path/pb", "ok",
-                   sprintf("Segment numéro PB `%s` cohérent avec pb.", segs[1L]))
+      # Avec l'index des séries, on connaît le site-path exact attendu ; sans
+      # (réseau), on se contente de vérifier que le dernier segment est le
+      # numéro et qu'il n'y a pas de segment de version.
+      series_params <- pb_series_params(
+        pb_series(yml),
+        tryCatch(fetch_pb_series_index(), error = function(e) NULL)
+      )
+      if (!is.null(series_params) && !is.na(pb_yml)) {
+        expected <- pb_site_path(series_params, pb_yml)
+        if (identical(sub("/$", "", sp), expected)) {
+          add_diag("site-path", "ok",
+                   sprintf("site-path `%s` cohérent avec pb et pb_series.", sp))
         } else {
-          add_diag("site-path/pb", "warning",
+          add_diag("site-path", "warning",
                    sprintf(
-                     "Segment numéro PB `%s` dans site-path incohérent avec pb = `%s` — relancer setup_pb().",
-                     segs[1L], yml[["pb"]]))
+                     "site-path `%s` incohérent avec pb/pb_series (attendu : `%s`) — relancer setup_pb().",
+                     sp, expected))
         }
-
-        # Segment version (optionnel)
-        if (!is.null(version) && nzchar(version)) {
-          if (n == 2L) {
-            if (identical(segs[2L], version)) {
-              add_diag("site-path/version", "ok",
-                       sprintf("Segment version `%s` cohérent avec version.", segs[2L]))
-            } else {
-              add_diag("site-path/version", "warning",
-                       sprintf(
-                         "Segment version `%s` dans site-path incohérent avec version = `%s` — relancer setup_pb().",
-                         segs[2L], version))
-            }
-          } else {
-            # n == 1 : version définie dans le YAML mais absente du chemin
-            add_diag("site-path/version", "warning",
-                     sprintf(
-                       "version `%s` définie dans le YAML mais absente de site-path `%s` — relancer setup_pb().",
-                       version, sp))
-          }
-        } else if (n == 2L) {
-          # segment version présent dans le chemin mais yml$version absent
-          add_diag("site-path/version", "warning",
+      } else {
+        segs   <- strsplit(sub("/$", "", sp), "/", fixed = TRUE)[[1]]
+        pb_seg <- suppressWarnings(as.integer(segs[length(segs)]))
+        if (length(segs) <= 2L && !is.na(pb_seg) && !is.na(pb_yml) && pb_seg == pb_yml) {
+          add_diag("site-path", "ok",
+                   sprintf("site-path `%s` cohérent avec pb (préfixe de série non vérifié : index des séries inaccessible).", sp))
+        } else {
+          add_diag("site-path", "warning",
                    sprintf(
-                     "Segment version `%s` présent dans site-path mais `version` absente du YAML.",
-                     segs[2L]))
+                     "site-path `%s` mal formé (attendu : `[préfixe/]N`, sans version, avec N = pb = `%s`) — relancer setup_pb().",
+                     sp, yml[["pb"]]))
         }
       }
+    }
+
+    # version : supprimée à la publication par setup_pb().
+    if (!is.null(yml$version)) {
+      add_diag("version", "warning",
+               sprintf(
+                 "`version: %s` encore présente alors que le PB est publié (un PB publié n'est plus versionné) — relancer setup_pb().",
+                 yml$version))
+    }
+
+    # nb : numéro lu par l'extension `pb` (sans lui, le PB s'affiche comme un
+    # brouillon).
+    nb_yml <- suppressWarnings(as.integer(yml[["nb"]] %||% NA_integer_))
+    if (is.na(nb_yml) || is.na(pb_yml) || nb_yml != pb_yml) {
+      add_diag("nb", "warning",
+               "`nb` absent ou différent de `pb` — le PB s'affichera comme un brouillon ; relancer setup_pb().")
     }
   }
 

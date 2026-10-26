@@ -27,9 +27,12 @@ test_that("check_pb() passes the local pb_series (default 'ofce') to the registr
   dir <- local_git_tempdir()
   gert::git_remote_add(url = "https://github.com/ofce/pb-x.git", name = "origin", repo = dir)
   write_quarto_yml(dir, list(pb = 3L, pb_series = "ife"))
-  local_mocked_bindings(fetch_pb_entries = function(...) list(
-    list(pb = 3L, pb_series = "ofce", type = "repo", `source-repo` = "ofce/pb-x")
-  ))
+  local_mocked_bindings(
+    fetch_pb_entries = function(...) list(
+      list(pb = 3L, pb_series = "ofce", type = "repo", `source-repo` = "ofce/pb-x")
+    ),
+    fetch_pb_series_index = function(...) pb_test_series_index()
+  )
 
   df <- check_pb(dir, verbose = FALSE)
   expect_equal(diag_status(df, "registry"), "warning")
@@ -39,4 +42,52 @@ test_that("check_pb() passes the local pb_series (default 'ofce') to the registr
   write_quarto_yml(dir, list(pb = 3L))
   df <- check_pb(dir, verbose = FALSE)
   expect_equal(diag_status(df, "registry"), "ok")
+})
+
+test_that("check_pb() expects an unversioned {path-prefix}{pb} site-path, no version and nb for a published PB", {
+  dir <- local_git_tempdir()
+  local_mocked_bindings(
+    fetch_pb_entries      = function(...) NULL,
+    fetch_pb_series_index = function(...) pb_test_series_index()
+  )
+
+  write_quarto_yml(dir, list(
+    ofce_pb = TRUE, pb = 12L, pb_series = "ife", nb = 12L,
+    website = list(`site-path` = "ife/12")
+  ))
+  df <- check_pb(dir, verbose = FALSE)
+  expect_equal(diag_status(df, "site-path"), "ok")
+  expect_false("version" %in% df$field)
+  expect_false("nb" %in% df$field)
+
+  # Legacy versioned site-path, leftover version, missing nb.
+  write_quarto_yml(dir, list(
+    ofce_pb = TRUE, pb = 12L, pb_series = "ife", version = "v1",
+    website = list(`site-path` = "ife/12/v1")
+  ))
+  df <- check_pb(dir, verbose = FALSE)
+  expect_equal(diag_status(df, "site-path"), "warning")
+  expect_match(df$message[df$field == "site-path"], "ife/12", fixed = TRUE)
+  expect_equal(diag_status(df, "version"), "warning")
+  expect_equal(diag_status(df, "nb"), "warning")
+})
+
+test_that("check_pb() falls back to a structural site-path check when pb/index.json is unreachable", {
+  dir <- local_git_tempdir()
+  local_mocked_bindings(
+    fetch_pb_entries      = function(...) NULL,
+    fetch_pb_series_index = function(...) NULL
+  )
+
+  write_quarto_yml(dir, list(
+    ofce_pb = TRUE, pb = 12L, pb_series = "ife", nb = 12L,
+    website = list(`site-path` = "ife/12")
+  ))
+  expect_equal(diag_status(check_pb(dir, verbose = FALSE), "site-path"), "ok")
+
+  write_quarto_yml(dir, list(
+    ofce_pb = TRUE, pb = 12L, pb_series = "ife", nb = 12L,
+    website = list(`site-path` = "ife/12/v1")
+  ))
+  expect_equal(diag_status(check_pb(dir, verbose = FALSE), "site-path"), "warning")
 })

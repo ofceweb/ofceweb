@@ -172,7 +172,7 @@ render_pb <- function(
 #'   push. Défaut `TRUE`.
 #'
 #' @returns Invisible `NULL`.
-#' @seealso [render_pb()], [deploy_pb()], [push_pb_redirect()], [setup_pb()]
+#' @seealso [render_pb()], [deploy_pb()], [setup_pb()]
 #' @keywords internal
 publish_pb <- function(
     path        = ".",

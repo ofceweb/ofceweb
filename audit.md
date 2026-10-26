@@ -94,6 +94,14 @@ Le changement est plus large que `pb_registry_request()`. Le numéro PB ne sert 
 
 ### Étape C — chemins dérivés
 
+> **Fait le 2026-10-26** (non commité), avec une précision d'Elliot qui a changé le plan : **seul un brouillon est versionné**. Un PB publié (numéro attribué par le registre) n'a plus de version : `setup_pb()` supprime la clé `version`, le `site-path` est `{path-prefix}{N}` sans version, et une correction se fait en redéployant à la même adresse.
+> - Helpers dans `R/pb_paths.R` (`pb_series_params()`, `pb_site_path()`, `pb_public_url()`, `pb_pdf_name()`), alimentés par `pb/index.json`. Sans index, `setup_pb()` ne recalcule pas les champs qui en dépendent et le signale.
+> - Point 8 : au lieu de corriger `pb_version_up()` pour les PB publiés, elle refuse désormais de tourner sur un PB publié.
+> - Redirection de production des PB supprimée : `push_pb_redirect()`, ses tests, l'appel dans `deploy_pb()`, `FTP_REDIRECT_DIR` et le gabarit `inst/setup_pb/workflows/ftp_redirect.yml`. La redirection de staging des brouillons est conservée.
+> - Point 9 : `setup_pb()` écrit `nb` pour un PB publié et le retire pour un brouillon. Sans `nb`, l'extension affichait tout PB publié comme un brouillon. **Reste à faire dans `ofce-quarto-extensions`** : `_extensions/pb/html/toc.html` affiche `n°$annee$-$nb$` (donc « n°-12 ») avec le logo OFCE en dur.
+> - `pb_series: ife` ajouté au gabarit `_quarto.yml` (prévu à l'étape D). `setup_pb()` écrit aussi `pb_series` explicitement (`ofce` pour un dépôt qui n'a pas la clé).
+> - Reporté à plus tard, à la demande d'Elliot : le PB 158 (`pb-mb-stem`), publié par erreur en `158/v0`.
+
 7. Ajouter un helper unique, par exemple `pb_paths(serie, pb, version)`, qui renvoie `site_path`, `stable_url`, `final_url`, `pdf_name` et `container_title`. Pour `ife`, il produit `ife/{N}`, `IFEPB{N}.pdf` et `ife-draft-{repo}-{vX}.pdf` ; pour `ofce`, il garde `{N}`, `OFCEPB{N}.pdf` et `ofce-draft-…`. L'utiliser dans `setup_pb`, `pb_manifest`, `deploy_pb`, `check_pb`, `complete_pb_yaml` et `pb_redirect`, au lieu de répéter les `sprintf` à six endroits.
 8. Corriger `pb_version_up()` pour un `site-path` sans segment de version.
 9. Faire écrire `nb` par `setup_pb()`, ou faire lire `pb` par l'extension. Mettre à jour le `toc.html` de l'extension (dépôt `ofce-quarto-extensions`).

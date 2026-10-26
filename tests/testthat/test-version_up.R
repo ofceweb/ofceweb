@@ -163,12 +163,12 @@ test_that("pb_version_up() preserves comments and layout in _quarto.yml", {
   writeLines(c(
     "# Quarto config for this policy brief",
     "ofce_pb: true",
-    "pb: 5",
+    "pb_series: ife",
     "",
     "# --- website section ---",
     "website:",
     "  title: A policy brief",
-    "  site-path: 5/v0",
+    "  site-url: https://staging.ofce.fr/pb-example/v0/",
     "version: v0"
   ), fs::path(dir, "_quarto.yml"))
 
@@ -180,8 +180,9 @@ test_that("pb_version_up() preserves comments and layout in _quarto.yml", {
 
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
   expect_equal(yml$version, "v1")
-  expect_equal(yml$website$`site-path`, "5/v1")
-  expect_equal(yml$pb, 5L)
+  expect_equal(yml$website$`site-url`, "https://staging.ofce.fr/pb-example/v1/")
+  # `$pb` would partial-match `pb_series`: use [[ ]].
+  expect_null(yml[["pb"]])
 })
 
 test_that("pb_version_up() increments the version of a draft (no pb yet, ftp staging URL)", {
@@ -204,8 +205,7 @@ test_that("pb_version_up() increments the version of a draft (no pb yet, ftp sta
   expect_equal(yml$website$`site-url`, "https://staging.ofce.fr/pb-example/v1/")
 })
 
-test_that("pb_version_up() strips a custom, non-numeric version segment (v2_corr) from FTP_REDIRECT_DIR", {
-  # Regression test: same fix as wp_version_up() above.
+test_that("pb_version_up() refuses a published PB (no versions once published) and leaves it untouched", {
   local_stub_version_up_side_effects()
   gh_vars <- list()
   local_mocked_bindings(
@@ -215,18 +215,43 @@ test_that("pb_version_up() strips a custom, non-numeric version segment (v2_corr
     }
   )
   dir <- withr::local_tempdir()
+  before <- c(
+    "ofce_pb: true",
+    "pb: 12",
+    "pb_series: ife",
+    "website:",
+    "  site-path: ife/12"
+  )
+  writeLines(before, fs::path(dir, "_quarto.yml"))
+
+  expect_error(pb_version_up(dir), "publi")
+  expect_identical(readLines(fs::path(dir, "_quarto.yml")), before)
+  expect_length(gh_vars, 0L)
+})
+
+test_that("pb_version_up() updates FTP_STAGING_DIR for a draft, with a custom version", {
+  local_stub_version_up_side_effects()
+  gh_vars <- list()
+  local_mocked_bindings(
+    set_gh_var = function(root, name, value) {
+      gh_vars[[name]] <<- value
+      invisible(NULL)
+    },
+    detect_gh_owner = function(root) list(owner = "ofce", repo = "pb-example", org = "ofce")
+  )
+  dir <- withr::local_tempdir()
   writeLines(c(
     "ofce_pb: true",
-    "pb: 5",
     "version: v1",
     "website:",
-    "  site-path: 5/v1"
+    "  site-url: https://staging.ofce.fr/pb-example/v1/"
   ), fs::path(dir, "_quarto.yml"))
 
   suppressMessages(pb_version_up(dir, custom_version = "v2_corr"))
 
-  expect_equal(gh_vars[["FTP_SERVER_DIR"]], "5/v2_corr/")
-  expect_equal(gh_vars[["FTP_REDIRECT_DIR"]], "5/")
+  expect_equal(gh_vars[["FTP_STAGING_DIR"]], "pb-example/v2_corr/")
+  expect_null(gh_vars[["FTP_SERVER_DIR"]])
+  expect_null(gh_vars[["FTP_REDIRECT_DIR"]])
 })
 
 test_that("pb_version_up() aborts when not a pb repo", {

@@ -169,6 +169,13 @@ check_pb <- function(path = ".", verbose = TRUE) {
   # entrée supprimée, setup_pb() pas relancé après enregistrement, etc.).
   registry_entries <- tryCatch(fetch_pb_entries(), error = function(e) NULL)
   registry_repo    <- tryCatch(gh_slug_from_remote(root), error = function(e) NA_character_)
+  # Index des séries (pb/index.json) : paramètres de série (site-path
+  # attendu, plus bas) et version minimale d'ofceweb exigée. Contrôle propre
+  # aux PB -- le workflow des WP n'est pas concerné.
+  series_index <- tryCatch(fetch_pb_series_index(), error = function(e) NULL)
+  version_diag <- pb_ofceweb_version_diag(series_index)
+  if (!is.null(version_diag))
+    add_diag(version_diag$field, version_diag$status, version_diag$message)
   for (r in registry_diag_rows(registry_entries, registry_repo, yml[["pb"]], kind = "pb",
                                local_series = pb_series(yml))) {
     add_diag(r$field, r$status, r$message)
@@ -292,10 +299,7 @@ check_pb <- function(path = ".", verbose = TRUE) {
       # Avec l'index des séries, on connaît le site-path exact attendu ; sans
       # (réseau), on se contente de vérifier que le dernier segment est le
       # numéro et qu'il n'y a pas de segment de version.
-      series_params <- pb_series_params(
-        pb_series(yml),
-        tryCatch(fetch_pb_series_index(), error = function(e) NULL)
-      )
+      series_params <- pb_series_params(pb_series(yml), series_index)
       if (!is.null(series_params) && !is.na(pb_yml)) {
         expected <- pb_site_path(series_params, pb_yml)
         if (identical(sub("/$", "", sp), expected)) {

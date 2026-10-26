@@ -9,16 +9,51 @@
 #' @return Liste nommée (clé = identifiant de série) dont chaque élément est
 #'   une liste avec `open`, `label`, `path-prefix`, `pdf-prefix`,
 #'   `draft-prefix`, `container-title` ; `NULL` en cas d'échec (réseau, JSON
-#'   invalide, clé `series` absente).
+#'   invalide, clé `series` absente). La version minimale d'ofceweb déclarée
+#'   par l'index (`min-ofceweb-version`), si présente, est portée par
+#'   l'attribut `min_ofceweb_version` (lu par [check_pb()]).
 #' @keywords internal
 #' @noRd
 fetch_pb_series_index <- function(registry_repo = "ofce/wp-registry") {
   index_url <- sprintf(
     "https://raw.githubusercontent.com/%s/main/pb/index.json", registry_repo)
   tryCatch({
-    series <- jsonlite::fromJSON(index_url, simplifyVector = FALSE)[["series"]]
-    if (is.list(series) && length(series) > 0L && !is.null(names(series))) series else NULL
+    idx    <- jsonlite::fromJSON(index_url, simplifyVector = FALSE)
+    series <- idx[["series"]]
+    if (is.list(series) && length(series) > 0L && !is.null(names(series))) {
+      attr(series, "min_ofceweb_version") <- idx[["min-ofceweb-version"]]
+      series
+    } else NULL
   }, error = function(e) NULL)
+}
+
+#' Diagnostic de version d'ofceweb exigée par le registre PB
+#'
+#' Compare la version d'ofceweb installée à `min-ofceweb-version` de
+#' `pb/index.json` (attribut `min_ofceweb_version` de l'index renvoyé par
+#' [fetch_pb_series_index()]). Propre aux PB : appelée par [check_pb()]
+#' seulement, pour ne pas toucher au workflow des WP. Une version trop
+#' ancienne est une erreur, qui bloque [render_pb()].
+#'
+#' @param series_index Index des séries, ou `NULL` (registre inaccessible).
+#' @param installed Version installée (chaîne) ; par défaut celle d'ofceweb.
+#' @return `NULL` (rien à signaler : index absent ou sans version minimale),
+#'   ou `list(field, status, message)` à transmettre à `add_diag()`.
+#' @keywords internal
+#' @noRd
+pb_ofceweb_version_diag <- function(series_index,
+                                    installed = as.character(utils::packageVersion("ofceweb"))) {
+  min_version <- attr(series_index, "min_ofceweb_version")
+  if (is.null(min_version) || !nzchar(as.character(min_version))) return(NULL)
+  min_version <- as.character(min_version)
+  if (utils::compareVersion(installed, min_version) < 0)
+    list(field = "ofceweb:version", status = "error", message = sprintf(
+      "ofceweb %s installé, le registre PB exige %s ou plus récent — mettre à jour (pak::pak(\"ofceweb/ofceweb\")).",
+      installed, min_version))
+  else
+    list(field = "ofceweb:version", status = "ok", message = sprintf(
+      "ofceweb %s installé (minimum exigé par le registre PB : %s).",
+      installed, min_version))
 }
 
 #' Série PB d'un `_quarto.yml`

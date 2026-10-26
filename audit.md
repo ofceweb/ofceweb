@@ -100,13 +100,18 @@ Le changement est plus large que `pb_registry_request()`. Le numéro PB ne sert 
 > - Redirection de production des PB supprimée : `push_pb_redirect()`, ses tests, l'appel dans `deploy_pb()`, `FTP_REDIRECT_DIR` et le gabarit `inst/setup_pb/workflows/ftp_redirect.yml`. La redirection de staging des brouillons est conservée.
 > - Point 9 : `setup_pb()` écrit `nb` pour un PB publié et le retire pour un brouillon. Sans `nb`, l'extension affichait tout PB publié comme un brouillon. **Reste à faire dans `ofce-quarto-extensions`** : `_extensions/pb/html/toc.html` affiche `n°$annee$-$nb$` (donc « n°-12 ») avec le logo OFCE en dur.
 > - `pb_series: ife` ajouté au gabarit `_quarto.yml` (prévu à l'étape D). `setup_pb()` écrit aussi `pb_series` explicitement (`ofce` pour un dépôt qui n'a pas la clé).
-> - Reporté à plus tard, à la demande d'Elliot : le PB 158 (`pb-mb-stem`), publié par erreur en `158/v0`.
+> - Reporté à plus tard, à la demande d'Elliot : le PB 158 (`pb-mb-stem`). Il n'a en fait jamais été publié en production : voir section 6.
 
 7. Ajouter un helper unique, par exemple `pb_paths(serie, pb, version)`, qui renvoie `site_path`, `stable_url`, `final_url`, `pdf_name` et `container_title`. Pour `ife`, il produit `ife/{N}`, `IFEPB{N}.pdf` et `ife-draft-{repo}-{vX}.pdf` ; pour `ofce`, il garde `{N}`, `OFCEPB{N}.pdf` et `ofce-draft-…`. L'utiliser dans `setup_pb`, `pb_manifest`, `deploy_pb`, `check_pb`, `complete_pb_yaml` et `pb_redirect`, au lieu de répéter les `sprintf` à six endroits.
 8. Corriger `pb_version_up()` pour un `site-path` sans segment de version.
 9. Faire écrire `nb` par `setup_pb()`, ou faire lire `pb` par l'extension. Mettre à jour le `toc.html` de l'extension (dépôt `ofce-quarto-extensions`).
 
 ### Étape D — gabarits, docs, tests, version
+
+> **Fait le 2026-10-26** (non commité).
+> - Vignette `policy-briefs.Rmd` réécrite (séries, absence de version une fois publié, plus de redirection de production, manifeste non collecté). `NEWS.md` : entrée 1.0.6. `DESCRIPTION` passe en 1.0.6.
+> - Point 12, comme demandé par Elliot, uniquement dans `check_pb()` pour ne pas toucher au workflow des WP. `pb/index.json` déclare `min-ofceweb-version` (1.0.6). En dessous, `check_pb()` renvoie une erreur `ofceweb:version`, ce qui bloque `render_pb()` et donc `publish()`. Ce point ajoute une modification au registre (branche `new_pb`, non commitée) : `pb/index.json`, `pb/index.schema.json` et `README.md`.
+> - Limite : une installation antérieure à 1.0.6 n'a pas ce contrôle. Contre elle, c'est le gel de `pb/pb.json` par la CI du registre qui protège (étape A). Le contrôle sert pour les montées de version suivantes.
 
 10. Ajouter `pb_series: ife` au gabarit `_quarto.yml`, à côté de `institut`. Mettre à jour la vignette `policy-briefs.Rmd` et corriger l'affirmation selon laquelle webhome collecte `manifest.json` (voir section 5). Ajouter à `NEWS.md` une entrée « PB multi-séries ».
 11. Tests :
@@ -142,6 +147,71 @@ Le plan est compatible avec les workflows en place : rien ne casse. L'affichage 
   - Il faut décider si les PB IFE apparaissent sur `publications/policy.qmd`, aujourd'hui titrée « OFCE Policy Briefs ».
 - `_index_jsons/parutions.json` affiche l'en-tête « Policy Brief de l'OFCE » écrit à la main : à adapter quand le premier PB IFE sortira.
 - Les PDF des PB historiques (entrées `pdf-only` du registre) sont rangés sous `pdf/pbrief/{année}/OFCEpbriefNNN.pdf` dans webhome. Si un PB IFE est un jour publié en PDF seul, il faudra une convention, par exemple `pdf/pbrief/ife/…`. Le motif du schéma (`^pdf/pbrief/`) l'accepte déjà.
+
+## 6. Points en suspens (après les étapes A à D)
+
+*État au 2026-10-26.*
+
+### 6.1 Table des matières HTML de l'extension `pb` (dépôt `ofce-quarto-extensions`)
+
+`_extensions/pb/html/toc.html` affiche l'étiquette d'un PB publié avec deux défauts :
+
+- le numéro est écrit `n°$annee$-$nb$`, un format hérité de l'ancienne numérotation annuelle. Les PB n'ont plus de clé `annee`, donc un PB IFE n°12 s'afficherait « n°-12 » ;
+- le logo est celui de l'OFCE, en dur (`_extensions/ofce/ofce/img/ofce.png`), quel que soit `institut`.
+
+Avant l'étape C, ce défaut restait invisible : ofceweb n'écrivait jamais `nb`, donc la page affichait toujours le badge « PB Préliminaire ». Depuis que `setup_pb()` écrit `nb` à la publication, l'étiquette apparaît.
+
+À faire : afficher `n°$nb$` et choisir le logo selon `institut`, comme le fait déjà le gabarit Typst (`typst-template.typ`, table `instituts`). Ce changement concerne un autre dépôt, partagé par tous les sites : il n'a pas été fait ici.
+
+### 6.2 Brouillons existants sans `pb_series`
+
+`pb/pb-ceskvv-chn` (version `v1`) et `pb-gv-segregation` (version `v0`) sont des brouillons créés avant les séries. Leur `_quarto.yml` n'a pas de clé `pb_series`.
+
+- Au prochain `setup_pb()`, la clé sera écrite à `ofce`, la série close.
+- `registry_request()` refusera alors la demande de numéro, avec un message qui invite à choisir une série ouverte.
+
+À faire : ajouter `pb_series: ife` (et, si besoin, `institut`) dans leur `_quarto.yml`, puis relancer `setup_pb()`. Le PDF brouillon prendra alors le nom `ife-draft-{repo}-{version}.pdf`.
+
+### 6.3 Mise à jour du package chez les auteurs
+
+- Une installation d'ofceweb antérieure à 1.0.6 ne contient pas le contrôle `min-ofceweb-version` (étape D). Contre ces installations, la seule protection est la CI du registre, qui refuse toute modification de `pb/pb.json`.
+- Il faut fusionner la PR du registre (`new_pb` → `main`) **avant** de diffuser ofceweb 1.0.6. Sinon, `pb/index.json` est introuvable sur `main` : `setup_pb()` et `check_pb()` signalent un registre inaccessible, et `registry_request()` refuse toute demande.
+
+### 6.4 Situation du PB 158 (`pb-mb-stem`)
+
+**Registre :**
+
+- Le n°158 a été attribué au dépôt `OFCE/pb-MB-stem` par la PR #24 (branche `request/pb/158`, 2026-10-07).
+- Il a été retiré deux jours plus tard par la PR #26 (`annulation_pr`, 2026-10-09).
+- Il ne figure ni dans `pb/pb.json` ni dans `pb/ofce.json`. Le dernier numéro de la série `ofce` est 157.
+
+**Serveur :** le 2026-10-26, `https://www.ofce.fr/pb/158/` et `https://www.ofce.fr/pb/158/v0/` renvoient 404. Le PB n'est donc **pas en ligne en production**. La première version de ce document le décrivait à tort comme déjà publié en `158/v0`. Le dépôt n'a d'ailleurs pas de branche `site-deploy`, seulement `site-staging` et `site-staging-redirect`.
+
+**Dépôt local (`GitHub/pb/pb-mb-stem`)** : il est resté dans l'état « publié » de l'ancien modèle, écrit le 2026-10-07, avant l'annulation.
+
+| Clé | Valeur actuelle |
+|---|---|
+| `pb` | 158 |
+| `draft` | `false` |
+| `version` | `v0` |
+| `website.site-path` | `158/v0` |
+| `citation.url` / `stable_url` | `https://www.ofce.fr/pb/158/` |
+| `citation.container-title` | Policy Brief de l'OFCE |
+| `pb_series` | *(absente)* |
+
+Son `manifest.json` (généré par ofceweb 1.0.4.9000) indique pourtant `stage: true` et une URL de staging (`https://staging.ofce.fr/pb-mb-stem/v0/`). Il a été déployé en staging, jamais en production.
+
+**Ce qui se passera au prochain `setup_pb()` sur ce dépôt (ofceweb 1.0.6) :**
+
+- Le registre ne connaît pas le dépôt : `sync_pb_registry_state()` remet `draft: true` et supprime `pb` de `_quarto.yml`.
+- Le dépôt redevient un brouillon versionné. `site-path` est supprimé, l'URL de staging est recalculée, et `nb` est retiré s'il était présent.
+- `pb_series` sera écrit à `ofce`, la série close.
+- Résidus à vérifier à la main : `citation.url`, `citation.issue` et `stable_url` ne sont pas effacés par `setup_pb()` pour un brouillon. Ils resteraient à `158`. Ce comportement existait avant les séries ; on pourrait faire effacer ces trois clés par `setup_pb()` quand `pb` est absent.
+
+**Options à trancher :**
+
+- **(a) Le PB doit être publié dans la série IFE.** Passer `pb_series: ife` (et `institut`), relancer `setup_pb()`, nettoyer les résidus de citation, puis `registry_request()` : il recevra le n°1 de la série `ife`.
+- **(b) Le PB est abandonné.** Rien à faire côté registre ni serveur. Éventuellement archiver le dépôt et nettoyer le staging.
 
 ## Annexe — réponses d'Elliot aux questions de la section 3
 

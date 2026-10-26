@@ -205,3 +205,16 @@ test_that("sync_pb_registry_state() leaves pb_series untouched on a network erro
   expect_null(result$pb_series)
   expect_equal(yaml::read_yaml(fs::path(dir, "_quarto.yml"))$pb_series, "ife")
 })
+
+test_that("fetch_pb_series_index() carries min-ofceweb-version as an attribute", {
+  local_mocked_bindings(
+    fromJSON = function(txt, ...) list(
+      `min-ofceweb-version` = "1.0.6",
+      series = list(ife = list(open = TRUE))
+    ),
+    .package = "jsonlite"
+  )
+  idx <- fetch_pb_series_index()
+  expect_equal(names(idx), "ife")
+  expect_equal(attr(idx, "min_ofceweb_version"), "1.0.6")
+})

@@ -91,3 +91,37 @@ test_that("check_pb() falls back to a structural site-path check when pb/index.j
   ))
   expect_equal(diag_status(check_pb(dir, verbose = FALSE), "site-path"), "warning")
 })
+
+test_that("check_pb() errors when the installed ofceweb is older than pb/index.json's min-ofceweb-version", {
+  dir <- local_git_tempdir()
+  write_quarto_yml(dir, list(ofce_pb = TRUE, pb_series = "ife"))
+  index_requiring <- function(v) {
+    idx <- pb_test_series_index()
+    attr(idx, "min_ofceweb_version") <- v
+    idx
+  }
+
+  local_mocked_bindings(
+    fetch_pb_entries      = function(...) NULL,
+    fetch_pb_series_index = function(...) index_requiring("999.0.0")
+  )
+  df <- check_pb(dir, verbose = FALSE)
+  expect_equal(diag_status(df, "ofceweb:version"), "error")
+  expect_match(df$message[df$field == "ofceweb:version"], "999.0.0", fixed = TRUE)
+
+  local_mocked_bindings(fetch_pb_series_index = function(...) index_requiring("0.0.1"))
+  expect_equal(diag_status(check_pb(dir, verbose = FALSE), "ofceweb:version"), "ok")
+
+  # No index (network) or no declared minimum: nothing to report.
+  local_mocked_bindings(fetch_pb_series_index = function(...) NULL)
+  expect_false("ofceweb:version" %in% check_pb(dir, verbose = FALSE)$field)
+  local_mocked_bindings(fetch_pb_series_index = function(...) pb_test_series_index())
+  expect_false("ofceweb:version" %in% check_pb(dir, verbose = FALSE)$field)
+})
+
+test_that("pb_ofceweb_version_diag() compares versions numerically", {
+  idx <- structure(list(), min_ofceweb_version = "1.0.10")
+  expect_equal(pb_ofceweb_version_diag(idx, installed = "1.0.9")$status, "error")
+  expect_equal(pb_ofceweb_version_diag(idx, installed = "1.0.10")$status, "ok")
+  expect_equal(pb_ofceweb_version_diag(idx, installed = "1.1.0")$status, "ok")
+})

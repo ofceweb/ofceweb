@@ -56,6 +56,8 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/index.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/install_fonts.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/is_windows_admin.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/mail_new_post.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/notify_new_posts.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/ofce_fonts.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/parse_google_font_css.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/pb_manifest.html</loc></url>
@@ -110,6 +112,7 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/stage_prev.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/submit_blog.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/sync_back_sourcoise.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/sync_back_thumbnail.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/sync_ftp_dir_var.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/trigger_action.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/update_navbar.html</loc></url>

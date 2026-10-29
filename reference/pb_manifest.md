@@ -23,18 +23,24 @@ La liste du manifeste (invisible).
 
 ## Details
 
-Le manifeste est collecté par \`webhome\` via la GitHub API pour
-construire l'index des policy briefs OFCE.
+Aucun outil ne collecte encore ce manifeste (\`webhome\` maintient ses
+listes de publications à la main) ; un futur collecteur devra identifier
+un PB par le couple (\`pb_series\`, \`pb\`), pas par \`pb\` seul.
 
 Inclut un champ \`source-repo\` (\`"owner/repo"\`, résolu depuis le
 remote \`origin\` local) utilisé par le workflow \`ftp_deploy.yml\` pour
-détecter qu'un autre dépôt tente de publier sous le même numéro de PB
-(même \`pb\` — numérotation séquentielle depuis l'origine, indépendante
-de l'année) et bloquer ce déploiement avant d'écraser le PB existant.
+détecter qu'un autre dépôt tente de publier à la même adresse (même
+série et même numéro) et bloquer ce déploiement avant d'écraser le PB
+existant.
+
+Un PB publié n'est pas versionné : \`url\` vaut
+\`https://www.ofce.fr/pb/site-path/\` (ex. \`.../pb/ife/12/\`), sans
+segment de version ; seule l'URL de staging d'un brouillon porte la
+version.
 
 Inclut aussi un champ \`pdf-path\` : le chemin du fichier
 \`output-file\` du format \`pb-pdf\`/\`pb-typst\` actif, relatif à la
-racine \`www.ofce.fr\` (ex. \`"pb/5/OFCEPB2026-5.pdf"\`). Calculé dès
+racine \`www.ofce.fr\` (ex. \`"pb/ife/12/IFEPB12.pdf"\`). Calculé dès
 que \`pb\` est connu, indépendamment de \`stage\`/\`url\` : c'est
 l'emplacement de publication final, pas nécessairement celui où le
 fichier est déployé au moment de l'appel. \`NULL\` si \`pb\` ou le

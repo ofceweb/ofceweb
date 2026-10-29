@@ -35,8 +35,9 @@ Champs complétés si absents :
 - \`author\` : structure minimale si \`author\` et \`authors\` sont
   absents
 
-- \`citation\` : structure minimale (\`type: article-journal\`,
-  \`container-title: "Policy Brief de l'OFCE"\`)
+- \`citation\` : structure minimale (\`type: article-journal\`, et
+  \`container-title\` de la série \`pb_series\` lu dans
+  \`pb/index.json\` si le registre est accessible)
 
 - \`ofce_pb\` : positionné à \`TRUE\` pour signaler un PB OFCE
 

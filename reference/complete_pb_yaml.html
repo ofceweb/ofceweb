@@ -13,7 +13,7 @@ elle ne modifie aucun champ existant et ne crée que les champs qui manquent."><
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,8 +79,9 @@ elle ne modifie aucun champ existant et ne crée que les champs qui manquent.</p
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Champs complétés si absents :</p><ul><li><p>`date` : date du jour (format `YYYY-MM-DD`)</p></li>
 <li><p>`author` : structure minimale si `author` et `authors` sont absents</p></li>
-<li><p>`citation` : structure minimale (`type: article-journal`,
-    `container-title: "Policy Brief de l'OFCE"`)</p></li>
+<li><p>`citation` : structure minimale (`type: article-journal`, et
+    `container-title` de la série `pb_series` lu dans `pb/index.json` si
+    le registre est accessible)</p></li>
 <li><p>`ofce_pb` : positionné à `TRUE` pour signaler un PB OFCE</p></li>
 </ul></div>
     <div class="section level2">

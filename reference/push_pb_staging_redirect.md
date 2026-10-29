@@ -46,4 +46,4 @@ attribuée).
 
 ## See also
 
-\[deploy_pb()\], \[push_pb_redirect()\], \[pb_version_up()\]
+\[deploy_pb()\], \[pb_version_up()\]

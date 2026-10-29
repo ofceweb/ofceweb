@@ -165,7 +165,7 @@ tous les `yaml_patch_*()`, `ofce::setup_quarto()`.
 | [`complete_pb_yaml()`](https://ofceweb.github.io/ofceweb/reference/complete_pb_yaml.md) | **Optionnel / basse priorité** | Confort. Peut être un wrapper qui change juste `container-title`. À faire seulement si [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md) en a besoin. |
 | `encrypt_pb()` | **NE PAS créer** | Le chiffrement est déjà générique via [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md) + CI staticrypt. Réutiliser tel quel. |
 | [`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md) | **Créer** (voir §4.4) | Le workflow WP réel est versionné (`version: v1`) — on reprend le même schéma. |
-| `pb_redirect` / [`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md) | **Créer** (voir §4.1/4.4) | URL stable + segment de version comme les WP. |
+| `pb_redirect` / `push_pb_redirect()` | **Créer** (voir §4.1/4.4) | URL stable + segment de version comme les WP. |
 
 **En résumé** : on duplique la logique *métier* (conventions), on
 réutilise l’*infra* déjà factorisée. `encrypt_pb` tombe ;
@@ -431,13 +431,11 @@ tolérant pour l’appel CI `render_pb(check_repo=FALSE)`. **\[moi\]** ✅ -
 \[x\]
 [`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md)
 — routage identique, URL production `www.ofce.fr/pb/{annee}/{pb}`,
-[`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md).
-**\[moi\]** ✅ - \[x\] Conditionnels :
+`push_pb_redirect()`. **\[moi\]** ✅ - \[x\] Conditionnels :
 [`complete_pb_yaml()`](https://ofceweb.github.io/ofceweb/reference/complete_pb_yaml.md),
 [`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md),
-[`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md)
-(`R/pb_redirect.R`). **\[moi\]** ✅ - \[x\] **PAS** de `encrypt_pb()` —
-réutilise
+`push_pb_redirect()` (`R/pb_redirect.R`). **\[moi\]** ✅ - \[x\] **PAS**
+de `encrypt_pb()` — réutilise
 [`encrypt_site()`](https://ofceweb.github.io/ofceweb/reference/encrypt_site.md).
 ✅ - \[x\] Exports ajoutés à `NAMESPACE` à la main (setup_pb, render_pb,
 publish_pb, deploy_pb, check_pb, pb_registry_request, pb_version_up). ✅

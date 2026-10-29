@@ -5,7 +5,9 @@ registre (\`stage\` dans \`manifest.json\`) et, avant publication, selon
 \`stage-target\` dans \`\_quarto.yml\` (positionné par \[setup_pb()\]) :
 
 - \*\*Publié\*\* (\`stage: FALSE\`) : toujours vers FTP production
-  (\`ftp_deploy.yml\`), quelle que soit la valeur de \`stage-target\`.
+  (\`ftp_deploy.yml\`), quelle que soit la valeur de \`stage-target\`, à
+  l'adresse unique \`www.ofce.fr/pb/site-path/\` (un PB publié n'est pas
+  versionné, donc pas de page de redirection).
 
 - \*\*Non encore publié\*\* (\`stage: TRUE\` ou \`stage\` absent) :
   destination lue depuis \`stage-target\` (\`"auto"\` réévalué à chaque

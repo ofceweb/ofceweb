@@ -13,7 +13,7 @@ PB (titre, numéro, année, langue, URLs)."><meta property="og:image" content="h
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,8 +82,8 @@ PB (titre, numéro, année, langue, URLs).</p>
 
 
 <dt id="arg-versionning">versionning<a class="anchor" aria-label="anchor" href="#arg-versionning"></a></dt>
-<dd><p>Logique. Si `TRUE` et PB publié (`pb` non `NULL`),
-ajoute `/v0` au `site-path`.</p></dd>
+<dd><p>Obsolète et ignoré (avertissement s'il est fourni) : un
+brouillon est toujours versionné, un PB publié ne l'est plus.</p></dd>
 
 
 <dt id="arg-stage-target">stage_target<a class="anchor" aria-label="anchor" href="#arg-stage-target"></a></dt>
@@ -117,9 +117,19 @@ déjà existant, soit écrasé par une entrée confirmée du registre central
 l'appelant. Un dépôt sans `_quarto.yml` et sans entrée de registre reste un
 brouillon (`pb` absent) ; pour obtenir un numéro, utiliser
 [pb_registry_request()] puis relancer `setup_pb()` une fois la PR
-fusionnée. Le champ `annee` n'est pas utilisé pour les PB : les numéros
-sont attribués séquentiellement depuis l'origine, indépendamment de
-l'année de publication.</p>
+fusionnée. Le champ `annee` n'est pas utilisé pour les PB : chaque série
+(clé `pb_series` de `_quarto.yml`, `"ofce"` si absente) est numérotée à
+partir de 1, indépendamment de l'année de publication. Les paramètres de
+la série (préfixe d'URL, préfixes des PDF, `container-title`) sont lus
+dans `pb/index.json` du registre central ; si l'index est inaccessible,
+les champs qui en dépendent ne sont pas recalculés.</p>
+<p>**Versions** : seul un brouillon est versionné (clé `version`, URL de
+staging `staging.ofce.fr/repo/version/`). À la publication (`pb`
+attribué), la clé `version` est supprimée de `_quarto.yml` et le PB est
+déployé sans segment de version à `www.ofce.fr/pb/path-prefixpb/` ;
+une correction ultérieure se fait en redéployant à la même adresse.
+`nb` (numéro lu par l'extension `pb` pour distinguer brouillon et
+publié) est écrit à la publication et retiré pour un brouillon.</p>
 <p>`author` est destiné à ne vivre que dans `_quarto.yml` : si `index.qmd`
 en porte une (héritage d'un ancien gabarit, ou ajout manuel), elle est
 déplacée vers `_quarto.yml` – remplaçant la valeur qui y était déjà,
@@ -134,10 +144,11 @@ que le package **ofce** installé est en version `&gt;= 1.3.39` — sinon la
 fonction s'arrête immédiatement avec [cli::cli_abort()].</p>
 <p>Côté PDF, `pb-pdf` (LaTeX) et `pb-typst` (Typst) sont les deux moteurs
 légitimes. Le nom du PDF de brouillon (`pb` non attribué) est
-`ofce-draft-repo-version.pdf` (ex. `ofce-draft-pb-example-v1.pdf`),
+`draft-prefix-repo-version.pdf` (ex. `ife-draft-pb-csskvv-chn-v1.pdf`),
 identique quel que soit le moteur actif — sans segment de version si
 `version` n'est pas encore renseignée — recalculé à chaque appel. Une
-fois publié (`pb` connu), les deux moteurs produisent `OFCEPBpb.pdf`.</p>
+fois publié (`pb` connu), les deux moteurs produisent
+`pdf-prefixpb.pdf` (ex. `IFEPB12.pdf`).</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

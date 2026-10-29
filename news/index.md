@@ -1,5 +1,84 @@
 # Changelog
 
+## ofceweb 1.0.6
+
+### Policy briefs : séries de numérotation
+
+Les PB sont maintenant répartis en **séries**, une par institut
+d’origine, chacune numérotée à partir de 1. La série `ofce` est close ;
+les nouveaux PB entrent dans la série `ife`.
+
+- Nouvelle clé `pb_series` dans `_quarto.yml` (gabarit : `ife` ; `ofce`
+  si la clé est absente). Elle est indépendante de `institut`, qui ne
+  choisit que le logo.
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  l’écrit toujours explicitement.
+- Registre central (`ofce/wp-registry`) : `pb/index.json` déclare les
+  séries (ouverte ou close, préfixe d’URL, préfixes des PDF,
+  `container-title`) et `pb/{série}.json` contient les entrées de chaque
+  série. L’ancien fichier plat `pb/pb.json` n’est plus lu ni écrit.
+  Aucune série n’est codée en dur dans ofceweb.
+- [`pb_registry_request()`](https://ofceweb.github.io/ofceweb/reference/pb_registry_request.md)
+  numérote dans la série du dépôt (`max + 1`, ou 1 pour une série vide),
+  écrit dans `pb/{série}.json` depuis une branche
+  `request/pb/{série}/{pb}`, et refuse la demande si la série est
+  inconnue ou close, si l’index est inaccessible ou si le dépôt est déjà
+  enregistré.
+- `sync_pb_registry_state()` reprend `pb` **et** `pb_series` du registre
+  ;
+  [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+  vérifie la cohérence du couple (numéro, série).
+
+### Policy briefs : plus de version une fois publiés
+
+Seul un brouillon est versionné. À la publication :
+
+- [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  supprime la clé `version` de `_quarto.yml` ; le `site-path` devient
+  `{path-prefix}{pb}` (ex. `ife/12`) et l’adresse
+  `www.ofce.fr/pb/ife/12/`, sans segment de version. Une correction se
+  fait en redéployant à la même adresse.
+- PDF publié `{pdf-prefix}{pb}.pdf` (ex. `IFEPB12.pdf`) ; PDF brouillon
+  `{draft-prefix}-{repo}-{version}.pdf` (ex.
+  `ife-draft-pb-csskvv-chn-v1.pdf`). `citation.container-title` suit la
+  série.
+- La redirection de production des PB est supprimée
+  (`push_pb_redirect()`, `FTP_REDIRECT_DIR`, gabarit `ftp_redirect.yml`)
+  : un PB publié n’a qu’une adresse. La redirection de staging des
+  brouillons est conservée.
+- [`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md)
+  refuse de tourner sur un PB publié.
+- L’argument `versionning` de
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  est obsolète et ignoré.
+
+### Policy briefs : autres changements
+
+- [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  écrit `nb` (le numéro) pour un PB publié et le retire pour un
+  brouillon. L’extension Quarto `pb` s’appuie sur `nb` pour afficher le
+  numéro et distinguer publié et brouillon : jusqu’ici, tout PB publié
+  s’affichait comme un brouillon.
+- [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+  renvoie une erreur, qui bloque
+  [`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md),
+  si la version d’ofceweb installée est inférieure à
+  `min-ofceweb-version` déclarée dans `pb/index.json`. Ce contrôle ne
+  concerne pas les WP.
+- Correction : `yml$pb` correspondait partiellement à `pb_series` quand
+  `pb` est absent (brouillon) ; les lectures passent par `yml[["pb"]]`.
+- `manifest.json` gagne un champ `pb_series`.
+- [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  ajoute `institut: ife` à `_quarto.yml` quand `institut` n’est déclaré
+  ni dans `_quarto.yml` ni dans `index.qmd` ; une valeur existante n’est
+  jamais modifiée.
+- Correction : sur un dépôt neuf,
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  lisait `_quarto.yml` avant d’y copier le gabarit. Au premier appel, il
+  ignorait donc `version: v0` (URL de staging et PDF brouillon sans
+  version) et aurait écrit `pb_series: ofce` au lieu du `ife` du
+  gabarit.
+
 ## ofceweb 1.0.5
 
 ### Les variables github sont à jour
@@ -159,7 +238,7 @@ pour en bénéficier ; rien ne se fait automatiquement.
 
 [`push_wp_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_staging_redirect.md)/[`push_pb_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_staging_redirect.md)
 (analogues, côté staging, de
-[`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)/[`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md))
+[`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)/`push_pb_redirect()`)
 génèrent désormais un `index.html` de redirection pointant vers la
 version courante d’un WP/PB en révision sur `staging.ofce.fr` (lue
 depuis `website.site-url`), le poussent sur la branche
@@ -179,7 +258,7 @@ chaque nouvelle version envoyée aux relecteurs.
 
 ### Correction : le calcul du répertoire de redirection échouait sur une version personnalisée
 
-[`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)/[`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md)
+[`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)/`push_pb_redirect()`
 (redirection stable en production) et
 [`wp_version_up()`](https://ofceweb.github.io/ofceweb/reference/wp_version_up.md)/[`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md)
 (mise à jour de `FTP_REDIRECT_DIR` lors d’un changement de version)
@@ -766,8 +845,7 @@ d’indexation pour les PB et a été retiré de l’ensemble du pipeline
   : perd l’argument `annee` ;
   [`pb_manifest()`](https://ofceweb.github.io/ofceweb/reference/pb_manifest.md),
   [`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md),
-  [`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md)
-  ne lisent/écrivent plus `annee`.
+  `push_pb_redirect()` ne lisent/écrivent plus `annee`.
 - **Rupture de compatibilité** : un `_quarto.yml` PB existant avec
   `annee` résiduel n’est pas affecté (le champ est simplement ignoré) ;
   relancer
@@ -823,9 +901,8 @@ tous les `yaml_patch_*()`, etc.).
   [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)
   selon `stage` (registre) et `stage-target` : publié → FTP production
   (`www.ofce.fr/pb/{annee}/{N}/`) + redirection stable
-  ([`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md),
-  interne) ; sinon → FTP staging ou GitHub Pages selon `stage-target`/
-  propriétaire GitHub.
+  (`push_pb_redirect()`, interne) ; sinon → FTP staging ou GitHub Pages
+  selon `stage-target`/ propriétaire GitHub.
 - [`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md)
   — incrémente la version d’un PB versionné (`/vN`), équivalent PB de
   [`wp_version_up()`](https://ofceweb.github.io/ofceweb/reference/wp_version_up.md).

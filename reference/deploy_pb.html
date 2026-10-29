@@ -3,7 +3,9 @@
 (`stage` dans `manifest.json`) et, avant publication, selon `stage-target`
 dans `_quarto.yml` (positionné par [setup_pb()]) :
 **Publié** (`stage: FALSE`) : toujours vers FTP production
-    (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`.
+    (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`, à
+    l'adresse unique `www.ofce.fr/pb/site-path/` (un PB publié n'est pas
+    versionné, donc pas de page de redirection).
 **Non encore publié** (`stage: TRUE` ou `stage` absent) : destination
     lue depuis `stage-target` (`&quot;auto&quot;` réévalué à chaque appel selon le
     propriétaire GitHub actuel — `&quot;ftp&quot;` pour l'organisation `ofce`,
@@ -13,7 +15,9 @@ dans `_quarto.yml` (positionné par [setup_pb()]) :
 (`stage` dans `manifest.json`) et, avant publication, selon `stage-target`
 dans `_quarto.yml` (positionné par [setup_pb()]) :
 **Publié** (`stage: FALSE`) : toujours vers FTP production
-    (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`.
+    (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`, à
+    l'adresse unique `www.ofce.fr/pb/site-path/` (un PB publié n'est pas
+    versionné, donc pas de page de redirection).
 **Non encore publié** (`stage: TRUE` ou `stage` absent) : destination
     lue depuis `stage-target` (`&quot;auto&quot;` réévalué à chaque appel selon le
     propriétaire GitHub actuel — `&quot;ftp&quot;` pour l'organisation `ofce`,
@@ -27,7 +31,7 @@ dans `_quarto.yml` (positionné par [setup_pb()]) :
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +69,9 @@ dans `_quarto.yml` (positionné par [setup_pb()]) :
     <p>Équivalent PB de [deploy_wp()]. Route le déploiement selon l'état du registre
 (`stage` dans `manifest.json`) et, avant publication, selon `stage-target`
 dans `_quarto.yml` (positionné par [setup_pb()]) :</p><ul><li><p>**Publié** (`stage: FALSE`) : toujours vers FTP production
-    (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`.</p></li>
+    (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`, à
+    l'adresse unique `www.ofce.fr/pb/site-path/` (un PB publié n'est pas
+    versionné, donc pas de page de redirection).</p></li>
 <li><p>**Non encore publié** (`stage: TRUE` ou `stage` absent) : destination
     lue depuis `stage-target` (`"auto"` réévalué à chaque appel selon le
     propriétaire GitHub actuel — `"ftp"` pour l'organisation `ofce`,

@@ -5,27 +5,60 @@
 Le workflow **policy brief (PB)** est calqué sur celui des [documents de
 travail
 (WP)](https://ofceweb.github.io/ofceweb/articles/working-papers.md) :
-mêmes étapes (initialisation, vérification, rendu, déploiement,
-incrémentation de version), fonctions `pb_*` équivalentes aux fonctions
-`wp_*`, mêmes gabarits Quarto (`_quarto.yml`, `index.qmd`,
-`annexes.qmd`, `news.qmd`) et les mêmes workflows GitHub Actions.
+mêmes étapes (initialisation, vérification, rendu, déploiement),
+fonctions `pb_*` équivalentes aux fonctions `wp_*`, mêmes gabarits
+Quarto (`_quarto.yml`, `index.qmd`, `annexes.qmd`, `news.qmd`) et mêmes
+workflows GitHub Actions.
 
 Ce document ne répète pas en détail ce qui est déjà couvert par la
-vignette WP ; il se concentre sur les **différences** propres aux PB.
+vignette WP ; il se concentre sur les **différences** propres aux PB :
+la numérotation **par série** et l’absence de version une fois le PB
+publié.
+
+### Séries de PB
+
+Les PB sont répartis en **séries**, une par institut d’origine. Chaque
+série a sa propre numérotation, qui commence à 1. La série d’un dépôt
+est donnée par la clé `pb_series` de `_quarto.yml` (gabarit : `ife`). Un
+dépôt sans cette clé est traité comme appartenant à la série historique
+`ofce`, désormais close.
+
+`pb_series` est **indépendante** de la clé `institut`, qui ne choisit
+que le logo du PB (`ofce`, `ife`, `ife-ofce`, `ife-cepii`,
+`ife-ofce-cepii`) : un PB co-signé IFE\|OFCE peut très bien être
+numéroté dans la série `ife`.
+
+La liste des séries et leurs paramètres vivent dans le registre central,
+`pb/index.json` du dépôt `ofce/wp-registry` — rien n’est codé en dur
+dans ofceweb :
+
+| Paramètre | Série `ofce` | Série `ife` |
+|----|----|----|
+| `open` (accepte de nouveaux numéros) | non | oui |
+| `path-prefix` (sous `www.ofce.fr/pb/`) | *(aucun)* | `ife/` |
+| `pdf-prefix` (PDF publié) | `OFCEPB` | `IFEPB` |
+| `draft-prefix` (PDF brouillon) | `ofce-draft` | `ife-draft` |
+| `container-title` (citation) | Policy Brief de l’OFCE | Policy Brief de l’IFE |
+
+`pb/index.json` déclare aussi `min-ofceweb-version`, la version minimale
+du package exigée par
+[`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+(voir [section 2](#verifier)).
 
 ### Différences avec les WP
 
 |  | Working paper (WP) | Policy brief (PB) |
 |----|----|----|
 | Fonctions | [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md), [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md), [`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md), [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md), [`publish_wp()`](https://ofceweb.github.io/ofceweb/reference/publish_wp.md), [`wp_version_up()`](https://ofceweb.github.io/ofceweb/reference/wp_version_up.md), [`wp_registry_request()`](https://ofceweb.github.io/ofceweb/reference/wp_registry_request.md) | [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md), [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md), [`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md), [`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md), [`publish_pb()`](https://ofceweb.github.io/ofceweb/reference/publish_pb.md), [`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md), [`pb_registry_request()`](https://ofceweb.github.io/ofceweb/reference/pb_registry_request.md) |
-| Numérotation | par année (`annee` + `wp`) | **séquentielle depuis l’origine**, indépendante de l’année ; `annee` n’est **pas utilisé** pour les PB |
-| Registre central | `ofceweb/wp-registry`, `wp/{annee}.json` (sharded par année) | **partagé** avec les WP : `ofceweb/wp-registry`, sous-dossier `pb/`, **fichier plat unique** `pb/pb.json` |
-| Branche de PR registre | `request/{annee}/{wp}` | `request/pb/{pb}` (préfixe `pb/` pour éviter toute collision dans le dépôt partagé) |
-| Convention de nommage du dépôt | `wp-{initiales}-{nom court}` | `pb-{initiale}-{nom court}` |
-| URL publiée | `www.ofce.fr/wp/{annee}/{N}/{version}/` | `www.ofce.fr/pb/{N}/{version}/` (pas de segment année) |
-| URL stable (citation) | dérivée de `annee`/`wp` | `https://www.ofce.fr/pb/{N}/` |
-| Nom du PDF publié | `OFCEWP{annee}-{N}.pdf` | `OFCEPB{N}.pdf` (pas d’année) |
-| Nom du PDF brouillon | — | `OFCEPB-draft.pdf` |
+| Numérotation | par année (`annee` + `wp`) | **par série** (`pb_series` + `pb`), chaque série à partir de 1 ; `annee` n’est **pas utilisé** |
+| Registre central | `ofce/wp-registry`, `wp/{annee}.json` | même dépôt, `pb/index.json` (séries) + `pb/{série}.json` (entrées) |
+| Branche de PR registre | `request/{annee}/{wp}` | `request/pb/{série}/{pb}` |
+| Convention de nommage du dépôt | `wp-{initiales}-{nom court}` | `pb-{initiales}-{nom court}` |
+| Versions | brouillon **et** publié | **brouillon uniquement** — un PB publié n’a plus de version |
+| URL publiée | `www.ofce.fr/wp/{annee}/{N}/{version}/` | `www.ofce.fr/pb/{path-prefix}{N}/` (ex. `www.ofce.fr/pb/ife/12/`) |
+| URL stable (citation) | dérivée de `annee`/`wp` | identique à l’URL publiée |
+| Nom du PDF publié | `OFCEWP{annee}-{N}.pdf` | `{pdf-prefix}{N}.pdf` (ex. `IFEPB12.pdf`) |
+| Nom du PDF brouillon | — | `{draft-prefix}-{repo}-{version}.pdf` (ex. `ife-draft-pb-csskvv-chn-v1.pdf`) |
 | Formats Quarto | `wp-html`, `wp-pdf` / `wp-typst` | `pb-html`, `pb-pdf` / `pb-typst` (mutuellement exclusifs, comme pour les WP) |
 | Favicon | `www/fofce-wp.png` | `www/fofce-wp.png` (partagé) |
 | Marqueur `_quarto.yml` | `ofce_wp: true` | `ofce_pb: true` |
@@ -38,22 +71,32 @@ refuse d’être appliqué à un dépôt marqué `ofce_wp: true` ou
 
 ### Cycle de vie
 
-| État | `pb` dans `_quarto.yml` | Hébergement | URL \| \| |
-|----|----|----|----|
-| Brouillon | `null` | GitHub Pages ou OFCE staging |  |
-| Publié | `N` (entier) | Serveur OFCE FTP | `www.ofce.fr/pb/{N}/{version}/` \| \| |
+| État | `pb` dans `_quarto.yml` | `version` | Hébergement | URL |
+|----|----|----|----|----|
+| Brouillon | absent | `v0`, `v1`, … | GitHub Pages ou OFCE staging | `ofce.github.io/{repo}/` ou `staging.ofce.fr/{repo}/{version}/` |
+| Publié | `N` (entier) | absente | Serveur OFCE FTP | `www.ofce.fr/pb/{path-prefix}{N}/` |
 
-Comme pour les WP, pour être *stagé* sur `staging.ofce.fr` avec
-versionnage ou publié, la propriété du dépôt doit être transférée à
-l’organisation OFCE. Convention de nommage recommandée :
-`pb-{initiale de l'auteur.e}-{nom court du projet}`, tout en minuscule
-(ex. `pb-gaxt-relance`).
+Un brouillon passe par autant de versions de revue que nécessaire. Le
+numéro n’est attribué qu’au moment où le PB est prêt à être publié
+(enregistrement dans le registre) ; à partir de là, il n’a plus de
+version :
+[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+supprime la clé `version` de `_quarto.yml`, et une correction se fait en
+redéployant à la même adresse.
+
+Comme pour les WP, pour être *stagé* sur `staging.ofce.fr` ou publié, la
+propriété du dépôt doit être transférée à l’organisation OFCE.
+Convention de nommage recommandée :
+`pb-{initiales des auteur·es}-{nom court du projet}`, tout en minuscules
+(ex. `pb-csskvv-chn`).
 
 > L’accès aux modifications du document, ainsi que la possibilité de le
 > publier (staging ou définitif) découle des droits du dépôt. Ils sont
 > definis dans les `settings` accessible sur la page `github.com` du
 > dépôt. Par défaut, ce sont les auteurs et les administrateurs du site,
-> que le dépôt soit privé ou public.  file ————————————————————————
+> que le dépôt soit privé ou public.
+
+------------------------------------------------------------------------
 
 ## 1. Initialiser un nouveau PB
 
@@ -63,10 +106,9 @@ library(ofceweb)
 
 # Depuis la racine du dépôt GitHub du PB
 setup_pb(
-  path        = ".",
-  lang        = "fr",
-  hypothesis  = FALSE,
-  versionning = TRUE
+  path       = ".",
+  lang       = "fr",
+  hypothesis = FALSE
 )
 ```
 
@@ -79,20 +121,36 @@ suit le même pipeline que
 des extensions Quarto OFCE, mise à jour forcée des workflows GitHub
 Actions.
 
-Différence notable : `pb` n’est **pas un argument** de
-[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
-(contrairement à `wp`/`annee` pour
-[`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md))
-: il est toujours lu depuis `_quarto.yml`, ou écrasé par une entrée
-confirmée du registre central. Un dépôt sans `_quarto.yml` et sans
-entrée de registre reste un brouillon (`pb` absent) — pour obtenir un
-numéro, voir la [section 5](#passer-de-brouillon-a-publie) ci-dessous.
-Le champ `annee` n’est jamais utilisé pour les PB.
+Différences notables :
+
+- `pb` n’est **pas un argument** de
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  (contrairement à `wp`/`annee` pour
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md))
+  : il est toujours lu depuis `_quarto.yml`, ou écrasé par une entrée
+  confirmée du registre central. Un dépôt sans entrée de registre reste
+  un brouillon (`pb` absent) — pour obtenir un numéro, voir la [section
+  5](#passer-de-brouillon-a-publie).
+- La série (`pb_series`) se choisit **dans `_quarto.yml`**, avant la
+  demande de numéro.
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  l’écrit explicitement (`ofce` si la clé manquait) et en tire, d’après
+  `pb/index.json`, le `site-path`, le nom du PDF et
+  `citation.container-title`. Si l’index est inaccessible, ces champs ne
+  sont pas recalculés et un avertissement l’indique.
+- `institut` (le logo) vaut `ife` par défaut :
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  l’ajoute à `_quarto.yml` s’il n’est déclaré ni là ni dans `index.qmd`,
+  sans jamais modifier une valeur existante. Il ne dépend pas de
+  `pb_series`.
+- L’argument `versionning` est obsolète et ignoré : un brouillon est
+  toujours versionné, un PB publié ne l’est plus.
 
 Après
 [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md),
 éditez `_quarto.yml` et `index.qmd` pour les métadonnées définitives
-(auteurs, résumé, date) et le contenu avant de commiter.
+(auteurs, résumé, date, `institut`, `pb_series`) et le contenu avant de
+commiter.
 
 ------------------------------------------------------------------------
 
@@ -109,12 +167,25 @@ vérifie les mêmes catégories de champs que
 (`_quarto.yml` obligatoires, `index.qmd` déclarant `pb-html` et
 `pb-pdf`/`pb-typst`, `references.bib`, `news.qmd`, unicité des
 `output-file` PDF, `.qmd` référencés dans `website.other-links`), avec
-deux contrôles spécifiques aux PB :
+des contrôles spécifiques aux PB :
 
-- cohérence `version` / dernier segment de `site-path` au format `N` ou
-  `N/vX` (sans segment année, `annee` n’intervenant pas dans la
-  structure) ;
-- convention de nommage du dépôt `pb-{initiale}-{nom court}` (warning
+- **version du package** : si `pb/index.json` déclare une
+  `min-ofceweb-version` supérieure à la version d’ofceweb installée,
+  [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+  renvoie une **erreur**, ce qui bloque
+  [`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md)
+  (et donc
+  [`publish()`](https://ofceweb.github.io/ofceweb/reference/publish.md))
+  jusqu’à la mise à jour du package. Ce contrôle est propre aux PB : il
+  n’affecte pas les WP ;
+- cohérence avec le registre central (numéro **et** série) ;
+- pour un PB publié : `site-path` égal à `{path-prefix}{N}`, sans
+  segment de version ; plus de clé `version` ; présence de `nb` (le
+  numéro lu par l’extension Quarto `pb`, sans lequel le PB s’affiche
+  comme un brouillon). Tout se corrige en relançant
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  ;
+- convention de nommage du dépôt `pb-{initiales}-{nom court}` (warning
   non bloquant, org GitHub `ofce` uniquement).
 
 Elle retourne un data frame de diagnostics et est appelée
@@ -150,14 +221,14 @@ prévisualisation locale via
 [`servr::httw()`](https://rdrr.io/pkg/servr/man/httd.html)), à une
 différence près :
 **[`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md)
-ne consulte plus le registre central** — cette consultation a lieu en
+ne consulte pas le registre central** — cette consultation a lieu en
 amont, dans
 [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
 (et à nouveau dans
 [`publish_pb()`](https://ofceweb.github.io/ofceweb/reference/publish_pb.md)).
 [`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md)
-suppose que `draft`/`pb` sont déjà synchronisés dans `_quarto.yml` et se
-contente de les lire, sans accès réseau.
+suppose que `draft`/`pb`/`pb_series` sont déjà synchronisés dans
+`_quarto.yml`.
 
 ------------------------------------------------------------------------
 
@@ -174,50 +245,59 @@ Le comportement dépend de l’état `stage` (lu depuis `manifest.json`,
 et, avant publication, de `stage-target` dans `_quarto.yml` :
 
 - **Publié** (`stage: FALSE`) → toujours vers FTP production
-  (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target` — vers
-  `www.ofce.fr/pb/{N}/{version}/`. Une redirection stable est aussi
-  poussée
-  ([`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md)).
+  (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`, à
+  l’adresse unique `www.ofce.fr/pb/{path-prefix}{N}/`. Il n’y a pas de
+  page de redirection : un PB publié n’a qu’une adresse. Redéployer
+  remplace le contenu à cette adresse (c’est ainsi qu’on corrige un PB
+  publié).
 - **Non encore publié** (`stage: TRUE` ou absent) → destination lue
   depuis `stage-target` : `"auto"` (réévalué à chaque appel selon le
   propriétaire GitHub actuel — `"ftp"` pour l’organisation `ofce`,
-  `"gh-pages"` sinon), ou forcée via `"ftp"` / `"gh-pages"`.
+  `"gh-pages"` sinon), ou forcée via `"ftp"` / `"gh-pages"`. En staging
+  FTP, une redirection `staging.ofce.fr/{repo}/` pointe vers la dernière
+  version du brouillon
+  ([`push_pb_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_staging_redirect.md)).
 
 ------------------------------------------------------------------------
 
 ## 5. Passer de brouillon à publié
 
 Comme pour les WP, le numéro (`pb`) est la propriété du **registre
-central**, pas de l’auteur·e. La différence : les PB et les WP partagent
-le **même dépôt** registre (`ofceweb/wp-registry`), mais dans des
-sous-dossiers distincts — `pb/` pour les PB (fichier plat unique
-`pb/pb.json`, numérotation strictement séquentielle depuis l’origine),
-`wp/{annee}.json` pour les WP (sharded par année).
+central**, pas de l’auteur·e. PB et WP partagent le même dépôt registre
+(`ofce/wp-registry`), dans des sous-dossiers distincts : `pb/` pour les
+PB (un fichier par série, `pb/{série}.json`, et l’index
+`pb/index.json`), `wp/{annee}.json` pour les WP. L’ancien fichier plat
+`pb/pb.json` est figé : la CI du registre refuse toute modification.
 
-1.  Demander un numéro :
+1.  Vérifier `pb_series` dans `_quarto.yml` (une série **ouverte**, par
+    exemple `ife`), puis demander un numéro :
 
 ``` r
 
 registry_request()
 ```
 
-    Ouvre une pull request contre `ofceweb/wp-registry` proposant
-    d'ajouter l'entrée dans `pb/pb.json`. Contrairement au flux WP (fork
-    + PR cross-repo), le dépôt `ofce/wp-registry` autorise les membres de
-    l'organisation `ofce` à pousser directement une branche et ouvrir une
-    PR intra-dépôt sans être collaborateur·rice avec droit d'écriture —
-    seule la **fusion** reste protégée (branch protection +
-    `CODEOWNERS`). La branche créée est nommée `request/pb/{pb}` — le
-    préfixe `pb/` évite toute collision avec les branches WP
-    `request/{annee}/{wp}` du même dépôt partagé. La fonction n'attend
-    pas la fusion (fire-and-forget) ; un·e admin OFCE doit approuver
-    manuellement.
+    La fonction refuse la demande si la série est inconnue ou close, si
+    l'index est inaccessible, ou si le dépôt est déjà enregistré. Sinon,
+    elle prend le numéro suivant **dans la série** (`max + 1`, ou `1`
+    pour une série encore vide) et ouvre une pull request contre
+    `ofce/wp-registry` qui ajoute l'entrée à `pb/{série}.json`, depuis
+    une branche `request/pb/{série}/{pb}`. Le dépôt registre autorise les
+    membres de l'organisation `ofce` à pousser une branche et ouvrir une
+    PR sans droit d'écriture — seule la **fusion** reste protégée (branch
+    protection + `CODEOWNERS`). La fonction n'attend pas la fusion ;
+    un·e admin OFCE doit approuver manuellement. La CI du registre
+    refuse un numéro en double dans une série, un dépôt enregistré deux
+    fois, et tout nouveau numéro dans une série close.
 
 2.  Une fois la PR fusionnée, relancer
-    [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
-    pour synchroniser `pb`/`draft`/`site-path`/`citation.*`/`stable_url`
-    (`citation.url`/`stable_url` : `https://www.ofce.fr/pb/{N}/`,
-    `citation.issue`: `"{N}"`) et les variables FTP :
+    [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md).
+    Il synchronise `pb`/`pb_series`/`draft` depuis le registre, supprime
+    la clé `version`, calcule `site-path` (`{path-prefix}{N}`),
+    `citation.url`/`stable_url`
+    (`https://www.ofce.fr/pb/{path-prefix}{N}/`), `citation.issue`
+    (`"{N}"`), `nb`, le nom du PDF publié et la variable
+    `FTP_SERVER_DIR` :
 
 ``` r
 
@@ -239,8 +319,9 @@ deploy()
 refait cette consultation du registre juste avant le rendu, pour
 rattraper un enregistrement survenu depuis le dernier
 [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
-— mais ne recalcule que `draft`/`pb`, pas `site-path`/`citation.*` : si
-le numéro change à cette étape, relancer
+— mais ne recalcule que `draft`/`pb`/`pb_series`, pas
+`site-path`/`citation.*` : si le numéro ou la série change à cette
+étape, relancer
 [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
 avant de publier à nouveau.
 
@@ -254,7 +335,7 @@ de travail (Working Papers)*, section 6).
 
 ------------------------------------------------------------------------
 
-## 7. Incrémenter la version après une révision
+## 7. Nouvelle version d’un brouillon
 
 ``` r
 
@@ -262,10 +343,15 @@ pb_version_up()                              # v0 -> v1, v1 -> v2, etc.
 pb_version_up(custom_version = "v1_corr")    # version personnalisée
 ```
 
-Met à jour en cascade `version` et le dernier segment de
-`website.site-path` dans `_quarto.yml`, les variables GitHub
-`FTP_SERVER_DIR`/`FTP_REDIRECT_DIR`, et régénère `manifest.json`. Ne
-fonctionne que pour un PB déjà publié (`pb` non `NULL`).
+Met à jour `version` et, pour un brouillon en staging FTP, le dernier
+segment de `website.site-url` dans `_quarto.yml`, la variable GitHub
+`FTP_STAGING_DIR`, et régénère `manifest.json`. Relancer
+[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+pour renommer le PDF brouillon (qui porte la version).
+
+[`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md)
+**refuse** de tourner sur un PB publié : un PB publié n’a plus de
+version, on le corrige en redéployant à la même adresse.
 
 ``` r
 
@@ -280,47 +366,52 @@ deploy()
 [`pb_manifest()`](https://ofceweb.github.io/ofceweb/reference/pb_manifest.md)
 (appelée automatiquement par
 [`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md))
-génère `manifest.json`, collecté par `webhome` pour construire l’index
-des PB de l’OFCE :
+génère `manifest.json`. Aucun outil ne le collecte encore (les listes de
+publications de `webhome` sont tenues à la main) ; un futur collecteur
+devra identifier un PB par le couple (`pb_series`, `pb`), pas par `pb`
+seul. Exemple pour un PB publié :
 
 ``` json
 {
   "title": "Mon policy brief",
-  "authors": [{"name": "Prénom Nom", "affiliation": "OFCE, Sciences Po Paris"}],
+  "authors": [{"name": "Prénom Nom", "affiliation": "IFE, Sciences Po Paris"}],
   "abstract": "Résumé...",
-  "pb": 153,
-  "version": "v0",
+  "pb": 12,
+  "pb_series": "ife",
+  "version": null,
   "stage": false,
-  "date": "2026-05-19",
-  "date_modified": "2026-05-31",
-  "url": "https://www.ofce.fr/pb/153/v0/",
-  "pdf": "OFCEPB153.pdf",
-  "repo": "https://github.com/ofce/pb-gaxt-relance/",
+  "date": "2026-11-19",
+  "date_modified": "2026-11-30",
+  "url": "https://www.ofce.fr/pb/ife/12/",
+  "pdf": "IFEPB12.pdf",
+  "pdf-path": "pb/ife/12/IFEPB12.pdf",
+  "repo": "https://github.com/ofce/pb-csskvv-chn/",
   "lang": "fr",
-  "source-repo": "ofce/pb-gaxt-relance"
+  "source-repo": "ofce/pb-csskvv-chn"
 }
 ```
 
 Le champ `source-repo` (`"owner/repo"`) permet au workflow
-`ftp_deploy.yml` de détecter qu’un autre dépôt tenterait de publier sous
-le même numéro `pb` et de bloquer ce déploiement avant d’écraser le PB
-existant — c’est la « vérification anti-collision » mentionnée dans les
-workflows.
+`ftp_deploy.yml` de détecter qu’un autre dépôt tenterait de publier à la
+même adresse (même série, même numéro) et de bloquer ce déploiement
+avant d’écraser le PB existant — c’est la « vérification anti-collision
+» mentionnée dans les workflows.
 
 ------------------------------------------------------------------------
 
 ## Structure d’un dépôt PB
 
     mon-pb/
-    ├── _quarto.yml          # métadonnées PB (pb, version, auteurs, …) — pas de champ annee
+    ├── _quarto.yml          # métadonnées PB (pb_series, institut, pb, version tant que brouillon, auteurs, …)
     ├── index.qmd            # corps du document
     ├── annexes.qmd          # annexes (optionnel)
     ├── news.qmd             # historique des révisions
     ├── references.bib       # bibliographie
     ├── manifest.json        # manifeste JSON (généré par render_pb)
     ├── www/                 # assets OFCE (logos, icônes)
-    ├── _extensions/ofce/      # extension Quarto ofce
+    ├── _extensions/ofce/    # extension Quarto ofce
     └── .github/workflows/
-        ├── ftp_deploy.yml   # déploiement FTP (PB publié)
-        ├── ftp_stage.yml    # déploiement FTP staging (brouillon)
-        └── gh-pages.yml     # déploiement GitHub Pages (brouillon)
+        ├── ftp_deploy.yml           # déploiement FTP (PB publié)
+        ├── ftp_stage.yml            # déploiement FTP staging (brouillon)
+        ├── ftp_redirect_staging.yml # redirection staging vers la dernière version du brouillon
+        └── gh-pages.yml             # déploiement GitHub Pages (brouillon)

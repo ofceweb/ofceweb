@@ -57,4 +57,4 @@ Invisible \`NULL\`.
 
 ## See also
 
-\[render_pb()\], \[deploy_pb()\], \[push_pb_redirect()\], \[setup_pb()\]
+\[render_pb()\], \[deploy_pb()\], \[setup_pb()\]

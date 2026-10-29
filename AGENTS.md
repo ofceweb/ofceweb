@@ -15,18 +15,21 @@
 - Credentials : `FTP_SERVER` / `FTP_USER` / `FTP_PASSWORD`
 - Variable `FTP_REDIRECT_DIR` : parent path for stable redirect (without
   version segment)
-  - **WP**/**PB**: `{annee}/{wp}/` / `pb/{pb}/` → generates `index.html`
-    redirecting to latest version
+  - **WP**: `{annee}/{wp}/` → generates `index.html` redirecting to
+    latest version. **PB: none** — a published PB is not versioned (see
+    “PB versions” below), so it has a single address and no redirect
+    page; `push_pb_redirect()` and the PB `ftp_redirect.yml` template
+    were removed.
   - **Prevision**: `derniere/` → redirects to current published
     prevision
 - Branch: `site-redirect` (separate from content branches)
-- [`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)/[`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md)
-  compute the parent dir by stripping the trailing `/<version>` segment
+- [`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)
+  computes the parent dir by stripping the trailing `/<version>` segment
   from `site-path`, matched by value (not by a numeric regex) — a
   custom/suffixed version (e.g. `v2_corr`, `v5_AS42`) must still be
   stripped correctly.
-- **Automatic vs. manual**: for WP/PB, called automatically from
-  [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)/[`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md)
+- **Automatic vs. manual**: for WP, called automatically from
+  [`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)
   on every production deploy (redirect always follows the current
   version). For `prev`,
   [`push_prev_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_prev_redirect.md)
@@ -100,9 +103,62 @@
   still deploys to the right FTP directory.
   `FTP_REDIRECT_DIR`/`FTP_STAGING_REDIRECT_DIR` were already safe
   without this —
-  [`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)/[`push_pb_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_redirect.md)/[`push_wp_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_staging_redirect.md)/[`push_pb_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_staging_redirect.md)
+  [`push_wp_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.md)/[`push_wp_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_wp_staging_redirect.md)/[`push_pb_staging_redirect()`](https://ofceweb.github.io/ofceweb/reference/push_pb_staging_redirect.md)
   already recompute them fresh from `_quarto.yml` on every call (see
   above).
+
+## PB versions and series-derived paths
+
+- **Only a draft PB is versioned** (no `pb` yet): `version` key, staging
+  URL `staging.ofce.fr/{repo}/{version}/` + staging redirect,
+  [`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md),
+  draft PDF `{draft-prefix}-{repo}-{version}.pdf`. **A published PB
+  (`pb` assigned by the registry) has no version**:
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  deletes the `version` key, `site-path` is `{path-prefix}{pb}`
+  (e.g. `ife/12`; `158` for the unprefixed `ofce` series), the URL is
+  `www.ofce.fr/pb/{site-path}/`, the PDF `{pdf-prefix}{pb}.pdf`, and a
+  correction is a redeploy to the same address.
+  [`pb_version_up()`](https://ofceweb.github.io/ofceweb/reference/pb_version_up.md)
+  aborts on a published PB; `setup_pb(versionning =)` is obsolete
+  (warning, ignored).
+- Series parameters come only from the registry’s `pb/index.json`, via
+  `pb_series_params(pb_series(yml), fetch_pb_series_index())`; path/name
+  helpers live in `R/pb_paths.R` (`pb_site_path()`, `pb_public_url()`,
+  `pb_pdf_name()`).
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)/[`complete_pb_yaml()`](https://ofceweb.github.io/ofceweb/reference/complete_pb_yaml.md)
+  leave series-derived fields untouched (with a warning in
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md))
+  when the index is unreachable or the series unknown;
+  [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+  then falls back to a structural `site-path` check.
+  [`pb_manifest()`](https://ofceweb.github.io/ofceweb/reference/pb_manifest.md)/[`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md)
+  need no network: they read the `site-path` written by
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md).
+- [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  writes `nb: {pb}` for a published PB and removes it for a draft: the
+  `pb` Quarto extension (Typst and HTML) uses `nb` to show the number
+  and to tell a published PB from a draft.
+- [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  adds `institut: ife` to `_quarto.yml` when `institut` is declared
+  neither there nor in `index.qmd` (a plain default, deliberately not
+  derived from `pb_series`); an existing value is never changed.
+- On a fresh repo,
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  re-reads `_quarto.yml` right after copying the template: `yml` is read
+  at the very start, before the copy, so without this refresh the first
+  call would miss the template’s `version: v0` and `pb_series: ife`
+  (falling back to `"ofce"`).
+- **Minimum ofceweb version for PBs**: `pb/index.json` may declare
+  `min-ofceweb-version`; `fetch_pb_series_index()` exposes it as the
+  `min_ofceweb_version` attribute, and `pb_ofceweb_version_diag()` turns
+  it into an `"ofceweb:version"` row of
+  [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
+  (`"error"` when the installed package is older, which blocks
+  [`render_pb()`](https://ofceweb.github.io/ofceweb/reference/render_pb.md)).
+  Deliberately PB-only: not in `check_gh_setup()`, which
+  [`check_wp()`](https://ofceweb.github.io/ofceweb/reference/check_wp.md)
+  shares.
 
 ## Console verbosity conventions (`setup_wp()`/`setup_pb()`)
 
@@ -141,7 +197,7 @@
 
 ## Registry consistency check in `check_wp()`/`check_pb()`
 
-- `registry_diag_rows(entries, source_repo, local_id, local_annee = NULL, kind = c("wp", "pb"))`
+- `registry_diag_rows(entries, source_repo, local_id, local_annee = NULL, kind = c("wp", "pb"), local_series = NULL)`
   (`R/git_utils.R`) is a shared, **read-only** diagnostic: it compares
   `_quarto.yml`’s `wp`/`annee` (or `pb`) against the matching entry in
   `ofce/wp-registry` (found via `repo_slug_equal()` on the `origin`
@@ -156,13 +212,39 @@
   calls it with `fetch_wp_entries()` + `yml$wp`/`yml$annee`,
   `kind = "wp"`;
   [`check_pb()`](https://ofceweb.github.io/ofceweb/reference/check_pb.md)
-  with `fetch_pb_entries()` + `yml$pb` (no `local_annee` — PBs are
-  numbered sequentially, independent of year), `kind = "pb"`. Both fetch
-  calls are unauthenticated (`raw.githubusercontent.com`), so this check
-  runs even without `gh` auth.
-- Outcomes: `"ok"` when local and registry numbers match (or when absent
-  from both, i.e. still a draft); `"warning"` for any mismatch, a
-  registered entry not yet reflected locally (relancer
+  with `fetch_pb_entries()` + `yml[["pb"]]` +
+  `local_series = pb_series(yml)` (no `local_annee` — each PB series is
+  numbered from 1, independent of year), `kind = "pb"`. Both fetch calls
+  are unauthenticated (`raw.githubusercontent.com`), so this check runs
+  even without `gh` auth.
+- **PB registry is per series** (`R/pb_registry_sync.R`):
+  `pb/index.json` lists the series and their parameters (`open`,
+  `label`, `path-prefix`, `pdf-prefix`, `draft-prefix`,
+  `container-title`; nothing is hard-coded in ofceweb), and
+  `pb/{series}.json` holds that series’ entries. `fetch_pb_registry()`
+  reads the index, then every series file, tags each entry with
+  `pb_series` (the file name wins), and returns `NULL` if the index or
+  *any* series file fails (a failure must never look like an empty
+  series, or
+  [`pb_registry_request()`](https://ofceweb.github.io/ofceweb/reference/pb_registry_request.md)
+  would propose number 1). `pb/pb.json` is frozen and never read or
+  written. The series of a repo is the top-level `pb_series` key of
+  `_quarto.yml` (`pb_series(yml)`, default `"ofce"` when absent;
+  independent of `institut`, which only picks the logo). Read PB keys
+  from `_quarto.yml` with `yml[["pb"]]`, not `yml$pb`: `$`
+  partial-matches `pb_series` when `pb` is absent (draft).
+- With `local_series` non-`NULL` (PB), `"ok"` requires both the number
+  and `pb_series` to match the registry entry; otherwise a `"warning"`
+  `pb/pb_series locaux (N/s) ne correspondent pas au registre central (N'/s')`
+  (relancer
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)).
+  `sync_pb_registry_state()` writes both `pb` and `pb_series` from the
+  matched entry (registry is the source of truth; warns when the local
+  series is corrected) and leaves `pb_series` untouched on a network
+  error or when the repo is unregistered.
+- Outcomes: `"ok"` when local and registry numbers (and, for PB, series)
+  match (or when absent from both, i.e. still a draft); `"warning"` for
+  any mismatch, a registered entry not yet reflected locally (relancer
   [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)),
   a local number no longer found in the registry, an unreachable
   registry, or an unresolved `origin` remote.

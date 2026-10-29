@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ofceweb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,43 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.0.6" id="ofceweb-106">ofceweb 1.0.6<a class="anchor" aria-label="anchor" href="#ofceweb-106"></a></h2>
+<div class="section level3">
+<h3 id="policy-briefs--séries-de-numérotation-1-0-6">Policy briefs : séries de numérotation<a class="anchor" aria-label="anchor" href="#policy-briefs--s%C3%A9ries-de-num%C3%A9rotation-1-0-6"></a></h3>
+<p>Les PB sont maintenant répartis en <strong>séries</strong>, une par institut d’origine, chacune numérotée à partir de 1. La série <code>ofce</code> est close ; les nouveaux PB entrent dans la série <code>ife</code>.</p>
+<ul><li>Nouvelle clé <code>pb_series</code> dans <code>_quarto.yml</code> (gabarit : <code>ife</code> ; <code>ofce</code> si la clé est absente). Elle est indépendante de <code>institut</code>, qui ne choisit que le logo. <code><a href="../reference/setup_pb.html">setup_pb()</a></code> l’écrit toujours explicitement.</li>
+<li>Registre central (<code>ofce/wp-registry</code>) : <code>pb/index.json</code> déclare les séries (ouverte ou close, préfixe d’URL, préfixes des PDF, <code>container-title</code>) et <code>pb/{série}.json</code> contient les entrées de chaque série. L’ancien fichier plat <code>pb/pb.json</code> n’est plus lu ni écrit. Aucune série n’est codée en dur dans ofceweb.</li>
+<li>
+<code><a href="../reference/pb_registry_request.html">pb_registry_request()</a></code> numérote dans la série du dépôt (<code>max + 1</code>, ou 1 pour une série vide), écrit dans <code>pb/{série}.json</code> depuis une branche <code>request/pb/{série}/{pb}</code>, et refuse la demande si la série est inconnue ou close, si l’index est inaccessible ou si le dépôt est déjà enregistré.</li>
+<li>
+<code>sync_pb_registry_state()</code> reprend <code>pb</code> <strong>et</strong> <code>pb_series</code> du registre ; <code><a href="../reference/check_pb.html">check_pb()</a></code> vérifie la cohérence du couple (numéro, série).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="policy-briefs--plus-de-version-une-fois-publiés-1-0-6">Policy briefs : plus de version une fois publiés<a class="anchor" aria-label="anchor" href="#policy-briefs--plus-de-version-une-fois-publi%C3%A9s-1-0-6"></a></h3>
+<p>Seul un brouillon est versionné. À la publication :</p>
+<ul><li>
+<code><a href="../reference/setup_pb.html">setup_pb()</a></code> supprime la clé <code>version</code> de <code>_quarto.yml</code> ; le <code>site-path</code> devient <code>{path-prefix}{pb}</code> (ex. <code>ife/12</code>) et l’adresse <code>www.ofce.fr/pb/ife/12/</code>, sans segment de version. Une correction se fait en redéployant à la même adresse.</li>
+<li>PDF publié <code>{pdf-prefix}{pb}.pdf</code> (ex. <code>IFEPB12.pdf</code>) ; PDF brouillon <code>{draft-prefix}-{repo}-{version}.pdf</code> (ex. <code>ife-draft-pb-csskvv-chn-v1.pdf</code>). <code>citation.container-title</code> suit la série.</li>
+<li>La redirection de production des PB est supprimée (<code>push_pb_redirect()</code>, <code>FTP_REDIRECT_DIR</code>, gabarit <code>ftp_redirect.yml</code>) : un PB publié n’a qu’une adresse. La redirection de staging des brouillons est conservée.</li>
+<li>
+<code><a href="../reference/pb_version_up.html">pb_version_up()</a></code> refuse de tourner sur un PB publié.</li>
+<li>L’argument <code>versionning</code> de <code><a href="../reference/setup_pb.html">setup_pb()</a></code> est obsolète et ignoré.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="policy-briefs--autres-changements-1-0-6">Policy briefs : autres changements<a class="anchor" aria-label="anchor" href="#policy-briefs--autres-changements-1-0-6"></a></h3>
+<ul><li>
+<code><a href="../reference/setup_pb.html">setup_pb()</a></code> écrit <code>nb</code> (le numéro) pour un PB publié et le retire pour un brouillon. L’extension Quarto <code>pb</code> s’appuie sur <code>nb</code> pour afficher le numéro et distinguer publié et brouillon : jusqu’ici, tout PB publié s’affichait comme un brouillon.</li>
+<li>
+<code><a href="../reference/check_pb.html">check_pb()</a></code> renvoie une erreur, qui bloque <code><a href="../reference/render_pb.html">render_pb()</a></code>, si la version d’ofceweb installée est inférieure à <code>min-ofceweb-version</code> déclarée dans <code>pb/index.json</code>. Ce contrôle ne concerne pas les WP.</li>
+<li>Correction : <code>yml$pb</code> correspondait partiellement à <code>pb_series</code> quand <code>pb</code> est absent (brouillon) ; les lectures passent par <code>yml[["pb"]]</code>.</li>
+<li>
+<code>manifest.json</code> gagne un champ <code>pb_series</code>.</li>
+<li>
+<code><a href="../reference/setup_pb.html">setup_pb()</a></code> ajoute <code>institut: ife</code> à <code>_quarto.yml</code> quand <code>institut</code> n’est déclaré ni dans <code>_quarto.yml</code> ni dans <code>index.qmd</code> ; une valeur existante n’est jamais modifiée.</li>
+<li>Correction : sur un dépôt neuf, <code><a href="../reference/setup_pb.html">setup_pb()</a></code> lisait <code>_quarto.yml</code> avant d’y copier le gabarit. Au premier appel, il ignorait donc <code>version: v0</code> (URL de staging et PDF brouillon sans version) et aurait écrit <code>pb_series: ofce</code> au lieu du <code>ife</code> du gabarit.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.5" id="ofceweb-105">ofceweb 1.0.5<a class="anchor" aria-label="anchor" href="#ofceweb-105"></a></h2>
 <div class="section level3">
@@ -89,11 +126,11 @@
 </div>
 <div class="section level3">
 <h3 id="nouvelle-redirection-stable-pour-les-wppb-en-staging-ftp-1-0-4">Nouvelle redirection stable pour les WP/PB en staging FTP<a class="anchor" aria-label="anchor" href="#nouvelle-redirection-stable-pour-les-wppb-en-staging-ftp-1-0-4"></a></h3>
-<p><code><a href="../reference/push_wp_staging_redirect.html">push_wp_staging_redirect()</a></code>/<code><a href="../reference/push_pb_staging_redirect.html">push_pb_staging_redirect()</a></code> (analogues, côté staging, de <code><a href="../reference/push_wp_redirect.html">push_wp_redirect()</a></code>/<code><a href="../reference/push_pb_redirect.html">push_pb_redirect()</a></code>) génèrent désormais un <code>index.html</code> de redirection pointant vers la version courante d’un WP/PB en révision sur <code>staging.ofce.fr</code> (lue depuis <code>website.site-url</code>), le poussent sur la branche <code>site-staging-redirect</code>, et déclenchent le nouveau workflow <code>ftp_redirect_staging.yml</code> (gabarit ajouté à <code>inst/setup_wp/workflows/</code> et <code>inst/setup_pb/workflows/</code>) pour le publier à l’URL stable <code>staging.ofce.fr/{repo}/</code>, à l’aide de la nouvelle variable GitHub Actions <code>FTP_STAGING_REDIRECT_DIR</code>. Appelé automatiquement par <code><a href="../reference/deploy_wp.html">deploy_wp()</a></code>/ <code><a href="../reference/deploy_pb.html">deploy_pb()</a></code> à chaque déploiement en staging FTP, comme l’était déjà le cas pour la redirection stable en production. Jusqu’ici, seules les prévisions disposaient d’une redirection stable de ce type en staging (<code><a href="../reference/push_prev_staging_redirect.html">push_prev_staging_redirect()</a></code>) ; un WP/PB en révision n’avait qu’un lien versionné, à mettre à jour à chaque nouvelle version envoyée aux relecteurs.</p>
+<p><code><a href="../reference/push_wp_staging_redirect.html">push_wp_staging_redirect()</a></code>/<code><a href="../reference/push_pb_staging_redirect.html">push_pb_staging_redirect()</a></code> (analogues, côté staging, de <code><a href="../reference/push_wp_redirect.html">push_wp_redirect()</a></code>/<code>push_pb_redirect()</code>) génèrent désormais un <code>index.html</code> de redirection pointant vers la version courante d’un WP/PB en révision sur <code>staging.ofce.fr</code> (lue depuis <code>website.site-url</code>), le poussent sur la branche <code>site-staging-redirect</code>, et déclenchent le nouveau workflow <code>ftp_redirect_staging.yml</code> (gabarit ajouté à <code>inst/setup_wp/workflows/</code> et <code>inst/setup_pb/workflows/</code>) pour le publier à l’URL stable <code>staging.ofce.fr/{repo}/</code>, à l’aide de la nouvelle variable GitHub Actions <code>FTP_STAGING_REDIRECT_DIR</code>. Appelé automatiquement par <code><a href="../reference/deploy_wp.html">deploy_wp()</a></code>/ <code><a href="../reference/deploy_pb.html">deploy_pb()</a></code> à chaque déploiement en staging FTP, comme l’était déjà le cas pour la redirection stable en production. Jusqu’ici, seules les prévisions disposaient d’une redirection stable de ce type en staging (<code><a href="../reference/push_prev_staging_redirect.html">push_prev_staging_redirect()</a></code>) ; un WP/PB en révision n’avait qu’un lien versionné, à mettre à jour à chaque nouvelle version envoyée aux relecteurs.</p>
 </div>
 <div class="section level3">
 <h3 id="correction--le-calcul-du-répertoire-de-redirection-échouait-sur-une-version-personnalisée-1-0-4">Correction : le calcul du répertoire de redirection échouait sur une version personnalisée<a class="anchor" aria-label="anchor" href="#correction--le-calcul-du-r%C3%A9pertoire-de-redirection-%C3%A9chouait-sur-une-version-personnalis%C3%A9e-1-0-4"></a></h3>
-<p><code><a href="../reference/push_wp_redirect.html">push_wp_redirect()</a></code>/<code><a href="../reference/push_pb_redirect.html">push_pb_redirect()</a></code> (redirection stable en production) et <code><a href="../reference/wp_version_up.html">wp_version_up()</a></code>/<code><a href="../reference/pb_version_up.html">pb_version_up()</a></code> (mise à jour de <code>FTP_REDIRECT_DIR</code> lors d’un changement de version) retiraient le segment de version du <code>site-path</code> à l’aide d’une expression régulière supposant une version purement numérique (<code>/v\d+$</code>, ex. <code>v0</code>, <code>v1</code>, <code>v12</code>). Une version personnalisée ou suffixée (<code>custom_version = "v2_corr"</code>, ou auto-incrémentée en <code>"v3_4"</code>/<code>"v5_AS42"</code>), pourtant explicitement prise en charge par <code><a href="../reference/wp_version_up.html">wp_version_up()</a></code>/<code><a href="../reference/pb_version_up.html">pb_version_up()</a></code>, ne correspondait pas à ce motif : le segment de version n’était alors pas retiré, et <code>FTP_REDIRECT_DIR</code> se retrouvait identique au chemin versionné complet (<code>FTP_SERVER_DIR</code>) au lieu du répertoire parent attendu — la redirection stable de l’URL sans version ne fonctionnait plus. Le calcul retire désormais le segment par comparaison directe avec la valeur de version connue, plutôt que par une regex numérique.</p>
+<p><code><a href="../reference/push_wp_redirect.html">push_wp_redirect()</a></code>/<code>push_pb_redirect()</code> (redirection stable en production) et <code><a href="../reference/wp_version_up.html">wp_version_up()</a></code>/<code><a href="../reference/pb_version_up.html">pb_version_up()</a></code> (mise à jour de <code>FTP_REDIRECT_DIR</code> lors d’un changement de version) retiraient le segment de version du <code>site-path</code> à l’aide d’une expression régulière supposant une version purement numérique (<code>/v\d+$</code>, ex. <code>v0</code>, <code>v1</code>, <code>v12</code>). Une version personnalisée ou suffixée (<code>custom_version = "v2_corr"</code>, ou auto-incrémentée en <code>"v3_4"</code>/<code>"v5_AS42"</code>), pourtant explicitement prise en charge par <code><a href="../reference/wp_version_up.html">wp_version_up()</a></code>/<code><a href="../reference/pb_version_up.html">pb_version_up()</a></code>, ne correspondait pas à ce motif : le segment de version n’était alors pas retiré, et <code>FTP_REDIRECT_DIR</code> se retrouvait identique au chemin versionné complet (<code>FTP_SERVER_DIR</code>) au lieu du répertoire parent attendu — la redirection stable de l’URL sans version ne fonctionnait plus. Le calcul retire désormais le segment par comparaison directe avec la valeur de version connue, plutôt que par une regex numérique.</p>
 </div>
 <div class="section level3">
 <h3 id="setup_wpsetup_pb--nom-de-pdf-de-brouillon-unifié-avec-version-1-0-4">
@@ -288,7 +325,7 @@
 <li>
 <code><a href="../reference/complete_pb_yaml.html">complete_pb_yaml()</a></code> : ne complète plus <code>annee</code>.</li>
 <li>
-<code><a href="../reference/pb_registry_request.html">pb_registry_request()</a></code> : perd l’argument <code>annee</code> ; <code><a href="../reference/pb_manifest.html">pb_manifest()</a></code>, <code><a href="../reference/deploy_pb.html">deploy_pb()</a></code>, <code><a href="../reference/push_pb_redirect.html">push_pb_redirect()</a></code> ne lisent/écrivent plus <code>annee</code>.</li>
+<code><a href="../reference/pb_registry_request.html">pb_registry_request()</a></code> : perd l’argument <code>annee</code> ; <code><a href="../reference/pb_manifest.html">pb_manifest()</a></code>, <code><a href="../reference/deploy_pb.html">deploy_pb()</a></code>, <code>push_pb_redirect()</code> ne lisent/écrivent plus <code>annee</code>.</li>
 <li>
 <strong>Rupture de compatibilité</strong> : un <code>_quarto.yml</code> PB existant avec <code>annee</code> résiduel n’est pas affecté (le champ est simplement ignoré) ; relancer <code><a href="../reference/setup_pb.html">setup_pb()</a></code> pour recalculer <code>site-path</code>/<code>citation.*</code> sur le nouveau format.</li>
 </ul></div>
@@ -305,7 +342,7 @@
 <li>
 <code><a href="../reference/render_pb.html">render_pb()</a></code> / <code><a href="../reference/publish_pb.html">publish_pb()</a></code> — orchestration du rendu (<code><a href="../reference/check_pb.html">check_pb()</a></code> → nettoyage <code>_site/</code> → <code>quarto render</code> → sitemap → <code><a href="../reference/pb_manifest.html">pb_manifest()</a></code> → resynchronisation <code>FTP_SERVER_DIR</code>) et publication (resynchronisation du registre + <code><a href="../reference/render_pb.html">render_pb()</a></code> + <code><a href="../reference/deploy_pb.html">deploy_pb()</a></code>), équivalents PB de <code><a href="../reference/render_wp.html">render_wp()</a></code>/ <code><a href="../reference/publish_wp.html">publish_wp()</a></code>.</li>
 <li>
-<code><a href="../reference/deploy_pb.html">deploy_pb()</a></code> — routage identique à <code><a href="../reference/deploy_wp.html">deploy_wp()</a></code> selon <code>stage</code> (registre) et <code>stage-target</code> : publié → FTP production (<code>www.ofce.fr/pb/{annee}/{N}/</code>) + redirection stable (<code><a href="../reference/push_pb_redirect.html">push_pb_redirect()</a></code>, interne) ; sinon → FTP staging ou GitHub Pages selon <code>stage-target</code>/ propriétaire GitHub.</li>
+<code><a href="../reference/deploy_pb.html">deploy_pb()</a></code> — routage identique à <code><a href="../reference/deploy_wp.html">deploy_wp()</a></code> selon <code>stage</code> (registre) et <code>stage-target</code> : publié → FTP production (<code>www.ofce.fr/pb/{annee}/{N}/</code>) + redirection stable (<code>push_pb_redirect()</code>, interne) ; sinon → FTP staging ou GitHub Pages selon <code>stage-target</code>/ propriétaire GitHub.</li>
 <li>
 <code><a href="../reference/pb_version_up.html">pb_version_up()</a></code> — incrémente la version d’un PB versionné (<code>/vN</code>), équivalent PB de <code><a href="../reference/wp_version_up.html">wp_version_up()</a></code>.</li>
 <li>

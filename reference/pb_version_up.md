@@ -1,11 +1,11 @@
-# Incrémente la version d'un policy brief OFCE publié
+# Incrémente la version d'un policy brief OFCE en brouillon
 
-Équivalent PB de \[wp_version_up()\]. Lit le champ \`version\` dans
-\`\_quarto.yml\`, l'incrémente (\`"v0"\` → \`"v1"\`, \`"v3_4"\` →
-\`"v3_5"\`, etc.), met à jour \`\_quarto.yml\` (champ \`version\` et
-dernier segment de \`site-path\`), met à jour les variables GitHub
-Actions \`FTP_SERVER_DIR\`/\`FTP_REDIRECT_DIR\`/\`FTP_STAGING_DIR\` et
-régénère \`manifest.json\`.
+Équivalent PB de \[wp_version_up()\], limité aux brouillons. Lit le
+champ \`version\` dans \`\_quarto.yml\`, l'incrémente (\`"v0"\` →
+\`"v1"\`, \`"v3_4"\` → \`"v3_5"\`, etc.), met à jour \`\_quarto.yml\`
+(champ \`version\` et, pour un brouillon en staging FTP, dernier segment
+de \`website.site-url\`), met à jour la variable GitHub Actions
+\`FTP_STAGING_DIR\` et régénère \`manifest.json\`.
 
 ## Usage
 
@@ -31,9 +31,10 @@ Invisible \`NULL\`. Appelée pour ses effets de bord.
 
 ## Details
 
-Fonctionne aussi bien pour un PB publié (\`pb\` non nul) que pour un
-brouillon (\`pb\` encore \`null\`) : voir \[wp_version_up()\] pour le
-détail du traitement (identique, au champ \`pb\`/\`wp\` près).
+Seul un brouillon (\`pb\` encore \`null\`) est versionné. Un PB publié
+(\`pb\` attribué par le registre) n'a plus de version : la fonction
+s'arrête avec une erreur, une correction se faisant en redéployant à la
+même adresse (\[publish_pb()\]).
 
 ## See also
 

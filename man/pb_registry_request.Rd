@@ -16,11 +16,11 @@ pb_registry_request(
 \item{path}{Chemin vers la racine du dépôt PB local. Défaut `"."`.}
 
 \item{pb}{Entier ou `NULL`. Numéro de PB souhaité. Si `NULL` (défaut),
-calculé automatiquement comme `max(pb existants, toutes années/types
-confondus) + 1` d'après `pb/pb.json` au moment de l'appel (`1` si le
-fichier n'existe pas encore). Si fourni explicitement, la fonction
-vérifie l'absence de collision avant d'ouvrir la PR et échoue
-localement en cas de conflit.}
+calculé automatiquement comme `max(pb existants de la série) + 1`
+d'après `pb/{série}.json` au moment de l'appel (`1` si la série est
+encore vide). Si fourni explicitement, la fonction vérifie l'absence de
+collision au sein de la série avant d'ouvrir la PR et échoue localement
+en cas de conflit.}
 
 \item{contact}{Adresse de contact de l'auteur·e. Défaut : valeur de
 `git config user.email` pour ce dépôt (config locale avec repli sur la
@@ -37,20 +37,22 @@ Invisiblement, une liste avec `entry` (l'entrée proposée) et
   `pr_url` (URL de la PR ouverte, `NULL` en mode `dry_run`).
 }
 \description{
-Calcule le couple `{pb, source-repo}` pour le dépôt PB local et ouvre une
-pull request contre `ofce/wp-registry` proposant d'ajouter l'entrée
-correspondante à `pb/pb.json`. Les PB partagent le même dépôt registre que
-les WP (`ofce/wp-registry`) — sous le sous-dossier `pb/`, distinct de
-`wp/` — il n'existe pas de dépôt `pb-registry` séparé. Contrairement au
-registre WP (sharded par année), `pb/pb.json` est un **fichier plat
-unique** : les numéros PB sont attribués de manière strictement
-séquentielle depuis l'origine, indépendamment de l'année de publication —
-`annee` n'intervient donc ni dans la numérotation ni dans l'entrée
-enregistrée. N'attend pas la fusion (fire-and-forget) — un·e admin doit
+Calcule l'entrée `{pb, pb_series, source-repo}` pour le dépôt PB local et
+ouvre une pull request contre `ofce/wp-registry` proposant de l'ajouter à
+`pb/{série}.json`. Les PB partagent le même dépôt registre que les WP
+(`ofce/wp-registry`) — sous le sous-dossier `pb/`, distinct de `wp/` — il
+n'existe pas de dépôt `pb-registry` séparé. Le registre PB est organisé en
+**séries** (liste, statut ouvert/clos et paramètres dans `pb/index.json`),
+chacune numérotée à partir de 1 dans son propre fichier `pb/{série}.json`,
+indépendamment de l'année de publication. La série est lue dans la clé
+`pb_series` de `_quarto.yml` (`"ofce"` si la clé est absente) ; la demande
+est refusée si la série est inconnue ou close, ou si le dépôt est déjà
+enregistré. N'attend pas la fusion (fire-and-forget) — un·e admin doit
 approuver manuellement. Relancer [setup_pb()] une fois la PR fusionnée :
 c'est `setup_pb()` (pas `render_pb()`, qui ne consulte plus le registre)
-qui synchronise `pb`/`draft` et recalcule `site-path`/`citation.*` depuis
-l'entrée confirmée, pour basculer du mode staging au mode publication.
+qui synchronise `pb`/`pb_series`/`draft` et recalcule
+`site-path`/`citation.*` depuis l'entrée confirmée, pour basculer du mode
+staging au mode publication.
 }
 \details{
 # Flux : push d'une branche puis PR intra-dépôt
@@ -65,9 +67,10 @@ personnel :
 1.  Résolution du login GitHub (`GET /user`) associé au token
     (`DEPLOY_PAT` ou identifiants `gitcreds`).
 2.  Clonage de `ofce/wp-registry`, création de la branche
-    `request/pb/{pb}` avec l'entrée proposée. Le préfixe `pb/` évite
-    toute collision avec les branches `request/{annee}/{wp}` ouvertes
-    par [wp_registry_request()] dans le même dépôt partagé.
+    `request/pb/{série}/{pb}` avec l'entrée proposée ajoutée à
+    `pb/{série}.json`. Le préfixe `pb/` évite toute collision avec les
+    branches `request/{annee}/{wp}` ouvertes par [wp_registry_request()]
+    dans le même dépôt partagé.
 3.  Push de cette branche vers `ofce/wp-registry`.
 4.  Ouverture d'une pull request intra-dépôt (`head = "{branche}"`,
     `base = "main"`).

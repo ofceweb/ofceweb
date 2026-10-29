@@ -59,3 +59,47 @@ test_that("sync_ftp_dir_var() downgrades a set_gh_var() error to a non-blocking 
   local_mocked_bindings(set_gh_var = function(...) stop("boom"))
   expect_message(sync_ftp_dir_var("dummy", "FTP_SERVER_DIR", "x"), "non resynchronis")
 })
+
+# ---- registry_diag_rows() ----------------------------------------------------
+
+pb_reg_entries <- function() list(
+  list(pb = 3L, pb_series = "ife", type = "repo", `source-repo` = "ofce/pb-x"),
+  list(pb = 3L, pb_series = "ofce", type = "repo", `source-repo` = "ofce/pb-y")
+)
+
+test_that("registry_diag_rows(kind = 'pb') is ok when number and series both match", {
+  rows <- registry_diag_rows(pb_reg_entries(), "ofce/pb-x", 3L, kind = "pb",
+                             local_series = "ife")
+  expect_length(rows, 1L)
+  expect_equal(rows[[1L]]$status, "ok")
+})
+
+test_that("registry_diag_rows(kind = 'pb') warns on a series mismatch even if the number matches", {
+  rows <- registry_diag_rows(pb_reg_entries(), "ofce/pb-x", 3L, kind = "pb",
+                             local_series = "ofce")
+  expect_equal(rows[[1L]]$status, "warning")
+  expect_match(rows[[1L]]$message, "pb/pb_series locaux (3/ofce)", fixed = TRUE)
+  expect_match(rows[[1L]]$message, "(3/ife)", fixed = TRUE)
+  expect_match(rows[[1L]]$message, "setup_pb()", fixed = TRUE)
+})
+
+test_that("registry_diag_rows(kind = 'pb') warns on a number mismatch with a matching series", {
+  rows <- registry_diag_rows(pb_reg_entries(), "ofce/pb-x", 4L, kind = "pb",
+                             local_series = "ife")
+  expect_equal(rows[[1L]]$status, "warning")
+})
+
+test_that("registry_diag_rows(kind = 'pb') without local_series only compares the number", {
+  rows <- registry_diag_rows(pb_reg_entries(), "ofce/pb-x", 3L, kind = "pb")
+  expect_equal(rows[[1L]]$status, "ok")
+})
+
+test_that("registry_diag_rows(kind = 'wp') is unchanged by local_series handling", {
+  entries <- list(list(wp = 12L, annee = 2024L, type = "repo", `source-repo` = "ofce/wp-x"))
+  ok <- registry_diag_rows(entries, "ofce/wp-x", 12L, 2024L, kind = "wp")
+  expect_equal(ok[[1L]]$status, "ok")
+  expect_match(ok[[1L]]$message, "wp/annee locaux (12/2024)", fixed = TRUE)
+  bad <- registry_diag_rows(entries, "ofce/wp-x", 13L, 2024L, kind = "wp")
+  expect_equal(bad[[1L]]$status, "warning")
+  expect_match(bad[[1L]]$message, "setup_wp()", fixed = TRUE)
+})

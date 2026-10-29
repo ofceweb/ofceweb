@@ -2,11 +2,17 @@
 title: "Titre du policy brief"
 # respecter le format pour la date
 date: "YYYY-MM-DD"
+# Version de revue du brouillon (v0, v1, ... via pb_version_up()). Supprimée
+# par setup_pb() à la publication : un PB publié n'est plus versionné.
 version: v0
-# Écrite/synchronisée automatiquement par render_pb() d'après le registre
+# Logo du PB (ofce, ife, ife-ofce, ife-cepii, ife-ofce-cepii).
+institut: ife
+# Série de numérotation du PB (voir pb/index.json dans ofce/wp-registry) ;
+# indépendante de `institut`.
+pb_series: ife
+# Écrite/synchronisée automatiquement par setup_pb() d'après le registre
 # central (ofce/wp-registry, sous-dossier pb/) ; lue par les extensions
 # ofce-quarto-extensions pour le bandeau "Version provisoire — non publiée".
-institut: ife
 draft: true
 author:
   - name: "Prénom Nom"
@@ -54,9 +60,10 @@ stage-target: auto
 
 citation:
   type: article-journal
+  # container-title est recalculé par setup_pb() d'après la série
+  # (pb/index.json).
   container-title: "Policy Brief de l'IFE"
   # issue et url sont calculés automatiquement par setup_pb() une fois `pb`
-  # renseigné (ex. issue: "153", url: "https://www.ofce.fr/pb/153/") — ne
-  # pas les renseigner manuellement. `annee` n'est pas utilisé pour les PB :
-  # la numérotation est séquentielle depuis l'origine, indépendante de
-  # l'année de publication.
+  # attribué par le registre (ex. issue: "12", url:
+  # "https://www.ofce.fr/pb/ife/12/") — ne pas les renseigner manuellement.
+  # Chaque série est numérotée à partir de 1, indépendamment de l'année.

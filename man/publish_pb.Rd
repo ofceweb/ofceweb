@@ -43,6 +43,6 @@ invite à relancer [setup_pb()] pour recalculer les champs dérivés
 (`site-path`, `citation.*`, `FTP_SERVER_DIR`).
 }
 \seealso{
-[render_pb()], [deploy_pb()], [push_pb_redirect()], [setup_pb()]
+[render_pb()], [deploy_pb()], [setup_pb()]
 }
 \keyword{internal}

@@ -4,18 +4,22 @@
 #' construit un `manifest.json` normalisé et l'écrit à la racine du dépôt
 #' (pour être commité) et dans `_site/` (pour être déployé).
 #'
-#' Le manifeste est collecté par `webhome` via la GitHub API pour construire
-#' l'index des policy briefs OFCE.
+#' Aucun outil ne collecte encore ce manifeste (`webhome` maintient ses listes
+#' de publications à la main) ; un futur collecteur devra identifier un PB
+#' par le couple (`pb_series`, `pb`), pas par `pb` seul.
 #'
 #' Inclut un champ `source-repo` (`"owner/repo"`, résolu depuis le remote
 #' `origin` local) utilisé par le workflow `ftp_deploy.yml` pour détecter
-#' qu'un autre dépôt tente de publier sous le même numéro de PB (même `pb` —
-#' numérotation séquentielle depuis l'origine, indépendante de l'année) et
-#' bloquer ce déploiement avant d'écraser le PB existant.
+#' qu'un autre dépôt tente de publier à la même adresse (même série et même
+#' numéro) et bloquer ce déploiement avant d'écraser le PB existant.
+#'
+#' Un PB publié n'est pas versionné : `url` vaut
+#' `https://www.ofce.fr/pb/{site-path}/` (ex. `.../pb/ife/12/`), sans segment
+#' de version ; seule l'URL de staging d'un brouillon porte la version.
 #'
 #' Inclut aussi un champ `pdf-path` : le chemin du fichier `output-file` du
 #' format `pb-pdf`/`pb-typst` actif, relatif à la racine `www.ofce.fr` (ex.
-#' `"pb/5/OFCEPB2026-5.pdf"`). Calculé dès que `pb` est connu, indépendamment
+#' `"pb/ife/12/IFEPB12.pdf"`). Calculé dès que `pb` est connu, indépendamment
 #' de `stage`/`url` : c'est l'emplacement de publication final, pas
 #' nécessairement celui où le fichier est déployé au moment de l'appel.
 #' `NULL` si `pb` ou le fichier PDF/Typst ne sont pas encore connus.
@@ -48,7 +52,7 @@ pb_manifest <- function(path = ".", stage = NULL) {
   yml <- yaml::read_yaml(yml_path)
 
   # Champs de base
-  pb      <- yml$pb       # NULL ou integer
+  pb      <- yml[["pb"]]       # NULL ou integer
   version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
   lang    <- if (!is.null(yml$lang))    as.character(yml$lang)    else "fr"
   title   <- if (!is.null(yml$title))   as.character(yml$title)   else ""
@@ -87,11 +91,15 @@ pb_manifest <- function(path = ".", stage = NULL) {
   source_repo <- gh_slug_from_remote(root)
   if (is.na(source_repo)) source_repo <- NULL
 
-  # URL de déploiement
+  # URL de déploiement. Un PB publié n'est pas versionné : son adresse est
+  # www.ofce.fr/pb/{site-path}/ (site-path = {path-prefix}{pb}, calculé par
+  # setup_pb() ; repli sur {pb} si absent). Seul le staging porte la version.
   ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
+  published_path <- if (!is.null(pb))
+    yml$website$`site-path` %||% as.character(pb) else NULL
   url <- if (isFALSE(stage) && !is.null(pb)) {
     # Publié : URL FTP production numérotée
-    sprintf("https://www.ofce.fr/pb/%d/%s", pb, ver_seg)
+    pb_public_url(published_path)
   } else if (isTRUE(stage)) {
     # Staging FTP : URL de pré-publication (avant enregistrement dans le registre)
     repo_slug <- if (!is.null(source_repo) && !is.na(source_repo))
@@ -99,7 +107,7 @@ pb_manifest <- function(path = ".", stage = NULL) {
     sprintf("https://staging.ofce.fr/%s/%s", repo_slug, ver_seg)
   } else if (!is.null(pb)) {
     # Compatibilité : stage NULL mais pb renseigné (appels antérieurs sans stage)
-    sprintf("https://www.ofce.fr/pb/%d/%s", pb, ver_seg)
+    pb_public_url(published_path)
   } else {
     # Brouillon initial : GitHub Pages
     su <- yml$website$`site-url`
@@ -124,12 +132,12 @@ pb_manifest <- function(path = ".", stage = NULL) {
     }
   }
 
-  # Chemin du PDF relatif à www.ofce.fr (ex. "pb/5/OFCEPB2026-5.pdf") --
+  # Chemin du PDF relatif à www.ofce.fr (ex. "pb/ife/12/IFEPB12.pdf") --
   # emplacement de publication final, calculé indépendamment de `stage`/`url`
   # dès que `pb` est connu (même si le PB n'est pas encore déployé à cet
   # emplacement).
   pdf_path <- if (!is.null(pdf_file) && !is.null(pb)) {
-    sprintf("pb/%d/%s%s", pb, ver_seg, pdf_file)
+    sprintf("pb/%s/%s", sub("/$", "", published_path), pdf_file)
   } else {
     NULL
   }
@@ -140,6 +148,7 @@ pb_manifest <- function(path = ".", stage = NULL) {
     authors       = authors,
     abstract      = abstract,
     pb            = pb,
+    pb_series     = pb_series(yml),
     version       = version,
     stage         = stage,
     date          = date_val,

@@ -1,3 +1,64 @@
+## ofceweb 1.0.6
+
+### Policy briefs : séries de numérotation
+
+Les PB sont maintenant répartis en **séries**, une par institut
+d'origine, chacune numérotée à partir de 1. La série `ofce` est close ; les
+nouveaux PB entrent dans la série `ife`.
+
+* Nouvelle clé `pb_series` dans `_quarto.yml` (gabarit : `ife` ; `ofce` si
+  la clé est absente). Elle est indépendante de `institut`, qui ne choisit
+  que le logo. `setup_pb()` l'écrit toujours explicitement.
+* Registre central (`ofce/wp-registry`) : `pb/index.json` déclare les
+  séries (ouverte ou close, préfixe d'URL, préfixes des PDF,
+  `container-title`) et `pb/{série}.json` contient les entrées de chaque
+  série. L'ancien fichier plat `pb/pb.json` n'est plus lu ni écrit. Aucune
+  série n'est codée en dur dans ofceweb.
+* `pb_registry_request()` numérote dans la série du dépôt (`max + 1`, ou 1
+  pour une série vide), écrit dans `pb/{série}.json` depuis une branche
+  `request/pb/{série}/{pb}`, et refuse la demande si la série est inconnue
+  ou close, si l'index est inaccessible ou si le dépôt est déjà enregistré.
+* `sync_pb_registry_state()` reprend `pb` **et** `pb_series` du registre ;
+  `check_pb()` vérifie la cohérence du couple (numéro, série).
+
+### Policy briefs : plus de version une fois publiés
+
+Seul un brouillon est versionné. À la publication :
+
+* `setup_pb()` supprime la clé `version` de `_quarto.yml` ; le `site-path`
+  devient `{path-prefix}{pb}` (ex. `ife/12`) et l'adresse
+  `www.ofce.fr/pb/ife/12/`, sans segment de version. Une correction se fait
+  en redéployant à la même adresse.
+* PDF publié `{pdf-prefix}{pb}.pdf` (ex. `IFEPB12.pdf`) ; PDF brouillon
+  `{draft-prefix}-{repo}-{version}.pdf` (ex.
+  `ife-draft-pb-csskvv-chn-v1.pdf`). `citation.container-title` suit la
+  série.
+* La redirection de production des PB est supprimée (`push_pb_redirect()`,
+  `FTP_REDIRECT_DIR`, gabarit `ftp_redirect.yml`) : un PB publié n'a qu'une
+  adresse. La redirection de staging des brouillons est conservée.
+* `pb_version_up()` refuse de tourner sur un PB publié.
+* L'argument `versionning` de `setup_pb()` est obsolète et ignoré.
+
+### Policy briefs : autres changements
+
+* `setup_pb()` écrit `nb` (le numéro) pour un PB publié et le retire pour
+  un brouillon. L'extension Quarto `pb` s'appuie sur `nb` pour afficher le
+  numéro et distinguer publié et brouillon : jusqu'ici, tout PB publié
+  s'affichait comme un brouillon.
+* `check_pb()` renvoie une erreur, qui bloque `render_pb()`, si la version
+  d'ofceweb installée est inférieure à `min-ofceweb-version` déclarée dans
+  `pb/index.json`. Ce contrôle ne concerne pas les WP.
+* Correction : `yml$pb` correspondait partiellement à `pb_series` quand
+  `pb` est absent (brouillon) ; les lectures passent par `yml[["pb"]]`.
+* `manifest.json` gagne un champ `pb_series`.
+* `setup_pb()` ajoute `institut: ife` à `_quarto.yml` quand `institut`
+  n'est déclaré ni dans `_quarto.yml` ni dans `index.qmd` ; une valeur
+  existante n'est jamais modifiée.
+* Correction : sur un dépôt neuf, `setup_pb()` lisait `_quarto.yml` avant
+  d'y copier le gabarit. Au premier appel, il ignorait donc `version: v0`
+  (URL de staging et PDF brouillon sans version) et aurait écrit
+  `pb_series: ofce` au lieu du `ife` du gabarit.
+
 ## ofceweb 1.0.5
 
 ### Les variables github sont à jour

@@ -5,7 +5,9 @@
 #' dans `_quarto.yml` (positionné par [setup_pb()]) :
 #' \itemize{
 #'   \item **Publié** (`stage: FALSE`) : toujours vers FTP production
-#'     (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`.
+#'     (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`, à
+#'     l'adresse unique `www.ofce.fr/pb/{site-path}/` (un PB publié n'est pas
+#'     versionné, donc pas de page de redirection).
 #'   \item **Non encore publié** (`stage: TRUE` ou `stage` absent) : destination
 #'     lue depuis `stage-target` (`"auto"` réévalué à chaque appel selon le
 #'     propriétaire GitHub actuel — `"ftp"` pour l'organisation `ofce`,
@@ -61,7 +63,7 @@ deploy_pb <- function(
   }
 
   stage   <- manifest$stage
-  pb      <- manifest$pb    %||% yml$pb
+  pb      <- manifest[["pb"]] %||% yml[["pb"]]
   version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
 
   if (!fs::dir_exists(fs::path(root, "_site")))
@@ -70,17 +72,17 @@ deploy_pb <- function(
 
   # ---- Publié : FTP production (toujours, target ignoré) -------------------
   if (isFALSE(stage)) {
-    stable_url <- sprintf("https://www.ofce.fr/pb/%d", pb)
-    ver_seg    <- if (!is.null(version)) paste0(version, "/") else ""
-    final_url  <- sprintf("https://www.ofce.fr/pb/%d/%s", pb, ver_seg)
+    # Un PB publié n'est pas versionné : une seule adresse,
+    # www.ofce.fr/pb/{site-path}/ (pas de page de redirection) ; une
+    # correction écrase le contenu à la même adresse.
+    final_url <- pb_public_url(yml$website$`site-path` %||% as.character(pb))
 
     cli::cli_h2("Déploiement PB publié (site2branch → FTP production)")
-    cli::cli_text(
-      "PB {pb}{if (!is.null(version)) paste0(' / ', version) else ''} → {.url {stable_url}}")
+    cli::cli_text("PB {pb_series(yml)} {pb} → {.url {final_url}}")
 
     # Resynchronise FTP_SERVER_DIR depuis le site-path actuel -- au cas où
     # _quarto.yml aurait été modifié (édition manuelle, merge, ...) sans
-    # repasser par pb_version_up()/setup_pb() depuis le dernier déploiement.
+    # repasser par setup_pb() depuis le dernier déploiement.
     sync_ftp_dir_var(root, "FTP_SERVER_DIR", yml$website$`site-path`)
 
     res <- site2branch(
@@ -90,12 +92,6 @@ deploy_pb <- function(
       full_deploy = full_deploy,
       workflow    = "ftp_deploy.yml",
       ...
-    )
-
-    tryCatch(
-      push_pb_redirect(root, progress = progress, trigger = trigger),
-      error = function(e)
-        cli::cli_alert_warning("Redirection stable non mise à jour : {e$message}")
     )
 
     cli::cli_alert_success(

@@ -116,3 +116,21 @@ local_stub_version_up_side_effects <- function(env = parent.frame()) {
     .env = env
   )
 }
+
+# Index des séries PB (pb/index.json du registre) utilisé par les tests :
+# même forme que le vrai fichier -- `ofce` sans préfixe d'URL (fermée), `ife`
+# sous `ife/` (ouverte).
+pb_test_series_index <- function() {
+  list(
+    ofce = list(
+      open = FALSE, label = "OFCE", `path-prefix` = "",
+      `pdf-prefix` = "OFCEPB", `draft-prefix` = "ofce-draft",
+      `container-title` = "Policy Brief de l'OFCE"
+    ),
+    ife = list(
+      open = TRUE, label = "IFE", `path-prefix` = "ife/",
+      `pdf-prefix` = "IFEPB", `draft-prefix` = "ife-draft",
+      `container-title` = "Policy Brief de l'IFE"
+    )
+  )
+}

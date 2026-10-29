@@ -1,19 +1,21 @@
 #' Demande d'enregistrement d'un PB dans le registre central
 #'
-#' Calcule le couple `{pb, source-repo}` pour le dépôt PB local et ouvre une
-#' pull request contre `ofce/wp-registry` proposant d'ajouter l'entrée
-#' correspondante à `pb/pb.json`. Les PB partagent le même dépôt registre que
-#' les WP (`ofce/wp-registry`) — sous le sous-dossier `pb/`, distinct de
-#' `wp/` — il n'existe pas de dépôt `pb-registry` séparé. Contrairement au
-#' registre WP (sharded par année), `pb/pb.json` est un **fichier plat
-#' unique** : les numéros PB sont attribués de manière strictement
-#' séquentielle depuis l'origine, indépendamment de l'année de publication —
-#' `annee` n'intervient donc ni dans la numérotation ni dans l'entrée
-#' enregistrée. N'attend pas la fusion (fire-and-forget) — un·e admin doit
+#' Calcule l'entrée `{pb, pb_series, source-repo}` pour le dépôt PB local et
+#' ouvre une pull request contre `ofce/wp-registry` proposant de l'ajouter à
+#' `pb/{série}.json`. Les PB partagent le même dépôt registre que les WP
+#' (`ofce/wp-registry`) — sous le sous-dossier `pb/`, distinct de `wp/` — il
+#' n'existe pas de dépôt `pb-registry` séparé. Le registre PB est organisé en
+#' **séries** (liste, statut ouvert/clos et paramètres dans `pb/index.json`),
+#' chacune numérotée à partir de 1 dans son propre fichier `pb/{série}.json`,
+#' indépendamment de l'année de publication. La série est lue dans la clé
+#' `pb_series` de `_quarto.yml` (`"ofce"` si la clé est absente) ; la demande
+#' est refusée si la série est inconnue ou close, ou si le dépôt est déjà
+#' enregistré. N'attend pas la fusion (fire-and-forget) — un·e admin doit
 #' approuver manuellement. Relancer [setup_pb()] une fois la PR fusionnée :
 #' c'est `setup_pb()` (pas `render_pb()`, qui ne consulte plus le registre)
-#' qui synchronise `pb`/`draft` et recalcule `site-path`/`citation.*` depuis
-#' l'entrée confirmée, pour basculer du mode staging au mode publication.
+#' qui synchronise `pb`/`pb_series`/`draft` et recalcule
+#' `site-path`/`citation.*` depuis l'entrée confirmée, pour basculer du mode
+#' staging au mode publication.
 #'
 #' @details
 #' # Flux : push d'une branche puis PR intra-dépôt
@@ -28,9 +30,10 @@
 #' 1.  Résolution du login GitHub (`GET /user`) associé au token
 #'     (`DEPLOY_PAT` ou identifiants `gitcreds`).
 #' 2.  Clonage de `ofce/wp-registry`, création de la branche
-#'     `request/pb/{pb}` avec l'entrée proposée. Le préfixe `pb/` évite
-#'     toute collision avec les branches `request/{annee}/{wp}` ouvertes
-#'     par [wp_registry_request()] dans le même dépôt partagé.
+#'     `request/pb/{série}/{pb}` avec l'entrée proposée ajoutée à
+#'     `pb/{série}.json`. Le préfixe `pb/` évite toute collision avec les
+#'     branches `request/{annee}/{wp}` ouvertes par [wp_registry_request()]
+#'     dans le même dépôt partagé.
 #' 3.  Push de cette branche vers `ofce/wp-registry`.
 #' 4.  Ouverture d'une pull request intra-dépôt (`head = "{branche}"`,
 #'     `base = "main"`).
@@ -46,11 +49,11 @@
 #'
 #' @param path Chemin vers la racine du dépôt PB local. Défaut `"."`.
 #' @param pb Entier ou `NULL`. Numéro de PB souhaité. Si `NULL` (défaut),
-#'   calculé automatiquement comme `max(pb existants, toutes années/types
-#'   confondus) + 1` d'après `pb/pb.json` au moment de l'appel (`1` si le
-#'   fichier n'existe pas encore). Si fourni explicitement, la fonction
-#'   vérifie l'absence de collision avant d'ouvrir la PR et échoue
-#'   localement en cas de conflit.
+#'   calculé automatiquement comme `max(pb existants de la série) + 1`
+#'   d'après `pb/{série}.json` au moment de l'appel (`1` si la série est
+#'   encore vide). Si fourni explicitement, la fonction vérifie l'absence de
+#'   collision au sein de la série avant d'ouvrir la PR et échoue localement
+#'   en cas de conflit.
 #' @param contact Adresse de contact de l'auteur·e. Défaut : valeur de
 #'   `git config user.email` pour ce dépôt (config locale avec repli sur la
 #'   globale). La fonction échoue si aucune valeur ne peut être résolue.
@@ -99,27 +102,72 @@ pb_registry_request <- function(
       "x" = "{.fn pb_registry_request} ne peut pas ouvrir une PR depuis un dépôt hors de l'organisation {.strong ofce}."
     ))
 
-  # ---- 2. Lecture du registre plat (non authentifié) -----------------------
-  registry_url <- sprintf(
-    "https://raw.githubusercontent.com/%s/main/pb/pb.json", registry_repo)
-  cli::cli_alert_info("Lecture du registre : {.url {registry_url}}")
-  new_registry <- FALSE
-  entries <- fetch_pb_registry(registry_repo)
-  if (is.null(entries)) {
-    new_registry <- TRUE
-    entries       <- list()
+  # ---- 2. Série PB (clé pb_series de _quarto.yml) --------------------------
+  qyml_path <- fs::path(root, "_quarto.yml")
+  if (!fs::file_exists(qyml_path))
+    cli::cli_abort("Pas de {.file _quarto.yml} dans {.path {root}}.")
+  yml <- yaml::read_yaml(qyml_path)
+  series <- pb_series(yml)
+  if (is.null(yml[["pb_series"]]))
     cli::cli_alert_info(
-      "Aucun fichier {.file pb/pb.json} existant — ce sera la première \\
-       entrée enregistrée.")
-  }
+      "Clé {.code pb_series} absente de {.file _quarto.yml} — série \\
+       {.val {series}} supposée.")
+  else
+    cli::cli_alert_info("Série PB : {.val {series}}")
 
-  # ---- 3. Résolution du numéro PB ------------------------------------------
-  # Numérotation strictement séquentielle depuis l'origine, tous types et
-  # toutes années confondus (l'année n'a aucune valeur d'indexation pour les
-  # PB, contrairement aux WP).
+  # ---- 3. Lecture du registre (non authentifié) ----------------------------
+  index_url <- sprintf(
+    "https://raw.githubusercontent.com/%s/main/pb/index.json", registry_repo)
+  cli::cli_alert_info("Lecture du registre : {.url {index_url}}")
+  index <- fetch_pb_series_index(registry_repo)
+  if (is.null(index))
+    cli::cli_abort(c(
+      "Index des séries PB inaccessible ({.url {index_url}}).",
+      "i" = "Vérifier la connexion réseau, puis relancer."
+    ))
+  if (!series %in% names(index))
+    cli::cli_abort(c(
+      "Série PB {.val {series}} inconnue du registre.",
+      "i" = "Séries existantes : {.val {names(index)}}.",
+      "i" = "Corriger {.code pb_series} dans {.file _quarto.yml}."
+    ))
+  if (!isTRUE(index[[series]][["open"]])) {
+    open_series <- names(Filter(function(x) isTRUE(x[["open"]]), index))
+    cli::cli_abort(c(
+      "La série {.val {series}} est close : aucune nouvelle demande n'est acceptée.",
+      "i" = "Définir {.code pb_series} dans {.file _quarto.yml} sur une série ouverte : \\
+             {.val {open_series}}."
+    ))
+  }
+  series_label <- index[[series]][["label"]] %||% series
+
+  entries <- fetch_pb_registry(registry_repo, index = index)
+  if (is.null(entries))
+    cli::cli_abort(c(
+      "Registre PB inaccessible (au moins un fichier de série n'a pas pu être lu).",
+      "i" = "Vérifier la connexion réseau, puis relancer."
+    ))
+
+  # Dépôt déjà enregistré (toutes séries) : inutile de redemander.
+  already <- Filter(
+    function(e) identical(e$type, "repo") && repo_slug_equal(e[["source-repo"]], source_repo),
+    entries
+  )
+  if (length(already) > 0L)
+    cli::cli_abort(c(
+      "Le dépôt {.val {source_repo}} est déjà enregistré : série \\
+       {.val {already[[1L]][['pb_series']]}}, PB {.val {already[[1L]]$pb}}.",
+      "i" = "Lancer {.run ofceweb::setup_pb()} pour synchroniser {.file _quarto.yml}."
+    ))
+
+  # ---- 4. Résolution du numéro PB ------------------------------------------
+  # Chaque série est numérotée à partir de 1 dans son propre fichier ; ni les
+  # autres séries ni l'année n'interviennent.
+  series_entries <- Filter(function(e) identical(e[["pb_series"]], series), entries)
+  new_series_file <- length(series_entries) == 0L
   if (is.null(pb)) {
     existing_pbs <- vapply(
-      entries,
+      series_entries,
       function(e) suppressWarnings(as.integer(e$pb %||% 0L)),
       integer(1L)
     )
@@ -129,19 +177,19 @@ pb_registry_request <- function(
     pb <- suppressWarnings(as.integer(pb))
     if (is.na(pb))
       cli::cli_abort("{.arg pb} doit être un entier ou NULL.")
-    # Vérification collision
+    # Vérification collision (au sein de la série uniquement)
     collision <- Filter(
-      function(e) identical(as.integer(e$pb), pb),
-      entries
+      function(e) identical(suppressWarnings(as.integer(e$pb)), pb),
+      series_entries
     )
     if (length(collision) > 0L)
       cli::cli_abort(c(
-        "Le numéro PB {.val {pb}} est déjà enregistré.",
+        "Le numéro PB {.val {pb}} est déjà enregistré dans la série {.val {series}}.",
         "i" = "source-repo existant : {.val {collision[[1L]][[\"source-repo\"]]}}"
       ))
   }
 
-  # ---- 4. Contact (git config user.email) ----------------------------------
+  # ---- 5. Contact (git config user.email) ----------------------------------
   if (is.null(contact)) {
     contact <- tryCatch(
       gert::git_config_get("user.email", repo = root),
@@ -154,10 +202,10 @@ pb_registry_request <- function(
       ))
   }
 
-  # ---- 5. Token GitHub + login ---------------------------------------------
+  # ---- 6. Token GitHub + login ---------------------------------------------
   # Reste tolérant ici (avertissement + NA) : ce login n'est qu'informatif
   # pour l'entrée proposée et le mode `dry_run`, qui ne doivent pas exiger
-  # de réseau fonctionnel. Il devient obligatoire plus loin (étape 7), une
+  # de réseau fonctionnel. Il devient obligatoire plus loin (étape 8), une
   # fois qu'on sait qu'on va réellement cloner et pousser sur le registre.
   token <- .registry_gh_token()
 
@@ -175,9 +223,10 @@ pb_registry_request <- function(
     NA_character_
   })
 
-  # ---- 6. Construction de l'entrée -----------------------------------------
+  # ---- 7. Construction de l'entrée -----------------------------------------
   new_entry <- list(
     pb              = pb,
+    pb_series       = series,
     type            = "repo",
     `source-repo`   = source_repo,
     contact         = contact,
@@ -197,7 +246,7 @@ pb_registry_request <- function(
     return(invisible(list(entry = new_entry, pr_url = NULL)))
   }
 
-  # ---- 7. Clonage de registry_repo -----------------------------------------
+  # ---- 8. Clonage de registry_repo -----------------------------------------
   # Le dépôt registre est configuré pour autoriser les membres de l'org
   # `ofce` à pousser des branches et ouvrir des PR sans droit d'écriture
   # (seule la fusion est protégée). On clone donc directement
@@ -218,11 +267,12 @@ pb_registry_request <- function(
   cli::cli_alert_info("Clonage de {.val {registry_repo}}...")
   gert::git_clone(url = registry_https, path = tmp, verbose = FALSE)
 
-  # ---- 8. Modification de pb/pb.json ---------------------------------------
+  # ---- 9. Modification de pb/{série}.json ---------------------------------
   pb_dir <- fs::path(tmp, "pb")
   fs::dir_create(pb_dir, recurse = TRUE)
 
-  registry_path <- fs::path(pb_dir, "pb.json")
+  series_file   <- sprintf("pb/%s.json", series)
+  registry_path <- fs::path(tmp, series_file)
   current_registry <- if (fs::file_exists(registry_path))
     jsonlite::read_json(registry_path)
   else
@@ -233,16 +283,16 @@ pb_registry_request <- function(
     registry_path
   )
 
-  # ---- 9. Branche, commit, push vers registry_repo -------------------------
+  # ---- 10. Branche, commit, push vers registry_repo ------------------------
   # Préfixe pb/ : registry_repo est désormais partagé avec les WP
   # (ofce/wp-registry) -- wp_registry_request() nomme ses branches
   # request/{annee}/{wp} ; sans préfixe, un WP et un PB portant le même
   # numéro produiraient le même nom de branche.
-  branch_name <- sprintf("request/pb/%d", pb)
+  branch_name <- sprintf("request/pb/%s/%d", series, pb)
   gert::git_branch_create(branch = branch_name, repo = tmp, checkout = TRUE)
-  gert::git_add("pb/pb.json", repo = tmp)
+  gert::git_add(series_file, repo = tmp)
   gert::git_commit(
-    message = sprintf("request(pb): %d — %s", pb, source_repo),
+    message = sprintf("request(pb/%s): %d — %s", series, pb, source_repo),
     repo    = tmp,
     author  = gert::git_signature(
       name  = registered_by,
@@ -250,7 +300,7 @@ pb_registry_request <- function(
     )
   )
 
-  # --force : la branche request/pb/{pb} est régénérée from scratch depuis
+  # --force : la branche request/pb/{série}/{pb} est régénérée from scratch depuis
   # main à chaque appel ; un push précédent (ex. appel interrompu, PR fermée
   # et rouverte) laisse une branche distante qu'il faut écraser.
   push_url <- sub("https://",
@@ -274,8 +324,8 @@ pb_registry_request <- function(
              autorise la création de branches."
     ))
 
-  # ---- 10. Recherche d'une PR existante puis ouverture ---------------------
-  # La branche request/pb/{pb} est déterministe : si la fonction est
+  # ---- 11. Recherche d'une PR existante puis ouverture ---------------------
+  # La branche request/pb/{série}/{pb} est déterministe : si la fonction est
   # relancée (ex. après correction de l'entrée), la force-push met à jour
   # la branche distante mais une PR peut déjà être ouverte. On la
   # réutilise plutôt que d'en créer une nouvelle (GitHub renverrait 422).
@@ -303,18 +353,19 @@ pb_registry_request <- function(
     return(invisible(list(entry = new_entry, pr_url = pr_url)))
   }
 
-  # ---- 11. Ouverture de la PR (intra-dépôt) --------------------------------
-  pr_title <- sprintf("Enregistrement PB — %s", source_repo)
+  # ---- 12. Ouverture de la PR (intra-dépôt) --------------------------------
+  pr_title <- sprintf("Enregistrement PB %s — %s", series_label, source_repo)
   pr_body <- paste0(
     "## Demande d’enregistrement PB\n\n",
     "| Champ | Valeur |\n|---|---|\n",
     sprintf("| `pb` | %d |\n", pb),
+    sprintf("| `pb_series` | %s |\n", series),
     sprintf("| `type` | repo |\n"),
     sprintf("| `source-repo` | `%s` |\n", source_repo),
     sprintf("| `contact` | %s |\n", contact),
     sprintf("| `registered-by` | %s |\n", registered_by),
-    if (new_registry) sprintf(
-      "\n_Première demande enregistrée : crée `pb/pb.json`._\n") else "",
+    if (new_series_file) sprintf(
+      "\n_Premier numéro de la série `%s`._\n", series) else "",
     sprintf(
       "\n_Ouvert automatiquement par `ofceweb::pb_registry_request()` depuis une branche de `%s`._",
       registry_repo)

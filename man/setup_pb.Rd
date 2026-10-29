@@ -19,8 +19,8 @@ setup_pb(
 
 \item{hypothesis}{Logique. Active les commentaires Hypothesis. Défaut `FALSE`.}
 
-\item{versionning}{Logique. Si `TRUE` et PB publié (`pb` non `NULL`),
-ajoute `/v0` au `site-path`.}
+\item{versionning}{Obsolète et ignoré (avertissement s'il est fourni) : un
+brouillon est toujours versionné, un PB publié ne l'est plus.}
 
 \item{stage_target}{Chaîne. Destination de pré-publication (brouillon,
 `pb` non encore attribué) : `"auto"` (défaut), `"ftp"` (staging OFCE),
@@ -58,9 +58,20 @@ déjà existant, soit écrasé par une entrée confirmée du registre central
 l'appelant. Un dépôt sans `_quarto.yml` et sans entrée de registre reste un
 brouillon (`pb` absent) ; pour obtenir un numéro, utiliser
 [pb_registry_request()] puis relancer `setup_pb()` une fois la PR
-fusionnée. Le champ `annee` n'est pas utilisé pour les PB : les numéros
-sont attribués séquentiellement depuis l'origine, indépendamment de
-l'année de publication.
+fusionnée. Le champ `annee` n'est pas utilisé pour les PB : chaque série
+(clé `pb_series` de `_quarto.yml`, `"ofce"` si absente) est numérotée à
+partir de 1, indépendamment de l'année de publication. Les paramètres de
+la série (préfixe d'URL, préfixes des PDF, `container-title`) sont lus
+dans `pb/index.json` du registre central ; si l'index est inaccessible,
+les champs qui en dépendent ne sont pas recalculés.
+
+**Versions** : seul un brouillon est versionné (clé `version`, URL de
+staging `staging.ofce.fr/{repo}/{version}/`). À la publication (`pb`
+attribué), la clé `version` est supprimée de `_quarto.yml` et le PB est
+déployé sans segment de version à `www.ofce.fr/pb/{path-prefix}{pb}/` ;
+une correction ultérieure se fait en redéployant à la même adresse.
+`nb` (numéro lu par l'extension `pb` pour distinguer brouillon et
+publié) est écrit à la publication et retiré pour un brouillon.
 
 `author` est destiné à ne vivre que dans `_quarto.yml` : si `index.qmd`
 en porte une (héritage d'un ancien gabarit, ou ajout manuel), elle est
@@ -78,10 +89,11 @@ fonction s'arrête immédiatement avec [cli::cli_abort()].
 
 Côté PDF, `pb-pdf` (LaTeX) et `pb-typst` (Typst) sont les deux moteurs
 légitimes. Le nom du PDF de brouillon (`pb` non attribué) est
-`ofce-draft-{repo}-{version}.pdf` (ex. `ofce-draft-pb-example-v1.pdf`),
+`{draft-prefix}-{repo}-{version}.pdf` (ex. `ife-draft-pb-csskvv-chn-v1.pdf`),
 identique quel que soit le moteur actif — sans segment de version si
 `version` n'est pas encore renseignée — recalculé à chaque appel. Une
-fois publié (`pb` connu), les deux moteurs produisent `OFCEPB{pb}.pdf`.
+fois publié (`pb` connu), les deux moteurs produisent
+`{pdf-prefix}{pb}.pdf` (ex. `IFEPB12.pdf`).
 }
 \seealso{
 [render_pb()], [deploy_pb()], [pb_version_up()], [update_navbar()]

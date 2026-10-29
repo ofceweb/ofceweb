@@ -25,8 +25,9 @@ Champs complétés si absents :
 \itemize{
   \item `date` : date du jour (format `YYYY-MM-DD`)
   \item `author` : structure minimale si `author` et `authors` sont absents
-  \item `citation` : structure minimale (`type: article-journal`,
-    `container-title: "Policy Brief de l'OFCE"`)
+  \item `citation` : structure minimale (`type: article-journal`, et
+    `container-title` de la série `pb_series` lu dans `pb/index.json` si
+    le registre est accessible)
   \item `ofce_pb` : positionné à `TRUE` pour signaler un PB OFCE
 }
 }

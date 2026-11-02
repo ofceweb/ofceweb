@@ -212,24 +212,17 @@ anti-collision des workflows `ftp_deploy.yml` (WP et PB), qui comparait
 `!=` bash tout aussi sensible à la casse, est corrigé de la même façon
 (comparaison après passage en minuscules).
 
-### `check_fonts()` installe désormais les polices pour tous les utilisateurs sous Windows
+### `check_fonts()` : retour à l’installation par utilisateur sous Windows
 
-Sous Windows,
+L’installation pour tous les utilisateurs (copie dans `C:/Windows/Fonts`
+et inscription `HKLM`) demandait des droits d’administrateur et échouait
+malgré cela.
 [`check_fonts()`](https://ofceweb.github.io/ofceweb/reference/check_fonts.md)/[`install_fonts()`](https://ofceweb.github.io/ofceweb/reference/install_fonts.md)
-copiaient les fichiers `.ttf` dans
-`%LOCALAPPDATA%/Microsoft/Windows/Fonts` et les inscrivaient dans la
-ruche registre `HKCU` : les polices n’étaient alors visibles que de
-l’utilisateur ayant lancé l’installation. Elles sont désormais copiées
-dans le dossier système `C:/Windows/Fonts` et inscrites dans la ruche
-machine `HKLM`, donc disponibles pour tous les comptes de la machine ;
-l’installation requiert une session R lancée en administrateur (détectée
-par la nouvelle fonction interne
-[`is_windows_admin()`](https://ofceweb.github.io/ofceweb/reference/is_windows_admin.md),
-via `net session`) et s’arrête sinon avec un message explicite invitant
-à relancer R/RStudio en tant qu’administrateur. `user_font_dir()` est
-renommée
-[`font_dir()`](https://ofceweb.github.io/ofceweb/reference/font_dir.md)
-en conséquence.
+reviennent à l’installation par utilisateur : fichiers `.ttf` copiés
+dans `%LOCALAPPDATA%/Microsoft/Windows/Fonts` et inscrits dans la ruche
+`HKCU`, sans élévation de droits. `is_windows_admin()` est supprimée et
+`font_dir()` retrouve son nom
+[`user_font_dir()`](https://ofceweb.github.io/ofceweb/reference/user_font_dir.md).
 
 ## ofceweb 1.0.4
 

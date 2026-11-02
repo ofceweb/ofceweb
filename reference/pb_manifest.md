@@ -1,9 +1,9 @@
 # Génère ou met à jour le manifeste JSON d'un policy brief
 
 Lit les métadonnées depuis \`\_quarto.yml\` (et \`index.qmd\` pour
-l'abstract), construit un \`manifest.json\` normalisé et l'écrit à la
-racine du dépôt (pour être commité) et dans \`\_site/\` (pour être
-déployé).
+l'abstract, le titre et les listes éditoriales en repli), construit un
+\`manifest.json\` normalisé et l'écrit à la racine du dépôt (pour être
+commité) et dans \`\_site/\` (pour être déployé).
 
 ## Usage
 
@@ -26,6 +26,23 @@ La liste du manifeste (invisible).
 Aucun outil ne collecte encore ce manifeste (\`webhome\` maintient ses
 listes de publications à la main) ; un futur collecteur devra identifier
 un PB par le couple (\`pb_series\`, \`pb\`), pas par \`pb\` seul.
+
+\# Modèle de données v1
+
+Même schéma que \[wp_manifest()\] (\`schema_version: "1.0"\`), avec :
+
+\* \`id\` : \`institution-pb-pb-lang\` (\*\*sans année\*\* :
+numérotation séquentielle ; minuscules, sans zero-padding, ex.
+\`"ofce-pb-153-fr"\`), stable d'une version à l'autre ; \`NULL\` tant
+que \`pb\` n'est pas enregistré (brouillon). \* \`type =
+"policy-brief"\`, \`media = "html"\`, \`auto_update = TRUE\`. \*
+\`institution\`, \`translation_id\`, \`title\`, \`authors\`,
+\`categories\`, \`keywords\`, \`jel\`, \`date_published\` et \`pdf\` :
+voir \[wp_manifest()\].
+
+Les champs historiques \`pb\`, \`version\`, \`stage\`, \`pdf-path\`,
+\`source-repo\` et \`ofceweb-version\` sont conservés (lus par
+\`deploy_pb()\` et \`ftp_deploy.yml\`).
 
 Inclut un champ \`source-repo\` (\`"owner/repo"\`, résolu depuis le
 remote \`origin\` local) utilisé par le workflow \`ftp_deploy.yml\` pour

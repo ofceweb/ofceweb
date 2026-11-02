@@ -81,6 +81,63 @@ Seul un brouillon est versionné. À la publication :
 
 ## ofceweb 1.0.5
 
+### `wp_manifest()`/`pb_manifest()` : `manifest.json` aligné sur le modèle de données v1
+
+Le manifeste suit désormais le schéma v1 de `modele-donnees-v1.qmd`
+(`architecture-base-contenus.qmd`, §3.1). Nouveaux champs :
+`schema_version` (`"1.0"`), `id`, `translation_id`, `institution`,
+`type` (`working-paper`/`policy-brief`), `media` (`"html"`),
+`categories`, `keywords`, `jel` et `auto_update` (`true`). Les champs
+historiques (`wp`, `annee`/`pb`, `version`, `stage`, `pdf-path`,
+`source-repo`, `ofceweb-version`) sont **conservés** :
+[`deploy_wp()`](https://ofceweb.github.io/ofceweb/reference/deploy_wp.md)/[`deploy_pb()`](https://ofceweb.github.io/ofceweb/reference/deploy_pb.md)
+et `ftp_deploy.yml` les lisent, aucun workflow n’est à réinstaller.
+Nouveaux helpers internes dans `R/manifest_v1.R`, partagés par les deux
+générateurs.
+
+- **`id`** : `{institution}-wp-{annee}-{wp}-{lang}` (WP) ou
+  `{institution}-pb-{pb}-{lang}` (PB, **sans année** : numérotation
+  séquentielle), en minuscules et sans zero-padding (ex.
+  `ofce-wp-2026-6-fr`, `ofce-pb-153-fr`). Indépendant de `version`
+  (stable de `v0` à `v1`) ; `null` tant que le numéro n’est pas
+  enregistré (brouillon).
+- **`institution`** : nouveau champ `institution` de `_quarto.yml`
+  (`ofce`, `cepii`, `ife` ; livré à `ofce` par les gabarits
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)).
+  `"ofce"` si absent ; valeur inconnue : avertissement et `"ofce"` (ne
+  bloque jamais un rendu ou un déploiement). Le champ `institut` (logos
+  Typst, co-branding) n’est **pas** lu : propriété du contenu et
+  présentation restent deux notions séparées.
+- **`categories`, `keywords`, `jel`** : listes lues dans `_quarto.yml`,
+  sinon dans le frontmatter de `index.qmd`, sinon `[]` ; codes JEL en
+  majuscules. Les gabarits `_quarto.yml` WP/PB livrent désormais ces
+  trois champs vides. Les dépôts existants n’ont rien à modifier.
+- **`translation_id`** : `null`, ou la valeur du champ optionnel
+  `translation_id` de `_quarto.yml` (aucun mécanisme d’appariement FR/EN
+  pour l’instant).
+- **`date` devient `date_published`** dans le manifeste (la clé YAML
+  `date` est inchangée).
+- **`authors`** : liste de noms (chaînes) au lieu d’objets
+  `{name, affiliation, orcid}` ; `affiliation`/`orcid` restent dans
+  `_quarto.yml` pour le rendu.
+- **`pdf`** : URL absolue (`https://www.ofce.fr/{pdf-path}`) ;
+  changement de comportement : `null` (et non plus le nom de fichier
+  seul) tant que `pdf-path` est inconnu, c’est-à-dire pour un brouillon.
+
+Correction : le `title` du manifeste était vide quand le titre n’était
+défini que dans `index.qmd` (cas de `wp-xt-travail` et
+`wp-gamp-gainemploi`) ; il se replie désormais sur le frontmatter de
+`index.qmd`, comme `abstract`. Les clés de `_quarto.yml` sont par
+ailleurs lues par correspondance exacte (`[[`) : un `_quarto.yml` sans
+`date` ne prend plus `date-modified` pour la date de publication, ni
+`author-title` pour la liste d’auteurs.
+
+Les manifestes déjà publiés sont remplacés au prochain
+[`render_wp()`](https://ofceweb.github.io/ofceweb/reference/render_wp.md) +
+déploiement de chaque dépôt ; les manifestes de staging/brouillon ne
+sont pas conformes v1 par construction (le schéma s’applique aux
+contenus publiés).
+
 ### Les variables github sont à jour
 
 Elles sont maintenant écrites au `deploy` pour éviter les retards.

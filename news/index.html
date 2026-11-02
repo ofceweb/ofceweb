@@ -80,6 +80,27 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.5" id="ofceweb-105">ofceweb 1.0.5<a class="anchor" aria-label="anchor" href="#ofceweb-105"></a></h2>
 <div class="section level3">
+<h3 id="wp_manifestpb_manifest--manifestjson-aligné-sur-le-modèle-de-données-v1-1-0-5">
+<code>wp_manifest()</code>/<code>pb_manifest()</code> : <code>manifest.json</code> aligné sur le modèle de données v1<a class="anchor" aria-label="anchor" href="#wp_manifestpb_manifest--manifestjson-align%C3%A9-sur-le-mod%C3%A8le-de-donn%C3%A9es-v1-1-0-5"></a></h3>
+<p>Le manifeste suit désormais le schéma v1 de <code>modele-donnees-v1.qmd</code> (<code>architecture-base-contenus.qmd</code>, §3.1). Nouveaux champs : <code>schema_version</code> (<code>"1.0"</code>), <code>id</code>, <code>translation_id</code>, <code>institution</code>, <code>type</code> (<code>working-paper</code>/<code>policy-brief</code>), <code>media</code> (<code>"html"</code>), <code>categories</code>, <code>keywords</code>, <code>jel</code> et <code>auto_update</code> (<code>true</code>). Les champs historiques (<code>wp</code>, <code>annee</code>/<code>pb</code>, <code>version</code>, <code>stage</code>, <code>pdf-path</code>, <code>source-repo</code>, <code>ofceweb-version</code>) sont <strong>conservés</strong> : <code><a href="../reference/deploy_wp.html">deploy_wp()</a></code>/<code><a href="../reference/deploy_pb.html">deploy_pb()</a></code> et <code>ftp_deploy.yml</code> les lisent, aucun workflow n’est à réinstaller. Nouveaux helpers internes dans <code>R/manifest_v1.R</code>, partagés par les deux générateurs.</p>
+<ul><li>
+<strong><code>id</code></strong> : <code>{institution}-wp-{annee}-{wp}-{lang}</code> (WP) ou <code>{institution}-pb-{pb}-{lang}</code> (PB, <strong>sans année</strong> : numérotation séquentielle), en minuscules et sans zero-padding (ex. <code>ofce-wp-2026-6-fr</code>, <code>ofce-pb-153-fr</code>). Indépendant de <code>version</code> (stable de <code>v0</code> à <code>v1</code>) ; <code>null</code> tant que le numéro n’est pas enregistré (brouillon).</li>
+<li>
+<strong><code>institution</code></strong> : nouveau champ <code>institution</code> de <code>_quarto.yml</code> (<code>ofce</code>, <code>cepii</code>, <code>ife</code> ; livré à <code>ofce</code> par les gabarits <code><a href="../reference/setup_wp.html">setup_wp()</a></code>/<code><a href="../reference/setup_pb.html">setup_pb()</a></code>). <code>"ofce"</code> si absent ; valeur inconnue : avertissement et <code>"ofce"</code> (ne bloque jamais un rendu ou un déploiement). Le champ <code>institut</code> (logos Typst, co-branding) n’est <strong>pas</strong> lu : propriété du contenu et présentation restent deux notions séparées.</li>
+<li>
+<strong><code>categories</code>, <code>keywords</code>, <code>jel</code></strong> : listes lues dans <code>_quarto.yml</code>, sinon dans le frontmatter de <code>index.qmd</code>, sinon <code>[]</code> ; codes JEL en majuscules. Les gabarits <code>_quarto.yml</code> WP/PB livrent désormais ces trois champs vides. Les dépôts existants n’ont rien à modifier.</li>
+<li>
+<strong><code>translation_id</code></strong> : <code>null</code>, ou la valeur du champ optionnel <code>translation_id</code> de <code>_quarto.yml</code> (aucun mécanisme d’appariement FR/EN pour l’instant).</li>
+<li>
+<strong><code>date</code> devient <code>date_published</code></strong> dans le manifeste (la clé YAML <code>date</code> est inchangée).</li>
+<li>
+<strong><code>authors</code></strong> : liste de noms (chaînes) au lieu d’objets <code>{name, affiliation, orcid}</code> ; <code>affiliation</code>/<code>orcid</code> restent dans <code>_quarto.yml</code> pour le rendu.</li>
+<li>
+<strong><code>pdf</code></strong> : URL absolue (<code>https://www.ofce.fr/{pdf-path}</code>) ; changement de comportement : <code>null</code> (et non plus le nom de fichier seul) tant que <code>pdf-path</code> est inconnu, c’est-à-dire pour un brouillon.</li>
+</ul><p>Correction : le <code>title</code> du manifeste était vide quand le titre n’était défini que dans <code>index.qmd</code> (cas de <code>wp-xt-travail</code> et <code>wp-gamp-gainemploi</code>) ; il se replie désormais sur le frontmatter de <code>index.qmd</code>, comme <code>abstract</code>. Les clés de <code>_quarto.yml</code> sont par ailleurs lues par correspondance exacte (<code>[[</code>) : un <code>_quarto.yml</code> sans <code>date</code> ne prend plus <code>date-modified</code> pour la date de publication, ni <code>author-title</code> pour la liste d’auteurs.</p>
+<p>Les manifestes déjà publiés sont remplacés au prochain <code><a href="../reference/render_wp.html">render_wp()</a></code> + déploiement de chaque dépôt ; les manifestes de staging/brouillon ne sont pas conformes v1 par construction (le schéma s’applique aux contenus publiés).</p>
+</div>
+<div class="section level3">
 <h3 id="les-variables-github-sont-à-jour-1-0-5">Les variables github sont à jour<a class="anchor" aria-label="anchor" href="#les-variables-github-sont-%C3%A0-jour-1-0-5"></a></h3>
 <p>Elles sont maintenant écrites au <code>deploy</code> pour éviter les retards.</p>
 </div>

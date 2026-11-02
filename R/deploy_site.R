@@ -42,15 +42,7 @@ deploy_site <- function(
   # website.site-url/site-path, qui décrit précisément où le contenu est
   # réellement servi dans ce cas. ---------------------------------------------
   if(ofce_host) {
-    site_url <- yml$website$`site-url`
-    site_path <- yml$website$`site-path`
-    final_url <- NULL
-    if(!is.null(site_url) && nzchar(site_url)) {
-      final_url <- sub("/?$", "/", site_url)
-      if(!is.null(site_path) && nzchar(site_path))
-        final_url <- paste0(final_url, sub("^/", "", sub("/?$", "/", site_path)))
-      final_url <- paste0(final_url, "index.html")
-    }
+    final_url <- site_final_url(yml$website$`site-url`, yml$website$`site-path`)
 
     cli::cli_h2("Déploiement OFCE (site2branch)")
     res <- site2branch(
@@ -107,4 +99,22 @@ deploy_site <- function(
   if(!is.null(gh_pages_url))
     cli::cli_alert_success("Site disponible : {.url {gh_pages_url}}")
   invisible(NULL)
+}
+
+# URL publique d'un site hébergé par l'OFCE, déduite de site-url/site-path.
+# Le préfixe "staging/" du site-path correspond au sous-domaine staging.ofce.fr :
+# "https://www.ofce.fr/" + "staging/monsite/v0" est servi sur
+# "https://staging.ofce.fr/monsite/v0/", et non sur www.ofce.fr/staging/.
+site_final_url <- function(site_url, site_path = NULL) {
+  if(is.null(site_url) || !nzchar(site_url)) return(NULL)
+  base <- sub("/?$", "/", site_url)
+  rel <- if(!is.null(site_path) && nzchar(site_path))
+    sub("^/", "", sub("/?$", "/", site_path))
+  else
+    ""
+  if(grepl("^https?://(www|staging)\\.ofce\\.fr/$", base) && grepl("^staging/", rel)) {
+    base <- "https://staging.ofce.fr/"
+    rel <- sub("^staging/", "", rel)
+  }
+  paste0(base, rel, "index.html")
 }

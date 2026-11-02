@@ -7,11 +7,11 @@ abstract: |
 format:
   pb-html: default
   pb-typst:
-    output-file: "OFCEPB-draft.pdf"
+    output-file: "IFEPB-draft.pdf"
 format-links:
   - typst
   - format: pb-typst
-    text: "OFCEPB-draft.pdf"
+    text: "IFEPB-draft.pdf"
     icon: file-pdf
 ---
 

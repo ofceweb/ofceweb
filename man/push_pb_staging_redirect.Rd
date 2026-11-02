@@ -36,6 +36,6 @@ Ne fait rien si `website.site-url` n'a pas la forme attendue (PB publié,
 brouillon GitHub Pages, ou brouillon sans version encore attribuée).
 }
 \seealso{
-[deploy_pb()], [push_pb_redirect()], [pb_version_up()]
+[deploy_pb()], [pb_version_up()]
 }
 \keyword{internal}

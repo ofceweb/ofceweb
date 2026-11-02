@@ -5,10 +5,10 @@
 test_that("deploy_pb() resyncs FTP_SERVER_DIR from the current site-path before a production deploy", {
   dir <- withr::local_tempdir()
   write_quarto_yml(dir, list(
-    ofce_pb = TRUE,
-    pb      = 5L,
-    version = "v2",
-    website = list(`site-path` = "5/v2")
+    ofce_pb   = TRUE,
+    pb        = 5L,
+    pb_series = "ife",
+    website   = list(`site-path` = "ife/5")
   ))
   jsonlite::write_json(
     list(stage = FALSE, pb = 5L),
@@ -20,13 +20,16 @@ test_that("deploy_pb() resyncs FTP_SERVER_DIR from the current site-path before 
   gh_vars <- list()
   local_mocked_bindings(
     set_gh_var = function(root, name, value) { gh_vars[[name]] <<- value; invisible(NULL) },
-    site2branch = function(...) invisible(NULL),
-    push_pb_redirect = function(...) invisible(NULL)
+    site2branch = function(...) invisible(NULL)
   )
 
-  suppressMessages(deploy_pb(dir, progress = FALSE, trigger = FALSE))
+  withr::local_options(cli.width = 300)
+  msgs <- capture_messages(deploy_pb(dir, progress = FALSE, trigger = FALSE))
 
-  expect_equal(gh_vars[["FTP_SERVER_DIR"]], "5/v2/")
+  expect_equal(gh_vars[["FTP_SERVER_DIR"]], "ife/5/")
+  # Published PB: a single unversioned address, no redirect page.
+  expect_null(gh_vars[["FTP_REDIRECT_DIR"]])
+  expect_true(any(grepl("https://www.ofce.fr/pb/ife/5/", msgs, fixed = TRUE)))
 })
 
 test_that("deploy_pb() resyncs FTP_STAGING_DIR from the current repo/version before an FTP-staging deploy", {

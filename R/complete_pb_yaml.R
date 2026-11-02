@@ -9,8 +9,9 @@
 #' \itemize{
 #'   \item `date` : date du jour (format `YYYY-MM-DD`)
 #'   \item `author` : structure minimale si `author` et `authors` sont absents
-#'   \item `citation` : structure minimale (`type: article-journal`,
-#'     `container-title: "Policy Brief de l'OFCE"`)
+#'   \item `citation` : structure minimale (`type: article-journal`, et
+#'     `container-title` de la série `pb_series` lu dans `pb/index.json` si
+#'     le registre est accessible)
 #'   \item `ofce_pb` : positionné à `TRUE` pour signaler un PB OFCE
 #' }
 #'
@@ -76,11 +77,16 @@ complete_pb_yaml <- function(path = ".", verbose = TRUE) {
   }
 
   # ---- citation ----
+  # container-title dépend de la série (pb/index.json) ; sans index
+  # (réseau), il est laissé à setup_pb().
   if (is.null(yml$citation)) {
-    yml$citation <- list(
-      type = "article-journal",
-      `container-title` = "Policy Brief de l'OFCE"
+    yml$citation <- list(type = "article-journal")
+    series_params <- pb_series_params(
+      pb_series(yml),
+      tryCatch(fetch_pb_series_index(), error = function(e) NULL)
     )
+    if (!is.null(series_params$container_title))
+      yml$citation$`container-title` <- series_params$container_title
     completed_fields <- c(completed_fields, "citation")
   }
 

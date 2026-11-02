@@ -7,11 +7,11 @@ build_pb_manifest_repo <- function(dir, pb = 5L, extra = list()) {
     ofce_pb = TRUE,
     pb      = pb,
     lang    = "fr",
-    version = "v0",
+    pb_series = "ife",
     website = list(
       title       = "Un PB",
       `site-url`  = "https://www.ofce.fr/",
-      `site-path` = sprintf("%d/v0", pb)
+      `site-path` = sprintf("ife/%d", pb)
     )
   )
   write_quarto_yml(dir, utils::modifyList(yml, extra))
@@ -23,45 +23,44 @@ test_that("pb_manifest() computes pdf-path relative to www.ofce.fr from the acti
   dir <- withr::local_tempdir()
   build_pb_manifest_repo(dir, pb = 5L)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
-  yml$format <- list(`pb-pdf` = list(`output-file` = "OFCEPB2026-5.pdf"))
+  yml$format <- list(`pb-pdf` = list(`output-file` = "IFEPB5.pdf"))
   write_quarto_yml(dir, yml)
 
   m <- pb_manifest(dir, stage = FALSE)
 
-  expect_equal(m$pdf, "https://www.ofce.fr/pb/5/v0/OFCEPB2026-5.pdf")
-  expect_equal(m$`pdf-path`, "pb/5/v0/OFCEPB2026-5.pdf")
+  expect_equal(m$pdf, "IFEPB5.pdf")
+  expect_equal(m$`pdf-path`, "pb/ife/5/IFEPB5.pdf")
 
   written <- jsonlite::fromJSON(fs::path(dir, "manifest.json"))
-  expect_equal(written$`pdf-path`, "pb/5/v0/OFCEPB2026-5.pdf")
-  expect_equal(written$pdf, "https://www.ofce.fr/pb/5/v0/OFCEPB2026-5.pdf")
+  expect_equal(written$`pdf-path`, "pb/ife/5/IFEPB5.pdf")
 })
 
-test_that("pb_manifest() omits the version segment from pdf-path when there is no version", {
+test_that("pb_manifest() falls back to pb/{pb} for pdf-path when site-path is absent", {
   dir <- withr::local_tempdir()
   write_quarto_yml(dir, list(
     ofce_pb = TRUE,
     pb      = 5L,
     lang    = "fr",
-    format  = list(`pb-pdf` = list(`output-file` = "OFCEPB2026-5.pdf")),
+    format  = list(`pb-pdf` = list(`output-file` = "IFEPB5.pdf")),
     website = list(title = "Un PB", `site-url` = "https://www.ofce.fr/")
   ))
   write_qmd(dir, "index.qmd", yaml_lines = "title: Un PB")
 
   m <- pb_manifest(dir, stage = FALSE)
 
-  expect_equal(m$`pdf-path`, "pb/5/OFCEPB2026-5.pdf")
+  expect_equal(m$`pdf-path`, "pb/5/IFEPB5.pdf")
 })
 
 test_that("pb_manifest() falls back to the pb-typst output-file when pb-pdf is absent", {
   dir <- withr::local_tempdir()
   build_pb_manifest_repo(dir, pb = 5L)
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
-  yml$format <- list(`pb-typst` = list(`output-file` = "OFCEPB2026-5.pdf"))
+  yml$format <- list(`pb-typst` = list(`output-file` = "IFEPB5.pdf"))
   write_quarto_yml(dir, yml)
 
   m <- pb_manifest(dir, stage = FALSE)
 
-  expect_equal(m$`pdf-path`, "pb/5/v0/OFCEPB2026-5.pdf")
+  expect_equal(m$`pdf-path`, "pb/ife/5/IFEPB5.pdf")
 })
 
 test_that("pb_manifest() leaves pdf and pdf-path null for a draft without pb", {

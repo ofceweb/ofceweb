@@ -7,6 +7,7 @@ local_stub_pb_side_effects <- function(env = parent.frame()) {
     init_gh_pages_branch   = function(...) invisible(NULL),
     set_gh_var             = function(...) invisible(NULL),
     sync_pb_registry_state = function(...) stop("registry lookup stubbed out for this test"),
+    fetch_pb_series_index  = function(...) pb_test_series_index(),
     # setup_pb() aborts if the installed ofce package is below its minimum
     # version (checked right before ofce::setup_quarto()); stubbed out so
     # tests don't depend on whatever ofce version happens to be installed.
@@ -81,6 +82,135 @@ test_that("setup_pb() computes citation.issue/citation.url and stable_url for a 
   expect_equal(yml$citation$url, "https://www.ofce.fr/pb/5/")
   # stable_url mirrors citation.url as a top-level key.
   expect_equal(yml$stable_url, "https://www.ofce.fr/pb/5/")
+  # nb: read by the pb extension to tell a published PB from a draft.
+  expect_equal(yml$nb, 5L)
+})
+
+test_that("setup_pb() drops the version of a PB once published and deploys it without a version segment", {
+  local_stub_pb_side_effects()
+  dir <- local_git_tempdir()
+  build_pb_repo(dir, pb = 5L) # legacy published repo: version v0, site-path 5/v0
+
+  suppressMessages(setup_pb(dir))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+
+  expect_null(yml$version)
+  expect_equal(yml$website$`site-path`, "5")
+  expect_equal(yml$pb_series, "ofce") # absent key made explicit
+})
+
+test_that("setup_pb() derives site-path, PDF name, citation and FTP variables from the ife series", {
+  local_stub_pb_side_effects()
+  gh_vars <- list()
+  local_mocked_bindings(
+    set_gh_var = function(root, name, value, ...) {
+      gh_vars[[name]] <<- value
+      invisible(list(ok = TRUE, message = ""))
+    }
+  )
+  dir <- local_git_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_pb   = TRUE,
+    pb        = 12L,
+    pb_series = "ife",
+    lang      = "fr",
+    version   = "v3",
+    citation  = list(`container-title` = "Policy Brief de l'OFCE")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: PB",
+    "format:",
+    "  pb-typst:",
+    "    output-file: IFEPB-draft.pdf"
+  ))
+
+  suppressMessages(setup_pb(dir))
+  yml     <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+
+  expect_equal(yml$website$`site-path`, "ife/12")
+  expect_null(yml$version)
+  expect_equal(yml$nb, 12L)
+  expect_equal(yml$citation$url, "https://www.ofce.fr/pb/ife/12/")
+  expect_equal(yml$citation$issue, "12")
+  expect_equal(yml$citation$`container-title`, "Policy Brief de l'IFE")
+  expect_equal(idx_yml$format$`pb-typst`$`output-file`, "IFEPB12.pdf")
+  expect_equal(gh_vars[["FTP_SERVER_DIR"]], "ife/12/")
+  expect_null(gh_vars[["FTP_REDIRECT_DIR"]])
+  expect_null(gh_vars[["FTP_STAGING_DIR"]])
+})
+
+test_that("setup_pb() names an ife draft PDF {draft-prefix}-{repo}-{version}.pdf and removes nb", {
+  local_stub_pb_side_effects()
+  local_mocked_bindings(
+    git_remote_list = function(...) data.frame(
+      name = "origin",
+      url  = "https://github.com/ofce/pb-csskvv-chn.git"
+    ),
+    .package = "gert"
+  )
+  dir <- local_git_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_pb   = TRUE,
+    pb_series = "ife",
+    nb        = 3L,
+    lang      = "fr",
+    version   = "v1"
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: PB",
+    "format:",
+    "  pb-typst:",
+    "    output-file: IFEPB-draft.pdf"
+  ))
+
+  suppressMessages(setup_pb(dir))
+  yml     <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+
+  expect_equal(idx_yml$format$`pb-typst`$`output-file`, "ife-draft-pb-csskvv-chn-v1.pdf")
+  expect_equal(yml$version, "v1") # a draft keeps its version
+  expect_null(yml$nb)
+  expect_equal(yml$citation$`container-title`, "Policy Brief de l'IFE")
+})
+
+test_that("setup_pb() leaves series-derived fields alone when pb/index.json is unreachable", {
+  local_stub_pb_side_effects()
+  local_mocked_bindings(fetch_pb_series_index = function(...) NULL)
+  withr::local_options(cli.width = 300)
+  dir <- local_git_tempdir()
+  write_quarto_yml(dir, list(
+    ofce_pb   = TRUE,
+    pb        = 12L,
+    pb_series = "ife",
+    lang      = "fr",
+    website   = list(`site-path` = "ife/12")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = c(
+    "title: PB",
+    "format:",
+    "  pb-typst:",
+    "    output-file: IFEPB12.pdf"
+  ))
+
+  msgs <- capture_messages(setup_pb(dir))
+  yml     <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+
+  expect_true(any(grepl("Index des séries PB inaccessible", msgs)))
+  expect_equal(yml$website$`site-path`, "ife/12")
+  expect_equal(yml$citation$url, "https://www.ofce.fr/pb/ife/12/")
+  expect_equal(idx_yml$format$`pb-typst`$`output-file`, "IFEPB12.pdf")
+})
+
+test_that("setup_pb() warns that versionning is obsolete", {
+  local_stub_pb_side_effects()
+  withr::local_options(cli.width = 300)
+  dir <- local_git_tempdir()
+  build_draft_pb_repo(dir)
+
+  msgs <- capture_messages(setup_pb(dir, versionning = TRUE))
+  expect_true(any(grepl("versionning", msgs)))
 })
 
 test_that("setup_pb() does not set citation.issue/url/stable_url for a draft (pb = NULL)", {
@@ -111,7 +241,7 @@ test_that("setup_pb() rewrites a legacy zero-padded site-path to the unpadded fo
   suppressMessages(setup_pb(dir))
   yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
 
-  expect_equal(yml$website$`site-path`, "7/v0")
+  expect_equal(yml$website$`site-path`, "7")
   expect_equal(yml$citation$url, "https://www.ofce.fr/pb/7/")
   expect_equal(yml$citation$issue, "7")
   expect_equal(yml$stable_url, "https://www.ofce.fr/pb/7/")
@@ -146,14 +276,21 @@ test_that("setup_pb() warns that the deployment URL changes when the site-path i
   expect_true(any(grepl("site-path modifi", msgs)))
   expect_true(any(grepl("URL diff", msgs)))
   expect_true(any(grepl("007/v0", msgs, fixed = TRUE)))
-  expect_true(any(grepl("7/v0", msgs, fixed = TRUE)))
+  yml <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  expect_equal(yml$website$`site-path`, "7")
 })
 
-test_that("setup_pb() does not warn when the site-path is already unpadded", {
+test_that("setup_pb() does not warn when the site-path is already up to date", {
   local_stub_pb_side_effects()
   withr::local_options(cli.width = 300)
   dir <- local_git_tempdir()
-  build_pb_repo(dir, pb = 7L)
+  write_quarto_yml(dir, list(
+    ofce_pb = TRUE,
+    pb      = 7L,
+    lang    = "fr",
+    website = list(title = "Un PB", `site-url` = "https://www.ofce.fr/", `site-path` = "7")
+  ))
+  write_qmd(dir, "index.qmd", yaml_lines = "title: Un PB")
 
   msgs <- capture_messages(setup_pb(dir))
 
@@ -166,6 +303,7 @@ test_that("setup_pb() installs Quarto extensions via ofce::setup_quarto()", {
     init_gh_pages_branch   = function(...) invisible(NULL),
     set_gh_var             = function(...) invisible(NULL),
     sync_pb_registry_state = function(...) stop("registry lookup stubbed out for this test"),
+    fetch_pb_series_index  = function(...) pb_test_series_index(),
     check_ofce_version     = function(...) invisible(TRUE)
   )
   local_mocked_bindings(
@@ -189,6 +327,7 @@ test_that("setup_pb() lets a confirmed registry entry override the existing _qua
   local_mocked_bindings(
     init_gh_pages_branch = function(...) invisible(NULL),
     set_gh_var            = function(...) invisible(NULL),
+    fetch_pb_series_index = function(...) pb_test_series_index(),
     fetch_pb_entries      = function(...) list(
       list(pb = 4L, type = "repo", `source-repo` = "ofce/pb2026-1")
     ),
@@ -211,7 +350,7 @@ test_that("setup_pb() lets a confirmed registry entry override the existing _qua
 
   expect_equal(yml$pb, 4L)
   expect_false(yml$draft)
-  expect_equal(yml$website$`site-path`, "4/v0")
+  expect_equal(yml$website$`site-path`, "4")
   expect_equal(yml$citation$issue, "4")
   expect_equal(yml$stable_url, "https://www.ofce.fr/pb/4/")
 })
@@ -606,4 +745,48 @@ test_that("setup_pb() does not mistake an author-title key for an author key", {
   # index.qmd's author-title key must remain active (not commented out)
   idx_lines <- readLines(fs::path(dir, "index.qmd"), warn = FALSE)
   expect_true(any(grepl("^author-title:", idx_lines)))
+})
+test_that("setup_pb() on a fresh repo keeps the template's pb_series, institut and version from the first call", {
+  local_stub_pb_side_effects()
+  dir <- local_git_tempdir()
+
+  suppressMessages(setup_pb(dir))
+  yml     <- yaml::read_yaml(fs::path(dir, "_quarto.yml"))
+  idx_yml <- yaml::read_yaml(fs::path(dir, "index.qmd"))
+
+  # The template's values, not the "ofce" fallback of an empty in-memory yml.
+  expect_equal(yml$pb_series, "ife")
+  expect_equal(yml$institut, "ife")
+  expect_equal(yml$version, "v0")
+  # The version is already in the draft PDF name on the first call.
+  expect_equal(
+    idx_yml$format$`pb-typst`$`output-file`,
+    sprintf("ife-draft-%s-v0.pdf", fs::path_file(dir))
+  )
+})
+
+test_that("setup_pb() adds institut: ife when it is declared neither in _quarto.yml nor in index.qmd", {
+  local_stub_pb_side_effects()
+  dir <- local_git_tempdir()
+  build_draft_pb_repo(dir)
+
+  suppressMessages(setup_pb(dir))
+  expect_equal(yaml::read_yaml(fs::path(dir, "_quarto.yml"))$institut, "ife")
+})
+
+test_that("setup_pb() never changes an existing institut, in _quarto.yml or in index.qmd", {
+  local_stub_pb_side_effects()
+
+  dir <- local_git_tempdir()
+  write_quarto_yml(dir, list(ofce_pb = TRUE, lang = "fr", institut = "ife-ofce"))
+  write_qmd(dir, "index.qmd", yaml_lines = "title: Brouillon")
+  suppressMessages(setup_pb(dir))
+  expect_equal(yaml::read_yaml(fs::path(dir, "_quarto.yml"))$institut, "ife-ofce")
+
+  dir2 <- local_git_tempdir()
+  write_quarto_yml(dir2, list(ofce_pb = TRUE, lang = "fr"))
+  write_qmd(dir2, "index.qmd", yaml_lines = c("title: Brouillon", "institut: ofce"))
+  suppressMessages(setup_pb(dir2))
+  expect_null(yaml::read_yaml(fs::path(dir2, "_quarto.yml"))$institut)
+  expect_equal(get_yaml(fs::path(dir2, "index.qmd"))$institut, "ofce")
 })

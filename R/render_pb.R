@@ -172,7 +172,7 @@ render_pb <- function(
 #'   push. Défaut `TRUE`.
 #'
 #' @returns Invisible `NULL`.
-#' @seealso [render_pb()], [deploy_pb()], [push_pb_redirect()], [setup_pb()]
+#' @seealso [render_pb()], [deploy_pb()], [setup_pb()]
 #' @keywords internal
 publish_pb <- function(
     path        = ".",
@@ -189,7 +189,10 @@ publish_pb <- function(
 
   qyml_path <- fs::path(root, "_quarto.yml")
   pb_before <- if (fs::file_exists(qyml_path))
-    tryCatch(yaml::read_yaml(qyml_path)$pb, error = function(e) NULL) else NULL
+    tryCatch(yaml::read_yaml(qyml_path)[["pb"]], error = function(e) NULL) else NULL
+
+  series_before <- if (fs::file_exists(qyml_path))
+    tryCatch(pb_series(yaml::read_yaml(qyml_path)), error = function(e) NULL) else NULL
 
   cli::cli_h2("Registre central")
   reg <- tryCatch(sync_pb_registry_state(root), error = function(e) {
@@ -209,6 +212,14 @@ publish_pb <- function(
     if (!is.null(pb_after) && !identical(pb_before, pb_after)) {
       cli::cli_alert_warning(
         "Numéro PB mis à jour depuis le registre ({.val {pb_before}} → {.val {pb_after}}) \\
+         — relancer {.run ofceweb::setup_pb()} pour recalculer {.field site-path}/\\
+         {.field citation.*}/{.field FTP_SERVER_DIR} avant de publier.")
+    }
+    series_after <- reg$pb_series
+    if (!is.null(series_after) && !is.null(series_before) &&
+        !identical(series_before, series_after)) {
+      cli::cli_alert_warning(
+        "Série PB mise à jour depuis le registre ({.val {series_before}} → {.val {series_after}}) \\
          — relancer {.run ofceweb::setup_pb()} pour recalculer {.field site-path}/\\
          {.field citation.*}/{.field FTP_SERVER_DIR} avant de publier.")
     }

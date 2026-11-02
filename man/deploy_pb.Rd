@@ -33,7 +33,9 @@ Invisible `NULL`.
 dans `_quarto.yml` (positionné par [setup_pb()]) :
 \itemize{
   \item **Publié** (`stage: FALSE`) : toujours vers FTP production
-    (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`.
+    (`ftp_deploy.yml`), quelle que soit la valeur de `stage-target`, à
+    l'adresse unique `www.ofce.fr/pb/{site-path}/` (un PB publié n'est pas
+    versionné, donc pas de page de redirection).
   \item **Non encore publié** (`stage: TRUE` ou `stage` absent) : destination
     lue depuis `stage-target` (`"auto"` réévalué à chaque appel selon le
     propriétaire GitHub actuel — `"ftp"` pour l'organisation `ofce`,

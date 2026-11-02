@@ -838,7 +838,8 @@ repo_slug_equal <- function(a, b) {
 #' (appelées par `setup_wp()`/`setup_pb()`), cette fonction ne fait jamais
 #' que lire le réseau -- elle n'écrit jamais `_quarto.yml`. Partagée par
 #' [check_wp()] (`kind = "wp"`, avec `local_annee`) et [check_pb()]
-#' (`kind = "pb"`, sans année -- numérotation séquentielle).
+#' (`kind = "pb"`, sans année -- numérotation par série, avec
+#' `local_series`).
 #'
 #' @param entries Liste d'entrées renvoyée par `fetch_wp_entries()`/
 #'   `fetch_pb_entries()`, ou `NULL` si le registre est inaccessible.
@@ -848,12 +849,16 @@ repo_slug_equal <- function(a, b) {
 #' @param local_annee Valeur de `yml$annee` (WP uniquement) ; `NULL` pour PB.
 #' @param kind Chaîne `"wp"` ou `"pb"` -- utilisée pour les messages
 #'   (`setup_{kind}()`, `{kind}_registry_request()`).
+#' @param local_series Valeur de `pb_series(yml)` (PB uniquement) ; `NULL`
+#'   pour WP ou pour ne pas comparer la série. Si fournie, le numéro **et**
+#'   la série locaux doivent correspondre à l'entrée du registre
+#'   (`entry[["pb_series"]]`, posé par `fetch_pb_registry()`).
 #' @return Liste de listes `list(field, status, message)`, à transmettre une
 #'   à une à `add_diag()`.
 #' @keywords internal
 #' @noRd
 registry_diag_rows <- function(entries, source_repo, local_id, local_annee = NULL,
-                                kind = c("wp", "pb")) {
+                                kind = c("wp", "pb"), local_series = NULL) {
   kind <- match.arg(kind)
   setup_fn   <- sprintf("setup_%s", kind)
   request_fn <- sprintf("%s_registry_request", kind)
@@ -918,6 +923,17 @@ registry_diag_rows <- function(entries, source_repo, local_id, local_annee = NUL
       push("warning", sprintf(
         "%s/annee locaux (%s/%s) ne correspondent pas au registre central (%s/%s) \u2014 relancer %s().",
         kind, local_id, local_annee, reg_id, reg_annee, setup_fn))
+    }
+  } else if (kind == "pb" && !is.null(local_series)) {
+    reg_series <- entry[["pb_series"]] %||% NA_character_
+    if (id_ok && identical(as.character(local_series), as.character(reg_series))) {
+      push("ok", sprintf(
+        "pb/pb_series locaux (%s/%s) cohérents avec le registre central.",
+        local_id_int, local_series))
+    } else {
+      push("warning", sprintf(
+        "pb/pb_series locaux (%s/%s) ne correspondent pas au registre central (%s/%s) — relancer %s().",
+        local_id, local_series, reg_id, reg_series, setup_fn))
     }
   } else {
     if (id_ok) {

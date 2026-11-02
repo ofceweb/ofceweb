@@ -77,8 +77,8 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server:   ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.WP_USER }}
-          password: ${{ secrets.WP_PASSWORD }}
+          username: ${{ secrets.PB_USER }}
+          password: ${{ secrets.PB_PASSWORD }}
           port: 21
           local-dir: ./
           server-dir: ${{ vars.FTP_SERVER_DIR }}

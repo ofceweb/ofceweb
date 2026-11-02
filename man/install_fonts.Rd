@@ -27,13 +27,12 @@ Invisible, un vecteur logique nommé : `TRUE` si l'installation de la
 Sur un système Unix (macOS, Linux) où Homebrew est disponible, l'installation
 passe par `brew install --cask font-<famille>`. Sinon (ou en cas d'échec),
 les fichiers `.ttf` sont téléchargés depuis l'API Google Fonts et copiés dans
-le dossier de polices du système :
+le dossier de polices de l'utilisateur :
 }
 \details{
 * macOS : `~/Library/Fonts`
 * Linux : `~/.local/share/fonts` (+ `fc-cache -f`)
-* Windows : `C:/Windows/Fonts` (+ enregistrement dans `HKLM\\...\\Fonts`)
-  — installation pour **tous** les utilisateurs, qui requiert une session R
-  lancée en administrateur (voir [is_windows_admin()])
+* Windows : `%LOCALAPPDATA%/Microsoft/Windows/Fonts` (+ enregistrement dans
+  `HKCU\\...\\Fonts`)
 }
 \keyword{internal}

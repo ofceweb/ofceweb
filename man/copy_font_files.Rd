@@ -2,13 +2,11 @@
 % Please edit documentation in R/check_fonts.R
 \name{copy_font_files}
 \alias{copy_font_files}
-\title{Copie les fichiers de police et, sous Windows, les enregistre pour tous
-les utilisateurs}
+\title{Copie les fichiers de police et, sous Windows, les enregistre}
 \usage{
 copy_font_files(files, dest_dir)
 }
 \description{
-L'inscription passe par la ruche machine `HKLM` : les fichiers vivant dans
-`C:/Windows/Fonts`, un simple nom de fichier suffit comme valeur.
+Copie les fichiers de police et, sous Windows, les enregistre
 }
 \keyword{internal}

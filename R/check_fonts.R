@@ -90,13 +90,12 @@ font_installed <- function(fonts = ofce_fonts()) {
 #' Sur un système Unix (macOS, Linux) où Homebrew est disponible, l'installation
 #' passe par `brew install --cask font-<famille>`. Sinon (ou en cas d'échec),
 #' les fichiers `.ttf` sont téléchargés depuis l'API Google Fonts et copiés dans
-#' le dossier de polices du système :
+#' le dossier de polices de l'utilisateur :
 #'
 #' * macOS : `~/Library/Fonts`
 #' * Linux : `~/.local/share/fonts` (+ `fc-cache -f`)
-#' * Windows : `C:/Windows/Fonts` (+ enregistrement dans `HKLM\\...\\Fonts`)
-#'   — installation pour **tous** les utilisateurs, qui requiert une session R
-#'   lancée en administrateur (voir [is_windows_admin()])
+#' * Windows : `%LOCALAPPDATA%/Microsoft/Windows/Fonts` (+ enregistrement dans
+#'   `HKCU\\...\\Fonts`)
 #'
 #' @param fonts Familles à installer. Défaut : `c("Open Sans", "Arimo",
 #'   "Merriweather")`.
@@ -183,34 +182,17 @@ install_fonts_brew <- function(fonts, quiet = FALSE) {
 
 # Téléchargement Google Fonts ------------------------------------------------
 
-#' Dossier de polices du système, selon l'OS
-#'
-#' Sous Windows, il s'agit du dossier système `C:/Windows/Fonts` : les polices
-#' y sont installées pour **tous** les utilisateurs (inscription `HKLM`), ce
-#' qui nécessite une session administrateur.
+#' Dossier de polices de l'utilisateur, selon l'OS
 #' @keywords internal
-font_dir <- function() {
+user_font_dir <- function() {
   sysname <- Sys.info()[["sysname"]]
   if (identical(sysname, "Darwin")) {
     fs::path_home("Library", "Fonts")
   } else if (.Platform$OS.type == "windows") {
-    fs::path(Sys.getenv("WINDIR", unset = "C:\\Windows"), "Fonts")
+    fs::path(Sys.getenv("LOCALAPPDATA"), "Microsoft", "Windows", "Fonts")
   } else {
     fs::path_home(".local", "share", "fonts")
   }
-}
-
-#' La session R a-t-elle les droits administrateur sous Windows ?
-#'
-#' `net session` ne réussit que depuis une session élevée. Toujours `TRUE`
-#' hors Windows.
-#' @keywords internal
-is_windows_admin <- function() {
-  if (.Platform$OS.type != "windows") return(TRUE)
-  status <- suppressWarnings(
-    system2("net", "session", stdout = FALSE, stderr = FALSE)
-  )
-  identical(as.integer(status), 0L)
 }
 
 #' URL de la feuille de style Google Fonts pour une famille
@@ -282,19 +264,7 @@ install_fonts_download <- function(fonts, quiet = FALSE) {
   ok <- stats::setNames(rep(FALSE, length(fonts)), fonts)
   if (length(fonts) == 0) return(ok)
 
-  if (!is_windows_admin()) {
-    cli::cli_abort(c(
-      paste0(
-        "Installation impossible : sous Windows, les polices sont installées ",
-        "pour tous les utilisateurs dans {.path {font_dir()}} ",
-        "(inscription HKLM), ce qui requiert une session administrateur."
-      ),
-      "i" = "Relancer R (ou RStudio) en tant qu'administrateur, puis relancer \\
-             {.fn ofceweb::check_fonts}."
-    ))
-  }
-
-  dest_dir <- font_dir()
+  dest_dir <- user_font_dir()
   fs::dir_create(dest_dir)
 
   work_dir <- fs::file_temp()
@@ -343,11 +313,7 @@ install_fonts_download <- function(fonts, quiet = FALSE) {
   ok
 }
 
-#' Copie les fichiers de police et, sous Windows, les enregistre pour tous
-#' les utilisateurs
-#'
-#' L'inscription passe par la ruche machine `HKLM` : les fichiers vivant dans
-#' `C:/Windows/Fonts`, un simple nom de fichier suffit comme valeur.
+#' Copie les fichiers de police et, sous Windows, les enregistre
 #' @keywords internal
 copy_font_files <- function(files, dest_dir) {
   fs::file_copy(files, dest_dir, overwrite = TRUE)
@@ -358,10 +324,10 @@ copy_font_files <- function(files, dest_dir) {
         "reg",
         c(
           "add",
-          "\"HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts\"",
+          "\"HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts\"",
           "/v", shQuote(fs::path_ext_remove(name)),
           "/t", "REG_SZ",
-          "/d", shQuote(name),
+          "/d", shQuote(as.character(fs::path(dest_dir, name))),
           "/f"
         ),
         stdout = FALSE, stderr = FALSE

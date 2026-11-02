@@ -15,6 +15,20 @@ author:
 
 lang: fr
 
+# Institution porteuse du contenu, lue par pb_manifest() pour le champ
+# `institution` du manifeste (modèle de données v1).
+# Valeurs : ofce (défaut si absent), cepii, ife.
+# Pour le logo / co-branding des gabarits Typst (ife, ife-ofce, ife-cepii,
+# ife-ofce-cepii), utiliser le champ séparé `institut` (ofce-quarto-extensions).
+institution: ofce
+
+# Métadonnées éditoriales (modèle de données v1) : listes, vides si aucune.
+# categories : classification éditoriale libre ; keywords : mots-clés libres ;
+# jel : codes JEL en majuscules (ex. [E24, E25]).
+categories: []
+keywords: []
+jel: []
+
 date-modified: last-modified
 
 

@@ -13,13 +13,42 @@ wp_manifest(path = ".", stage = NULL)
 La liste du manifeste (invisible).
 }
 \description{
-Lit les métadonnées depuis `_quarto.yml` (et `index.qmd` pour l'abstract),
-construit un `manifest.json` normalisé et l'écrit à la racine du dépôt
-(pour être commité) et dans `_site/` (pour être déployé).
+Lit les métadonnées depuis `_quarto.yml` (et `index.qmd` pour l'abstract, le
+titre et les listes éditoriales en repli), construit un `manifest.json`
+normalisé et l'écrit à la racine du dépôt (pour être commité) et dans
+`_site/` (pour être déployé).
 }
 \details{
 Le manifeste est collecté par `webhome` via la GitHub API pour construire
 l'index des documents de travail OFCE.
+
+# Modèle de données v1
+
+Le manifeste suit le schéma v1 (`schema_version: "1.0"`, voir
+`modele-donnees-v1.qmd`) :
+
+* `id` : `{institution}-wp-{annee}-{wp}-{lang}` (minuscules, sans
+  zero-padding, ex. `"ofce-wp-2026-6-fr"`), stable d'une version à l'autre ;
+  `NULL` tant que `wp`/`annee` ne sont pas enregistrés (brouillon).
+* `institution` : lu dans `institution` de `_quarto.yml` uniquement
+  (`ofce`, `cepii` ou `ife`) ; `"ofce"` si absent, avertissement et `"ofce"`
+  si la valeur est inconnue. Le champ `institut` (logos Typst) n'est pas lu.
+* `type = "working-paper"`, `media = "html"`, `auto_update = TRUE`.
+* `translation_id` : champ optionnel `translation_id` de `_quarto.yml`,
+  sinon `NULL`.
+* `title` : `_quarto.yml`, sinon `index.qmd`.
+* `authors` : liste de noms (chaînes) ; `affiliation`/`orcid` restent dans
+  `_quarto.yml`.
+* `categories`, `keywords`, `jel` : listes lues dans `_quarto.yml`, sinon
+  dans le frontmatter de `index.qmd`, sinon `[]` ; codes JEL en majuscules.
+* `date_published` (clé YAML `date`) et `date_modified`.
+* `pdf` : URL absolue (`https://www.ofce.fr/{pdf-path}`) ou `NULL` tant que
+  `pdf-path` est inconnu.
+
+Les champs historiques `wp`, `annee`, `version`, `stage`, `pdf-path`,
+`source-repo` et `ofceweb-version` sont conservés (lus par `deploy_wp()` et
+`ftp_deploy.yml`). Les manifestes de staging/brouillon ne sont pas
+conformes v1 par construction : le schéma s'applique aux contenus publiés.
 
 Inclut un champ `source-repo` (`"owner/repo"`, résolu depuis le remote
 `origin` local) utilisé par le workflow `ftp_deploy.yml` pour détecter

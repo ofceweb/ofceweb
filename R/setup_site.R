@@ -72,6 +72,11 @@
 #' `>= 1.3.39` — sinon la fonction s'arrête immédiatement avec
 #' [cli::cli_abort()].
 #'
+#' L'extension `quarto-ife` (`_extensions/ofceweb/`) est installée ou mise à
+#' jour par [update_quarto_ife()] à sa dernière version publiée. Le gabarit
+#' `_quarto.yml` l'appelle aussi en `pre-render`, si bien que le site suit la
+#' dernière version à chaque rendu.
+#'
 #' @returns Invisible `NULL`. Appelée pour ses effets de bord.
 #' @seealso [update_navbar()]
 #' @importFrom fs path_expand path_abs path_norm path_file path path_rel path_ext_set path_ext_remove path_ext file_exists dir_exists file_copy dir_copy dir_create dir_ls
@@ -226,6 +231,10 @@ setup_site <- function(
     cli::cli_alert_warning("{.fn ofce::setup_quarto} a \u00e9chou\u00e9 : {conditionMessage(e)}")
   })
   check_stray_ofce_extensions(root)
+
+  # ---- 2c. extension Quarto IFE (ofceweb/quarto-ife) ------------------------
+  # Dernière version publiée à chaque appel ; le site la suit ensuite en pre-render.
+  update_quarto_ife(root)
 
   if(fs::dir_exists(src_workflows)) {
     dest_workflows <- fs::path(root, ".github", "workflows")

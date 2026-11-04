@@ -20,6 +20,12 @@
 #' `>= 1.3.39` — sinon la fonction s'arrête immédiatement avec
 #' [cli::cli_abort()].
 #'
+#' L'extension `quarto-ife` (`_extensions/ofceweb/`) est installée par
+#' [update_quarto_ife()] à sa dernière version publiée si elle est absente.
+#' Présente, elle n'est pas mise à jour : un document garde la version
+#' installée à sa création, et un appel à [update_quarto_ife()] le fait passer
+#' à la dernière version.
+#'
 #' @section Structure créée :
 #' ```
 #' <root>/
@@ -27,6 +33,7 @@
 #' ├── _quarto-staging.yml      # profil staging (site-path, version, encrypt_site)
 #' ├── _quarto-publish.yml      # profil publish (site-path, pas de chiffrement)
 #' ├── _extensions/             # extensions Quarto OFCE (via ofce::setup_quarto())
+#' │                            # et quarto-ife (via update_quarto_ife())
 #' ├── www/                     # assets statiques (logos, CSS — toujours mis à jour)
 #' ├── france/data/             # données France (.gitkeep)
 #' ├── inter/data/              # données International (.gitkeep)
@@ -187,6 +194,10 @@ setup_prev <- function(
     cli::cli_alert_warning("{.fn ofce::setup_quarto} a \u00e9chou\u00e9 : {conditionMessage(e)}")
   })
   check_stray_ofce_extensions(root)
+
+  # ---- 4a. extension Quarto IFE (ofceweb/quarto-ife) ------------------------
+  # Installée si absente ; un document garde ensuite sa version.
+  update_quarto_ife(root, only_if_absent = TRUE)
 
   # ---- 4b. www/ (depuis inst/share/ — toujours mis à jour) -----------------
   if (fs::dir_exists(pkg_share)) {

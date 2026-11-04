@@ -60,6 +60,12 @@
 #' que le package **ofce** installé est en version `>= 1.3.39` — sinon la
 #' fonction s'arrête immédiatement avec [cli::cli_abort()].
 #'
+#' L'extension `quarto-ife` (`_extensions/ofceweb/`) est installée par
+#' [update_quarto_ife()] à sa dernière version publiée si elle est absente.
+#' Présente, elle n'est pas mise à jour : un document garde la version
+#' installée à sa création, et un appel à [update_quarto_ife()] le fait passer
+#' à la dernière version.
+#'
 #' Côté PDF, `pb-pdf` (LaTeX) et `pb-typst` (Typst) sont les deux moteurs
 #' légitimes. Le nom du PDF de brouillon (`pb` non attribué) est
 #' `{draft-prefix}-{repo}-{version}.pdf` (ex. `ife-draft-pb-csskvv-chn-v1.pdf`),
@@ -378,6 +384,10 @@ setup_pb <- function(
     cli::cli_alert_warning("{.fn ofce::setup_quarto} a échoué : {conditionMessage(e)}")
   })
   check_stray_ofce_extensions(root)
+
+  # ---- 9b. extension Quarto IFE (ofceweb/quarto-ife) ------------------------
+  # Installée si absente ; un document garde ensuite sa version.
+  update_quarto_ife(root, only_if_absent = TRUE)
 
   # ---- 10. copie des workflows (toujours mis à jour depuis le package) ------
   src_wf  <- fs::path(pkg_setup_pb, "workflows")

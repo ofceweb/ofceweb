@@ -12,6 +12,8 @@ local_stub_pb_side_effects <- function(env = parent.frame()) {
     # version (checked right before ofce::setup_quarto()); stubbed out so
     # tests don't depend on whatever ofce version happens to be installed.
     check_ofce_version    = function(...) invisible(TRUE),
+    # quarto-ife lookup and install (git ls-remote, quarto add) need the network.
+    update_quarto_ife     = function(...) invisible(NULL),
     .env = env
   )
   local_mocked_bindings(
@@ -304,6 +306,7 @@ test_that("setup_pb() installs Quarto extensions via ofce::setup_quarto()", {
     set_gh_var             = function(...) invisible(NULL),
     sync_pb_registry_state = function(...) stop("registry lookup stubbed out for this test"),
     fetch_pb_series_index  = function(...) pb_test_series_index(),
+    update_quarto_ife     = function(...) invisible(NULL),
     check_ofce_version     = function(...) invisible(TRUE)
   )
   local_mocked_bindings(
@@ -331,6 +334,7 @@ test_that("setup_pb() lets a confirmed registry entry override the existing _qua
     fetch_pb_entries      = function(...) list(
       list(pb = 4L, type = "repo", `source-repo` = "ofce/pb2026-1")
     ),
+    update_quarto_ife     = function(...) invisible(NULL),
     check_ofce_version    = function(...) invisible(TRUE)
   )
   local_mocked_bindings(

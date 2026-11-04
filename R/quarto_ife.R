@@ -3,7 +3,7 @@
 #' L'extension `quarto-ife` (format `ife-html`, type de projet
 #' `ife-website`) vit dans le dépôt public `ofceweb/quarto-ife`. Une version
 #' publiée y est une étiquette `vX.Y.Z`. `update_quarto_ife()` installe dans
-#' `_extensions/ife/` la plus haute de ces versions, avec
+#' `_extensions/ofceweb/` la plus haute de ces versions, avec
 #' `quarto add ofceweb/quarto-ife@vX.Y.Z`, si elle n'y est pas déjà.
 #'
 #' Un dépôt de site l'appelle en `pre-render` de son `_quarto.yml`, et suit
@@ -85,11 +85,11 @@ quarto_ife_repo <- "ofceweb/quarto-ife"
 #' Version de quarto-ife installée dans un projet
 #'
 #' @param path Racine du projet Quarto.
-#' @returns La version lue dans `_extensions/ife/ife/_extension.yml`, ou
+#' @returns La version lue dans `_extensions/ofceweb/ife/_extension.yml`, ou
 #'   `NULL` si le fichier est absent ou illisible.
 #' @keywords internal
 quarto_ife_installed_version <- function(path = ".") {
-  f <- fs::path(path, "_extensions", "ife", "ife", "_extension.yml")
+  f <- fs::path(path, "_extensions", "ofceweb", "ife", "_extension.yml")
   if (!fs::file_exists(f)) return(NULL)
   v <- tryCatch(yaml::read_yaml(f)[["version"]], error = function(e) NULL)
   if (is.null(v)) NULL else as.character(v)
@@ -130,15 +130,34 @@ quarto_ife_latest_tag <- function(tags) {
 
 #' Installe une version de quarto-ife
 #'
+#' `quarto add` charge le projet du dossier courant, et échoue sur un projet
+#' de type `ife-website` dont l'extension manque. L'extension s'installe donc
+#' dans un dossier vide, puis ses dossiers remplacent ceux de
+#' `_extensions/ofceweb/` dans le projet.
+#'
 #' @param path Racine du projet Quarto.
 #' @param version Version à installer, sans le `v`.
 #' @keywords internal
 quarto_ife_install <- function(path, version) {
+  dest <- fs::path(fs::path_abs(path), "_extensions", "ofceweb")
+  tmp <- fs::file_temp("quarto-ife-")
+  fs::dir_create(tmp)
   oldwd <- getwd()
-  on.exit(setwd(oldwd))
-  setwd(path)
+  on.exit({
+    setwd(oldwd)
+    fs::dir_delete(tmp)
+  })
+  setwd(tmp)
   quarto::quarto_add_extension(
     paste0(quarto_ife_repo, "@v", version),
     no_prompt = TRUE, quiet = TRUE
   )
+  src <- fs::path(tmp, "_extensions", "ofceweb")
+  if (!fs::dir_exists(src)) cli::cli_abort("{.code quarto add} n'a rien installé")
+  fs::dir_create(dest)
+  for (ext in fs::dir_ls(src, type = "directory")) {
+    target <- fs::path(dest, fs::path_file(ext))
+    if (fs::dir_exists(target)) fs::dir_delete(target)
+    fs::dir_copy(ext, target)
+  }
 }

@@ -3,10 +3,10 @@
 # (quarto_ife_remote_tags()) and the installation (quarto_ife_install()) are
 # mocked: no network, git or Quarto call is made.
 
-# Writes `_extensions/ife/ife/_extension.yml` at `version` under `dir`, as
+# Writes `_extensions/ofceweb/ife/_extension.yml` at `version` under `dir`, as
 # `quarto add ofceweb/quarto-ife@v<version>` would.
 fake_quarto_ife <- function(dir, version) {
-  p <- fs::path(dir, "_extensions", "ife", "ife")
+  p <- fs::path(dir, "_extensions", "ofceweb", "ife")
   fs::dir_create(p, recurse = TRUE)
   writeLines(c("title: Format IFE", paste0("version: ", version)),
              fs::path(p, "_extension.yml"))
@@ -127,4 +127,34 @@ test_that("update_quarto_ife() warns when installation does not leave the expect
 
   expect_message(res <- update_quarto_ife(dir), "aucune")
   expect_null(res)
+})
+
+test_that("quarto_ife_install() installs in an empty folder and replaces the project's copy", {
+  dir <- withr::local_tempdir()
+  fake_quarto_ife(dir, "0.1.0")
+  writeLines("project:\n  type: ife-website", fs::path(dir, "_quarto.yml"))
+  stale <- fs::path(dir, "_extensions", "ofceweb", "ife", "old.lua")
+  writeLines("-- removed in 0.2.0", stale)
+  added_from <- NULL
+  local_mocked_bindings(
+    quarto_add_extension = function(extension, ...) {
+      added_from <<- getwd()
+      fake_quarto_ife(".", sub(".*@v", "", extension))
+    },
+    .package = "quarto"
+  )
+
+  quarto_ife_install(dir, "0.2.0")
+
+  expect_false(fs::file_exists(fs::path(added_from, "_quarto.yml")))
+  expect_identical(quarto_ife_installed_version(dir), "0.2.0")
+  expect_false(fs::file_exists(stale))
+  expect_false(fs::dir_exists(added_from))
+})
+
+test_that("quarto_ife_install() errors when quarto add installs nothing", {
+  dir <- withr::local_tempdir()
+  local_mocked_bindings(quarto_add_extension = function(...) invisible(NULL), .package = "quarto")
+
+  expect_error(quarto_ife_install(dir, "0.2.0"), "quarto add")
 })

@@ -60,7 +60,7 @@
 #' que le package **ofce** installé est en version `>= 1.3.39` — sinon la
 #' fonction s'arrête immédiatement avec [cli::cli_abort()].
 #'
-#' L'extension `quarto-ife` (`_extensions/ife/`) est installée par
+#' L'extension `quarto-ife` (`_extensions/ofceweb/`) est installée par
 #' [update_quarto_ife()] à sa dernière version publiée si elle est absente.
 #' Présente, elle n'est pas mise à jour : un document garde la version
 #' installée à sa création, et un appel à [update_quarto_ife()] le fait passer

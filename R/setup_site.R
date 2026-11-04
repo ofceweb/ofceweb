@@ -72,7 +72,7 @@
 #' `>= 1.3.39` — sinon la fonction s'arrête immédiatement avec
 #' [cli::cli_abort()].
 #'
-#' L'extension `quarto-ife` (`_extensions/ife/`) est installée ou mise à
+#' L'extension `quarto-ife` (`_extensions/ofceweb/`) est installée ou mise à
 #' jour par [update_quarto_ife()] à sa dernière version publiée. Le gabarit
 #' `_quarto.yml` l'appelle aussi en `pre-render`, si bien que le site suit la
 #' dernière version à chaque rendu.

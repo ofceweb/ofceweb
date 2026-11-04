@@ -10,7 +10,7 @@ quarto_ife_installed_version(path = ".")
 \item{path}{Racine du projet Quarto.}
 }
 \value{
-La version lue dans `_extensions/ife/ife/_extension.yml`, ou
+La version lue dans `_extensions/ofceweb/ife/_extension.yml`, ou
   `NULL` si le fichier est absent ou illisible.
 }
 \description{

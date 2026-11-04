@@ -22,7 +22,7 @@ Invisible, la version installée après l'appel (`"0.2.0"`), ou
 L'extension `quarto-ife` (format `ife-html`, type de projet
 `ife-website`) vit dans le dépôt public `ofceweb/quarto-ife`. Une version
 publiée y est une étiquette `vX.Y.Z`. `update_quarto_ife()` installe dans
-`_extensions/ife/` la plus haute de ces versions, avec
+`_extensions/ofceweb/` la plus haute de ces versions, avec
 `quarto add ofceweb/quarto-ife@vX.Y.Z`, si elle n'y est pas déjà.
 }
 \details{

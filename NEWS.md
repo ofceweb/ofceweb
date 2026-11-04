@@ -6,7 +6,7 @@ L'extension de l'IFE (format `ife-html`, type de projet `ife-website`) vit
 désormais dans le dépôt public `ofceweb/quarto-ife`, dont chaque version
 publiée est une étiquette `vX.Y.Z`.
 
-* Nouvelle fonction `update_quarto_ife()` : installe dans `_extensions/ife/`
+* Nouvelle fonction `update_quarto_ife()` : installe dans `_extensions/ofceweb/`
   la plus haute version publiée, lue par `git ls-remote` (sans jeton). Si
   GitHub ne répond pas ou si l'installation échoue, elle avertit et garde la
   version en place, sans erreur. `only_if_absent = TRUE` n'installe

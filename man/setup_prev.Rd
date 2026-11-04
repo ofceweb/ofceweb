@@ -49,6 +49,12 @@ automatiquement. Juste avant cet appel, `setup_prev()` vérifie aussi (via
 `check_ofce_version()`) que le package **ofce** installé est en version
 `>= 1.3.39` — sinon la fonction s'arrête immédiatement avec
 [cli::cli_abort()].
+
+L'extension `quarto-ife` (`_extensions/ife/`) est installée par
+[update_quarto_ife()] à sa dernière version publiée si elle est absente.
+Présente, elle n'est pas mise à jour : un document garde la version
+installée à sa création, et un appel à [update_quarto_ife()] le fait passer
+à la dernière version.
 }
 \section{Structure créée }{
 
@@ -58,6 +64,7 @@ automatiquement. Juste avant cet appel, `setup_prev()` vérifie aussi (via
 ├── _quarto-staging.yml      # profil staging (site-path, version, encrypt_site)
 ├── _quarto-publish.yml      # profil publish (site-path, pas de chiffrement)
 ├── _extensions/             # extensions Quarto OFCE (via ofce::setup_quarto())
+│                            # et quarto-ife (via update_quarto_ife())
 ├── www/                     # assets statiques (logos, CSS — toujours mis à jour)
 ├── france/data/             # données France (.gitkeep)
 ├── inter/data/              # données International (.gitkeep)

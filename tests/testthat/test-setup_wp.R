@@ -265,6 +265,7 @@ test_that("setup_wp() installs Quarto extensions via ofce::setup_quarto()", {
   local_mocked_bindings(
     init_gh_pages_branch = function(...) invisible(NULL),
     set_gh_var           = function(...) invisible(NULL),
+    update_quarto_ife     = function(...) invisible(NULL),
     check_ofce_version    = function(...) invisible(TRUE)
   )
   local_mocked_bindings(
@@ -291,6 +292,7 @@ test_that("setup_wp() lets a confirmed registry entry override the existing _qua
     fetch_wp_entries      = function(...) list(
       list(annee = 2027L, wp = 4L, type = "repo", `source-repo` = "ofce/wp2026-1")
     ),
+    update_quarto_ife     = function(...) invisible(NULL),
     check_ofce_version    = function(...) invisible(TRUE)
   )
   local_mocked_bindings(

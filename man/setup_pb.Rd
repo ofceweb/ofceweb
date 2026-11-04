@@ -73,6 +73,10 @@ une correction ultérieure se fait en redéployant à la même adresse.
 `nb` (numéro lu par l'extension `pb` pour distinguer brouillon et
 publié) est écrit à la publication et retiré pour un brouillon.
 
+`institut` (logo du PB) vaut `"ife"` par défaut : il est ajouté à
+`_quarto.yml` s'il n'est déclaré ni là ni dans `index.qmd`. Il ne dépend
+pas de `pb_series`, et une valeur existante n'est jamais modifiée.
+
 `author` est destiné à ne vivre que dans `_quarto.yml` : si `index.qmd`
 en porte une (héritage d'un ancien gabarit, ou ajout manuel), elle est
 déplacée vers `_quarto.yml` -- remplaçant la valeur qui y était déjà,
@@ -86,6 +90,12 @@ Les extensions Quarto OFCE (`_extensions/`) sont installées/mises à jour via
 Juste avant cet appel, `setup_pb()` vérifie aussi (via `check_ofce_version()`)
 que le package **ofce** installé est en version `>= 1.3.39` — sinon la
 fonction s'arrête immédiatement avec [cli::cli_abort()].
+
+L'extension `quarto-ife` (`_extensions/ife/`) est installée par
+[update_quarto_ife()] à sa dernière version publiée si elle est absente.
+Présente, elle n'est pas mise à jour : un document garde la version
+installée à sa création, et un appel à [update_quarto_ife()] le fait passer
+à la dernière version.
 
 Côté PDF, `pb-pdf` (LaTeX) et `pb-typst` (Typst) sont les deux moteurs
 légitimes. Le nom du PDF de brouillon (`pb` non attribué) est

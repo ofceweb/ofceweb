@@ -124,6 +124,7 @@ reference:
   contents:
     - preview_qmd
     - update_navbar
+    - update_quarto_ife
     - check_fonts
     - download_gh_dir
     - download_gh_file

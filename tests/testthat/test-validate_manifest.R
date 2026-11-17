@@ -279,3 +279,25 @@ test_that("print affiche le verdict", {
   expect_message(print(validate_manifest(minimal())), "Manifeste valide")
   expect_message(print(validate_manifest(minimal_with(lang = "de"))), "1 erreur")
 })
+
+# Les valeurs viennent du manifeste : cli ne doit ni les évaluer ni planter
+# sur leurs accolades.
+print_output <- function(res) {
+  out <- capture.output(print(res), type = "message")
+  paste(cli::ansi_strip(out), collapse = " ")
+}
+
+test_that("print affiche des auteurs écrits en objets", {
+  res <- validate_manifest(exemples("invalides", "authors-objets.json"))
+  out <- expect_no_error(print_output(res))
+  expect_match(out, '"name":"Xavier Timbeau"', fixed = TRUE)
+})
+
+test_that("print n'interprète pas une valeur contenant {x}", {
+  x <- "VALEUR-EVALUEE"
+  res <- validate_manifest(list(minimal_with(lang = "{x}", id = "ofce-{x}")))
+  out <- expect_no_error(print_output(res))
+  expect_match(out, 'valeur "{x}" non admise', fixed = TRUE)
+  expect_match(out, "(ofce-{x})", fixed = TRUE)
+  expect_no_match(out, "VALEUR-EVALUEE", fixed = TRUE)
+})

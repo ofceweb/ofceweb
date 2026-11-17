@@ -101,7 +101,9 @@ print.ofceweb_manifest_validation <- function(x, ...) {
       if (!is.na(e$field)) e$field
     )
     prefix <- if (length(where)) paste0(paste(where, collapse = ", "), " : ") else ""
-    cli::cli_bullets(c(x = paste0(cli::format_inline("{prefix}"), cli::format_inline("{e$message}"))))
+    # Valeurs passées comme variables du gabarit : cli ne réinterprète pas
+    # leurs accolades, qui viennent du manifeste.
+    cli::cli_bullets(c(x = "{prefix}{e$message}"))
   }
   invisible(x)
 }

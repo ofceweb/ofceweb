@@ -89,6 +89,37 @@ test_that("chaque exemple invalide est rejeté avec l'erreur attendue", {
   }
 })
 
+# --- Schéma seul, hors de validate_manifest() (S11, CA5) ----------------------
+
+# Verdict du schéma seul, avec ajv comme un validateur hors de R : le schéma
+# collectif (et son $ref vers le schéma unitaire) pour un tableau JSON.
+schema_only_valid <- function(path) {
+  txt <- paste(readLines(path, encoding = "UTF-8", warn = FALSE), collapse = "\n")
+  is_array <- grepl("^\\s*\\[", txt)
+  schema <- manifest_schema_path(if (is_array) "manifest-collectif-1.0.json" else "manifest-1.0.json")
+  isTRUE(as.logical(jsonvalidate::json_validator(schema, engine = "ajv")(txt)))
+}
+
+test_that("S11 : le schéma seul rend le même verdict, sauf pour les règles R", {
+  for (f in list.files(exemples("valides"), full.names = TRUE)) {
+    expect_true(schema_only_valid(f), info = basename(f))
+  }
+  for (nm in names(cas)) {
+    expect_identical(
+      schema_only_valid(exemples("invalides", nm)), isTRUE(cas[[nm]]$r_only),
+      info = nm
+    )
+  }
+})
+
+test_that("S11 : le schéma collectif se charge avec son $ref vers le schéma unitaire", {
+  v <- jsonvalidate::json_validator(manifest_schema_path("manifest-collectif-1.0.json"), engine = "ajv")
+  expect_true(as.logical(v(exemples("valides", "blog-collectif.json"))))
+  res <- v(exemples("invalides", "collectif-entree-fautive.json"), verbose = TRUE)
+  expect_false(as.logical(res))
+  expect_equal(attr(res, "errors")$instancePath, "/1/lang")
+})
+
 # --- Scénarios ---------------------------------------------------------------
 
 test_that("S2 : un champ obligatoire manquant est nommé", {

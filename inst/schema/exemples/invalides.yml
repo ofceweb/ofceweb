@@ -1,0 +1,165 @@
+# Exemples invalides du manifeste v1 et erreurs attendues.
+#
+# Une entrée par fichier de exemples/invalides/. Pour chaque erreur attendue :
+#   field   : champ concerné (null pour une erreur qui porte sur tout le manifeste)
+#   message : extrait du message rendu par ofceweb::validate_manifest()
+#   entry   : position de l'entrée fautive (manifeste collectif seulement)
+#   r_only  : true si la règle relie plusieurs champs et n'est vérifiée que par
+#             validate_manifest(), pas par le schéma JSON seul
+#
+# Les tests du package lisent ce fichier : la liste des cas n'existe qu'ici.
+
+sans-jel.json:
+  description: Liste obligatoire absente (jel).
+  errors:
+    - field: jel
+      message: champ obligatoire manquant
+sans-categories.json:
+  description: Liste obligatoire absente (categories).
+  errors:
+    - field: categories
+      message: champ obligatoire manquant
+sans-keywords.json:
+  description: Liste obligatoire absente (keywords).
+  errors:
+    - field: keywords
+      message: champ obligatoire manquant
+sans-translation-id.json:
+  description: translation_id absent ; il est obligatoire, même à null.
+  errors:
+    - field: translation_id
+      message: champ obligatoire manquant
+lang-hors-liste.json:
+  description: Langue hors liste.
+  errors:
+    - field: lang
+      message: 'valeur "de" non admise ; valeurs admises : fr, en'
+type-hors-liste.json:
+  description: Type hors liste.
+  errors:
+    - field: type
+      message: 'valeur "article" non admise ; valeurs admises : post, blog'
+institution-hors-liste.json:
+  description: Institution hors liste.
+  errors:
+    - field: institution
+      message: 'valeur "insee" non admise ; valeurs admises : ofce, cepii, ife'
+dates-inversees.json:
+  description: date_modified antérieure à date_published.
+  r_only: true
+  errors:
+    - field: date_modified
+      message: date_modified vaut 2026-05-01, date_published vaut 2026-06-15
+id-institution.json:
+  description: id qui ne commence pas par la valeur d'institution.
+  r_only: true
+  errors:
+    - field: id
+      message: doit commencer par « cepii- »
+id-majuscules.json:
+  description: id en majuscules ; il ne commence pas non plus par « ofce- ».
+  errors:
+    - field: id
+      message: doit être en minuscules
+    - field: id
+      message: doit commencer par « ofce- »
+champ-reserve.json:
+  description: Champ réservé à l'agrégateur (author_ids).
+  errors:
+    - field: author_ids
+      message: champ réservé à l'agrégateur
+brouillon-id-null.json:
+  description: Brouillon dont l'id vaut null.
+  errors:
+    - field: id
+      message: un brouillon n'est pas conforme
+trois-erreurs.json:
+  description: Trois défauts rapportés ensemble.
+  errors:
+    - field: jel
+      message: champ obligatoire manquant
+    - field: lang
+      message: valeur "de" non admise
+    - field: title
+      message: ne doit pas être vide
+schema-version.json:
+  description: schema_version différent de "1.0".
+  errors:
+    - field: schema_version
+      message: doit valoir "1.0"
+pdf-sans-url.json:
+  description: media pdf sans champ pdf.
+  errors:
+    - field: pdf
+      message: champ obligatoire manquant quand media vaut pdf
+pdf-null.json:
+  description: media pdf avec pdf à null.
+  errors:
+    - field: pdf
+      message: doit être une URL absolue en https quand media vaut pdf
+url-http.json:
+  description: URL en http.
+  errors:
+    - field: url
+      message: doit être une URL absolue en https
+pdf-relatif.json:
+  description: URL relative dans pdf.
+  errors:
+    - field: pdf
+      message: doit être une URL absolue en https ou null
+image-http.json:
+  description: URL en http dans image.
+  errors:
+    - field: image
+      message: doit être une URL absolue en https ou null
+repo-relatif.json:
+  description: URL relative dans repo.
+  errors:
+    - field: repo
+      message: doit être une URL absolue en https ou null
+jel-minuscules.json:
+  description: Code JEL en minuscules.
+  errors:
+    - field: jel
+      message: 'code JEL invalide'
+authors-objets.json:
+  description: Auteurs sous forme d'objets {name, affiliation}.
+  errors:
+    - field: authors
+      message: 'élément 1 : doit être une chaîne de caractères'
+title-vide.json:
+  description: Titre vide.
+  errors:
+    - field: title
+      message: ne doit pas être vide
+department-hors-liste.json:
+  description: Code de département hors liste.
+  errors:
+    - field: department
+      message: 'valeur "DXX" non admise'
+date-format.json:
+  description: Date au mauvais format.
+  errors:
+    - field: date_published
+      message: doit être une date au format AAAA-MM-JJ
+auto-update-chaine.json:
+  description: auto_update écrit comme une chaîne.
+  errors:
+    - field: auto_update
+      message: doit être un booléen
+json-illisible.json:
+  description: Fichier qui n'est pas du JSON lisible.
+  errors:
+    - field: null
+      message: JSON illisible
+collectif-vide.json:
+  description: Manifeste collectif vide.
+  errors:
+    - field: null
+      message: le manifeste collectif est vide
+collectif-entree-fautive.json:
+  description: Manifeste collectif du blog dont la deuxième entrée a une langue hors liste.
+  errors:
+    - entry: 2
+      field: lang
+      message: 'valeur "de" non admise'

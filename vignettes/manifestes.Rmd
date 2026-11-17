@@ -1,0 +1,150 @@
+---
+title: "Valider un manifeste"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Valider un manifeste}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+## Ce qu'est un manifeste
+
+Chaque contenu publié (document de travail, policy brief, post du blog,
+prévision…) est décrit par un fichier `manifest.json`, écrit par son
+dépôt source. La base des contenus est construite à partir de ces
+manifestes. `wp_manifest()` et `pb_manifest()` les produisent pour les
+documents de travail et les policy briefs ; d'autres producteurs (le
+blog, l'outil de saisie des PDF, la migration de l'existant) écrivent le
+même format.
+
+Le format v1 est fixé par un schéma
+[JSON Schema](https://json-schema.org/) (draft-07), qui fait foi pour la
+liste des champs, leur caractère obligatoire et leurs valeurs admises.
+Chaque champ y porte une description. L'explication du modèle (pourquoi
+ces champs, cycle de vie d'un contenu) se trouve dans `webdocs`,
+`architecture-base-contenus.qmd` §3.1.
+
+| Fichier | Contenu | Adresse publiée |
+|---|---|---|
+| `manifest-1.0.json` | un manifeste (un objet JSON) | <https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/manifest-1.0.json> |
+| `manifest-collectif-1.0.json` | un manifeste collectif (un tableau de manifestes) | <https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/manifest-collectif-1.0.json> |
+
+Les deux fichiers sont aussi livrés avec le package :
+
+```{r}
+system.file("schema", package = "ofceweb")
+```
+
+Quelques règles à connaître :
+
+- un manifeste de brouillon, dont l'`id` vaut `null`, n'est pas
+  conforme : le format v1 ne s'applique qu'aux contenus publiés ;
+- un champ inconnu est accepté, ce qui couvre les champs historiques de
+  `wp_manifest()` (`wp`, `annee`, `version`, `stage`, `pdf-path`,
+  `source-repo`, `ofceweb-version`…) ;
+- les champs `author_ids`, `children`, `status`, `manifest_url` et
+  `collected_at` sont réservés à l'agrégateur et interdits dans un
+  manifeste source ;
+- pour `categories` et `region`, seule la forme est contrôlée ; les
+  valeurs hors des listes fermées sont signalées par le rapport de
+  collecte, sans écarter le contenu.
+
+## Valider en R
+
+`validate_manifest()` accepte un chemin de fichier, une URL ou une liste
+R, et rend toutes les erreurs trouvées, en français :
+
+```{r}
+library(ofceweb)
+
+validate_manifest("manifest.json")
+validate_manifest("https://www.ofce.fr/wp/2025/23/v1/manifest.json")
+```
+
+Elle s'appuie sur le package `jsonvalidate`, qui n'est pas installé avec
+ofceweb : elle propose de l'installer au premier appel.
+
+Le résultat contient le verdict et un tableau des erreurs :
+
+```{r}
+res <- validate_manifest("manifest.json")
+res$valid
+#> [1] FALSE
+res$errors
+#> # A tibble: 2 × 4
+#>   entry id                field message
+#>   <int> <chr>             <chr> <chr>
+#> 1    NA ofce-wp-2026-6-fr jel   champ obligatoire manquant.
+#> 2    NA ofce-wp-2026-6-fr lang  valeur "de" non admise ; valeurs admises : fr, en.
+```
+
+La fonction ne lève pas d'erreur R sur un manifeste invalide ou sur un
+fichier illisible : une boucle sur plusieurs manifestes continue
+jusqu'au bout.
+
+En plus du schéma, `validate_manifest()` vérifie deux règles qui relient
+plusieurs champs :
+
+- `date_modified` est postérieure ou égale à `date_published` ;
+- l'`id` commence par la valeur d'`institution` suivie d'un tiret
+  (`ofce-…` pour `institution: ofce`).
+
+Pour une liste R, les champs tableaux (`authors`, `categories`,
+`keywords`, `jel`, `department`) s'écrivent avec `list()`, comme dans
+`wp_manifest()`, pour rester des tableaux JSON même avec un seul
+élément.
+
+## Le manifeste collectif
+
+Un pipeline qui publie de nombreux contenus d'un coup, comme le blog,
+écrit un seul manifeste : un tableau JSON dont la première entrée décrit
+l'ensemble (`id: ofce-blog`, `type: blog`) et dont les suivantes
+décrivent chaque contenu (`parent: "ofce-blog"`). Chaque entrée suit le
+schéma unitaire.
+
+`validate_manifest()` reconnaît un tableau JSON et contrôle chaque
+entrée. La colonne `entry` donne la position de l'entrée fautive, et la
+colonne `id` son identifiant quand elle en a un.
+
+## Valider hors de R
+
+N'importe quel validateur JSON Schema compatible draft-07 peut
+contrôler un manifeste avec le schéma publié, par exemple
+[`ajv-cli`](https://github.com/ajv-validator/ajv-cli) :
+
+```bash
+# Manifeste unitaire
+npx ajv-cli validate --spec=draft7 --strict=false \
+  -s manifest-1.0.json -d manifest.json
+
+# Manifeste collectif : le schéma unitaire est passé en référence
+npx ajv-cli validate --spec=draft7 --strict=false \
+  -s manifest-collectif-1.0.json -r manifest-1.0.json -d manifest.json
+```
+
+Le verdict est le même qu'en R, sauf pour les deux règles qui relient
+plusieurs champs (ordre des dates, préfixe de l'`id`), que seule
+`validate_manifest()` vérifie. Les messages d'erreur sont ceux de
+l'outil, en anglais.
+
+## Exemples
+
+Des exemples valides et invalides accompagnent le schéma :
+
+```{r}
+system.file("schema", "exemples", package = "ofceweb")
+```
+
+- `valides/` : un manifeste minimal, un manifeste complet, un manifeste
+  de PDF, le manifeste réel d'un document de travail en ligne et le
+  manifeste collectif d'un blog ;
+- `invalides/` : un fichier par règle ;
+- `invalides.yml` : pour chaque fichier invalide, le champ et l'erreur
+  attendus.

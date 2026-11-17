@@ -79,6 +79,7 @@ Imports:
     yaml
 Suggests:
     askpass,
+    jsonvalidate,
     knitr,
     rmarkdown,
     rstudioapi,

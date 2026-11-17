@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "id": "ife-pb-12-fr",
+  "translation_id": null,
+  "institution": "ife",
+  "type": "policy-brief",
+  "media": "pdf",
+  "lang": "fr",
+  "title": "Un policy brief déposé en PDF",
+  "authors": ["Xavier Timbeau"],
+  "categories": [],
+  "keywords": [],
+  "jel": [],
+  "department": [],
+  "date_published": "2026-03-02",
+  "date_modified": null,
+  "url": "https://www.ofce.fr/pb/ife/12/",
+  "pdf": "https://www.ofce.fr/pb/ife/12/IFEPB12.pdf",
+  "auto_update": false
+}

@@ -1,0 +1,66 @@
+[
+  {
+    "schema_version": "1.0",
+    "id": "ofce-blog",
+    "translation_id": null,
+    "institution": "ofce",
+    "type": "blog",
+    "media": "site",
+    "lang": "fr",
+    "parent": null,
+    "title": "Le blog de l'OFCE",
+    "authors": [],
+    "categories": [],
+    "keywords": [],
+    "jel": [],
+    "date_published": "2020-01-01",
+    "url": "https://www.ofce.sciences-po.fr/blog/",
+    "auto_update": true
+  },
+  {
+    "schema_version": "1.0",
+    "id": "ofce-post-2026-42-fr",
+    "translation_id": "ofce-post-2026-42",
+    "institution": "ofce",
+    "type": "post",
+    "media": "html",
+    "lang": "de",
+    "parent": "ofce-blog",
+    "title": "Un premier post",
+    "authors": [
+      "Xavier Timbeau"
+    ],
+    "categories": [
+      "macroéconomie"
+    ],
+    "keywords": [],
+    "jel": [],
+    "date_published": "2026-05-10",
+    "url": "https://www.ofce.sciences-po.fr/blog/2026/42/",
+    "auto_update": true
+  },
+  {
+    "schema_version": "1.0",
+    "id": "ofce-post-2026-42-en",
+    "translation_id": "ofce-post-2026-42",
+    "institution": "ofce",
+    "type": "post",
+    "media": "html",
+    "lang": "en",
+    "parent": "ofce-blog",
+    "title": "A first post",
+    "authors": [
+      "Xavier Timbeau"
+    ],
+    "categories": [
+      "macroéconomie"
+    ],
+    "keywords": [],
+    "jel": [],
+    "date_published": "2026-05-10",
+    "date_modified": "2026-05-12",
+    "url": "https://www.ofce.sciences-po.fr/blog/en/2026/42/",
+    "auto_update": true
+  }
+]
+

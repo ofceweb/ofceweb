@@ -23,9 +23,7 @@
 #'    (même `manifest_url`) sont repris tels quels, avec leur `collected_at` et
 #'    leur `manifest_url`, mais avec le `status` de la déclaration en cours.
 #'    Un enregistrement dont l'`id` a sa propre déclaration n'est pas repris
-#'    pour une autre ; si ce manifeste est celui d'une autre déclaration du
-#'    journal, seul l'enregistrement de l'`id` est repris. Sans base
-#'    précédente, le contenu est absent de la base.
+#'    pour une autre. Sans base précédente, le contenu est absent de la base.
 #' 4. Chaque entrée d'un manifeste devient un enregistrement. Un enregistrement
 #'    garde les champs v1 du manifeste (schéma `manifest-1.0.json`), dans
 #'    l'ordre du schéma, et ajoute les cinq champs de l'agrégateur :
@@ -39,10 +37,13 @@
 #'
 #'    Les champs historiques ou inconnus du manifeste (`wp`, `stage`,
 #'    `source-repo`…) ne passent pas dans la base.
-#' 5. Le contenu d'une déclaration passe avant une entrée de manifeste
-#'    collectif de même `id` ; une entrée d'un manifeste téléchargé passe
-#'    avant une entrée reprise de la base précédente ; entre deux entrées de
-#'    même `id`, la première est gardée.
+#' 5. Pour un même `id`, la base garde, dans l'ordre : l'enregistrement de la
+#'    déclaration de cet `id`, téléchargé ou repris ; puis une entrée d'un
+#'    manifeste téléchargé ; puis une entrée reprise. Une entrée téléchargée
+#'    écartée est signalée ; une entrée reprise écartée ne l'est pas, c'est
+#'    une copie ancienne. Un manifeste téléchargé remplace tout ce qui venait
+#'    de lui : une entrée reprise de même `manifest_url` n'est pas gardée.
+#'    Entre deux entrées téléchargées de même `id`, la première est gardée.
 #'
 #' Le package `jsonvalidate` est nécessaire. Il n'est pas installé avec
 #' ofceweb : la fonction propose de l'installer au premier appel.
@@ -107,55 +108,62 @@ collect_contents <- function(root = ".", previous = NULL) {
 
   # 2, 3. Manifestes
   decls <- lapply(files, function(f) jsonlite::read_json(file.path(root, f), simplifyVector = FALSE))
-  decl_urls <- stats::setNames(vapply(decls, function(d) d$manifest_url, ""), ids[keep])
   results <- Map(function(decl, f) {
     out <- collect_declaration(decl)
     if (!is.null(out$anomaly)) {
-      part <- collect_reuse(decl, prev$records, prev_ids, decl_urls)
-      part <- lapply(part, function(r) { r$status <- decl$status; r })
-      suite <- if (length(part)) {
-        sprintf("enregistrement%s précédent%s repris (%d).", if (length(part) > 1L) "s" else "",
-                if (length(part) > 1L) "s" else "", length(part))
-      } else {
-        "contenu absent de la base : aucun enregistrement précédent."
-      }
-      note(out$anomaly$type, decl$id, f, paste0(out$anomaly$message, " ; ", suite))
-      out$records <- part
+      part <- collect_reuse(decl, prev$records, prev_ids, ids[keep])
+      out$records <- lapply(part, function(r) { r$status <- decl$status; r })
     }
-    list(id = decl$id, file = f, records = out$records, reused = !is.null(out$anomaly))
+    own <- match(decl$id, vapply(out$records, function(r) r$id, ""))
+    list(id = decl$id, file = f, url = decl$manifest_url, anomaly = out$anomaly,
+         own = if (!is.na(own)) out$records[[own]], others = if (is.na(own)) out$records else out$records[-own])
   }, decls, files)
+  fresh <- Filter(function(x) is.null(x$anomaly), results)
+  reused <- Filter(function(x) !is.null(x$anomaly), results)
+  reused <- reused[order(vapply(reused, function(x) x$id, ""), method = "radix")]
 
-  # 5. Fusion : le contenu de chaque déclaration, puis les autres entrées des
-  # manifestes téléchargés, puis celles des enregistrements repris : une
-  # entrée fraîche passe avant une entrée reprise de même `id`.
+  # 5. Fusion, par ordre de priorité : l'entrée propre de chaque déclaration,
+  # puis les autres entrées des manifestes téléchargés, puis les autres
+  # entrées reprises.
   base <- list()
   src <- character()
-  for (res in results) {
-    own <- Filter(function(r) identical(r$id, res$id), res$records)
-    if (length(own)) {
-      base[[res$id]] <- own[[1]]
-      src[[res$id]] <- res$file
+  add <- function(r, file) {
+    base[[r$id]] <<- r
+    src[[r$id]] <<- file
+  }
+  for (res in results) if (!is.null(res$own)) add(res$own, res$file)
+  declared <- names(base)
+  # Une entrée téléchargée qui perd est un doublon, signalé (D6).
+  for (res in fresh) {
+    for (r in res$others) {
+      if (is.null(base[[r$id]])) { add(r, res$file); next }
+      why <- if (r$id %in% declared && !identical(r$id, res$id)) {
+        sprintf("l'entrée %s du manifeste de %s a l'id d'un contenu déclaré à part : elle est écartée au profit de ce contenu.", r$id, res$id)
+      } else if (!identical(src[[r$id]], res$file)) {
+        sprintf("l'entrée %s du manifeste de %s a l'id d'une entrée déjà prise dans %s : elle est écartée.", r$id, res$id, src[[r$id]])
+      } else {
+        sprintf("deux entrées du manifeste de %s ont l'id %s : la première est gardée, la suivante est écartée.", res$id, r$id)
+      }
+      note("duplicate_id", r$id, res$file, why)
     }
   }
-  declared <- names(base)
-  for (res in c(Filter(function(x) !x$reused, results), Filter(function(x) x$reused, results))) {
-    own_seen <- FALSE
-    for (r in res$records) {
-      if (identical(r$id, res$id) && !own_seen) { own_seen <- TRUE; next }
-      if (!is.null(base[[r$id]])) {
-        why <- if (r$id %in% declared && !identical(r$id, res$id)) {
-          sprintf("l'entrée %s du manifeste de %s a l'id d'un contenu déclaré à part : elle est écartée au profit de ce contenu.", r$id, res$id)
-        } else if (!identical(src[[r$id]], res$file)) {
-          sprintf("l'entrée %s du manifeste de %s a l'id d'une entrée déjà prise dans %s : elle est écartée.", r$id, res$id, src[[r$id]])
-        } else {
-          sprintf("deux entrées du manifeste de %s ont l'id %s : la première est gardée, la suivante est écartée.", res$id, r$id)
-        }
-        note("duplicate_id", r$id, res$file, why)
-        next
-      }
-      base[[r$id]] <- r
-      src[[r$id]] <- res$file
+  # Une entrée reprise qui perd est une copie ancienne, écartée sans anomalie.
+  # Un manifeste téléchargé remplace en bloc ce qui venait de lui (D3) : une
+  # entrée reprise de même `manifest_url` n'est pas gardée.
+  fresh_urls <- vapply(fresh, function(x) x$url, "")
+  for (res in reused) {
+    for (r in res$others) {
+      if (is.null(base[[r$id]]) && !(r$manifest_url %in% fresh_urls)) add(r, res$file)
     }
+  }
+  for (res in Filter(function(x) !is.null(x$anomaly), results)) {
+    n <- sum(src == res$file)
+    suite <- if (n) {
+      sprintf("enregistrement%s précédent%s repris (%d).", if (n > 1L) "s" else "", if (n > 1L) "s" else "", n)
+    } else {
+      "contenu absent de la base : aucun enregistrement précédent."
+    }
+    note(res$anomaly$type, res$id, res$file, paste0(res$anomaly$message, " ; ", suite))
   }
 
   # 4. Hiérarchie
@@ -272,20 +280,12 @@ collect_declaration <- function(decl) {
 
 # Enregistrements précédents repris pour une déclaration en échec : ceux qui
 # venaient du même manifeste que l'enregistrement précédent de son `id`
-# (`manifest_url` égale), sauf ceux dont l'`id` a sa propre déclaration. Si
-# ce manifeste est celui d'une autre déclaration du journal (par exemple un
-# post du blog qui vient d'être déclaré à part), seul l'enregistrement de
-# l'`id` est repris : le reste appartient à l'autre déclaration.
-collect_reuse <- function(decl, records, ids, decl_urls) {
+# (`manifest_url` égale), sauf ceux dont l'`id` a sa propre déclaration.
+collect_reuse <- function(decl, records, ids, declared) {
   i <- match(decl$id, ids)
   if (is.na(i)) return(list())
   url <- records[[i]]$manifest_url
-  part <- Filter(function(r) identical(r$manifest_url, url), records)
-  part_ids <- vapply(part, function(r) r$id, "")
-  others <- setdiff(intersect(part_ids, names(decl_urls)), decl$id)
-  if (!length(others)) return(part)
-  if (any(decl_urls[others] == url)) return(records[i])
-  part[!(part_ids %in% others)]
+  Filter(function(r) identical(r$manifest_url, url) && (identical(r$id, decl$id) || !(r$id %in% declared)), records)
 }
 
 # Un enregistrement : champs v1 du manifeste dans l'ordre du schéma, puis les

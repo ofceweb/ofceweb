@@ -373,6 +373,36 @@ for (years in list(c(blog = "2010", post = "2026"), c(blog = "2010", post = "200
   })
 }
 
+for (years in list(c(blog = "2026", post = "2026"), c(blog = "2026", post = "2000"))) {
+  test_that(sprintf("D6, S9 : blog et post déclarés sur le même manifeste collectif (post rangé en %s)", years[["post"]]), {
+    post_id <- "ofce-post-2026-1-fr"
+    raw <- list(as_json(declaration("ofce-blog")), as_json(declaration(post_id, status = "retired", url = blog_url)))
+    names(raw) <- c(sprintf("registry/%s/ofce-blog.json", years[["blog"]]), sprintf("registry/%s/%s.json", years[["post"]], post_id))
+    root <- local_journal(raw = raw)
+    status_of <- function(res) vapply(res$contents, function(r) r$status, "")
+
+    # 404 : tout le blog est repris ; les posts qui ne sont pas déclarés à
+    # part prennent le statut du blog, quel que soit l'ordre des fichiers.
+    local_site(list())
+    res <- collect_contents(root, previous = previous_blog())
+    expect_equal(ids_of(res), c("ofce-blog", "ofce-post-2026-1-fr", "ofce-post-2026-2-fr", "ofce-post-2026-3-fr"))
+    expect_equal(status_of(res), c("published", "retired", "published", "published"))
+    expect_true(all(vapply(res$contents, function(r) r$collected_at, "") == "2026-10-01T08:00:00Z"))
+    expect_anomaly(res, "manifest_unreachable", "ofce-blog", "enregistrements précédents repris (3)")
+    expect_anomaly(res, "manifest_unreachable", post_id, "enregistrement précédent repris (1)")
+    expect_false("duplicate_id" %in% res$anomalies$type)
+
+    # 200 : le manifeste remplace le blog en bloc, le post 3 disparaît.
+    local_site(fresh_blog())
+    res <- collect_contents(root, previous = previous_blog())
+    expect_equal(ids_of(res), c("ofce-blog", "ofce-post-2026-1-fr", "ofce-post-2026-2-fr"))
+    expect_true(all(vapply(res$contents, function(r) r$collected_at, "") == "2026-11-18T12:00:00Z"))
+    expect_equal(rec(res, "ofce-post-2026-2-fr")$title, "Nouveau 2")
+    expect_equal(rec(res, post_id)$status, "retired")
+    expect_true(all(res$anomalies$type == "duplicate_id"))
+  })
+}
+
 test_that("D6, S9 : le blog en échec ne reprend pas un post déclaré à part", {
   post_id <- "ofce-post-2026-1-fr"
   root <- local_journal(list(declaration("ofce-blog"), declaration(post_id)))

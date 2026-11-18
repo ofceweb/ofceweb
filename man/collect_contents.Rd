@@ -56,9 +56,7 @@ les manifestes sont retéléchargés, en HTTP à leur `manifest_url`.
    (même `manifest_url`) sont repris tels quels, avec leur `collected_at` et
    leur `manifest_url`, mais avec le `status` de la déclaration en cours.
    Un enregistrement dont l'`id` a sa propre déclaration n'est pas repris
-   pour une autre ; si ce manifeste est celui d'une autre déclaration du
-   journal, seul l'enregistrement de l'`id` est repris. Sans base
-   précédente, le contenu est absent de la base.
+   pour une autre. Sans base précédente, le contenu est absent de la base.
 4. Chaque entrée d'un manifeste devient un enregistrement. Un enregistrement
    garde les champs v1 du manifeste (schéma `manifest-1.0.json`), dans
    l'ordre du schéma, et ajoute les cinq champs de l'agrégateur :
@@ -72,10 +70,13 @@ les manifestes sont retéléchargés, en HTTP à leur `manifest_url`.
 
    Les champs historiques ou inconnus du manifeste (`wp`, `stage`,
    `source-repo`…) ne passent pas dans la base.
-5. Le contenu d'une déclaration passe avant une entrée de manifeste
-   collectif de même `id` ; une entrée d'un manifeste téléchargé passe
-   avant une entrée reprise de la base précédente ; entre deux entrées de
-   même `id`, la première est gardée.
+5. Pour un même `id`, la base garde, dans l'ordre : l'enregistrement de la
+   déclaration de cet `id`, téléchargé ou repris ; puis une entrée d'un
+   manifeste téléchargé ; puis une entrée reprise. Une entrée téléchargée
+   écartée est signalée ; une entrée reprise écartée ne l'est pas, c'est
+   une copie ancienne. Un manifeste téléchargé remplace tout ce qui venait
+   de lui : une entrée reprise de même `manifest_url` n'est pas gardée.
+   Entre deux entrées téléchargées de même `id`, la première est gardée.
 
 Le package `jsonvalidate` est nécessaire. Il n'est pas installé avec
 ofceweb : la fonction propose de l'installer au premier appel.

@@ -124,11 +124,14 @@ reference:
   desc: >
     Contrôle d'un manifeste de contenu (modèle de données v1), unitaire ou
     collectif, et du journal des déclarations de `contentdb`, avec les
-    schémas JSON Schema livrés dans `inst/schema/` et publiés sur GitHub.
+    schémas JSON Schema livrés dans `inst/schema/` et publiés sur GitHub,
+    puis collecte de la base des contenus.
   contents:
   - validate_manifest
   - check_registry
   - check_registry_ci
+  - collect_contents
+  - write_contents
 
 - title: Déploiement & utilitaires
   desc: >

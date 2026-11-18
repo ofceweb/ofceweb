@@ -54,9 +54,14 @@
 validate_manifest <- function(x) {
   input <- manifest_input_text(x)
   if (!is.null(input$error)) return(manifest_validation_result(manifest_error_rows(NA_character_, input$error)))
+  manifest_validate_text(input$text)
+}
 
+# Valide le texte JSON d'un manifeste déjà lu. Utilisée aussi par la collecte,
+# qui télécharge chaque manifeste une seule fois.
+manifest_validate_text <- function(text) {
   parsed <- tryCatch(
-    jsonlite::parse_json(input$text, simplifyVector = FALSE),
+    jsonlite::parse_json(text, simplifyVector = FALSE),
     error = function(e) e
   )
   if (inherits(parsed, "error")) {
@@ -83,7 +88,7 @@ validate_manifest <- function(x) {
     return(manifest_validation_result(do.call(rbind, errors)))
   }
 
-  manifest_validation_result(manifest_check_one(input$text, parsed, validator))
+  manifest_validation_result(manifest_check_one(text, parsed, validator))
 }
 
 #' @export
@@ -131,7 +136,7 @@ manifest_input_text <- function(x) {
 }
 
 manifest_read_url <- function(url) {
-  resp <- httr2::req_perform(httr2::request(url))
+  resp <- httr2::req_perform(httr2::req_timeout(httr2::request(url), 30))
   httr2::resp_body_string(resp, encoding = "UTF-8")
 }
 

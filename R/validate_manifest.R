@@ -211,7 +211,8 @@ manifest_nullable_expected <- c(
   date_modified  = "une date au format AAAA-MM-JJ ou null",
   pdf            = "une URL absolue en https ou null",
   image          = "une URL absolue en https ou null",
-  repo           = "une URL absolue en https ou null"
+  repo           = "une URL absolue en https ou null",
+  pdf_url        = "une URL absolue en https ou null"
 )
 
 manifest_show_value <- function(v) {
@@ -288,6 +289,11 @@ manifest_translate_one <- function(keyword, path, params, data, original) {
     },
     pattern = paste0(pre, manifest_pattern_message(field), recu, "."),
     minLength = paste0(pre, "ne doit pas être vide."),
+    maxLength = paste0(pre, "ne doit pas dépasser ", params$limit, " caractères", recu, "."),
+    additionalProperties = {
+      field <- params$additionalProperty
+      "champ inconnu : il ne fait pas partie du format."
+    },
     minItems = paste0("doit contenir au moins ", params$limit, " élément(s)."),
     not = ,
     `false schema` = "champ réservé à l'agrégateur : il ne doit pas figurer dans un manifeste source.",
@@ -306,7 +312,11 @@ manifest_pattern_message <- function(field) {
     url = ,
     pdf = ,
     image = ,
-    repo = "doit être une URL absolue en https",
+    repo = ,
+    manifest_url = ,
+    pdf_url = "doit être une URL absolue en https",
+    declared_at = "doit être une date et une heure en UTC au format AAAA-MM-JJThh:mm:ssZ (ex. 2026-06-15T14:32:00Z)",
+    declared_by = "doit être un login GitHub (lettres, chiffres et tirets simples, sans tiret au début ni à la fin)",
     "ne respecte pas le format attendu"
   )
 }

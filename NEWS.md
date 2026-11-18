@@ -19,6 +19,22 @@
   erreurs attendues dans `invalides.yml`.
 * Nouvel article « Valider un manifeste ».
 
+### Journal des déclarations et `check_registry()`
+
+* Nouveau schéma JSON Schema (draft-07) de la déclaration d'un contenu
+  dans le journal de `ofceweb/contentdb`,
+  `inst/schema/declaration-1.0.json` : six champs obligatoires (`id`,
+  `manifest_url`, `pdf_url`, `declared_at`, `declared_by`, `status`), aucun
+  champ inconnu.
+* Nouvelle fonction `check_registry()` : contrôle toutes les déclarations
+  du dossier `registry/` (schéma, rangement `registry/{annee}/{id}.json`,
+  unicité de l'`id`, absence de suppression) et rend toutes les erreurs en
+  français. `check_registry_ci()` est le point d'entrée de la CI de
+  `contentdb`.
+* Exemples valides et invalides dans `inst/schema/exemples-declaration/`,
+  avec les erreurs attendues dans `invalides.yml`.
+* L'article « Valider un manifeste » explique comment déclarer un contenu.
+
 ## ofceweb 1.0.6
 
 ### Policy briefs : séries de numérotation

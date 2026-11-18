@@ -348,6 +348,46 @@ test_that("S11 : deux posts au même id, le premier est gardé", {
   expect_anomaly(res, "duplicate_id", "ofce-post-2026-1-fr")
 })
 
+fresh_blog <- function() stats::setNames(list(list(
+  blog(), post("ofce-post-2026-1-fr", "2026-05-01", title = "Nouveau 1"), post("ofce-post-2026-2-fr", "2026-05-02", title = "Nouveau 2")
+)), blog_url)
+
+for (years in list(c(blog = "2010", post = "2026"), c(blog = "2010", post = "2000"))) {
+  test_that(sprintf("D6, D3 : un post déclaré à part en échec ne reprend pas le blog (post rangé en %s)", years[["post"]]), {
+    post_id <- "ofce-post-2026-1-fr"
+    raw <- list(as_json(declaration("ofce-blog")), as_json(declaration(post_id)))
+    names(raw) <- c(sprintf("registry/%s/ofce-blog.json", years[["blog"]]), sprintf("registry/%s/%s.json", years[["post"]], post_id))
+    root <- local_journal(raw = raw)
+    local_site(fresh_blog())
+
+    res <- collect_contents(root, previous = previous_blog())
+
+    expect_equal(ids_of(res), c("ofce-blog", "ofce-post-2026-1-fr", "ofce-post-2026-2-fr"))
+    expect_equal(rec(res, post_id)$collected_at, "2026-10-01T08:00:00Z")
+    p2 <- rec(res, "ofce-post-2026-2-fr")
+    expect_equal(p2$title, "Nouveau 2")
+    expect_equal(p2$collected_at, "2026-11-18T12:00:00Z")
+    expect_equal(rec(res, "ofce-blog")$collected_at, "2026-11-18T12:00:00Z")
+    expect_anomaly(res, "manifest_unreachable", post_id, "enregistrement précédent repris (1)")
+    expect_equal(sort(res$anomalies$id[res$anomalies$type == "duplicate_id"]), post_id)
+  })
+}
+
+test_that("D6, S9 : le blog en échec ne reprend pas un post déclaré à part", {
+  post_id <- "ofce-post-2026-1-fr"
+  root <- local_journal(list(declaration("ofce-blog"), declaration(post_id)))
+  local_site(stats::setNames(list(post(post_id, "2026-05-01", title = "Déclaré")), murl(post_id)))
+
+  res <- collect_contents(root, previous = previous_blog())
+
+  expect_equal(rec(res, post_id)$title, "Déclaré")
+  expect_equal(rec(res, post_id)$manifest_url, murl(post_id))
+  expect_equal(rec(res, "ofce-post-2026-3-fr")$collected_at, "2026-10-01T08:00:00Z")
+  expect_equal(length(res$contents), 4L)
+  expect_anomaly(res, "manifest_unreachable", "ofce-blog", "enregistrements précédents repris (3)")
+  expect_false("duplicate_id" %in% res$anomalies$type)
+})
+
 # --- S12 Parent non résolu -----------------------------------------------------------
 
 test_that("S12 : un parent non résolu est gardé et signalé", {

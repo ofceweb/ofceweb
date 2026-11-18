@@ -225,6 +225,10 @@ ancienne `manifest_url`, mais avec le `status` de la déclaration en
 cours : un retrait déclaré prend effet même si le manifeste a disparu du
 site. Sans base précédente, le contenu est absent. Pour un manifeste
 collectif, une seule entrée invalide suffit à reprendre tout l'ensemble.
+Un enregistrement qui a sa propre déclaration n'est jamais repris au nom
+d'une autre : un post du blog déclaré à part dont le manifeste échoue
+reprend son seul enregistrement, et le reste du blog vient du manifeste
+du blog. Une entrée téléchargée passe toujours avant une entrée reprise.
 
 ### Lire les anomalies
 

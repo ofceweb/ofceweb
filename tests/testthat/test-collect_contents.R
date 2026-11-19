@@ -398,10 +398,34 @@ for (years in list(c(blog = "2026", post = "2026"), c(blog = "2026", post = "200
     expect_equal(ids_of(res), c("ofce-blog", "ofce-post-2026-1-fr", "ofce-post-2026-2-fr"))
     expect_true(all(vapply(res$contents, function(r) r$collected_at, "") == "2026-11-18T12:00:00Z"))
     expect_equal(rec(res, "ofce-post-2026-2-fr")$title, "Nouveau 2")
-    expect_equal(rec(res, post_id)$status, "retired")
-    expect_true(all(res$anomalies$type == "duplicate_id"))
+    # Les autres posts prennent le statut du blog, et le manifeste lu par
+    # les deux déclarations ne crée pas de doublon.
+    expect_equal(status_of(res), c("published", "retired", "published"))
+    expect_equal(nrow(res$anomalies), 0L)
   })
 }
+
+test_that("CA3, D6 : un post déclaré sur le manifeste du blog, d'id classé avant ofce-blog, ne donne pas son statut aux autres posts", {
+  post_id <- "ofce-actu-2026-1-fr"
+  entries <- list(blog(), post(post_id, "2026-05-01"), post("ofce-post-2026-2-fr", "2026-05-02"))
+  previous <- lapply(entries, function(m) c(m, list(author_ids = list(), children = list(), status = "published",
+                                                     manifest_url = blog_url, collected_at = "2026-10-01T08:00:00Z")))
+  raw <- list(as_json(declaration("ofce-blog")), as_json(declaration(post_id, status = "retired", url = blog_url)))
+  names(raw) <- c("registry/2026/ofce-blog.json", sprintf("registry/2000/%s.json", post_id))
+  root <- local_journal(raw = raw)
+  status_of <- function(res) stats::setNames(vapply(res$contents, function(r) r$status, ""), ids_of(res))
+  expected <- c("ofce-actu-2026-1-fr" = "retired", "ofce-blog" = "published", "ofce-post-2026-2-fr" = "published")
+
+  local_site(stats::setNames(list(entries), blog_url))
+  res <- collect_contents(root, previous = previous)
+  expect_equal(status_of(res), expected)
+  expect_equal(nrow(res$anomalies), 0L)
+
+  local_site(list())
+  res <- collect_contents(root, previous = previous)
+  expect_equal(status_of(res), expected)
+  expect_false("duplicate_id" %in% res$anomalies$type)
+})
 
 test_that("D6, S9 : le blog en échec ne reprend pas un post déclaré à part", {
   post_id <- "ofce-post-2026-1-fr"

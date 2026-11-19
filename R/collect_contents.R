@@ -45,7 +45,8 @@
 #'    de lui : une entrée reprise de même `manifest_url` n'est pas gardée.
 #'    Entre deux entrées téléchargées de même `id`, la première est gardée.
 #'    Un manifeste partagé par plusieurs déclarations (un post déclaré à part
-#'    avec l'adresse du manifeste du blog) ne compte qu'une fois : l'entrée de
+#'    avec l'adresse du manifeste du blog) n'est lu et ne compte qu'une fois :
+#'    ses déclarations réussissent ou échouent ensemble, l'entrée de
 #'    chaque déclaration garde le statut de sa déclaration, sans doublon, et
 #'    les autres entrées prennent celui de la déclaration de leur `parent`.
 #'
@@ -112,8 +113,17 @@ collect_contents <- function(root = ".", previous = NULL) {
 
   # 2, 3. Manifestes
   decls <- lapply(files, function(f) jsonlite::read_json(file.path(root, f), simplifyVector = FALSE))
+  # Une adresse n'est lue qu'une fois par collecte : les déclarations qui
+  # partagent un manifeste réussissent ou échouent ensemble.
+  fetched <- new.env(parent = emptyenv())
+  read_once <- function(url) {
+    if (is.null(fetched[[url]])) {
+      fetched[[url]] <- tryCatch(list(text = manifest_read_url(url), at = collect_now()), error = function(e) list(error = e))
+    }
+    fetched[[url]]
+  }
   results <- Map(function(decl, f) {
-    out <- collect_declaration(decl)
+    out <- collect_declaration(decl, read_once)
     if (!is.null(out$anomaly)) {
       part <- collect_reuse(decl, prev$records, prev_ids, ids[keep])
       out$records <- lapply(part, function(r) { r$status <- decl$status; r })
@@ -261,17 +271,19 @@ print.ofceweb_contents_collection <- function(x, ...) {
 
 # --- Une déclaration -----------------------------------------------------------
 
-# Télécharge et valide le manifeste d'une déclaration. Rend
-# list(records = <enregistrements>) ou list(anomaly = list(type, message)).
-collect_declaration <- function(decl) {
+# Télécharge (par `read`, qui rend list(text, at) ou list(error)) et valide
+# le manifeste d'une déclaration. Rend list(records = <enregistrements>) ou
+# list(anomaly = list(type, message)).
+collect_declaration <- function(decl, read) {
   url <- decl$manifest_url
   fail <- function(type, message) list(records = list(), anomaly = list(type = type, message = message))
 
-  text <- tryCatch(manifest_read_url(url), error = function(e) e)
-  if (inherits(text, "error")) {
-    msg <- trimws(gsub("\\s+", " ", conditionMessage(text)))
+  got <- read(url)
+  if (!is.null(got$error)) {
+    msg <- trimws(gsub("\\s+", " ", conditionMessage(got$error)))
     return(fail("manifest_unreachable", sprintf("manifeste injoignable à %s : %s", url, msg)))
   }
+  text <- got$text
 
   val <- manifest_validate_text(text)
   if (!isTRUE(val$valid)) {
@@ -295,8 +307,7 @@ collect_declaration <- function(decl) {
     }))
   }
 
-  now <- collect_now()
-  list(records = lapply(entries, collect_record, status = decl$status, manifest_url = url, collected_at = now))
+  list(records = lapply(entries, collect_record, status = decl$status, manifest_url = url, collected_at = got$at))
 }
 
 # Enregistrements précédents repris pour une déclaration en échec : ceux qui

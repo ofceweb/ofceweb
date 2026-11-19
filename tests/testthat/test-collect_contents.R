@@ -425,6 +425,40 @@ test_that("CA3, D6 : un post déclaré sur le manifeste du blog, d'id classé av
   res <- collect_contents(root, previous = previous)
   expect_equal(status_of(res), expected)
   expect_false("duplicate_id" %in% res$anomalies$type)
+
+  # Coupure passagère : le site répond à la première lecture, puis échoue.
+  # Chaque adresse n'est lue qu'une fois par collecte, donc les deux
+  # déclarations réussissent ensemble.
+  calls <- character()
+  local_mocked_bindings(
+    manifest_read_url = function(url) {
+      calls <<- c(calls, url)
+      if (sum(calls == url) > 1L) stop("Timeout was reached")
+      as_json(entries)
+    },
+    collect_now = function() "2026-11-18T12:00:00Z"
+  )
+  res <- collect_contents(root, previous = previous)
+  expect_equal(calls, blog_url)
+  expect_equal(status_of(res), expected)
+  expect_equal(nrow(res$anomalies), 0L)
+})
+
+test_that("une adresse injoignable n'est lue qu'une fois, et fait échouer toutes ses déclarations", {
+  post_id <- "ofce-actu-2026-1-fr"
+  root <- local_journal(list(declaration("ofce-blog"), declaration(post_id, url = blog_url)))
+  calls <- character()
+  local_mocked_bindings(
+    manifest_read_url = function(url) { calls <<- c(calls, url); stop("HTTP 500 Internal Server Error.") },
+    collect_now = function() "2026-11-18T12:00:00Z"
+  )
+
+  res <- collect_contents(root)
+
+  expect_equal(calls, blog_url)
+  expect_length(res$contents, 0L)
+  expect_anomaly(res, "manifest_unreachable", "ofce-blog", "HTTP 500")
+  expect_anomaly(res, "manifest_unreachable", post_id, "HTTP 500")
 })
 
 test_that("D6, S9 : le blog en échec ne reprend pas un post déclaré à part", {

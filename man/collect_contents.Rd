@@ -77,6 +77,10 @@ les manifestes sont retéléchargés, en HTTP à leur `manifest_url`.
    une copie ancienne. Un manifeste téléchargé remplace tout ce qui venait
    de lui : une entrée reprise de même `manifest_url` n'est pas gardée.
    Entre deux entrées téléchargées de même `id`, la première est gardée.
+   Un manifeste partagé par plusieurs déclarations (un post déclaré à part
+   avec l'adresse du manifeste du blog) ne compte qu'une fois : l'entrée de
+   chaque déclaration garde le statut de sa déclaration, sans doublon, et
+   les autres entrées prennent celui de la déclaration de leur `parent`.
 
 Le package `jsonvalidate` est nécessaire. Il n'est pas installé avec
 ofceweb : la fonction propose de l'installer au premier appel.

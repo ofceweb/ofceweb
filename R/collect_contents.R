@@ -44,6 +44,10 @@
 #'    une copie ancienne. Un manifeste téléchargé remplace tout ce qui venait
 #'    de lui : une entrée reprise de même `manifest_url` n'est pas gardée.
 #'    Entre deux entrées téléchargées de même `id`, la première est gardée.
+#'    Un manifeste partagé par plusieurs déclarations (un post déclaré à part
+#'    avec l'adresse du manifeste du blog) ne compte qu'une fois : l'entrée de
+#'    chaque déclaration garde le statut de sa déclaration, sans doublon, et
+#'    les autres entrées prennent celui de la déclaration de leur `parent`.
 #'
 #' Le package `jsonvalidate` est nécessaire. Il n'est pas installé avec
 #' ofceweb : la fonction propose de l'installer au premier appel.
@@ -115,7 +119,7 @@ collect_contents <- function(root = ".", previous = NULL) {
       out$records <- lapply(part, function(r) { r$status <- decl$status; r })
     }
     own <- match(decl$id, vapply(out$records, function(r) r$id, ""))
-    list(id = decl$id, file = f, url = decl$manifest_url, anomaly = out$anomaly,
+    list(id = decl$id, file = f, url = decl$manifest_url, status = decl$status, anomaly = out$anomaly,
          own = if (!is.na(own)) out$records[[own]], others = if (is.na(own)) out$records else out$records[-own])
   }, decls, files)
   fresh <- Filter(function(x) is.null(x$anomaly), results)
@@ -133,13 +137,26 @@ collect_contents <- function(root = ".", previous = NULL) {
   }
   for (res in results) if (!is.null(res$own)) add(res$own, res$file)
   declared <- names(base)
-  # Une entrée téléchargée qui perd est un doublon, signalé (D6).
-  for (res in fresh) {
-    for (r in res$others) {
+  # Une entrée téléchargée qui perd est un doublon, signalé (D6). Un manifeste
+  # lu par plusieurs déclarations (un post déclaré à part avec l'URL du blog)
+  # ne donne ses entrées qu'une fois : l'entrée de chacune de ces déclarations
+  # reste la sienne, sans doublon, et une autre entrée prend le statut de la
+  # déclaration de son `parent`, à défaut de la première par `id`. Le
+  # résultat ne dépend ni de l'ordre des fichiers ni de l'ordre des `id`.
+  fresh_urls <- vapply(fresh, function(x) x$url, "")
+  for (url in unique(fresh_urls)) {
+    group <- fresh[fresh_urls == url]
+    group <- group[order(vapply(group, function(x) x$id, ""), method = "radix")]
+    gids <- vapply(group, function(x) x$id, "")
+    for (r in c(list(group[[1]]$own), group[[1]]$others)) {
+      if (r$id %in% gids) next
+      parent <- if (is.character(r$parent) && length(r$parent) == 1L) r$parent else NA_character_
+      res <- group[[match(parent, gids, nomatch = 1L)]]
+      r$status <- res$status
       if (is.null(base[[r$id]])) { add(r, res$file); next }
-      why <- if (r$id %in% declared && !identical(r$id, res$id)) {
+      why <- if (r$id %in% declared) {
         sprintf("l'entrée %s du manifeste de %s a l'id d'un contenu déclaré à part : elle est écartée au profit de ce contenu.", r$id, res$id)
-      } else if (!identical(src[[r$id]], res$file)) {
+      } else if (!identical(base[[r$id]]$manifest_url, url)) {
         sprintf("l'entrée %s du manifeste de %s a l'id d'une entrée déjà prise dans %s : elle est écartée.", r$id, res$id, src[[r$id]])
       } else {
         sprintf("deux entrées du manifeste de %s ont l'id %s : la première est gardée, la suivante est écartée.", res$id, r$id)
@@ -149,11 +166,15 @@ collect_contents <- function(root = ".", previous = NULL) {
   }
   # Une entrée reprise qui perd est une copie ancienne, écartée sans anomalie.
   # Un manifeste téléchargé remplace en bloc ce qui venait de lui (D3) : une
-  # entrée reprise de même `manifest_url` n'est pas gardée.
-  fresh_urls <- vapply(fresh, function(x) x$url, "")
-  for (res in reused) {
-    for (r in res$others) {
-      if (is.null(base[[r$id]]) && !(r$manifest_url %in% fresh_urls)) add(r, res$file)
+  # entrée reprise de même `manifest_url` n'est pas gardée. Une entrée reprise
+  # par plusieurs déclarations est d'abord celle de la déclaration de son
+  # `parent` (statut du blog pour un post).
+  for (by_parent in c(TRUE, FALSE)) {
+    for (res in reused) {
+      for (r in res$others) {
+        if (identical(r$parent, res$id) != by_parent) next
+        if (is.null(base[[r$id]]) && !(r$manifest_url %in% fresh_urls)) add(r, res$file)
+      }
     }
   }
   for (res in Filter(function(x) !is.null(x$anomaly), results)) {

@@ -1,0 +1,9 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/manifest-collectif-1.0.json",
+  "title": "Manifeste collectif, version 1.0",
+  "description": "Liste de manifestes publiée par un pipeline qui déclare plusieurs contenus d'un coup, comme le blog : d'abord l'entrée qui décrit l'ensemble (ex. id ofce-blog, type blog), puis une entrée par contenu (ex. un post, avec parent ofce-blog). Chaque entrée suit le schéma du manifeste unitaire manifest-1.0.json.",
+  "type": "array",
+  "minItems": 1,
+  "items": { "$ref": "manifest-1.0.json" }
+}

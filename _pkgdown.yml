@@ -27,6 +27,8 @@ navbar:
         href: articles/previsions.html
       - text: Stager un document en un clic (flash)
         href: articles/flash-render.html
+      - text: Valider un manifeste
+        href: articles/manifestes.html
     github:
       icon: fab fa-github
       href: https://github.com/ofceweb/ofceweb
@@ -117,6 +119,14 @@ reference:
   contents:
   - render_home
   - publish_home
+
+- title: Manifestes
+  desc: >
+    Contrôle d'un manifeste de contenu (modèle de données v1), unitaire ou
+    collectif, avec le schéma JSON Schema livré dans `inst/schema/` et
+    publié sur GitHub.
+  contents:
+  - validate_manifest
 
 - title: Déploiement & utilitaires
   desc: >

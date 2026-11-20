@@ -1,0 +1,194 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/manifest-1.0.json",
+  "title": "Manifeste d'un contenu publié, version 1.0",
+  "description": "Décrit un contenu publié (document de travail, policy brief, post, prévision…) pour la base des contenus. Ce schéma fait foi pour la liste des champs ; l'explication du modèle se trouve dans webdocs/architecture-base-contenus.qmd §3.1. Deux règles qui relient plusieurs champs ne peuvent pas s'exprimer ici et sont vérifiées par ofceweb::validate_manifest() : date_modified postérieure ou égale à date_published, et id qui commence par la valeur d'institution suivie d'un tiret. Un champ inconnu est accepté (champs historiques des générateurs) ; les champs réservés à l'agrégateur sont rejetés.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "translation_id",
+    "institution",
+    "type",
+    "media",
+    "lang",
+    "title",
+    "authors",
+    "categories",
+    "keywords",
+    "jel",
+    "date_published",
+    "url",
+    "auto_update"
+  ],
+  "definitions": {
+    "identifiant": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "url_https": {
+      "type": "string",
+      "pattern": "^https://"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+    },
+    "chaine_non_vide": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "description": "Version du schéma ; vaut \"1.0\" pour cette version.",
+      "const": "1.0"
+    },
+    "id": {
+      "description": "Identifiant unique et immuable du contenu : minuscules, segments alphanumériques séparés par des tirets, sans zéro de remplissage, commençant par la valeur d'institution suivie d'un tiret (ex. ofce-wp-2026-6-fr, ofce-pb-153-fr, ofce-blog). Ne dépend pas de la version du contenu. Un brouillon, dont l'id vaut null, n'est pas conforme.",
+      "$ref": "#/definitions/identifiant"
+    },
+    "translation_id": {
+      "description": "Identifiant commun aux versions linguistiques d'un même contenu ; null si le contenu n'a pas de traduction. Champ obligatoire, même à null.",
+      "anyOf": [{ "$ref": "#/definitions/identifiant" }, { "type": "null" }]
+    },
+    "institution": {
+      "description": "Institution propriétaire du contenu.",
+      "enum": ["ofce", "cepii", "ife"]
+    },
+    "type": {
+      "description": "Nature éditoriale du contenu.",
+      "enum": [
+        "post",
+        "blog",
+        "working-paper",
+        "policy-brief",
+        "forecast",
+        "nowcast",
+        "gow",
+        "report",
+        "revue",
+        "revue-article",
+        "page"
+      ]
+    },
+    "media": {
+      "description": "Forme du contenu publié. Un contenu site, comme une prévision, est un ensemble de pages dont url désigne la racine. Avec pdf, le champ pdf est obligatoire.",
+      "enum": ["html", "pdf", "dashboard", "video", "audio", "site"]
+    },
+    "lang": {
+      "description": "Langue du contenu.",
+      "enum": ["fr", "en"]
+    },
+    "parent": {
+      "description": "Facultatif. id du contenu dont celui-ci fait partie (article de revue vers revue, post vers blog), ou null.",
+      "anyOf": [{ "$ref": "#/definitions/identifiant" }, { "type": "null" }]
+    },
+    "title": {
+      "description": "Titre publié, chaîne non vide.",
+      "$ref": "#/definitions/chaine_non_vide"
+    },
+    "subtitle": {
+      "description": "Facultatif. Sous-titre publié, ou null.",
+      "type": ["string", "null"]
+    },
+    "authors": {
+      "description": "Noms des auteurs tels qu'ils apparaissent dans la publication, dans l'ordre (ex. [\"Xavier Timbeau\"]). Des chaînes, pas des objets. Liste vide autorisée.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/chaine_non_vide" }
+    },
+    "abstract": {
+      "description": "Facultatif. Résumé ou description courte du contenu, ou null.",
+      "type": ["string", "null"]
+    },
+    "categories": {
+      "description": "Thèmes éditoriaux ; [] si aucun. Le schéma ne contrôle que la forme : l'appartenance à la liste fermée des thèmes est signalée par le rapport de collecte.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/chaine_non_vide" }
+    },
+    "keywords": {
+      "description": "Mots-clés libres ; [] si aucun.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/chaine_non_vide" }
+    },
+    "jel": {
+      "description": "Codes JEL en majuscules (ex. E37, E5, E) ; [] si aucun.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][0-9]{0,2}$"
+      }
+    },
+    "department": {
+      "description": "Facultatif. Départements de l'institut auteurs du contenu ; une valeur, plusieurs, ou [].",
+      "type": "array",
+      "items": {
+        "enum": ["DEE", "DEPMS", "DAP", "DRIC", "DM", "DCI"]
+      }
+    },
+    "region": {
+      "description": "Facultatif. Portée géographique du contenu (valeurs candidates : fr, eu, world), ou null. Le schéma ne contrôle que la forme : l'appartenance à la liste fermée des zones est signalée par le rapport de collecte.",
+      "type": ["string", "null"]
+    },
+    "date_published": {
+      "description": "Date de première publication, au format AAAA-MM-JJ.",
+      "$ref": "#/definitions/date"
+    },
+    "date_modified": {
+      "description": "Facultatif. Date de dernière modification, au format AAAA-MM-JJ, postérieure ou égale à date_published (règle vérifiée par validate_manifest()), ou null.",
+      "anyOf": [{ "$ref": "#/definitions/date" }, { "type": "null" }]
+    },
+    "url": {
+      "description": "URL canonique absolue du contenu publié, en https.",
+      "$ref": "#/definitions/url_https"
+    },
+    "pdf": {
+      "description": "Facultatif, obligatoire quand media vaut pdf. URL absolue du PDF, en https, ou null.",
+      "anyOf": [{ "$ref": "#/definitions/url_https" }, { "type": "null" }]
+    },
+    "image": {
+      "description": "Facultatif. URL absolue de l'image principale, en https, ou null.",
+      "anyOf": [{ "$ref": "#/definitions/url_https" }, { "type": "null" }]
+    },
+    "repo": {
+      "description": "Facultatif. URL du dépôt source, en https, ou null.",
+      "anyOf": [{ "$ref": "#/definitions/url_https" }, { "type": "null" }]
+    },
+    "doi": {
+      "description": "Facultatif. DOI du contenu, ou null.",
+      "type": ["string", "null"]
+    },
+    "auto_update": {
+      "description": "true si l'agrégateur vérifie automatiquement les évolutions du manifeste ; false si une action explicite est nécessaire pour le collecter à nouveau.",
+      "type": "boolean"
+    },
+    "author_ids": {
+      "description": "Réservé à l'agrégateur : interdit dans un manifeste source.",
+      "not": {}
+    },
+    "children": {
+      "description": "Réservé à l'agrégateur : interdit dans un manifeste source.",
+      "not": {}
+    },
+    "status": {
+      "description": "Réservé à l'agrégateur : interdit dans un manifeste source.",
+      "not": {}
+    },
+    "manifest_url": {
+      "description": "Réservé à l'agrégateur : interdit dans un manifeste source.",
+      "not": {}
+    },
+    "collected_at": {
+      "description": "Réservé à l'agrégateur : interdit dans un manifeste source.",
+      "not": {}
+    }
+  },
+  "if": {
+    "properties": { "media": { "const": "pdf" } },
+    "required": ["media"]
+  },
+  "then": {
+    "required": ["pdf"],
+    "properties": { "pdf": { "$ref": "#/definitions/url_https" } }
+  }
+}

@@ -1,3 +1,24 @@
+## ofceweb (development version)
+
+### Schéma du manifeste v1 et `validate_manifest()`
+
+* Nouveau schéma JSON Schema (draft-07) du manifeste v1,
+  `inst/schema/manifest-1.0.json`, avec une description par champ, et du
+  manifeste collectif du blog, `inst/schema/manifest-collectif-1.0.json`.
+  Ils sont publiés à
+  `https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/`
+  pour les outils qui ne sont pas en R. Le champ de l'institution s'appelle
+  `institution` ; un champ inconnu est accepté (champs historiques) ; les
+  champs réservés à l'agrégateur (`author_ids`, `children`, `status`,
+  `manifest_url`, `collected_at`) sont rejetés.
+* Nouvelle fonction `validate_manifest()` : valide un manifeste unitaire ou
+  collectif depuis un fichier, une URL ou une liste R, vérifie en plus
+  l'ordre des dates et le préfixe de l'`id`, et rend toutes les erreurs en
+  français. Elle demande le package `jsonvalidate` (en `Suggests`).
+* Exemples valides et invalides dans `inst/schema/exemples/`, avec les
+  erreurs attendues dans `invalides.yml`.
+* Nouvel article « Valider un manifeste ».
+
 ## ofceweb 1.0.6
 
 ### Policy briefs : séries de numérotation

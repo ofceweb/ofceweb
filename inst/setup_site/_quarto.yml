@@ -1,6 +1,9 @@
+institution: ofce
+
 project:
   type: ofce-website
   execute-dir: file
+  pre-render: Rscript -e "ofceweb::update_quarto_ife()"
 
 execute:
   freeze: auto

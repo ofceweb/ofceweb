@@ -87,6 +87,8 @@ local_stub_wp_side_effects <- function(env = parent.frame()) {
     # version (checked right before ofce::setup_quarto()); stubbed out so
     # tests don't depend on whatever ofce version happens to be installed.
     check_ofce_version    = function(...) invisible(TRUE),
+    # quarto-ife lookup and install (git ls-remote, quarto add) need the network.
+    update_quarto_ife     = function(...) invisible(NULL),
     .env = env
   )
   local_mocked_bindings(

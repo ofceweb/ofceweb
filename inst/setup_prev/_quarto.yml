@@ -2,6 +2,7 @@ ofce_prev: true
 prev: "YYMM"       # ex. "2609" pour septembre 2026
 annee: 2026
 mois: 9             # 3 ou 9
+institution: ofce
 
 project:
   type: ofce-website

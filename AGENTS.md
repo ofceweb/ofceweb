@@ -66,6 +66,13 @@
 - On the read side, `jsonlite::read_json()` defaults to `simplifyVector = FALSE`; pass `simplifyVector = TRUE` when you expect scalar fields back as atomic vectors rather than lists.
 - Fields that are genuinely arrays (e.g. registry entries, FTP state `data`) are fine to read/manipulate as lists — no change needed there.
 
+## `quarto-ife` extension (`update_quarto_ife()`)
+
+- The IFE Quarto extension (`ife-html` format, `ife-website` project type) lives in the public repo `ofceweb/quarto-ife` and installs under `_extensions/ofceweb/`. A published version is a `vX.Y.Z` tag; `update_quarto_ife()` lists tags with `git ls-remote --tags --refs` (no token, no API quota), keeps the `vX.Y.Z` ones and installs the highest by `numeric_version()`. Quarto names the install folder after the GitHub owner, hence `_extensions/ofceweb/`, not `_extensions/ife/`. Untagged commits never reach a repo.
+- `quarto_ife_install()` runs `quarto::quarto_add_extension()` in an empty temp folder, then replaces each folder of `_extensions/ofceweb/` in the project: `quarto add` loads the current project and fails with "Unsupported project type ife-website" when that project's extension is missing.
+- Sites vs. documents: `setup_site()` calls `update_quarto_ife(root)` (always latest) and its `_quarto.yml` template runs it as `pre-render`, so a site follows the latest version on every render. `setup_wp()`/`setup_pb()`/`setup_prev()` call it with `only_if_absent = TRUE`: these are re-run often, and reinstalling would change a published document's look. A document is updated only by an explicit `update_quarto_ife()`.
+- It never raises an error: a failed tag listing (no network, no `git`) or a failed/incomplete install gives a `cli_alert_warning()` naming the kept version, and returns (invisibly) the installed version or `NULL`. A render must not fail because GitHub is down.
+- The installed version is read from `_extensions/ofceweb/ife/_extension.yml`. Tests mock `quarto_ife_remote_tags()` and `quarto_ife_install()` (`tests/testthat/test-quarto_ife.R`).
 ## Manifest schema
 
 - The v1 manifest format is defined by `inst/schema/manifest-1.0.json` (JSON Schema draft-07, one `description` per field) and `inst/schema/manifest-collectif-1.0.json` (array of manifests, e.g. the blog). Their `$id` is their `raw.githubusercontent.com` URL on `main`: that is the published address for non-R tools, protected by the version in the file name — a breaking change goes into a new `manifest-<version>.json`, never into the existing file.

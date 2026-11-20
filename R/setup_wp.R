@@ -69,6 +69,12 @@
 #' antérieure du package) sont signalées par un avertissement, jamais
 #' supprimées automatiquement.
 #'
+#' L'extension `quarto-ife` (`_extensions/ofceweb/`) est installée par
+#' [update_quarto_ife()] à sa dernière version publiée si elle est absente.
+#' Présente, elle n'est pas mise à jour : un document garde la version
+#' installée à sa création, et un appel à [update_quarto_ife()] le fait passer
+#' à la dernière version.
+#'
 #' `author` est destiné à ne vivre que dans `_quarto.yml` : si `index.qmd`
 #' en porte une (héritage d'un ancien gabarit, ou ajout manuel), elle est
 #' déplacée vers `_quarto.yml` -- remplaçant la valeur qui y était déjà,
@@ -570,6 +576,10 @@ setup_wp <- function(
     cli::cli_alert_warning("{.fn ofce::setup_quarto} a \u00e9chou\u00e9 : {conditionMessage(e)}")
   })
   check_stray_ofce_extensions(root)
+
+  # ---- 9b. extension Quarto IFE (ofceweb/quarto-ife) ------------------------
+  # Installée si absente ; un document garde ensuite sa version.
+  update_quarto_ife(root, only_if_absent = TRUE)
 
   # ---- 10. copie des workflows (toujours mis à jour depuis le package) ------
   # Les workflows sont la source de vérité du package — l'utilisateur ne doit

@@ -114,6 +114,15 @@ Fonctions pour le site d’accueil OFCE.
 - [`publish_home()`](https://ofceweb.github.io/ofceweb/reference/publish_home.md)
   : Publie la homepage du site OFCE
 
+## Manifestes
+
+Contrôle d’un manifeste de contenu (modèle de données v1), unitaire ou
+collectif, avec le schéma JSON Schema livré dans `inst/schema/` et
+publié sur GitHub.
+
+- [`validate_manifest()`](https://ofceweb.github.io/ofceweb/reference/validate_manifest.md)
+  : Valide un manifeste de contenu (modèle de données v1)
+
 ## Déploiement & utilitaires
 
 Fonctions de bas niveau partagées entre les différents types de dépôts.

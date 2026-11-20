@@ -24,6 +24,7 @@
     <li><a class="dropdown-item" href="articles/build-a-site.html">Faire un mini-site</a></li>
     <li><a class="dropdown-item" href="articles/previsions.html">Faire une prévision</a></li>
     <li><a class="dropdown-item" href="articles/flash-render.html">Stager un document en un clic (flash)</a></li>
+    <li><a class="dropdown-item" href="articles/manifestes.html">Valider un manifeste</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -145,9 +146,18 @@
 </ul></div>
 <div class="section level2">
 <h2 id="json-readwrite-conventions">JSON read/write conventions<a class="anchor" aria-label="anchor" href="#json-readwrite-conventions"></a></h2>
-<ul><li>Always pair <code><a href="https://jeroen.r-universe.dev/jsonlite/reference/read_json.html" class="external-link">jsonlite::write_json()</a></code> (and <code>toJSON()</code>) with <code>auto_unbox = TRUE</code> when writing scalar fields (e.g. <code>slug</code>, <code>stage</code>, <code>pb</code>). Without it, every scalar is wrapped in a single-element JSON array (<code>"slug": ["x"]</code> instead of <code>"slug": "x"</code>), which then round-trips back as a length-1 <strong>list</strong> on read — silently breaking anything expecting a plain string (e.g. GitHub <code>workflow_dispatch</code> inputs, which reject arrays). This caused a real bug in <code>adhoc_site.R</code>’s ad-hoc metadata file (<code>.adhoc-meta.json</code>).</li>
-<li>On the read side, <code><a href="https://jeroen.r-universe.dev/jsonlite/reference/read_json.html" class="external-link">jsonlite::read_json()</a></code> defaults to <code>simplifyVector = FALSE</code>; pass <code>simplifyVector = TRUE</code> when you expect scalar fields back as atomic vectors rather than lists.</li>
+<ul><li>Always pair <code><a href="https://rdrr.io/pkg/jsonlite/man/read_json.html" class="external-link">jsonlite::write_json()</a></code> (and <code>toJSON()</code>) with <code>auto_unbox = TRUE</code> when writing scalar fields (e.g. <code>slug</code>, <code>stage</code>, <code>pb</code>). Without it, every scalar is wrapped in a single-element JSON array (<code>"slug": ["x"]</code> instead of <code>"slug": "x"</code>), which then round-trips back as a length-1 <strong>list</strong> on read — silently breaking anything expecting a plain string (e.g. GitHub <code>workflow_dispatch</code> inputs, which reject arrays). This caused a real bug in <code>adhoc_site.R</code>’s ad-hoc metadata file (<code>.adhoc-meta.json</code>).</li>
+<li>On the read side, <code><a href="https://rdrr.io/pkg/jsonlite/man/read_json.html" class="external-link">jsonlite::read_json()</a></code> defaults to <code>simplifyVector = FALSE</code>; pass <code>simplifyVector = TRUE</code> when you expect scalar fields back as atomic vectors rather than lists.</li>
 <li>Fields that are genuinely arrays (e.g. registry entries, FTP state <code>data</code>) are fine to read/manipulate as lists — no change needed there.</li>
+</ul></div>
+<div class="section level2">
+<h2 id="manifest-schema">Manifest schema<a class="anchor" aria-label="anchor" href="#manifest-schema"></a></h2>
+<ul><li>The v1 manifest format is defined by <code>inst/schema/manifest-1.0.json</code> (JSON Schema draft-07, one <code>description</code> per field) and <code>inst/schema/manifest-collectif-1.0.json</code> (array of manifests, e.g. the blog). Their <code>$id</code> is their <code>raw.githubusercontent.com</code> URL on <code>main</code>: that is the published address for non-R tools, protected by the version in the file name — a breaking change goes into a new <code>manifest-&lt;version&gt;.json</code>, never into the existing file.</li>
+<li>
+<code><a href="reference/validate_manifest.html">validate_manifest()</a></code> (<code>R/validate_manifest.R</code>) applies the schema with <code>jsonvalidate</code> (engine <code>ajv</code>, in <code>Suggests</code>, installed on demand), then two cross-field rules the schema cannot express (<code>date_modified &gt;= date_published</code>, <code>id</code> starts with <code>{institution}-</code>), and translates every ajv error into French. It never raises an R error on an invalid or unreadable manifest. File/URL text is validated as is (no jsonlite round-trip); a JSON array is a collective manifest, validated entry by entry with the unit schema.</li>
+<li>
+<code>inst/schema/exemples/invalides.yml</code> is the only list of invalid cases (file → expected <code>field</code>/<code>message</code>); <code>tests/testthat/test-validate_manifest.R</code> loops over it and checks it matches the <code>invalides/</code> folder both ways.</li>
+<li>A schema change must be mirrored in the examples, in <code>invalides.yml</code>, and in <code>webdocs</code> (<code>architecture-base-contenus.qmd</code> §3.1, <code>modele-donnees-v1.qmd</code> §2), which explain the model and point to the schema for the field list.</li>
 </ul></div>
 
 

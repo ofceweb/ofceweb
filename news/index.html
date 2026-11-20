@@ -24,6 +24,7 @@
     <li><a class="dropdown-item" href="../articles/build-a-site.html">Faire un mini-site</a></li>
     <li><a class="dropdown-item" href="../articles/previsions.html">Faire une prévision</a></li>
     <li><a class="dropdown-item" href="../articles/flash-render.html">Stager un document en un clic (flash)</a></li>
+    <li><a class="dropdown-item" href="../articles/manifestes.html">Valider un manifeste</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -40,6 +41,17 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="development version" id="ofceweb-development-version">ofceweb (development version)<a class="anchor" aria-label="anchor" href="#ofceweb-development-version"></a></h2>
+<div class="section level3">
+<h3 id="schéma-du-manifeste-v1-et-validate_manifest-development-version">Schéma du manifeste v1 et <code>validate_manifest()</code>
+<a class="anchor" aria-label="anchor" href="#sch%C3%A9ma-du-manifeste-v1-et-validate_manifest-development-version"></a></h3>
+<ul><li>Nouveau schéma JSON Schema (draft-07) du manifeste v1, <code>inst/schema/manifest-1.0.json</code>, avec une description par champ, et du manifeste collectif du blog, <code>inst/schema/manifest-collectif-1.0.json</code>. Ils sont publiés à <code>https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/</code> pour les outils qui ne sont pas en R. Le champ de l’institution s’appelle <code>institution</code> ; un champ inconnu est accepté (champs historiques) ; les champs réservés à l’agrégateur (<code>author_ids</code>, <code>children</code>, <code>status</code>, <code>manifest_url</code>, <code>collected_at</code>) sont rejetés.</li>
+<li>Nouvelle fonction <code><a href="../reference/validate_manifest.html">validate_manifest()</a></code> : valide un manifeste unitaire ou collectif depuis un fichier, une URL ou une liste R, vérifie en plus l’ordre des dates et le préfixe de l’<code>id</code>, et rend toutes les erreurs en français. Elle demande le package <code>jsonvalidate</code> (en <code>Suggests</code>).</li>
+<li>Exemples valides et invalides dans <code>inst/schema/exemples/</code>, avec les erreurs attendues dans <code>invalides.yml</code>.</li>
+<li>Nouvel article « Valider un manifeste ».</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.6" id="ofceweb-106">ofceweb 1.0.6<a class="anchor" aria-label="anchor" href="#ofceweb-106"></a></h2>
 <div class="section level3">

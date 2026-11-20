@@ -6,6 +6,8 @@
   ofceweb](https://ofceweb.github.io/ofceweb/articles/build-a-site.md):
 - [Rendre un document en un clic (rendu
   flash)](https://ofceweb.github.io/ofceweb/articles/flash-render.md):
+- [Valider un
+  manifeste](https://ofceweb.github.io/ofceweb/articles/manifestes.md):
 - [Policy briefs
   (PB)](https://ofceweb.github.io/ofceweb/articles/policy-briefs.md):
 - [Pré-requis : PAT GitHub, gh CLI, variables

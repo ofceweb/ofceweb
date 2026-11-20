@@ -324,6 +324,15 @@ Fonctions pour le site d’accueil OFCE.
 - [`publish_home()`](https://ofceweb.github.io/ofceweb/reference/publish_home.md)
   : Publie la homepage du site OFCE
 
+## Manifestes
+
+Contrôle d’un manifeste de contenu (modèle de données v1), unitaire ou
+collectif, avec le schéma JSON Schema livré dans `inst/schema/` et
+publié sur GitHub.
+
+- [`validate_manifest()`](https://ofceweb.github.io/ofceweb/reference/validate_manifest.md)
+  : Valide un manifeste de contenu (modèle de données v1)
+
 ## Déploiement & utilitaires
 
 Fonctions de bas niveau partagées entre les différents types de dépôts.
@@ -354,6 +363,8 @@ Fonctions de bas niveau partagées entre les différents types de dépôts.
   ofceweb](https://ofceweb.github.io/ofceweb/articles/build-a-site.md):
 - [Rendre un document en un clic (rendu
   flash)](https://ofceweb.github.io/ofceweb/articles/flash-render.md):
+- [Valider un
+  manifeste](https://ofceweb.github.io/ofceweb/articles/manifestes.md):
 - [Policy briefs
   (PB)](https://ofceweb.github.io/ofceweb/articles/policy-briefs.md):
 - [Pré-requis : PAT GitHub, gh CLI, variables

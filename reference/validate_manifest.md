@@ -1,0 +1,70 @@
+# Valide un manifeste de contenu (modèle de données v1)
+
+Contrôle un manifeste unitaire (un objet JSON) ou un manifeste collectif
+(un tableau JSON de manifestes, comme celui du blog) et rend
+\*\*toutes\*\* les erreurs trouvées, en français, chacune rattachée au
+champ concerné. La fonction ne lève pas d'erreur R sur un manifeste
+invalide ou illisible : elle rend un verdict, pour qu'une collecte
+puisse continuer avec les autres manifestes.
+
+## Usage
+
+``` r
+validate_manifest(x)
+```
+
+## Arguments
+
+- x:
+
+  Manifeste à valider : chemin d'un fichier JSON, URL (\`http://\` ou
+  \`https://\`), ou liste R (une liste nommée pour un manifeste
+  unitaire, une liste non nommée de manifestes pour un manifeste
+  collectif). Dans une liste R, les champs tableaux (\`authors\`,
+  \`categories\`, \`keywords\`, \`jel\`…) doivent être des \`list()\`,
+  comme dans \`wp_manifest()\`, pour être écrits en tableaux JSON même
+  avec un seul élément ; \`NULL\` est écrit \`null\`.
+
+## Value
+
+Une liste de classe \`ofceweb_manifest_validation\` : \* \`valid\` :
+\`TRUE\` si le manifeste est conforme ; \* \`errors\` : un tibble à une
+ligne par erreur, de colonnes \`entry\` (position de l'entrée dans un
+manifeste collectif, \`NA\` pour un manifeste unitaire), \`id\`
+(l'\`id\` du manifeste concerné, s'il en a un), \`field\` (le champ
+concerné, \`NA\` pour une erreur qui porte sur tout le manifeste) et
+\`message\`.
+
+## Details
+
+La validation se fait en deux temps :
+
+1\. le schéma JSON Schema \`manifest-1.0.json\` (draft-07), livré dans
+\`system.file("schema", package = "ofceweb")\` et publié à
+\<https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/manifest-1.0.json\>,
+contrôle chaque champ. Il est appliqué avec \`ajv\`, le même outil que
+hors de R : le verdict est le même ; 2. deux règles qui relient
+plusieurs champs, que le schéma ne sait pas exprimer : \`date_modified\`
+postérieure ou égale à \`date_published\`, et \`id\` qui commence par la
+valeur d'\`institution\` suivie d'un tiret.
+
+Un manifeste collectif est contrôlé entrée par entrée avec le schéma
+unitaire ; chaque erreur indique la position de l'entrée et son \`id\`.
+
+Le package \`jsonvalidate\` est nécessaire. Il n'est pas installé avec
+ofceweb : la fonction propose de l'installer au premier appel.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+ex <- system.file("schema", "exemples", "valides", "wp-2025-23.json",
+                  package = "ofceweb")
+validate_manifest(ex)
+validate_manifest("https://www.ofce.fr/wp/2025/23/v1/manifest.json")
+
+res <- validate_manifest(list(schema_version = "1.0", id = NULL))
+res$valid
+res$errors
+} # }
+```

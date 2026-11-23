@@ -132,6 +132,23 @@ Les manifestes déjà publiés sont remplacés au prochain `render_wp()` +
 déploiement de chaque dépôt ; les manifestes de staging/brouillon ne sont pas
 conformes v1 par construction (le schéma s'applique aux contenus publiés).
 
+### `wp_manifest()` : `url` stable pour un WP publié, `pdf-path` dérivé de `site-path`
+
+Pour un WP publié, `url` vaut désormais `https://www.ofce.fr/wp/{annee}/{wp}/`,
+sans segment de version : c'est l'adresse stable, atteinte par la redirection
+vers la dernière version (et déjà celle de `citation.url`/`stable_url`).
+`pdf-path` (et donc `pdf`) garde la version, mais est maintenant calculé depuis
+`website.site-path` -- le répertoire réellement déployé -- plutôt que depuis la
+clé `version` : les deux ne peuvent plus diverger (repli sur
+`{annee}/{wp}/[{version}/]` si `site-path` est absent). Le `url` de staging reste
+versionné (`staging.ofce.fr/{repo}/{version}/`). Sans version, rien n'a changé.
+
+Dans la foulée : `deploy_wp()` affiche, après un déploiement en production
+d'un WP versionné, l'URL stable (`https://www.ofce.fr/wp/{annee}/{wp}/`) en plus
+de l'adresse versionnée où les fichiers sont déposés ; `pb_manifest()` lit
+désormais toutes les clés YAML par correspondance exacte (`[[`), comme
+`wp_manifest()`, et une affectation morte de `title` est supprimée.
+
 ### Les variables github sont à jour
 
 Elles sont maintenant écrites au `deploy` pour éviter les retards.

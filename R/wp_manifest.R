@@ -28,6 +28,9 @@
 #' * `categories`, `keywords`, `jel` : listes lues dans `_quarto.yml`, sinon
 #'   dans le frontmatter de `index.qmd`, sinon `[]` ; codes JEL en majuscules.
 #' * `date_published` (clé YAML `date`) et `date_modified`.
+#' * `url` : pour un WP publié, URL **stable** `https://www.ofce.fr/wp/{annee}/{wp}/`,
+#'   sans segment de version (une redirection y mène à la dernière version) ;
+#'   en staging, URL versionnée `staging.ofce.fr/{repo}/{version}/`.
 #' * `pdf` : URL absolue (`https://www.ofce.fr/{pdf-path}`) ou `NULL` tant que
 #'   `pdf-path` est inconnu.
 #'
@@ -43,7 +46,9 @@
 #'
 #' Inclut aussi un champ `pdf-path` : le chemin du fichier `output-file` du
 #' format `wp-pdf`/`wp-typst` actif, relatif à la racine `www.ofce.fr` (ex.
-#' `"wp/2026/5/OFCEWP2026-5.pdf"`). Calculé dès que `wp`/`annee` sont connus,
+#' `"wp/2026/5/v1/OFCEWP2026-5.pdf"`, ou sans `v1/` pour un WP non versionné) :
+#' le répertoire est `website.site-path`, donc il porte la version quand il y en
+#' a une. Calculé dès que `wp`/`annee` sont connus,
 #' indépendamment de `stage`/`url` : c'est l'emplacement de publication final,
 #' pas nécessairement celui où le fichier est déployé au moment de l'appel.
 #' `NULL` si `wp`/`annee` ou le fichier PDF/Typst ne sont pas encore connus.
@@ -115,11 +120,13 @@ wp_manifest <- function(path = ".", stage = NULL) {
   source_repo <- gh_slug_from_remote(root)
   if (is.na(source_repo)) source_repo <- NULL
 
-  # URL de déploiement
+  # URL de déploiement. Un WP publié a une URL stable, sans segment de version
+  # (une redirection y mène à la dernière version, cf. push_wp_redirect()) ;
+  # seuls le staging et le PDF (`pdf-path`) portent la version.
   ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
   url <- if (isFALSE(stage) && !is.null(wp) && !is.null(annee)) {
-    # Publié : URL FTP production numérotée
-    sprintf("https://www.ofce.fr/wp/%d/%d/%s", annee, wp, ver_seg)
+    # Publié : URL stable FTP production, sans version
+    sprintf("https://www.ofce.fr/wp/%d/%d/", annee, wp)
   } else if (isTRUE(stage)) {
     # Staging FTP : URL de pré-publication (avant enregistrement dans le registre)
     repo_slug <- if (!is.null(source_repo) && !is.na(source_repo))
@@ -127,7 +134,7 @@ wp_manifest <- function(path = ".", stage = NULL) {
     sprintf("https://staging.ofce.fr/%s/%s", repo_slug, ver_seg)
   } else if (!is.null(wp) && !is.null(annee)) {
     # Compatibilité : stage NULL mais wp renseigné (appels antérieurs sans stage)
-    sprintf("https://www.ofce.fr/wp/%d/%d/%s", annee, wp, ver_seg)
+    sprintf("https://www.ofce.fr/wp/%d/%d/", annee, wp)
   } else {
     # Brouillon initial : GitHub Pages
     su <- yml$website$`site-url`
@@ -155,9 +162,17 @@ wp_manifest <- function(path = ".", stage = NULL) {
   # Chemin du PDF relatif à www.ofce.fr (ex. "wp/2026/5/OFCEWP2026-5.pdf") --
   # emplacement de publication final, calculé indépendamment de `stage`/`url`
   # dès que `wp`/`annee` sont connus (même si le WP n'est pas encore déployé
-  # à cet emplacement).
+  # à cet emplacement). Le répertoire est `website.site-path` (source de vérité
+  # de FTP_SERVER_DIR, qui porte la version s'il y en a une) ; repli sur
+  # {annee}/{wp}/[{version}/] si absent.
   pdf_path <- if (!is.null(pdf_file) && !is.null(wp) && !is.null(annee)) {
-    sprintf("wp/%d/%d/%s%s", annee, wp, ver_seg, pdf_file)
+    site_path <- manifest_chr1(yml$website[["site-path"]])
+    pdf_dir <- if (!is.null(site_path)) {
+      gsub("^/+|/+$", "", site_path)
+    } else {
+      sub("/$", "", sprintf("%d/%d/%s", annee, wp, ver_seg))
+    }
+    sprintf("wp/%s/%s", pdf_dir, pdf_file)
   } else {
     NULL
   }

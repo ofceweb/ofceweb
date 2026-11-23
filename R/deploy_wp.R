@@ -86,13 +86,9 @@ deploy_wp <- function(
 
   # ---- Publi\u00e9 : FTP production (tou jours, target ignor\u00e9) -------------------
   if (isFALSE(stage)) {
-    stable_url <- sprintf("https://www.ofce.fr/wp/%d/%03d", annee, wp)
     ver_seg    <- if (!is.null(version)) paste0(version, "/") else ""
-    final_url  <- sprintf("https://www.ofce.fr/wp/%d/%d/%s", annee, wp, ver_seg)
-
-    # cli::cli_h2("D\u00e9ploiement WP publi\u00e9 (site2branch \u2192 FTP production)")
-    # cli::cli_text(
-    #   "WP {wp}/{annee}{if (!is.null(version)) paste0(' / ', version) else ''} \u2192 {.url {stable_url}}")
+    stable_url <- sprintf("https://www.ofce.fr/wp/%d/%d/", annee, wp)
+    final_url  <- paste0(stable_url, ver_seg)
 
     # Resynchronise FTP_SERVER_DIR depuis le site-path *actuel* -- au cas o\u00f9
     # _quarto.yml aurait \u00e9t\u00e9 modifi\u00e9 (\u00e9dition manuelle, merge, ...) sans
@@ -116,6 +112,8 @@ deploy_wp <- function(
 
     cli::cli_alert_success(
       "WP disponible apr\u00e8s d\u00e9ploiement FTP : {.url {final_url}}")
+    if (!identical(final_url, stable_url))
+      cli::cli_alert_info("URL stable (redirection vers cette version) : {.url {stable_url}}")
     return(invisible(res))
   }
 

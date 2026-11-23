@@ -70,9 +70,8 @@ pb_manifest <- function(path = ".", stage = NULL) {
 
   # Champs de base
   pb      <- yml[["pb"]]       # NULL ou integer
-  version <- if (!is.null(yml$version)) as.character(yml$version) else NULL
-  lang    <- if (!is.null(yml$lang))    as.character(yml$lang)    else "fr"
-  title   <- if (!is.null(yml$title))   as.character(yml$title)   else ""
+  version <- if (!is.null(yml[["version"]])) as.character(yml[["version"]]) else NULL
+  lang    <- if (!is.null(yml[["lang"]]))    as.character(yml[["lang"]])    else "fr"
 
   date_val <- if (!is.null(yml[["date"]])) as.character(yml[["date"]]) else format(Sys.Date(), "%Y-%m-%d")
   date_mod <- format(Sys.Date(), "%Y-%m-%d")
@@ -89,7 +88,7 @@ pb_manifest <- function(path = ".", stage = NULL) {
   title <- manifest_chr1(yml[["title"]]) %||% manifest_chr1(idx_yml[["title"]]) %||% ""
 
   # Abstract : chercher dans index.qmd d'abord, puis _quarto.yml
-  abstract <- idx_yml$abstract %||% yml$abstract
+  abstract <- idx_yml[["abstract"]] %||% yml[["abstract"]]
   if (!is.null(abstract)) abstract <- as.character(abstract)
 
   # Champs v1 : institution, listes éditoriales, identifiants (PB : pas
@@ -113,7 +112,7 @@ pb_manifest <- function(path = ".", stage = NULL) {
   # setup_pb() ; repli sur {pb} si absent). Seul le staging porte la version.
   ver_seg <- if (!is.null(version)) paste0(version, "/") else ""
   published_path <- if (!is.null(pb))
-    yml$website$`site-path` %||% as.character(pb) else NULL
+    yml[["website"]][["site-path"]] %||% as.character(pb) else NULL
   url <- if (isFALSE(stage) && !is.null(pb)) {
     # Publié : URL FTP production numérotée
     pb_public_url(published_path)
@@ -127,24 +126,24 @@ pb_manifest <- function(path = ".", stage = NULL) {
     pb_public_url(published_path)
   } else {
     # Brouillon initial : GitHub Pages
-    su <- yml$website$`site-url`
+    su <- yml[["website"]][["site-url"]]
     if (!is.null(su) && nzchar(su)) su else NULL
   }
 
   # URL du dépôt
-  repo_url <- yml$website$`repo-url`
+  repo_url <- yml[["website"]][["repo-url"]]
 
   # Fichier PDF (cherche pb-pdf puis pb-typst)
   pdf_file <- NULL
   for (fmt in c("pb-pdf", "pb-typst")) {
-    of <- yml$format[[fmt]]$`output-file`
+    of <- yml[["format"]][[fmt]][["output-file"]]
     if (!is.null(of) && nzchar(of)) { pdf_file <- of; break }
   }
   # Aussi dans index.qmd
   if (is.null(pdf_file) && fs::file_exists(idx_path)) {
     idx_yml <- tryCatch(get_yaml(idx_path), error = function(e) NULL)
     for (fmt in c("pb-pdf", "pb-typst")) {
-      of <- idx_yml$format[[fmt]]$`output-file`
+      of <- idx_yml[["format"]][[fmt]][["output-file"]]
       if (!is.null(of) && nzchar(of)) { pdf_file <- of; break }
     }
   }

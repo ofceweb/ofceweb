@@ -376,5 +376,46 @@ test_that("wp_manifest() keeps the legacy fields read by deploy_wp()/ftp_deploy.
   expect_equal(m$version, "v0")
   expect_false(m$stage)
   expect_true(all(c("source-repo", "pdf-path", "ofceweb-version") %in% names(m)))
-  expect_equal(m$url, "https://www.ofce.fr/wp/2026/6/v0/")
+  expect_equal(m$url, "https://www.ofce.fr/wp/2026/6/")
+})
+
+test_that("wp_manifest() gives a published WP a stable url without the version, whatever the version", {
+  dir <- withr::local_tempdir()
+  build_manifest_repo(dir, wp = 6L, annee = 2026L,
+                      extra = list(version = "v2_corr",
+                                   website = list(`site-path` = "2026/6/v2_corr")))
+
+  expect_equal(wp_manifest(dir, stage = FALSE)$url, "https://www.ofce.fr/wp/2026/6/")
+  # Appel sans `stage` (wp_version_up()) : même URL stable.
+  expect_equal(wp_manifest(dir)$url, "https://www.ofce.fr/wp/2026/6/")
+})
+
+test_that("wp_manifest() keeps the versioned staging url", {
+  dir <- withr::local_tempdir()
+  build_manifest_repo(dir, wp = 6L, annee = 2026L, extra = list(version = "v1"))
+
+  expect_match(wp_manifest(dir, stage = TRUE)$url, "^https://staging[.]ofce[.]fr/[^/]+/v1/$")
+})
+
+test_that("wp_manifest() builds pdf-path from site-path, including a custom version", {
+  dir <- withr::local_tempdir()
+  build_manifest_repo(dir, wp = 5L, annee = 2026L,
+                      extra = list(version = "v2_corr",
+                                   website = list(`site-path` = "2026/5/v2_corr"),
+                                   format = list(`wp-pdf` = list(`output-file` = "OFCEWP2026-5.pdf"))))
+
+  m <- wp_manifest(dir, stage = FALSE)
+
+  expect_equal(m$`pdf-path`, "wp/2026/5/v2_corr/OFCEWP2026-5.pdf")
+  expect_equal(m$pdf, "https://www.ofce.fr/wp/2026/5/v2_corr/OFCEWP2026-5.pdf")
+})
+
+test_that("wp_manifest() follows an unversioned site-path even if a stale version key remains", {
+  dir <- withr::local_tempdir()
+  build_manifest_repo(dir, wp = 5L, annee = 2026L,
+                      extra = list(version = "v1",
+                                   website = list(`site-path` = "2026/5"),
+                                   format = list(`wp-pdf` = list(`output-file` = "OFCEWP2026-5.pdf"))))
+
+  expect_equal(wp_manifest(dir, stage = FALSE)$`pdf-path`, "wp/2026/5/OFCEWP2026-5.pdf")
 })

@@ -28,7 +28,7 @@ test_that("pb_manifest() computes pdf-path relative to www.ofce.fr from the acti
 
   m <- pb_manifest(dir, stage = FALSE)
 
-  expect_equal(m$pdf, "IFEPB5.pdf")
+  expect_equal(m$pdf, "https://www.ofce.fr/pb/ife/5/IFEPB5.pdf")
   expect_equal(m$`pdf-path`, "pb/ife/5/IFEPB5.pdf")
 
   written <- jsonlite::fromJSON(fs::path(dir, "manifest.json"))
@@ -184,8 +184,8 @@ test_that("pb_manifest() keeps the legacy fields read by deploy_pb()/ftp_deploy.
   m <- pb_manifest(dir, stage = FALSE)
 
   expect_equal(m$pb, 5L)
-  expect_equal(m$version, "v0")
+  expect_null(m$version)
   expect_false(m$stage)
   expect_true(all(c("source-repo", "pdf-path", "ofceweb-version") %in% names(m)))
-  expect_equal(m$url, "https://www.ofce.fr/pb/5/v0/")
+  expect_equal(m$url, "https://www.ofce.fr/pb/ife/5/")
 })

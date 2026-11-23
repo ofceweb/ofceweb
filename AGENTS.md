@@ -72,3 +72,11 @@
 - `validate_manifest()` (`R/validate_manifest.R`) applies the schema with `jsonvalidate` (engine `ajv`, in `Suggests`, installed on demand), then two cross-field rules the schema cannot express (`date_modified >= date_published`, `id` starts with `{institution}-`), and translates every ajv error into French. It never raises an R error on an invalid or unreadable manifest. File/URL text is validated as is (no jsonlite round-trip); a JSON array is a collective manifest, validated entry by entry with the unit schema.
 - `inst/schema/exemples/invalides.yml` is the only list of invalid cases (file → expected `field`/`message`); `tests/testthat/test-validate_manifest.R` loops over it and checks it matches the `invalides/` folder both ways.
 - A schema change must be mirrored in the examples, in `invalides.yml`, and in `webdocs` (`architecture-base-contenus.qmd` §3.1, `modele-donnees-v1.qmd` §2), which explain the model and point to the schema for the field list.
+
+## Declaration schema and `check_registry()`
+
+- A declaration (`ofceweb/contentdb`, `registry/{annee}/{id}.json`) follows `inst/schema/declaration-1.0.json` (draft-07, `additionalProperties: false`, same `$id` convention as the manifest schema).
+- `check_registry()` (`R/check_registry.R`) checks the whole `registry/` folder: schema, layout (four-digit year folder, `id` equal to the file name), `id` uniqueness, and no deletion (paths passed in `deleted`; a move shows up as a deletion of the old path). It reuses `manifest_translate_errors()` from `R/validate_manifest.R` for French messages: a new keyword or field format goes there, not in a copy. Never raises an R error on a bad declaration.
+- `check_registry_ci()` is the only entry point of the `contentdb` workflow (`.github/workflows/check-registry.yml`), which computes deleted files with `git diff --no-renames --diff-filter=D` and installs ofceweb from GitHub: `contentdb` holds no logic. Changing its signature breaks that workflow.
+- `inst/schema/exemples-declaration/invalides.yml` is the only list of invalid declaration cases; `tests/testthat/test-check_registry.R` loops over it.
+- A change to the declaration schema must be mirrored in the examples, in the `contentdb` README, and in `webdocs` (`architecture-base-contenus.qmd` §4.2).

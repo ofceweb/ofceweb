@@ -148,3 +148,30 @@ system.file("schema", "exemples", package = "ofceweb")
 - `invalides/` : un fichier par règle ;
 - `invalides.yml` : pour chaque fichier invalide, le champ et l'erreur
   attendus.
+
+## Déclarer un contenu
+
+Un manifeste publié n'entre dans la base des contenus qu'une fois
+**déclaré** dans le journal du dépôt
+[`ofceweb/contentdb`](https://github.com/ofceweb/contentdb) : un fichier
+`registry/{annee}/{id}.json` par contenu, qui donne l'adresse du
+manifeste, celle du PDF, la date, l'auteur et l'état de la dernière
+déclaration (`published` ou `retired`). Le README de `contentdb` explique
+comment déclarer, retirer ou republier un contenu.
+
+Le format d'une déclaration est fixé par le schéma `declaration-1.0.json`,
+livré avec le package et publié à
+<https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/declaration-1.0.json>.
+`check_registry()` contrôle tout le journal : le schéma de chaque
+déclaration, son rangement (année sur quatre chiffres, `id` égal au nom du
+fichier, un seul fichier par `id`) et, si on lui passe la liste des
+fichiers supprimés, l'absence de suppression. La CI de `contentdb` lance
+ce contrôle à chaque push et à chaque pull request ; on peut le lancer en
+local depuis un clone du dépôt :
+
+```{r, eval = FALSE}
+check_registry(".")
+```
+
+Des exemples de déclarations valides et invalides se trouvent dans
+`system.file("schema", "exemples-declaration", package = "ofceweb")`.

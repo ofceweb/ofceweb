@@ -123,10 +123,12 @@ reference:
 - title: Manifestes
   desc: >
     Contrôle d'un manifeste de contenu (modèle de données v1), unitaire ou
-    collectif, avec le schéma JSON Schema livré dans `inst/schema/` et
-    publié sur GitHub.
+    collectif, et du journal des déclarations de `contentdb`, avec les
+    schémas JSON Schema livrés dans `inst/schema/` et publiés sur GitHub.
   contents:
   - validate_manifest
+  - check_registry
+  - check_registry_ci
 
 - title: Déploiement & utilitaires
   desc: >

@@ -1,0 +1,68 @@
+# Exemples invalides de la déclaration v1 et erreurs attendues.
+#
+# Une entrée par fichier de exemples-declaration/invalides/. Chaque fichier est
+# une déclaration seule, contrôlée par le schéma declaration-1.0.json. Les
+# règles de rangement (id égal au nom du fichier, année, unicité, suppression)
+# se testent sur des dossiers registry/ construits dans les tests.
+#
+# Pour chaque erreur attendue :
+#   field   : champ concerné (null pour une erreur qui porte sur toute la déclaration)
+#   message : extrait du message rendu par ofceweb::check_registry()
+#
+# Les tests du package lisent ce fichier : la liste des cas n'existe qu'ici.
+
+status-publie.json:
+  description: Valeur de status hors liste.
+  errors:
+    - field: status
+      message: 'valeur "publie" non admise ; valeurs admises : published, retired'
+pdf-url-absent.json:
+  description: pdf_url absent ; il est obligatoire, même à null.
+  errors:
+    - field: pdf_url
+      message: 'champ obligatoire manquant'
+manifest-url-http.json:
+  description: manifest_url en http.
+  errors:
+    - field: manifest_url
+      message: 'doit être une URL absolue en https'
+pdf-url-relatif.json:
+  description: pdf_url relative.
+  errors:
+    - field: pdf_url
+      message: 'doit être une URL absolue en https ou null'
+declared-at-sans-fuseau.json:
+  description: declared_at sans fuseau horaire.
+  errors:
+    - field: declared_at
+      message: 'AAAA-MM-JJThh:mm:ssZ'
+declared-at-francais.json:
+  description: declared_at au format 15/06/2026.
+  errors:
+    - field: declared_at
+      message: '(reçu : "15/06/2026")'
+declared-by-invalide.json:
+  description: declared_by qui n'est pas un login GitHub.
+  errors:
+    - field: declared_by
+      message: 'login GitHub'
+champ-inconnu.json:
+  description: Champ inconnu ; le format de la déclaration est fermé.
+  errors:
+    - field: commentaire
+      message: 'champ inconnu'
+id-majuscules.json:
+  description: id en majuscules.
+  errors:
+    - field: id
+      message: 'doit être en minuscules'
+json-illisible.json:
+  description: Fichier qui n'est pas du JSON lisible.
+  errors:
+    - field: null
+      message: 'JSON illisible'
+tableau.json:
+  description: Tableau JSON au lieu d'un objet.
+  errors:
+    - field: null
+      message: 'doit être un objet'

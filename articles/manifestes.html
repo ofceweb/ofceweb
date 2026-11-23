@@ -232,6 +232,30 @@ et le manifeste collectif d’un blog ;</li>
 et l’erreur attendus.</li>
 </ul>
 </div>
+<div class="section level2">
+<h2 id="déclarer-un-contenu">Déclarer un contenu<a class="anchor" aria-label="anchor" href="#d%C3%A9clarer-un-contenu"></a>
+</h2>
+<p>Un manifeste publié n’entre dans la base des contenus qu’une fois
+<strong>déclaré</strong> dans le journal du dépôt <a href="https://github.com/ofceweb/contentdb" class="external-link"><code>ofceweb/contentdb</code></a>
+: un fichier <code>registry/{annee}/{id}.json</code> par contenu, qui
+donne l’adresse du manifeste, celle du PDF, la date, l’auteur et l’état
+de la dernière déclaration (<code>published</code> ou
+<code>retired</code>). Le README de <code>contentdb</code> explique
+comment déclarer, retirer ou republier un contenu.</p>
+<p>Le format d’une déclaration est fixé par le schéma
+<code>declaration-1.0.json</code>, livré avec le package et publié à <a href="https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/declaration-1.0.json" class="external-link uri">https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/declaration-1.0.json</a>.
+<code><a href="../reference/check_registry.html">check_registry()</a></code> contrôle tout le journal : le schéma de
+chaque déclaration, son rangement (année sur quatre chiffres,
+<code>id</code> égal au nom du fichier, un seul fichier par
+<code>id</code>) et, si on lui passe la liste des fichiers supprimés,
+l’absence de suppression. La CI de <code>contentdb</code> lance ce
+contrôle à chaque push et à chaque pull request ; on peut le lancer en
+local depuis un clone du dépôt :</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/check_registry.html">check_registry</a></span><span class="op">(</span><span class="st">"."</span><span class="op">)</span></span></code></pre></div>
+<p>Des exemples de déclarations valides et invalides se trouvent dans
+<code>system.file("schema", "exemples-declaration", package = "ofceweb")</code>.</p>
+</div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>

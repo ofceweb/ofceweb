@@ -51,6 +51,14 @@
 <li>Exemples valides et invalides dans <code>inst/schema/exemples/</code>, avec les erreurs attendues dans <code>invalides.yml</code>.</li>
 <li>Nouvel article « Valider un manifeste ».</li>
 </ul></div>
+<div class="section level3">
+<h3 id="journal-des-déclarations-et-check_registry-development-version">Journal des déclarations et <code>check_registry()</code>
+<a class="anchor" aria-label="anchor" href="#journal-des-d%C3%A9clarations-et-check_registry-development-version"></a></h3>
+<ul><li>Nouveau schéma JSON Schema (draft-07) de la déclaration d’un contenu dans le journal de <code>ofceweb/contentdb</code>, <code>inst/schema/declaration-1.0.json</code> : six champs obligatoires (<code>id</code>, <code>manifest_url</code>, <code>pdf_url</code>, <code>declared_at</code>, <code>declared_by</code>, <code>status</code>), aucun champ inconnu.</li>
+<li>Nouvelle fonction <code><a href="../reference/check_registry.html">check_registry()</a></code> : contrôle toutes les déclarations du dossier <code>registry/</code> (schéma, rangement <code>registry/{annee}/{id}.json</code>, unicité de l’<code>id</code>, absence de suppression) et rend toutes les erreurs en français. <code><a href="../reference/check_registry_ci.html">check_registry_ci()</a></code> est le point d’entrée de la CI de <code>contentdb</code>.</li>
+<li>Exemples valides et invalides dans <code>inst/schema/exemples-declaration/</code>, avec les erreurs attendues dans <code>invalides.yml</code>.</li>
+<li>L’article « Valider un manifeste » explique comment déclarer un contenu.</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.6" id="ofceweb-106">ofceweb 1.0.6<a class="anchor" aria-label="anchor" href="#ofceweb-106"></a></h2>

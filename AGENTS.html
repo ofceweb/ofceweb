@@ -159,6 +159,18 @@
 <code>inst/schema/exemples/invalides.yml</code> is the only list of invalid cases (file → expected <code>field</code>/<code>message</code>); <code>tests/testthat/test-validate_manifest.R</code> loops over it and checks it matches the <code>invalides/</code> folder both ways.</li>
 <li>A schema change must be mirrored in the examples, in <code>invalides.yml</code>, and in <code>webdocs</code> (<code>architecture-base-contenus.qmd</code> §3.1, <code>modele-donnees-v1.qmd</code> §2), which explain the model and point to the schema for the field list.</li>
 </ul></div>
+<div class="section level2">
+<h2 id="declaration-schema-and-check_registry">Declaration schema and <code>check_registry()</code>
+<a class="anchor" aria-label="anchor" href="#declaration-schema-and-check_registry"></a></h2>
+<ul><li>A declaration (<code>ofceweb/contentdb</code>, <code>registry/{annee}/{id}.json</code>) follows <code>inst/schema/declaration-1.0.json</code> (draft-07, <code>additionalProperties: false</code>, same <code>$id</code> convention as the manifest schema).</li>
+<li>
+<code><a href="reference/check_registry.html">check_registry()</a></code> (<code>R/check_registry.R</code>) checks the whole <code>registry/</code> folder: schema, layout (four-digit year folder, <code>id</code> equal to the file name), <code>id</code> uniqueness, and no deletion (paths passed in <code>deleted</code>; a move shows up as a deletion of the old path). It reuses <code>manifest_translate_errors()</code> from <code>R/validate_manifest.R</code> for French messages: a new keyword or field format goes there, not in a copy. Never raises an R error on a bad declaration.</li>
+<li>
+<code><a href="reference/check_registry_ci.html">check_registry_ci()</a></code> is the only entry point of the <code>contentdb</code> workflow (<code>.github/workflows/check-registry.yml</code>), which computes deleted files with <code>git diff --no-renames --diff-filter=D</code> and installs ofceweb from GitHub: <code>contentdb</code> holds no logic. Changing its signature breaks that workflow.</li>
+<li>
+<code>inst/schema/exemples-declaration/invalides.yml</code> is the only list of invalid declaration cases; <code>tests/testthat/test-check_registry.R</code> loops over it.</li>
+<li>A change to the declaration schema must be mirrored in the examples, in the <code>contentdb</code> README, and in <code>webdocs</code> (<code>architecture-base-contenus.qmd</code> §4.2).</li>
+</ul></div>
 
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

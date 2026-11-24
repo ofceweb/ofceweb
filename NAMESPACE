@@ -31,6 +31,7 @@ export(site2branch)
 export(stage_prev)
 export(submit_blog)
 export(update_navbar)
+export(update_quarto_ife)
 export(validate_manifest)
 export(version_up)
 importFrom(cli,

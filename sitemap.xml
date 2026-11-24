@@ -83,6 +83,10 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/push_site_redirect.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/push_wp_redirect.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/push_wp_staging_redirect.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/quarto_ife_install.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/quarto_ife_installed_version.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/quarto_ife_latest_tag.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/quarto_ife_remote_tags.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/registry_request.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/remove_encrypt.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/render.html</loc></url>
@@ -117,6 +121,7 @@
 <url><loc>https://ofceweb.github.io/ofceweb/reference/sync_ftp_dir_var.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/trigger_action.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/update_navbar.html</loc></url>
+<url><loc>https://ofceweb.github.io/ofceweb/reference/update_quarto_ife.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/user_font_dir.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/validate_manifest.html</loc></url>
 <url><loc>https://ofceweb.github.io/ofceweb/reference/version_up.html</loc></url>

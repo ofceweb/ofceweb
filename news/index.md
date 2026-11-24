@@ -45,6 +45,38 @@
 
 ## ofceweb 1.0.6
 
+### Extension Quarto `quarto-ife`
+
+L’extension de l’IFE (format `ife-html`, type de projet `ife-website`)
+vit désormais dans le dépôt public `ofceweb/quarto-ife`, dont chaque
+version publiée est une étiquette `vX.Y.Z`.
+
+- Nouvelle fonction
+  [`update_quarto_ife()`](https://ofceweb.github.io/ofceweb/reference/update_quarto_ife.md)
+  : installe dans `_extensions/ofceweb/` la plus haute version publiée,
+  lue par `git ls-remote` (sans jeton). Si GitHub ne répond pas ou si
+  l’installation échoue, elle avertit et garde la version en place, sans
+  erreur. `only_if_absent = TRUE` n’installe l’extension que si elle
+  manque.
+- [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
+  installe ou met à jour l’extension, et le gabarit `_quarto.yml`
+  l’appelle en `pre-render` : un site suit la dernière version à chaque
+  rendu.
+- [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md),
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)
+  et
+  [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
+  l’installent si elle manque, puis ne la mettent plus à jour : un
+  document garde sa présentation.
+- Les gabarits `_quarto.yml` de
+  [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
+  et
+  [`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
+  écrivent `institution: ofce` en clair, comme ceux de
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)
+  et
+  [`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md).
+
 ### Policy briefs : séries de numérotation
 
 Les PB sont maintenant répartis en **séries**, une par institut

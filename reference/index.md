@@ -136,6 +136,8 @@ Fonctions de bas niveau partagées entre les différents types de dépôts.
 - [`update_navbar()`](https://ofceweb.github.io/ofceweb/reference/update_navbar.md)
   : Met à jour la navbar du \`\_quarto.yml\` depuis la source
   centralisée
+- [`update_quarto_ife()`](https://ofceweb.github.io/ofceweb/reference/update_quarto_ife.md)
+  : Installe ou met à jour l'extension Quarto quarto-ife
 - [`check_fonts()`](https://ofceweb.github.io/ofceweb/reference/check_fonts.md)
   : Vérifie (et installe) les polices Google utilisées par les thèmes
   OFCE

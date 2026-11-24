@@ -271,7 +271,49 @@
 - Fields that are genuinely arrays (e.g. registry entries, FTP state
   `data`) are fine to read/manipulate as lists — no change needed there.
 
-## Manifest schema
+## `quarto-ife` extension (`update_quarto_ife()`)
+
+- The IFE Quarto extension (`ife-html` format, `ife-website` project
+  type) lives in the public repo `ofceweb/quarto-ife` and installs under
+  `_extensions/ofceweb/`. A published version is a `vX.Y.Z` tag;
+  [`update_quarto_ife()`](https://ofceweb.github.io/ofceweb/reference/update_quarto_ife.md)
+  lists tags with `git ls-remote --tags --refs` (no token, no API
+  quota), keeps the `vX.Y.Z` ones and installs the highest by
+  [`numeric_version()`](https://rdrr.io/r/base/numeric_version.html).
+  Quarto names the install folder after the GitHub owner, hence
+  `_extensions/ofceweb/`, not `_extensions/ife/`. Untagged commits never
+  reach a repo.
+
+- [`quarto_ife_install()`](https://ofceweb.github.io/ofceweb/reference/quarto_ife_install.md)
+  runs
+  [`quarto::quarto_add_extension()`](https://quarto-dev.github.io/quarto-r/reference/quarto_add_extension.html)
+  in an empty temp folder, then replaces each folder of
+  `_extensions/ofceweb/` in the project: `quarto add` loads the current
+  project and fails with “Unsupported project type ife-website” when
+  that project’s extension is missing.
+
+- Sites vs. documents:
+  [`setup_site()`](https://ofceweb.github.io/ofceweb/reference/setup_site.md)
+  calls `update_quarto_ife(root)` (always latest) and its `_quarto.yml`
+  template runs it as `pre-render`, so a site follows the latest version
+  on every render.
+  [`setup_wp()`](https://ofceweb.github.io/ofceweb/reference/setup_wp.md)/[`setup_pb()`](https://ofceweb.github.io/ofceweb/reference/setup_pb.md)/[`setup_prev()`](https://ofceweb.github.io/ofceweb/reference/setup_prev.md)
+  call it with `only_if_absent = TRUE`: these are re-run often, and
+  reinstalling would change a published document’s look. A document is
+  updated only by an explicit
+  [`update_quarto_ife()`](https://ofceweb.github.io/ofceweb/reference/update_quarto_ife.md).
+
+- It never raises an error: a failed tag listing (no network, no `git`)
+  or a failed/incomplete install gives a `cli_alert_warning()` naming
+  the kept version, and returns (invisibly) the installed version or
+  `NULL`. A render must not fail because GitHub is down.
+
+- The installed version is read from
+  `_extensions/ofceweb/ife/_extension.yml`. Tests mock
+  [`quarto_ife_remote_tags()`](https://ofceweb.github.io/ofceweb/reference/quarto_ife_remote_tags.md)
+  and
+  [`quarto_ife_install()`](https://ofceweb.github.io/ofceweb/reference/quarto_ife_install.md)
+  (`tests/testthat/test-quarto_ife.R`). \## Manifest schema
 
 - The v1 manifest format is defined by `inst/schema/manifest-1.0.json`
   (JSON Schema draft-07, one `description` per field) and
@@ -280,6 +322,7 @@
   on `main`: that is the published address for non-R tools, protected by
   the version in the file name — a breaking change goes into a new
   `manifest-<version>.json`, never into the existing file.
+
 - [`validate_manifest()`](https://ofceweb.github.io/ofceweb/reference/validate_manifest.md)
   (`R/validate_manifest.R`) applies the schema with `jsonvalidate`
   (engine `ajv`, in `Suggests`, installed on demand), then two
@@ -289,10 +332,12 @@
   never raises an R error on an invalid or unreadable manifest. File/URL
   text is validated as is (no jsonlite round-trip); a JSON array is a
   collective manifest, validated entry by entry with the unit schema.
+
 - `inst/schema/exemples/invalides.yml` is the only list of invalid cases
   (file → expected `field`/`message`);
   `tests/testthat/test-validate_manifest.R` loops over it and checks it
   matches the `invalides/` folder both ways.
+
 - A schema change must be mirrored in the examples, in `invalides.yml`,
   and in `webdocs` (`architecture-base-contenus.qmd` §3.1,
   `modele-donnees-v1.qmd` §2), which explain the model and point to the

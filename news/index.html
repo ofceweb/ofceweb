@@ -63,6 +63,17 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.6" id="ofceweb-106">ofceweb 1.0.6<a class="anchor" aria-label="anchor" href="#ofceweb-106"></a></h2>
 <div class="section level3">
+<h3 id="extension-quarto-quarto-ife-1-0-6">Extension Quarto <code>quarto-ife</code>
+<a class="anchor" aria-label="anchor" href="#extension-quarto-quarto-ife-1-0-6"></a></h3>
+<p>L’extension de l’IFE (format <code>ife-html</code>, type de projet <code>ife-website</code>) vit désormais dans le dépôt public <code>ofceweb/quarto-ife</code>, dont chaque version publiée est une étiquette <code>vX.Y.Z</code>.</p>
+<ul><li>Nouvelle fonction <code><a href="../reference/update_quarto_ife.html">update_quarto_ife()</a></code> : installe dans <code>_extensions/ofceweb/</code> la plus haute version publiée, lue par <code>git ls-remote</code> (sans jeton). Si GitHub ne répond pas ou si l’installation échoue, elle avertit et garde la version en place, sans erreur. <code>only_if_absent = TRUE</code> n’installe l’extension que si elle manque.</li>
+<li>
+<code><a href="../reference/setup_site.html">setup_site()</a></code> installe ou met à jour l’extension, et le gabarit <code>_quarto.yml</code> l’appelle en <code>pre-render</code> : un site suit la dernière version à chaque rendu.</li>
+<li>
+<code><a href="../reference/setup_wp.html">setup_wp()</a></code>, <code><a href="../reference/setup_pb.html">setup_pb()</a></code> et <code><a href="../reference/setup_prev.html">setup_prev()</a></code> l’installent si elle manque, puis ne la mettent plus à jour : un document garde sa présentation.</li>
+<li>Les gabarits <code>_quarto.yml</code> de <code><a href="../reference/setup_site.html">setup_site()</a></code> et <code><a href="../reference/setup_prev.html">setup_prev()</a></code> écrivent <code>institution: ofce</code> en clair, comme ceux de <code><a href="../reference/setup_wp.html">setup_wp()</a></code> et <code><a href="../reference/setup_pb.html">setup_pb()</a></code>.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="policy-briefs--séries-de-numérotation-1-0-6">Policy briefs : séries de numérotation<a class="anchor" aria-label="anchor" href="#policy-briefs--s%C3%A9ries-de-num%C3%A9rotation-1-0-6"></a></h3>
 <p>Les PB sont maintenant répartis en <strong>séries</strong>, une par institut d’origine, chacune numérotée à partir de 1. La série <code>ofce</code> est close ; les nouveaux PB entrent dans la série <code>ife</code>.</p>
 <ul><li>Nouvelle clé <code>pb_series</code> dans <code>_quarto.yml</code> (gabarit : <code>ife</code> ; <code>ofce</code> si la clé est absente). Elle est indépendante de <code>institut</code>, qui ne choisit que le logo. <code><a href="../reference/setup_pb.html">setup_pb()</a></code> l’écrit toujours explicitement.</li>

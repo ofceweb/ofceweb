@@ -66,19 +66,26 @@ jamais supprimées automatiquement. Juste avant cet appel,
 package \*\*ofce\*\* installé est en version \`\>= 1.3.39\` — sinon la
 fonction s'arrête immédiatement avec \[cli::cli_abort()\].
 
+L'extension \`quarto-ife\` (\`\_extensions/ofceweb/\`) est installée par
+\[update_quarto_ife()\] à sa dernière version publiée si elle est
+absente. Présente, elle n'est pas mise à jour : un document garde la
+version installée à sa création, et un appel à \[update_quarto_ife()\]
+le fait passer à la dernière version.
+
 ## Structure créée
 
 “\` \<root\>/ ├── \_quarto.yml \# base commune (ofce_prev, prev, annee,
 mois) ├── \_quarto-staging.yml \# profil staging (site-path, version,
 encrypt_site) ├── \_quarto-publish.yml \# profil publish (site-path, pas
 de chiffrement) ├── \_extensions/ \# extensions Quarto OFCE (via
-ofce::setup_quarto()) ├── www/ \# assets statiques (logos, CSS —
-toujours mis à jour) ├── france/data/ \# données France (.gitkeep) ├──
-inter/data/ \# données International (.gitkeep) ├── fiches/data/ \#
-données Analyses Pays (.gitkeep) ├── tableaux_comptes/ \# tableaux de
-comptes nationaux ├── data_pays/ \# scripts de données agrégées
-(non-destructif) └── .github/workflows/ ├── ftp_deploy_staging.yml ├──
-ftp_deploy_publish.yml └── ftp_deploy_profile.yml “\`
+ofce::setup_quarto()) │ \# et quarto-ife (via update_quarto_ife()) ├──
+www/ \# assets statiques (logos, CSS — toujours mis à jour) ├──
+france/data/ \# données France (.gitkeep) ├── inter/data/ \# données
+International (.gitkeep) ├── fiches/data/ \# données Analyses Pays
+(.gitkeep) ├── tableaux_comptes/ \# tableaux de comptes nationaux ├──
+data_pays/ \# scripts de données agrégées (non-destructif) └──
+.github/workflows/ ├── ftp_deploy_staging.yml ├── ftp_deploy_publish.yml
+└── ftp_deploy_profile.yml “\`
 
 ## See also
 

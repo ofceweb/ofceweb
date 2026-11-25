@@ -104,10 +104,19 @@ quarto_ife_installed_version <- function(path = ".") {
 #' @keywords internal
 quarto_ife_remote_tags <- function() {
   url <- paste0("https://github.com/", quarto_ife_repo, ".git")
+  # Pas d'invite d'identifiants si le dépôt devient inaccessible. Posée par
+  # Sys.setenv() : sous Windows, system2(env =) place la variable après la
+  # commande, et git la prend pour une sous-commande.
+  old <- Sys.getenv("GIT_TERMINAL_PROMPT", unset = NA)
+  Sys.setenv(GIT_TERMINAL_PROMPT = "0")
+  on.exit(
+    if (is.na(old)) Sys.unsetenv("GIT_TERMINAL_PROMPT")
+    else Sys.setenv(GIT_TERMINAL_PROMPT = old),
+    add = TRUE
+  )
   out <- suppressWarnings(system2(
     "git", c("ls-remote", "--tags", "--refs", url),
-    stdout = TRUE, stderr = TRUE,
-    env = "GIT_TERMINAL_PROMPT=0", timeout = 30
+    stdout = TRUE, stderr = TRUE, timeout = 30
   ))
   status <- attr(out, "status")
   if (!is.null(status) && status != 0) {

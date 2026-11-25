@@ -1,5 +1,12 @@
 ## ofceweb (development version)
 
+### Extension Quarto `quarto-ife`
+
+* Correction : sous Windows, `update_quarto_ife()` ne trouvait jamais la
+  dernière version de `quarto-ife`, car `git ls-remote` échouait, et
+  n'installait donc rien. `GIT_TERMINAL_PROMPT` est désormais posée par
+  `Sys.setenv()`, `system2(env =)` ne la transmettant pas sous Windows.
+
 ### Schéma du manifeste v1 et `validate_manifest()`
 
 * Nouveau schéma JSON Schema (draft-07) du manifeste v1,

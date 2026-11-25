@@ -1,7 +1,8 @@
 # Unit tests for update_quarto_ife() — installs or updates the quarto-ife
 # Quarto extension from the latest published tag. The tag listing
 # (quarto_ife_remote_tags()) and the installation (quarto_ife_install()) are
-# mocked: no network, git or Quarto call is made.
+# mocked, and a fake `git` stands in for the real one: no network, git or
+# Quarto call is made.
 
 # Writes `_extensions/ofceweb/ife/_extension.yml` at `version` under `dir`, as
 # `quarto add ofceweb/quarto-ife@v<version>` would.
@@ -26,6 +27,34 @@ test_that("quarto_ife_latest_tag() ignores tags not of the form vX.Y.Z", {
   )
   expect_error(quarto_ife_latest_tag(c("latest", "v1")), "version")
   expect_error(quarto_ife_latest_tag(character()), "version")
+})
+
+test_that("quarto_ife_remote_tags() runs git ls-remote without credential prompt and restores the env", {
+  skip_on_os("windows")  # the fake git below is a shell script
+  bin <- withr::local_tempdir()
+  log <- fs::path(bin, "env.log")
+  git <- fs::path(bin, "git")
+  writeLines(c(
+    "#!/bin/sh",
+    "[ \"$1\" = ls-remote ] || { echo \"unexpected: $*\"; exit 2; }",
+    "echo \"prompt=$GIT_TERMINAL_PROMPT\" >> \"$FAKE_GIT_LOG\"",
+    "printf 'a1\\trefs/tags/v0.1.0\\nb2\\trefs/tags/v0.2.0\\n'"
+  ), git)
+  fs::file_chmod(git, "755")
+  withr::local_envvar(
+    PATH = paste(bin, Sys.getenv("PATH"), sep = .Platform$path.sep),
+    FAKE_GIT_LOG = log
+  )
+
+  withr::with_envvar(c(GIT_TERMINAL_PROMPT = "1"), {
+    expect_identical(quarto_ife_remote_tags(), c("v0.1.0", "v0.2.0"))
+    expect_identical(Sys.getenv("GIT_TERMINAL_PROMPT"), "1")
+  })
+  withr::with_envvar(c(GIT_TERMINAL_PROMPT = NA), {
+    quarto_ife_remote_tags()
+    expect_true(is.na(Sys.getenv("GIT_TERMINAL_PROMPT", unset = NA)))
+  })
+  expect_identical(readLines(log), c("prompt=0", "prompt=0"))
 })
 
 test_that("quarto_ife_installed_version() reads the installed version, NULL if absent", {

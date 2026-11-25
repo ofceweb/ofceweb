@@ -44,6 +44,11 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="ofceweb-development-version">ofceweb (development version)<a class="anchor" aria-label="anchor" href="#ofceweb-development-version"></a></h2>
 <div class="section level3">
+<h3 id="extension-quarto-quarto-ife-development-version">Extension Quarto <code>quarto-ife</code>
+<a class="anchor" aria-label="anchor" href="#extension-quarto-quarto-ife-development-version"></a></h3>
+<ul><li>Correction : sous Windows, <code><a href="../reference/update_quarto_ife.html">update_quarto_ife()</a></code> ne trouvait jamais la dernière version de <code>quarto-ife</code>, car <code>git ls-remote</code> échouait, et n’installait donc rien. <code>GIT_TERMINAL_PROMPT</code> est désormais posée par <code><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv()</a></code>, <code>system2(env =)</code> ne la transmettant pas sous Windows.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="schéma-du-manifeste-v1-et-validate_manifest-development-version">Schéma du manifeste v1 et <code>validate_manifest()</code>
 <a class="anchor" aria-label="anchor" href="#sch%C3%A9ma-du-manifeste-v1-et-validate_manifest-development-version"></a></h3>
 <ul><li>Nouveau schéma JSON Schema (draft-07) du manifeste v1, <code>inst/schema/manifest-1.0.json</code>, avec une description par champ, et du manifeste collectif du blog, <code>inst/schema/manifest-collectif-1.0.json</code>. Ils sont publiés à <code>https://raw.githubusercontent.com/ofceweb/ofceweb/main/inst/schema/</code> pour les outils qui ne sont pas en R. Le champ de l’institution s’appelle <code>institution</code> ; un champ inconnu est accepté (champs historiques) ; les champs réservés à l’agrégateur (<code>author_ids</code>, <code>children</code>, <code>status</code>, <code>manifest_url</code>, <code>collected_at</code>) sont rejetés.</li>

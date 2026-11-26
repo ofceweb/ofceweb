@@ -173,5 +173,9 @@ local depuis un clone du dépôt :
 check_registry(".")
 ```
 
+Lancé ailleurs qu'à la racine d'un clone, le contrôle s'arrête par une
+erreur qui nomme le dossier où il attendait `registry/`. Un `registry/`
+vide est accepté : « Journal vide : aucune déclaration. »
+
 Des exemples de déclarations valides et invalides se trouvent dans
 `system.file("schema", "exemples-declaration", package = "ofceweb")`.

@@ -7,7 +7,7 @@
 check_registry_ci(root = ".", deleted_file = NULL)
 }
 \arguments{
-\item{root}{Racine du dépôt, qui contient le dossier `registry/`.}
+\item{root}{Racine du dépôt, qui doit contenir le dossier `registry/`.}
 
 \item{deleted_file}{Fichier texte qui liste les fichiers supprimés, un
 chemin par ligne, relatif à la racine du dépôt. Un fichier absent ou vide,
@@ -21,7 +21,9 @@ Le résultat de [check_registry()], invisible, quand le journal
 Lance [check_registry()], affiche le résultat, et termine la session R avec
 le code de sortie 1 si le journal n'est pas conforme. C'est la seule
 fonction qu'appelle le workflow de `ofceweb/contentdb` : le dépôt ne
-contient aucune logique.
+contient aucune logique. Si `root` n'existe pas ou n'a pas de dossier
+`registry/`, l'erreur de [check_registry()] arrête la session, et
+`Rscript` sort aussi en échec.
 }
 \examples{
 \dontrun{

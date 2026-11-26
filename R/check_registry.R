@@ -29,10 +29,18 @@
 #' qu'il est valide : c'est le rôle de la collecte. Les fichiers hors de
 #' `registry/` ne sont pas contrôlés.
 #'
+#' Un dossier `registry/` vide est un journal valide, sans déclaration. En
+#' revanche, si `root` n'existe pas ou ne contient pas de dossier
+#' `registry/`, la fonction s'arrête par une erreur de classe
+#' `ofceweb_registry_not_found` qui nomme le dossier attendu : c'est presque
+#' toujours un appel depuis le mauvais dossier, et un verdict « valide »
+#' serait trompeur. C'est la seule erreur R de la fonction ; une déclaration
+#' fautive donne toujours un verdict.
+#'
 #' Le package `jsonvalidate` est nécessaire. Il n'est pas installé avec
 #' ofceweb : la fonction propose de l'installer au premier appel.
 #'
-#' @param root Racine du dépôt, qui contient le dossier `registry/`.
+#' @param root Racine du dépôt, qui doit contenir le dossier `registry/`.
 #' @param deleted Chemins des fichiers supprimés par le push ou la pull
 #'   request contrôlés, relatifs à la racine du dépôt (par exemple la sortie
 #'   de `git diff --no-renames --name-only --diff-filter=D`). Les chemins hors
@@ -59,8 +67,21 @@
 #' }
 #' @export
 check_registry <- function(root = ".", deleted = character()) {
+  path <- normalizePath(root, winslash = "/", mustWork = FALSE)
+  if (!dir.exists(root)) {
+    cli::cli_abort(
+      "Dossier introuvable : {path}. Lancez le contrôle depuis la racine d'un clone de contentdb.",
+      class = "ofceweb_registry_not_found"
+    )
+  }
   reg <- file.path(root, "registry")
-  files <- if (dir.exists(reg)) sort(list.files(reg, recursive = TRUE)) else character()
+  if (!dir.exists(reg)) {
+    cli::cli_abort(
+      "Aucun dossier registry/ dans {path} : lancez le contrôle depuis la racine d'un clone de contentdb.",
+      class = "ofceweb_registry_not_found"
+    )
+  }
+  files <- sort(list.files(reg, recursive = TRUE))
   rel <- file.path("registry", files)
 
   well_placed <- grepl("^registry/[0-9]{4}/[^/]+\\.json$", rel)
@@ -107,9 +128,11 @@ check_registry <- function(root = ".", deleted = character()) {
 #' Lance [check_registry()], affiche le résultat, et termine la session R avec
 #' le code de sortie 1 si le journal n'est pas conforme. C'est la seule
 #' fonction qu'appelle le workflow de `ofceweb/contentdb` : le dépôt ne
-#' contient aucune logique.
+#' contient aucune logique. Si `root` n'existe pas ou n'a pas de dossier
+#' `registry/`, l'erreur de [check_registry()] arrête la session, et
+#' `Rscript` sort aussi en échec.
 #'
-#' @param root Racine du dépôt, qui contient le dossier `registry/`.
+#' @param root Racine du dépôt, qui doit contenir le dossier `registry/`.
 #' @param deleted_file Fichier texte qui liste les fichiers supprimés, un
 #'   chemin par ligne, relatif à la racine du dépôt. Un fichier absent ou vide,
 #'   ou `NULL`, signifie qu'aucun fichier n'a été supprimé.
@@ -143,7 +166,11 @@ registry_ci_exit <- function(status) quit(save = "no", status = status)
 print.ofceweb_registry_check <- function(x, ...) {
   if (isTRUE(x$valid)) {
     n <- x$n_declarations
-    cli::cli_alert_success("Journal valide : {n} déclaration{?s}.")
+    if (n == 0L) {
+      cli::cli_alert_success("Journal vide : aucune déclaration.")
+    } else {
+      cli::cli_alert_success("Journal valide : {n} déclaration{?s}.")
+    }
     return(invisible(x))
   }
   n <- nrow(x$errors)

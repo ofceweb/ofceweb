@@ -41,6 +41,11 @@
 * Exemples valides et invalides dans `inst/schema/exemples-declaration/`,
   avec les erreurs attendues dans `invalides.yml`.
 * L'article « Valider un manifeste » explique comment déclarer un contenu.
+* `check_registry()` s'arrête par une erreur (classe
+  `ofceweb_registry_not_found`) qui nomme le dossier attendu quand `root`
+  n'existe pas ou n'a pas de dossier `registry/`, au lieu de répondre
+  « Journal valide : 0 déclarations ». Un `registry/` vide reste valide et
+  s'affiche « Journal vide : aucune déclaration. ».
 
 ## ofceweb 1.0.6
 

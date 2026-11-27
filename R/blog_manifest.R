@@ -32,6 +32,15 @@ post_image_name <- function(image) {
   image
 }
 
+# Nom du PDF publié pour un fichier de post : nom du fichier sans `.qmd` ni
+# `.en`, puis `.{lang}.pdf`. Un fichier `x.fr.qmd` donne `x.fr.fr.pdf` : c'est
+# le nom que le rendu publie, à garder pour ne pas casser les liens existants.
+# Partagée avec copy_post().
+post_pdf_name <- function(file, lang) {
+  post_name <- sub("\\.en$", "", fs::path_ext_remove(fs::path_file(file)))
+  paste0(post_name, ".", lang, ".pdf")
+}
+
 # Point de remplacement pour les tests : le contrôle demande jsonvalidate.
 blog_manifest_can_validate <- function() {
   rlang::is_installed("jsonvalidate")
@@ -74,7 +83,6 @@ blog_post_entry <- function(file, translated, gow, ecograph, root, base) {
   annee <- segments[[1]]
   dossier <- segments[[length(segments)]]
   lang <- if (grepl("\\.en\\.qmd$", file)) "en" else "fr"
-  nom <- sub("\\.(en|fr)$", "", fs::path_ext_remove(fs::path_file(file)))
 
   ecograph <- isTRUE(ecograph)
   serie <- ecograph || isTRUE(gow)
@@ -108,7 +116,7 @@ blog_post_entry <- function(file, translated, gow, ecograph, root, base) {
     jel = list(),
     date_published = blog_date(yml[["date"]]),
     url = url,
-    pdf = paste0(url, nom, ".", lang, ".pdf"),
+    pdf = paste0(url, post_pdf_name(file, lang)),
     image = image,
     auto_update = TRUE
   )

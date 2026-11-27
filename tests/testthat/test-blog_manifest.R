@@ -299,3 +299,32 @@ test_that("post_image_name() complète un nom fig-{label}", {
   expect_equal(post_image_name("image.jpg"), "image.jpg")
   expect_null(post_image_name(NULL))
 })
+
+test_that("le PDF d'un fichier x.fr.qmd est celui que le rendu publie", {
+  expect_equal(post_pdf_name("2024/20240404_CBFS/20240404_CBFS.fr.qmd", "fr"), "20240404_CBFS.fr.fr.pdf")
+  expect_equal(post_pdf_name("2024/20240404_CBFS/20240404_CBFS.en.qmd", "en"), "20240404_CBFS.en.pdf")
+  expect_equal(post_pdf_name("2026/20261117_GAMB/Billet_IFE.qmd", "fr"), "Billet_IFE.fr.pdf")
+
+  skip_if_not_installed("jsonvalidate")
+  cbfs <- blog_post(
+    "2024/20240404_CBFS", "20240404_CBFS.fr",
+    yaml = c("title: Un billet", "date: 2024-04-04", "author: X", "categories: []"),
+    yaml_en = c("title: A post", "date: 2024-04-04", "author: X", "categories: []")
+  )
+  b <- local_blog(list(cbfs))
+  # local_blog() nomme la traduction `{file}.en.qmd` : on la renomme comme
+  # dans le blog réel (`20240404_CBFS.en.qmd`).
+  pdir <- fs::path(b$root, "posts", "2024/20240404_CBFS")
+  fs::file_move(fs::path(pdir, "20240404_CBFS.fr.en.qmd"), fs::path(pdir, "20240404_CBFS.en.qmd"))
+  b$posts$file_en <- "2024/20240404_CBFS/20240404_CBFS.en.qmd"
+  res <- blog_manifest(b$posts, b$root)
+
+  expect_equal(
+    entry(res, "ofce-post-2024-20240404-cbfs-fr")$pdf,
+    "https://www.ofce.fr/blog2024/fr/2024/20240404_CBFS/20240404_CBFS.fr.fr.pdf"
+  )
+  expect_equal(
+    entry(res, "ofce-post-2024-20240404-cbfs-en")$pdf,
+    "https://www.ofce.fr/blog2024/en/2024/20240404_CBFS/20240404_CBFS.en.pdf"
+  )
+})

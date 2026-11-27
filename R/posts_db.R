@@ -147,10 +147,7 @@ copy_post <- function(posts, lang = "fr",
         purrr::discard(~stringr::str_detect(.x, old_qmd))
       fs::file_delete(autres_qmd)
       fs::file_move(old_qmd, new_qmd)
-      post_name <- fs::path_file(file) |>
-        fs::path_ext_remove() |>
-        stringr::str_remove("\\.en$")
-      pdf_link <- glue::glue("{post_name}.{lang}.pdf")
+      pdf_link <- post_pdf_name(file, lang)
       yaml <- get_yaml(new_qmd)
 
       # Determine format based on the post type (GoW, EcoGraph, or standard blog)

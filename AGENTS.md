@@ -430,3 +430,35 @@
   collection report: renaming one breaks it.
 - Tests mock `manifest_read_url()` and `collect_now()` with
   `local_mocked_bindings()`: no network call.
+
+## Blog manifest (`write_blog_manifest()`)
+
+- [`render_blog()`](https://ofceweb.github.io/ofceweb/reference/render_blog.md)
+  calls `write_blog_manifest(posts, root)` right after
+  `build_sitemap()`: it writes `_site/manifest.json`, the blog’s
+  collective manifest, deployed with the site and declared once in
+  `contentdb` as `ofce-blog`. Code in `R/blog_manifest.R` (internal
+  functions).
+- Entries: `ofce-blog` first, then one per non-draft post file (FR, then
+  EN when `translated`), YAML re-read with `get_yaml()` (`posts_db()`
+  columns are not extended, `posts_db.qs2` is read by webstat). Billet →
+  `type: post`, `institution: ofce`; `gow: true` → `type: gow`, `ofce`;
+  `ecograph: true` (wins over `gow`) → `type: gow`, `ife`. `lang` comes
+  from the file name (`.en.qmd`), never from the YAML.
+- `id` = `{institution}-{post|gow}-{annee}-{dossier}-{lang}`, folder
+  lowercased with `_` → `-`. The `id` is immutable in the content base:
+  never change this rule.
+- Each entry is checked with `manifest_check_one()`; an invalid entry,
+  or a second entry with the same `id`, is dropped and reported in one
+  warning, so that one faulty post never freezes the whole blog in the
+  base (a collective manifest is valid or invalid as a whole for
+  [`collect_contents()`](https://ofceweb.github.io/ofceweb/reference/collect_contents.md)).
+  Without `jsonvalidate` (`blog_manifest_can_validate()`, mocked in
+  tests) the manifest is written unchecked, with a warning. Any R error
+  becomes a warning and no file is written: the blog render must never
+  fail because of the manifest.
+- `post_image_name()` (`fig-{label}` → `fig-{label}.png`) and
+  `post_pdf_name()` (file name without `.qmd` and `.en`, then
+  `.{lang}.pdf`: `x.fr.qmd` → `x.fr.fr.pdf`) are shared with
+  `copy_post()`, so the manifest announces the image and the PDF the
+  render publishes.

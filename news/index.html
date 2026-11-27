@@ -75,6 +75,11 @@
 <code><a href="../reference/validate_manifest.html">validate_manifest()</a></code> attend au plus 30 secondes la réponse d’une URL.</li>
 <li>L’article « Valider un manifeste » explique comment collecter la base et lire les anomalies.</li>
 </ul></div>
+<div class="section level3">
+<h3 id="manifeste-du-blog-development-version">Manifeste du blog<a class="anchor" aria-label="anchor" href="#manifeste-du-blog-development-version"></a></h3>
+<ul><li>
+<code><a href="../reference/render_blog.html">render_blog()</a></code> écrit désormais <code>_site/manifest.json</code>, le manifeste collectif du blog (modèle de données v1) : une entrée pour le blog (<code>ofce-blog</code>), puis une entrée par post publié. Billets en <code>type: post</code>, graphiques de la semaine et Écographes en <code>type: gow</code>, Écographes à <code>institution: ife</code>. Chaque entrée est contrôlée au rendu ; une entrée invalide est écartée avec un avertissement. Sans <code>jsonvalidate</code>, le manifeste est écrit sans contrôle. Voir l’article « Valider un manifeste ».</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.6" id="ofceweb-106">ofceweb 1.0.6<a class="anchor" aria-label="anchor" href="#ofceweb-106"></a></h2>

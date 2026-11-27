@@ -110,6 +110,48 @@ reconnaît un tableau JSON et contrôle chaque entrée. La colonne `entry`
 donne la position de l’entrée fautive, et la colonne `id` son
 identifiant quand elle en a un.
 
+## Le manifeste du blog
+
+[`render_blog()`](https://ofceweb.github.io/ofceweb/reference/render_blog.md)
+écrit le manifeste collectif du blog dans `_site/manifest.json`, publié
+à <https://www.ofce.fr/blog2024/manifest.json> à chaque déploiement. Il
+est déclaré une seule fois dans `contentdb`, sous l’identifiant
+`ofce-blog` : un nouveau post entre dans la base au rendu suivant, sans
+nouvelle déclaration, et un post retiré du blog en sort.
+
+La première entrée décrit le blog : `id: ofce-blog`, `type: blog`,
+`media: site`, titre « Le blog de l’OFCE », `url` de la page d’accueil,
+et pour `date_published` la date du plus ancien post. Viennent ensuite
+une entrée par post publié, version française et traduction anglaise
+chacune la sienne ; les brouillons (`draft: true`) n’y figurent pas.
+
+| Post                                  | `type` | `institution` |
+|---------------------------------------|--------|---------------|
+| billet                                | `post` | `ofce`        |
+| graphique de la semaine (`gow: true`) | `gow`  | `ofce`        |
+| Écographe (`ecograph: true`)          | `gow`  | `ife`         |
+
+L’`id` vient du dossier du post, en minuscules, `_` remplacé par `-` :
+`{institution}-{type}-{annee}-{dossier}-{lang}`. Par exemple,
+l’Écographe n°9, rangé dans `posts/2026/20261124_DG_eg/`, a pour `id`
+`ife-gow-2026-20261124-dg-eg-fr`. Une traduction partage avec sa version
+française le même `translation_id`, l’`id` sans la langue. La langue
+vient du nom du fichier (`.en.qmd`), pas de l’en-tête.
+
+Les autres champs viennent de l’en-tête du post : `title`, `subtitle`,
+`authors` (les noms de `author`), `abstract` (`description`),
+`categories`, `date_published` (`date`) et `image`. `url` et `pdf` sont
+les adresses publiées du post et de son PDF. `keywords` et `jel` sont
+vides. Pour un `gow`, les libellés de série « Écographe » et « EcoGraph
+» sont retirés des catégories, et le numéro `nb` est recopié ; la
+collecte ne le garde pas, car il n’est pas dans le schéma.
+
+Chaque entrée est contrôlée au rendu. Une entrée invalide est écartée du
+manifeste, avec un avertissement qui nomme le fichier du post et
+l’erreur : un post fautif ne bloque pas la mise à jour des autres dans
+la base. Sans le package `jsonvalidate`, le manifeste est écrit sans
+contrôle, avec un avertissement.
+
 ## Valider hors de R
 
 N’importe quel validateur JSON Schema compatible draft-07 peut contrôler

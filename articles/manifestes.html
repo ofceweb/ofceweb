@@ -197,6 +197,70 @@ de l’entrée fautive, et la colonne <code>id</code> son identifiant quand
 elle en a un.</p>
 </div>
 <div class="section level2">
+<h2 id="le-manifeste-du-blog">Le manifeste du blog<a class="anchor" aria-label="anchor" href="#le-manifeste-du-blog"></a>
+</h2>
+<p><code><a href="../reference/render_blog.html">render_blog()</a></code> écrit le manifeste collectif du blog dans
+<code>_site/manifest.json</code>, publié à <a href="https://www.ofce.fr/blog2024/manifest.json" class="external-link uri">https://www.ofce.fr/blog2024/manifest.json</a> à chaque
+déploiement. Il est déclaré une seule fois dans <code>contentdb</code>,
+sous l’identifiant <code>ofce-blog</code> : un nouveau post entre dans
+la base au rendu suivant, sans nouvelle déclaration, et un post retiré
+du blog en sort.</p>
+<p>La première entrée décrit le blog : <code>id: ofce-blog</code>,
+<code>type: blog</code>, <code>media: site</code>, titre « Le blog de
+l’OFCE », <code>url</code> de la page d’accueil, et pour
+<code>date_published</code> la date du plus ancien post. Viennent
+ensuite une entrée par post publié, version française et traduction
+anglaise chacune la sienne ; les brouillons (<code>draft: true</code>)
+n’y figurent pas.</p>
+<table class="table">
+<thead><tr class="header">
+<th>Post</th>
+<th><code>type</code></th>
+<th><code>institution</code></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>billet</td>
+<td><code>post</code></td>
+<td><code>ofce</code></td>
+</tr>
+<tr class="even">
+<td>graphique de la semaine (<code>gow: true</code>)</td>
+<td><code>gow</code></td>
+<td><code>ofce</code></td>
+</tr>
+<tr class="odd">
+<td>Écographe (<code>ecograph: true</code>)</td>
+<td><code>gow</code></td>
+<td><code>ife</code></td>
+</tr>
+</tbody>
+</table>
+<p>L’<code>id</code> vient du dossier du post, en minuscules,
+<code>_</code> remplacé par <code>-</code> :
+<code>{institution}-{type}-{annee}-{dossier}-{lang}</code>. Par exemple,
+l’Écographe n°9, rangé dans <code>posts/2026/20261124_DG_eg/</code>, a
+pour <code>id</code> <code>ife-gow-2026-20261124-dg-eg-fr</code>. Une
+traduction partage avec sa version française le même
+<code>translation_id</code>, l’<code>id</code> sans la langue. La langue
+vient du nom du fichier (<code>.en.qmd</code>), pas de l’en-tête.</p>
+<p>Les autres champs viennent de l’en-tête du post : <code>title</code>,
+<code>subtitle</code>, <code>authors</code> (les noms de
+<code>author</code>), <code>abstract</code> (<code>description</code>),
+<code>categories</code>, <code>date_published</code> (<code>date</code>)
+et <code>image</code>. <code>url</code> et <code>pdf</code> sont les
+adresses publiées du post et de son PDF. <code>keywords</code> et
+<code>jel</code> sont vides. Pour un <code>gow</code>, les libellés de
+série « Écographe » et « EcoGraph » sont retirés des catégories, et le
+numéro <code>nb</code> est recopié ; la collecte ne le garde pas, car il
+n’est pas dans le schéma.</p>
+<p>Chaque entrée est contrôlée au rendu. Une entrée invalide est écartée
+du manifeste, avec un avertissement qui nomme le fichier du post et
+l’erreur : un post fautif ne bloque pas la mise à jour des autres dans
+la base. Sans le package <code>jsonvalidate</code>, le manifeste est
+écrit sans contrôle, avec un avertissement.</p>
+</div>
+<div class="section level2">
 <h2 id="valider-hors-de-r">Valider hors de R<a class="anchor" aria-label="anchor" href="#valider-hors-de-r"></a>
 </h2>
 <p>N’importe quel validateur JSON Schema compatible draft-07 peut

@@ -189,6 +189,17 @@
 <li>Anomaly <code>type</code> codes (<code>declaration_invalid</code>, <code>manifest_unreachable</code>, <code>manifest_invalid</code>, <code>id_mismatch</code>, <code>duplicate_id</code>, <code>parent_unresolved</code>, <code>previous_invalid</code>) are a contract with the collection report: renaming one breaks it.</li>
 <li>Tests mock <code>manifest_read_url()</code> and <code>collect_now()</code> with <code>local_mocked_bindings()</code>: no network call.</li>
 </ul></div>
+<div class="section level2">
+<h2 id="blog-manifest-write_blog_manifest">Blog manifest (<code>write_blog_manifest()</code>)<a class="anchor" aria-label="anchor" href="#blog-manifest-write_blog_manifest"></a></h2>
+<ul><li>
+<code><a href="reference/render_blog.html">render_blog()</a></code> calls <code>write_blog_manifest(posts, root)</code> right after <code>build_sitemap()</code>: it writes <code>_site/manifest.json</code>, the blog’s collective manifest, deployed with the site and declared once in <code>contentdb</code> as <code>ofce-blog</code>. Code in <code>R/blog_manifest.R</code> (internal functions).</li>
+<li>Entries: <code>ofce-blog</code> first, then one per non-draft post file (FR, then EN when <code>translated</code>), YAML re-read with <code>get_yaml()</code> (<code>posts_db()</code> columns are not extended, <code>posts_db.qs2</code> is read by webstat). Billet → <code>type: post</code>, <code>institution: ofce</code>; <code>gow: true</code> → <code>type: gow</code>, <code>ofce</code>; <code>ecograph: true</code> (wins over <code>gow</code>) → <code>type: gow</code>, <code>ife</code>. <code>lang</code> comes from the file name (<code>.en.qmd</code>), never from the YAML.</li>
+<li>
+<code>id</code> = <code>{institution}-{post|gow}-{annee}-{dossier}-{lang}</code>, folder lowercased with <code>_</code> → <code>-</code>. The <code>id</code> is immutable in the content base: never change this rule.</li>
+<li>Each entry is checked with <code>manifest_check_one()</code>; an invalid entry, or a second entry with the same <code>id</code>, is dropped and reported in one warning, so that one faulty post never freezes the whole blog in the base (a collective manifest is valid or invalid as a whole for <code><a href="reference/collect_contents.html">collect_contents()</a></code>). Without <code>jsonvalidate</code> (<code>blog_manifest_can_validate()</code>, mocked in tests) the manifest is written unchecked, with a warning. Any R error becomes a warning and no file is written: the blog render must never fail because of the manifest.</li>
+<li>
+<code>post_image_name()</code> (<code>fig-{label}</code> → <code>fig-{label}.png</code>) and <code>post_pdf_name()</code> (file name without <code>.qmd</code> and <code>.en</code>, then <code>.{lang}.pdf</code>: <code>x.fr.qmd</code> → <code>x.fr.fr.pdf</code>) are shared with <code>copy_post()</code>, so the manifest announces the image and the PDF the render publishes.</li>
+</ul></div>
 
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

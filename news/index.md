@@ -76,6 +76,17 @@
 - L’article « Valider un manifeste » explique comment collecter la base
   et lire les anomalies.
 
+### Manifeste du blog
+
+- [`render_blog()`](https://ofceweb.github.io/ofceweb/reference/render_blog.md)
+  écrit désormais `_site/manifest.json`, le manifeste collectif du blog
+  (modèle de données v1) : une entrée pour le blog (`ofce-blog`), puis
+  une entrée par post publié. Billets en `type: post`, graphiques de la
+  semaine et Écographes en `type: gow`, Écographes à `institution: ife`.
+  Chaque entrée est contrôlée au rendu ; une entrée invalide est écartée
+  avec un avertissement. Sans `jsonvalidate`, le manifeste est écrit
+  sans contrôle. Voir l’article « Valider un manifeste ».
+
 ## ofceweb 1.0.6
 
 ### Extension Quarto `quarto-ife`

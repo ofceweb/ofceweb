@@ -357,6 +357,11 @@
   `manifest_translate_errors()` from `R/validate_manifest.R` for French
   messages: a new keyword or field format goes there, not in a copy.
   Never raises an R error on a bad declaration.
+- Its only R error: a missing `root` or a `root` without `registry/`
+  aborts with class `ofceweb_registry_not_found`, naming the folder (an
+  empty `registry/` stays valid, printed “Journal vide”).
+  `collect_contents()` relies on it so that a wrong folder never builds
+  an empty base.
 - [`check_registry_ci()`](https://ofceweb.github.io/ofceweb/reference/check_registry_ci.md)
   is the only entry point of the `contentdb` workflow
   (`.github/workflows/check-registry.yml`), which computes deleted files

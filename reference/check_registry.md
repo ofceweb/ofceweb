@@ -16,7 +16,7 @@ check_registry(root = ".", deleted = character())
 
 - root:
 
-  Racine du dépôt, qui contient le dossier \`registry/\`.
+  Racine du dépôt, qui doit contenir le dossier \`registry/\`.
 
 - deleted:
 
@@ -60,6 +60,14 @@ suppression.
 Elle ne vérifie pas que le manifeste pointé par \`manifest_url\` répond
 ni qu'il est valide : c'est le rôle de la collecte. Les fichiers hors de
 \`registry/\` ne sont pas contrôlés.
+
+Un dossier \`registry/\` vide est un journal valide, sans déclaration.
+En revanche, si \`root\` n'existe pas ou ne contient pas de dossier
+\`registry/\`, la fonction s'arrête par une erreur de classe
+\`ofceweb_registry_not_found\` qui nomme le dossier attendu : c'est
+presque toujours un appel depuis le mauvais dossier, et un verdict «
+valide » serait trompeur. C'est la seule erreur R de la fonction ; une
+déclaration fautive donne toujours un verdict.
 
 Le package \`jsonvalidate\` est nécessaire. Il n'est pas installé avec
 ofceweb : la fonction propose de l'installer au premier appel.

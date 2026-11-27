@@ -63,6 +63,8 @@
 <li>Nouvelle fonction <code><a href="../reference/check_registry.html">check_registry()</a></code> : contrôle toutes les déclarations du dossier <code>registry/</code> (schéma, rangement <code>registry/{annee}/{id}.json</code>, unicité de l’<code>id</code>, absence de suppression) et rend toutes les erreurs en français. <code><a href="../reference/check_registry_ci.html">check_registry_ci()</a></code> est le point d’entrée de la CI de <code>contentdb</code>.</li>
 <li>Exemples valides et invalides dans <code>inst/schema/exemples-declaration/</code>, avec les erreurs attendues dans <code>invalides.yml</code>.</li>
 <li>L’article « Valider un manifeste » explique comment déclarer un contenu.</li>
+<li>
+<code><a href="../reference/check_registry.html">check_registry()</a></code> s’arrête par une erreur (classe <code>ofceweb_registry_not_found</code>) qui nomme le dossier attendu quand <code>root</code> n’existe pas ou n’a pas de dossier <code>registry/</code>, au lieu de répondre « Journal valide : 0 déclarations ». Un <code>registry/</code> vide reste valide et s’affiche « Journal vide : aucune déclaration. ».</li>
 </ul></div>
 </div>
     <div class="section level2">

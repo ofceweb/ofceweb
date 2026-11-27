@@ -98,3 +98,11 @@
 - Record fields: `properties` of `manifest-1.0.json` minus the five aggregator fields, in schema order (read from the schema, cached in `.manifest_cache$collect_fields`), then `author_ids`, `children`, `status`, `manifest_url`, `collected_at`. Array fields stay `list()` so `write_contents()` writes them as JSON arrays even with one element. Sorts use `method = "radix"` (locale-independent) for a reproducible base.
 - Anomaly `type` codes (`declaration_invalid`, `manifest_unreachable`, `manifest_invalid`, `id_mismatch`, `duplicate_id`, `parent_unresolved`, `previous_invalid`) are a contract with the collection report: renaming one breaks it.
 - Tests mock `manifest_read_url()` and `collect_now()` with `local_mocked_bindings()`: no network call.
+
+## Blog manifest (`write_blog_manifest()`)
+
+- `render_blog()` calls `write_blog_manifest(posts, root)` right after `build_sitemap()`: it writes `_site/manifest.json`, the blog's collective manifest, deployed with the site and declared once in `contentdb` as `ofce-blog`. Code in `R/blog_manifest.R` (internal functions).
+- Entries: `ofce-blog` first, then one per non-draft post file (FR, then EN when `translated`), YAML re-read with `get_yaml()` (`posts_db()` columns are not extended, `posts_db.qs2` is read by webstat). Billet → `type: post`, `institution: ofce`; `gow: true` → `type: gow`, `ofce`; `ecograph: true` (wins over `gow`) → `type: gow`, `ife`. `lang` comes from the file name (`.en.qmd`), never from the YAML.
+- `id` = `{institution}-{post|gow}-{annee}-{dossier}-{lang}`, folder lowercased with `_` → `-`. The `id` is immutable in the content base: never change this rule.
+- Each entry is checked with `manifest_check_one()`; an invalid entry, or a second entry with the same `id`, is dropped and reported in one warning, so that one faulty post never freezes the whole blog in the base (a collective manifest is valid or invalid as a whole for `collect_contents()`). Without `jsonvalidate` (`blog_manifest_can_validate()`, mocked in tests) the manifest is written unchecked, with a warning. Any R error becomes a warning and no file is written: the blog render must never fail because of the manifest.
+- `post_image_name()` (`fig-{label}` → `fig-{label}.png`) is shared with `copy_post()`, so the manifest announces the image the render publishes.

@@ -6,6 +6,18 @@
 #' Bootstrap, commite les changements de cache dans git et, en option,
 #' déploie le site ou lance un serveur de prévisualisation local.
 #'
+#' Après le sitemap, le rendu écrit `_site/manifest.json`, le manifeste
+#' collectif du blog (modèle de données v1), publié avec le site et déclaré
+#' une seule fois dans `contentdb` sous l'identifiant `ofce-blog`. Il contient
+#' une entrée pour le blog puis une entrée par post publié (brouillons exclus),
+#' version française et traduction chacune la sienne. Chaque entrée est
+#' contrôlée avec le schéma du manifeste : une entrée invalide est écartée du
+#' manifeste, avec un avertissement qui nomme le post, et les autres sont
+#' écrites. Sans le package `jsonvalidate`, le manifeste est écrit sans
+#' contrôle, avec un avertissement. Une erreur pendant cette étape n'arrête
+#' jamais le rendu : le manifeste n'est alors pas écrit. Voir l'article
+#' « Valider un manifeste », section « Le manifeste du blog ».
+#'
 #' La fonction doit être exécutée depuis un projet RStudio contenant un
 #' répertoire `posts/`. Elle s'attend aussi à ce que le projet se trouve dans
 #' un répertoire nommé `webblog` et demande confirmation dans le cas
@@ -178,6 +190,9 @@ render_blog <- function(
 
   cli::cli_h2("Construction du sitemap complet")
   build_sitemap(root, progress = progress)
+
+  cli::cli_h2("Manifeste du blog")
+  write_blog_manifest(posts, root)
 
   cli::cli_h2("Patch des html (bootstrap css hashé)")
   patch_sitelibs_hashes(

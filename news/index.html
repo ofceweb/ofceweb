@@ -66,6 +66,15 @@
 <li>
 <code><a href="../reference/check_registry.html">check_registry()</a></code> s’arrête par une erreur (classe <code>ofceweb_registry_not_found</code>) qui nomme le dossier attendu quand <code>root</code> n’existe pas ou n’a pas de dossier <code>registry/</code>, au lieu de répondre « Journal valide : 0 déclarations ». Un <code>registry/</code> vide reste valide et s’affiche « Journal vide : aucune déclaration. ».</li>
 </ul></div>
+<div class="section level3">
+<h3 id="collecte-de-la-base-et-collect_contents-development-version">Collecte de la base et <code>collect_contents()</code>
+<a class="anchor" aria-label="anchor" href="#collecte-de-la-base-et-collect_contents-development-version"></a></h3>
+<ul><li>Nouvelle fonction <code><a href="../reference/collect_contents.html">collect_contents()</a></code> : lit le journal de <code>contentdb</code>, télécharge et valide chaque manifeste, et rend la base des contenus (un enregistrement par contenu, champs v1 et cinq champs de l’agrégateur) avec la liste des anomalies. Un manifeste défaillant n’arrête pas la collecte : son enregistrement est repris de la base précédente, ou absent.</li>
+<li>Nouvelle fonction <code><a href="../reference/write_contents.html">write_contents()</a></code> : écrit la base dans <code>contents.json</code>.</li>
+<li>
+<code><a href="../reference/validate_manifest.html">validate_manifest()</a></code> attend au plus 30 secondes la réponse d’une URL.</li>
+<li>L’article « Valider un manifeste » explique comment collecter la base et lire les anomalies.</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.6" id="ofceweb-106">ofceweb 1.0.6<a class="anchor" aria-label="anchor" href="#ofceweb-106"></a></h2>

@@ -328,7 +328,8 @@ Fonctions pour le site d’accueil OFCE.
 
 Contrôle d’un manifeste de contenu (modèle de données v1), unitaire ou
 collectif, et du journal des déclarations de `contentdb`, avec les
-schémas JSON Schema livrés dans `inst/schema/` et publiés sur GitHub.
+schémas JSON Schema livrés dans `inst/schema/` et publiés sur GitHub,
+puis collecte de la base des contenus.
 
 - [`validate_manifest()`](https://ofceweb.github.io/ofceweb/reference/validate_manifest.md)
   : Valide un manifeste de contenu (modèle de données v1)
@@ -336,6 +337,10 @@ schémas JSON Schema livrés dans `inst/schema/` et publiés sur GitHub.
   : Contrôle le journal des déclarations de la base des contenus
 - [`check_registry_ci()`](https://ofceweb.github.io/ofceweb/reference/check_registry_ci.md)
   : Point d'entrée de la CI de \`contentdb\`
+- [`collect_contents()`](https://ofceweb.github.io/ofceweb/reference/collect_contents.md)
+  : Collecte la base des contenus depuis le journal des déclarations
+- [`write_contents()`](https://ofceweb.github.io/ofceweb/reference/write_contents.md)
+  : Écrit la base des contenus dans \`contents.json\`
 
 ## Déploiement & utilitaires
 

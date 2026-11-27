@@ -360,8 +360,8 @@
 - Its only R error: a missing `root` or a `root` without `registry/`
   aborts with class `ofceweb_registry_not_found`, naming the folder (an
   empty `registry/` stays valid, printed “Journal vide”).
-  `collect_contents()` relies on it so that a wrong folder never builds
-  an empty base.
+  [`collect_contents()`](https://ofceweb.github.io/ofceweb/reference/collect_contents.md)
+  relies on it so that a wrong folder never builds an empty base.
 - [`check_registry_ci()`](https://ofceweb.github.io/ofceweb/reference/check_registry_ci.md)
   is the only entry point of the `contentdb` workflow
   (`.github/workflows/check-registry.yml`), which computes deleted files
@@ -374,3 +374,59 @@
 - A change to the declaration schema must be mirrored in the examples,
   in the `contentdb` README, and in `webdocs`
   (`architecture-base-contenus.qmd` §4.2).
+
+## Content collection (`collect_contents()`)
+
+- [`collect_contents()`](https://ofceweb.github.io/ofceweb/reference/collect_contents.md)
+  (`R/collect_contents.R`) is the entry point the `contentdb` collection
+  workflow will call: full collection on every call (whole journal,
+  every manifest re-downloaded), with an optional previous base.
+  [`write_contents()`](https://ofceweb.github.io/ofceweb/reference/write_contents.md)
+  writes `contents.json`. Neither raises an R error on a faulty content.
+- Declarations rejected by
+  [`check_registry()`](https://ofceweb.github.io/ofceweb/reference/check_registry.md)
+  are skipped; an `id` declared in several files is skipped in all of
+  them. Manifests are read by `manifest_read_url()` (30 s timeout) and
+  validated by `manifest_validate_text()`, the text-level core of
+  [`validate_manifest()`](https://ofceweb.github.io/ofceweb/reference/validate_manifest.md):
+  one download per `manifest_url` per run (`read_once()` in
+  [`collect_contents()`](https://ofceweb.github.io/ofceweb/reference/collect_contents.md)),
+  shared by every declaration of that URL, so declarations sharing a
+  manifest succeed or fail together and share its `collected_at` (time
+  of the download). A collective manifest with one invalid entry is
+  invalid as a whole.
+- **Reuse on failure** (`collect_reuse()`): the records reused from the
+  previous base are those whose `manifest_url` equals the `manifest_url`
+  of the previous record of the declared `id` — that is how the blog
+  partition is found, with no extra field in the base — minus the
+  records whose `id` has its own declaration. Reused records keep
+  `collected_at` and `manifest_url`, but take the `status` of the
+  current declaration.
+- **Merge order**, applied once: (1) the own record of each declaration,
+  downloaded or reused; (2) the other entries of downloaded manifests,
+  once per `manifest_url` — one whose `id` is taken is dropped and
+  reported (`duplicate_id`); when several declarations share a manifest
+  (a post declared with the blog URL), the entries of those declarations
+  are skipped without anomaly, and each other entry takes the `status`
+  of its `parent`’s declaration, else of the first sharing declaration
+  by `id` (never file order); (3) the other reused entries, in
+  declaration `id` order (not file order), those whose `parent` is the
+  reusing declaration first — one whose `id` is taken, or whose
+  `manifest_url` was downloaded in this run (a downloaded manifest
+  replaces its whole partition), is dropped silently: it is a stale
+  copy. The reuse anomaly counts the records actually kept. Previous
+  records whose `id` is no longer declared are not reused.
+- Record fields: `properties` of `manifest-1.0.json` minus the five
+  aggregator fields, in schema order (read from the schema, cached in
+  `.manifest_cache$collect_fields`), then `author_ids`, `children`,
+  `status`, `manifest_url`, `collected_at`. Array fields stay
+  [`list()`](https://rdrr.io/r/base/list.html) so
+  [`write_contents()`](https://ofceweb.github.io/ofceweb/reference/write_contents.md)
+  writes them as JSON arrays even with one element. Sorts use
+  `method = "radix"` (locale-independent) for a reproducible base.
+- Anomaly `type` codes (`declaration_invalid`, `manifest_unreachable`,
+  `manifest_invalid`, `id_mismatch`, `duplicate_id`,
+  `parent_unresolved`, `previous_invalid`) are a contract with the
+  collection report: renaming one breaks it.
+- Tests mock `manifest_read_url()` and `collect_now()` with
+  `local_mocked_bindings()`: no network call.

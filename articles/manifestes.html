@@ -260,6 +260,148 @@ déclaration. »</p>
 <p>Des exemples de déclarations valides et invalides se trouvent dans
 <code>system.file("schema", "exemples-declaration", package = "ofceweb")</code>.</p>
 </div>
+<div class="section level2">
+<h2 id="collecter-la-base">Collecter la base<a class="anchor" aria-label="anchor" href="#collecter-la-base"></a>
+</h2>
+<p><code><a href="../reference/collect_contents.html">collect_contents()</a></code> construit la base des contenus depuis
+un clone de <code>contentdb</code> : elle lit le journal, écarte les
+déclarations refusées par <code><a href="../reference/check_registry.html">check_registry()</a></code>, télécharge
+chaque manifeste à son <code>manifest_url</code>, le valide comme
+<code><a href="../reference/validate_manifest.html">validate_manifest()</a></code>, puis rend la base et la liste des
+anomalies. <code><a href="../reference/write_contents.html">write_contents()</a></code> écrit la base dans
+<code>contents.json</code> :</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/collect_contents.html">collect_contents</a></span><span class="op">(</span><span class="st">"."</span>, previous <span class="op">=</span> <span class="st">"contents.json"</span><span class="op">)</span></span>
+<span><span class="va">res</span></span>
+<span><span class="co">#&gt; ✔ Base collectée : 5 enregistrements, aucune anomalie.</span></span>
+<span><span class="fu"><a href="../reference/write_contents.html">write_contents</a></span><span class="op">(</span><span class="va">res</span>, <span class="st">"contents.json"</span><span class="op">)</span></span></code></pre></div>
+<p>La collecte est complète à chaque appel : tout le journal est relu et
+tous les manifestes sont retéléchargés. Un contenu retiré
+(<code>retired</code>) est collecté comme un contenu publié, et garde ce
+statut dans la base.</p>
+<div class="section level3">
+<h3 id="ce-que-contient-un-enregistrement">Ce que contient un enregistrement<a class="anchor" aria-label="anchor" href="#ce-que-contient-un-enregistrement"></a>
+</h3>
+<p>La base est un tableau JSON trié par <code>id</code>, où chaque
+<code>id</code> apparaît une seule fois. Un enregistrement reprend les
+champs v1 de son manifeste, dans l’ordre du schéma ; les champs
+historiques ou inconnus (<code>wp</code>, <code>stage</code>,
+<code>source-repo</code>…) ne passent pas. Il ajoute cinq champs :</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>Champ</th>
+<th>Contenu</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>author_ids</code></td>
+<td>une liste de <code>null</code>, de la longueur de
+<code>authors</code> : le rapprochement avec le référentiel des auteurs
+n’est pas encore fait</td>
+</tr>
+<tr class="even">
+<td><code>children</code></td>
+<td>les <code>id</code> des contenus dont le <code>parent</code> désigne
+celui-ci, triés par <code>date_published</code> puis par <code>id</code>
+; <code>[]</code> si aucun</td>
+</tr>
+<tr class="odd">
+<td><code>status</code></td>
+<td>
+<code>published</code> ou <code>retired</code>, celui de la
+déclaration (celle d’<code>ofce-blog</code> pour un post du blog)</td>
+</tr>
+<tr class="even">
+<td><code>manifest_url</code></td>
+<td>l’adresse du manifeste qui a produit l’enregistrement</td>
+</tr>
+<tr class="odd">
+<td><code>collected_at</code></td>
+<td>la date et l’heure UTC du dernier téléchargement réussi</td>
+</tr>
+</tbody>
+</table>
+<p>Un manifeste collectif, comme celui du blog, donne un enregistrement
+par entrée. À chaque collecte réussie, tous les enregistrements issus de
+ce manifeste sont remplacés : un post absent du nouveau manifeste
+disparaît de la base.</p>
+</div>
+<div class="section level3">
+<h3 id="quand-un-manifeste-échoue">Quand un manifeste échoue<a class="anchor" aria-label="anchor" href="#quand-un-manifeste-%C3%A9choue"></a>
+</h3>
+<p>Un manifeste qui ne répond pas, qui est invalide ou qui ne porte pas
+l’<code>id</code> de sa déclaration n’arrête pas la collecte. Si la base
+précédente est fournie (<code>previous</code>), les enregistrements qui
+venaient de ce manifeste sont repris tels quels, avec leur ancien
+<code>collected_at</code> et leur ancienne <code>manifest_url</code>,
+mais avec le <code>status</code> de la déclaration en cours : un retrait
+déclaré prend effet même si le manifeste a disparu du site. Sans base
+précédente, le contenu est absent. Pour un manifeste collectif, une
+seule entrée invalide suffit à reprendre tout l’ensemble. Un
+enregistrement qui a sa propre déclaration n’est jamais repris au nom
+d’une autre : un post du blog déclaré à part dont le manifeste échoue
+reprend son seul enregistrement, et le reste du blog vient du manifeste
+du blog. Une entrée téléchargée passe toujours avant une entrée reprise,
+et un manifeste téléchargé remplace tout ce qui venait de lui.</p>
+</div>
+<div class="section level3">
+<h3 id="lire-les-anomalies">Lire les anomalies<a class="anchor" aria-label="anchor" href="#lire-les-anomalies"></a>
+</h3>
+<p><code>res$anomalies</code> est un tableau à une ligne par anomalie :
+<code>type</code>, <code>id</code> du contenu, <code>file</code> (le
+fichier de déclaration) et <code>message</code>, en français.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>Type</th>
+<th>Signification</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>declaration_invalid</code></td>
+<td>déclaration refusée par <code><a href="../reference/check_registry.html">check_registry()</a></code>, ignorée</td>
+</tr>
+<tr class="even">
+<td><code>manifest_unreachable</code></td>
+<td>manifeste qui ne répond pas (404, erreur du serveur, délai de 30
+secondes dépassé)</td>
+</tr>
+<tr class="odd">
+<td><code>manifest_invalid</code></td>
+<td>manifeste illisible ou refusé par la validation</td>
+</tr>
+<tr class="even">
+<td><code>id_mismatch</code></td>
+<td>manifeste qui ne porte pas l’<code>id</code> de sa déclaration</td>
+</tr>
+<tr class="odd">
+<td><code>duplicate_id</code></td>
+<td>entrée d’un manifeste collectif écartée : son <code>id</code> est
+déjà pris par un contenu déclaré ou par une entrée précédente</td>
+</tr>
+<tr class="even">
+<td><code>parent_unresolved</code></td>
+<td>
+<code>parent</code> qui ne désigne aucun contenu de la base ;
+l’enregistrement est gardé</td>
+</tr>
+<tr class="odd">
+<td><code>previous_invalid</code></td>
+<td>base précédente illisible : la collecte s’est faite sans elle</td>
+</tr>
+</tbody>
+</table>
+<p>Le message des trois types qui portent sur un manifeste dit si
+l’enregistrement précédent a été repris.</p>
+</div>
+</div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>

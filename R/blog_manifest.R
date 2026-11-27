@@ -1,11 +1,11 @@
-# Manifeste collectif du blog (modèle de données v1, OP#4139).
+# Manifeste collectif du blog (modèle de données v1).
 #
 # render_blog() écrit `_site/manifest.json` : un tableau JSON dont la première
 # entrée décrit le blog (`ofce-blog`) et les suivantes chaque post publié, avec
 # `parent: "ofce-blog"`. Une seule déclaration dans `contentdb` couvre tout le
 # blog : la présence d'un post dans le manifeste vaut déclaration.
 #
-# Règles (ticket OP#4139) :
+# Règles :
 # - billet : `type: post`, `institution: ofce` ; GoW (`gow: true`) :
 #   `type: gow`, `institution: ofce` ; Écographe (`ecograph: true`, prioritaire
 #   sur `gow`) : `type: gow`, `institution: ife` ;

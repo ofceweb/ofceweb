@@ -115,13 +115,27 @@ test_that("S3, S4 : published et retired passent", {
   expect_registry_valid(check_registry(root))
 })
 
-test_that("un registre vide ou absent est valide", {
-  expect_registry_valid(check_registry(withr::local_tempdir()))
+test_that("S12 : un registry/ vide est valide", {
   root <- local_registry(list("README.md" = "# contentdb"))
   dir.create(file.path(root, "registry"))
   res <- check_registry(root)
   expect_registry_valid(res)
   expect_equal(res$n_declarations, 0L)
+})
+
+test_that("S11 : un dossier inexistant arrête le contrôle et nomme le dossier", {
+  absent <- file.path(withr::local_tempdir(), "absent")
+  expect_error(check_registry(absent), class = "ofceweb_registry_not_found")
+  err <- tryCatch(check_registry(absent), error = function(e) conditionMessage(e))
+  expect_match(err, normalizePath(absent, winslash = "/", mustWork = FALSE), fixed = TRUE)
+})
+
+test_that("S11 : un dossier sans registry/ arrête le contrôle et nomme le dossier", {
+  root <- local_registry(list("README.md" = "# contentdb"))
+  expect_error(check_registry(root), class = "ofceweb_registry_not_found")
+  err <- tryCatch(check_registry(root), error = function(e) conditionMessage(e))
+  expect_match(err, "registry/", fixed = TRUE)
+  expect_match(err, normalizePath(root, winslash = "/"), fixed = TRUE)
 })
 
 test_that("S5 : un status hors liste nomme le fichier, le champ et la valeur", {
@@ -225,7 +239,18 @@ test_that("un chemin Windows dans deleted est reconnu", {
 
 test_that("print affiche le verdict", {
   root <- local_registry(list("registry/2026/ofce-wp-2026-6-fr.json" = declaration()))
-  expect_message(print(check_registry(root)), "1 déclaration")
+  out <- cli::cli_fmt(print(check_registry(root)))
+  expect_true(any(grepl("Journal valide : 1 déclaration.", out, fixed = TRUE)), info = paste(out, collapse = "\n"))
+  root <- local_registry(list(
+    "registry/2026/ofce-wp-2026-6-fr.json" = declaration(),
+    "registry/2025/ofce-wp-2025-23-fr.json" = declaration("ofce-wp-2025-23-fr")
+  ))
+  out <- cli::cli_fmt(print(check_registry(root)))
+  expect_true(any(grepl("Journal valide : 2 déclarations.", out, fixed = TRUE)), info = paste(out, collapse = "\n"))
+  root <- local_registry(list("README.md" = "# contentdb"))
+  dir.create(file.path(root, "registry"))
+  out <- cli::cli_fmt(print(check_registry(root)))
+  expect_true(any(grepl("Journal vide : aucune déclaration.", out, fixed = TRUE)), info = paste(out, collapse = "\n"))
   root <- local_registry(list("registry/2026/ofce-wp-2026-6-fr.json" = declaration(status = "publie")))
   out <- cli::cli_fmt(print(check_registry(root)))
   expect_true(any(grepl("registry/2026/ofce-wp-2026-6-fr.json", out, fixed = TRUE)))
@@ -260,4 +285,12 @@ test_that("check_registry_ci lit les suppressions et sort en erreur si le journa
   out <- cli::cli_fmt(check_registry_ci(root, deleted_file = del))
   expect_equal(status, 1L)
   expect_true(any(grepl("ofce-wp-2025-23-fr.json", out, fixed = TRUE)))
+})
+
+test_that("S11 : check_registry_ci s'arrête par une erreur sur un dossier sans registry/", {
+  status <- NULL
+  local_mocked_bindings(registry_ci_exit = function(s) status <<- s)
+  root <- local_registry(list("README.md" = "# contentdb"))
+  expect_error(check_registry_ci(root), class = "ofceweb_registry_not_found")
+  expect_null(status)
 })

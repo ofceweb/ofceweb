@@ -84,6 +84,7 @@
 
 - A declaration (`ofceweb/contentdb`, `registry/{annee}/{id}.json`) follows `inst/schema/declaration-1.0.json` (draft-07, `additionalProperties: false`, same `$id` convention as the manifest schema).
 - `check_registry()` (`R/check_registry.R`) checks the whole `registry/` folder: schema, layout (four-digit year folder, `id` equal to the file name), `id` uniqueness, and no deletion (paths passed in `deleted`; a move shows up as a deletion of the old path). It reuses `manifest_translate_errors()` from `R/validate_manifest.R` for French messages: a new keyword or field format goes there, not in a copy. Never raises an R error on a bad declaration.
+- Its only R error: a missing `root` or a `root` without `registry/` aborts with class `ofceweb_registry_not_found`, naming the folder (an empty `registry/` stays valid, printed "Journal vide"). `collect_contents()` relies on it so that a wrong folder never builds an empty base.
 - `check_registry_ci()` is the only entry point of the `contentdb` workflow (`.github/workflows/check-registry.yml`), which computes deleted files with `git diff --no-renames --diff-filter=D` and installs ofceweb from GitHub: `contentdb` holds no logic. Changing its signature breaks that workflow.
 - `inst/schema/exemples-declaration/invalides.yml` is the only list of invalid declaration cases; `tests/testthat/test-check_registry.R` loops over it.
 - A change to the declaration schema must be mirrored in the examples, in the `contentdb` README, and in `webdocs` (`architecture-base-contenus.qmd` §4.2).

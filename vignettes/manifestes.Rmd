@@ -179,3 +179,76 @@ vide est accepté : « Journal vide : aucune déclaration. »
 
 Des exemples de déclarations valides et invalides se trouvent dans
 `system.file("schema", "exemples-declaration", package = "ofceweb")`.
+
+## Collecter la base
+
+`collect_contents()` construit la base des contenus depuis un clone de
+`contentdb` : elle lit le journal, écarte les déclarations refusées par
+`check_registry()`, télécharge chaque manifeste à son `manifest_url`, le
+valide comme `validate_manifest()`, puis rend la base et la liste des
+anomalies. `write_contents()` écrit la base dans `contents.json` :
+
+```{r}
+res <- collect_contents(".", previous = "contents.json")
+res
+#> ✔ Base collectée : 5 enregistrements, aucune anomalie.
+write_contents(res, "contents.json")
+```
+
+La collecte est complète à chaque appel : tout le journal est relu et
+tous les manifestes sont retéléchargés. Un contenu retiré (`retired`) est
+collecté comme un contenu publié, et garde ce statut dans la base.
+
+### Ce que contient un enregistrement
+
+La base est un tableau JSON trié par `id`, où chaque `id` apparaît une
+seule fois. Un enregistrement reprend les champs v1 de son manifeste,
+dans l'ordre du schéma ; les champs historiques ou inconnus (`wp`,
+`stage`, `source-repo`…) ne passent pas. Il ajoute cinq champs :
+
+| Champ | Contenu |
+|---|---|
+| `author_ids` | une liste de `null`, de la longueur de `authors` : le rapprochement avec le référentiel des auteurs n'est pas encore fait |
+| `children` | les `id` des contenus dont le `parent` désigne celui-ci, triés par `date_published` puis par `id` ; `[]` si aucun |
+| `status` | `published` ou `retired`, celui de la déclaration (celle d'`ofce-blog` pour un post du blog) |
+| `manifest_url` | l'adresse du manifeste qui a produit l'enregistrement |
+| `collected_at` | la date et l'heure UTC du dernier téléchargement réussi |
+
+Un manifeste collectif, comme celui du blog, donne un enregistrement par
+entrée. À chaque collecte réussie, tous les enregistrements issus de ce
+manifeste sont remplacés : un post absent du nouveau manifeste disparaît
+de la base.
+
+### Quand un manifeste échoue
+
+Un manifeste qui ne répond pas, qui est invalide ou qui ne porte pas
+l'`id` de sa déclaration n'arrête pas la collecte. Si la base précédente
+est fournie (`previous`), les enregistrements qui venaient de ce
+manifeste sont repris tels quels, avec leur ancien `collected_at` et leur
+ancienne `manifest_url`, mais avec le `status` de la déclaration en
+cours : un retrait déclaré prend effet même si le manifeste a disparu du
+site. Sans base précédente, le contenu est absent. Pour un manifeste
+collectif, une seule entrée invalide suffit à reprendre tout l'ensemble.
+Un enregistrement qui a sa propre déclaration n'est jamais repris au nom
+d'une autre : un post du blog déclaré à part dont le manifeste échoue
+reprend son seul enregistrement, et le reste du blog vient du manifeste
+du blog. Une entrée téléchargée passe toujours avant une entrée reprise,
+et un manifeste téléchargé remplace tout ce qui venait de lui.
+
+### Lire les anomalies
+
+`res$anomalies` est un tableau à une ligne par anomalie : `type`, `id`
+du contenu, `file` (le fichier de déclaration) et `message`, en français.
+
+| Type | Signification |
+|---|---|
+| `declaration_invalid` | déclaration refusée par `check_registry()`, ignorée |
+| `manifest_unreachable` | manifeste qui ne répond pas (404, erreur du serveur, délai de 30 secondes dépassé) |
+| `manifest_invalid` | manifeste illisible ou refusé par la validation |
+| `id_mismatch` | manifeste qui ne porte pas l'`id` de sa déclaration |
+| `duplicate_id` | entrée d'un manifeste collectif écartée : son `id` est déjà pris par un contenu déclaré ou par une entrée précédente |
+| `parent_unresolved` | `parent` qui ne désigne aucun contenu de la base ; l'enregistrement est gardé |
+| `previous_invalid` | base précédente illisible : la collecte s'est faite sans elle |
+
+Le message des trois types qui portent sur un manifeste dit si
+l'enregistrement précédent a été repris.

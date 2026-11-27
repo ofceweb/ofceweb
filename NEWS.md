@@ -47,6 +47,20 @@
   « Journal valide : 0 déclarations ». Un `registry/` vide reste valide et
   s'affiche « Journal vide : aucune déclaration. ».
 
+### Collecte de la base et `collect_contents()`
+
+* Nouvelle fonction `collect_contents()` : lit le journal de `contentdb`,
+  télécharge et valide chaque manifeste, et rend la base des contenus
+  (un enregistrement par contenu, champs v1 et cinq champs de
+  l'agrégateur) avec la liste des anomalies. Un manifeste défaillant
+  n'arrête pas la collecte : son enregistrement est repris de la base
+  précédente, ou absent.
+* Nouvelle fonction `write_contents()` : écrit la base dans
+  `contents.json`.
+* `validate_manifest()` attend au plus 30 secondes la réponse d'une URL.
+* L'article « Valider un manifeste » explique comment collecter la base et
+  lire les anomalies.
+
 ## ofceweb 1.0.6
 
 ### Extension Quarto `quarto-ife`

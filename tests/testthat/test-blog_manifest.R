@@ -1,4 +1,4 @@
-# Manifeste collectif du blog (#4139). Les tests construisent un faux blog
+# Manifeste collectif du blog. Les tests construisent un faux blog
 # dans un dossier temporaire : `_quarto.yml` et quelques posts, sans Quarto.
 
 # Un post = un dossier `posts/{folder}` et un ou deux fichiers `.qmd`.

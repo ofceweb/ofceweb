@@ -147,10 +147,7 @@ copy_post <- function(posts, lang = "fr",
         purrr::discard(~stringr::str_detect(.x, old_qmd))
       fs::file_delete(autres_qmd)
       fs::file_move(old_qmd, new_qmd)
-      post_name <- fs::path_file(file) |>
-        fs::path_ext_remove() |>
-        stringr::str_remove("\\.en$")
-      pdf_link <- glue::glue("{post_name}.{lang}.pdf")
+      pdf_link <- post_pdf_name(file, lang)
       yaml <- get_yaml(new_qmd)
 
       # Determine format based on the post type (GoW, EcoGraph, or standard blog)
@@ -201,8 +198,7 @@ copy_post <- function(posts, lang = "fr",
         description = title)
       # image: fig-{label} -> vignette générée à partir du chunk {label}
       # (cf. _utils/thumbnail.R du blog), il faut un vrai fichier pour le listing
-      if(!is.null(yaml$image) && stringr::str_detect(yaml$image, "^fig-[^./]+$"))
-        yaml$image <- stringr::str_c(yaml$image, ".png")
+      yaml$image <- post_image_name(yaml$image)
       if(is.null(yaml$image)) {
         if(length(fs::dir_ls(new_path, glob="*.jpg"))>0)
           new_img <- fs::dir_ls(new_path, glob="*.jpg")[[1]] |> fs::path_file()
